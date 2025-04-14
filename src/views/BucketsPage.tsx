@@ -4,6 +4,8 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { BucketsTable } from '../components/buckets/Table'
+import { useDebounce } from '../hooks/useDebounce'
+import { useEffect, useState } from 'react'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -11,6 +13,21 @@ dayjs.extend(timezone)
 export const FORMATTED_DATE_WITH_TIMEZONE = 'DD-MMM-YYYY hh:mm A [(UTC]Z[)]'
 
 export const BucketsPage = () => {
+  const [searchedBuckets, setSearchedBuckets] = useState<string>('')
+  const debouncedValue = useDebounce(searchedBuckets, 800)
+
+  useEffect(() => {
+    console.log('SEARCHING BUCKETS WITH NAME: ', debouncedValue)
+  }, [debouncedValue])
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchedBuckets(e.target.value)
+  }
+
+  const clearSearchInput = () => {
+    setSearchedBuckets('')
+  }
+
   return (
     <div className="flex flex-col items-center p-7 w-full">
       <div className="flex flex-col p-8 w-full bg-white gap-5">
@@ -24,16 +41,19 @@ export const BucketsPage = () => {
         <div className="flex flex-row max-w-[220px] items-center">
           <div className={`relative flex-1 bg-gray-100 w-max px-2 py-2.5`}>
             <input
-              type={'text'}
-              placeholder={'Search'}
+              type="text"
+              placeholder="Search"
               min={0}
-              required={true}
-              className="px-1 rounded-xs text-gray-500 text-sm"
+              required
+              className="px-1 rounded-xs text-black/80 text-sm border-none focus:outline-none focus:ring-0"
+              onChange={handleSearch}
+              value={searchedBuckets}
             />
             <div
-              onClick={() => {}}
+              onClick={clearSearchInput}
               onKeyDown={(e) =>
-                (e['code'] === 'Space' || e['code'] === 'Enter') && {}
+                (e['code'] === 'Space' || e['code'] === 'Enter') &&
+                clearSearchInput
               }
               className="absolute right-4 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center text-gray-400"
             >
