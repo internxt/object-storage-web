@@ -7,10 +7,7 @@ import {
 } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { BucketsPage } from './views/BucketsPage'
-import { NotFoundPage } from './views/NotFoundPage'
-import { LoginPage } from './views/LoginPage'
 
-// Envuelve las rutas protegidas con Layout
 const ProtectedRoutes = () => (
   <Layout>
     <Outlet />
@@ -21,7 +18,7 @@ export function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        {/* <Route path="/login" element={<LoginPage />} /> */}
 
         <Route element={<ProtectedRoutes />}>
           <Route path="/buckets" element={<BucketsPage />} />
@@ -30,7 +27,7 @@ export function App() {
 
         <Route path="/" element={<Navigate to="/buckets" />} />
 
-        <Route path="*" element={<NotFoundPage />} />
+        {/* <Route path="*" element={<NotFoundPage />} /> */}
       </Routes>
     </Router>
   )
