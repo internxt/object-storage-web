@@ -3,7 +3,10 @@ import { Separator } from '../components/Separator'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
-import { BucketsTable } from '../components/buckets/Table'
+import {
+  BucketsTable,
+  HeaderItemsTableProps,
+} from '../components/buckets/Table'
 import { useDebounce } from '../hooks/useDebounce'
 import { useEffect, useState } from 'react'
 
@@ -11,6 +14,24 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 
 export const FORMATTED_DATE_WITH_TIMEZONE = 'DD-MMM-YYYY hh:mm A [(UTC]Z[)]'
+
+const HEADER_ITEMS: HeaderItemsTableProps[] = [
+  {
+    title: 'Bucket',
+    sortKey: 'bucket',
+    defaultDirection: 'ASC',
+  },
+  {
+    title: 'Region',
+    sortKey: 'region',
+    defaultDirection: 'ASC',
+  },
+  {
+    title: 'Creation Time',
+    sortKey: 'createdAt',
+    defaultDirection: 'ASC',
+  },
+]
 
 export const BucketsPage = () => {
   const [searchedBuckets, setSearchedBuckets] = useState<string>('')
@@ -62,7 +83,7 @@ export const BucketsPage = () => {
           </div>
         </div>
         <div className="flex flex-col w-full">
-          <BucketsTable />
+          <BucketsTable headers={HEADER_ITEMS} />
         </div>
       </div>
     </div>

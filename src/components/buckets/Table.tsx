@@ -8,14 +8,27 @@ import { FORMATTED_DATE_WITH_TIMEZONE } from '../../views/BucketsPage'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-export const BucketsTable = () => {
+export interface HeaderItemsTableProps {
+  title: string
+  sortKey: string
+  defaultDirection: string
+}
+
+interface BucketsTableProps {
+  headers: HeaderItemsTableProps[]
+}
+
+export const BucketsTable = ({ headers }: BucketsTableProps) => {
   return (
     <table className="w-full">
       <thead>
         <tr className="w-full h-12 bg-gray-100 text-black text-sm">
-          <th className="w-[33%] px-5 text-left">Bucket</th>
-          <th className="w-[33%] px-5 text-left">Region</th>
-          <th className="w-[33%] px-5 text-left">Creation time</th>
+          {headers.map((header) => (
+            <th key={header.sortKey} className="w-[33%] px-5 text-left">
+              {header.title}
+            </th>
+          ))}
+
           <th className="w-[1%]" />
         </tr>
       </thead>
