@@ -1,24 +1,34 @@
-import { useState } from 'react'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from 'react-router-dom'
+import { Layout } from './components/Layout'
+import { BucketsPage } from './views/BucketsPage'
 
-function App() {
-  const [count, setCount] = useState(0)
+const ProtectedRoutes = () => (
+  <Layout>
+    <Outlet />
+  </Layout>
+)
 
+export function App() {
   return (
-    <>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Router>
+      <Routes>
+        {/* <Route path="/login" element={<LoginPage />} /> */}
+
+        <Route element={<ProtectedRoutes />}>
+          <Route path="/buckets" element={<BucketsPage />} />
+          {/* <Route path="/usage" element={<HomePage />} /> */}
+        </Route>
+
+        <Route path="/" element={<Navigate to="/buckets" />} />
+
+        {/* <Route path="*" element={<NotFoundPage />} /> */}
+      </Routes>
+    </Router>
   )
 }
-
-export default App
