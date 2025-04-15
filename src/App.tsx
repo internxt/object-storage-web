@@ -7,6 +7,7 @@ import {
 } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { BucketsPage } from './views/BucketsPage'
+import { LoginPage } from './views/LoginPage'
 
 const ProtectedRoutes = () => (
   <Layout>
@@ -18,7 +19,7 @@ export function App() {
   return (
     <Router>
       <Routes>
-        {/* <Route path="/login" element={<LoginPage />} /> */}
+        <Route path="/login" element={<LoginPage />} />
 
         <Route element={<ProtectedRoutes />}>
           <Route path="/buckets" element={<BucketsPage />} />

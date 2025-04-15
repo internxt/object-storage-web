@@ -50,7 +50,7 @@ export const BucketsPage = () => {
   }
 
   return (
-    <div className="flex flex-col items-center p-7 w-full">
+    <section className="flex flex-col items-center p-7 w-full">
       <div className="flex flex-col p-8 w-full bg-white gap-5">
         <div className="flex flex-row w-full justify-between items-center">
           <p className="font-semibold text-lg">Buckets</p>
@@ -86,6 +86,6 @@ export const BucketsPage = () => {
           <BucketsTable headers={HEADER_ITEMS} />
         </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -1,7 +1,18 @@
-import { ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { ReactNode, useEffect } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { localStorageService } from '../services/localStorage.service'
 
 export const Layout = ({ children }: { children: ReactNode }) => {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const useToken = localStorageService.getUserToken()
+
+    if (!useToken) {
+      navigate('/login', { replace: true })
+    }
+  }, [])
+
   return (
     <div className="flex flex-col min-h-screen">
       <div className="flex flex-row w-screen h-[60px] gap-10 items-center px-10 bg-[#091E42]">
