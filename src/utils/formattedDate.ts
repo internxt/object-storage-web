@@ -5,6 +5,6 @@ import timezone from 'dayjs/plugin/timezone'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-export function formattedDate(format: string) {
-  return dayjs().format(format)
+export function formattedDate(format: string, date?: Date) {
+  return dayjs(date).format(format)
 }
