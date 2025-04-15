@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import PasswordInput, { IFormValues } from '../components/PasswordInput'
 import TextInput from '../components/auth/TextInput'
-import { AuthService } from '../services/auth.service'
+import { authService } from '../services/auth.service'
 import { useNavigate } from 'react-router-dom'
 import { localStorageService } from '../services/localStorage.service'
 import { useEffect } from 'react'
@@ -33,7 +33,7 @@ export const LoginPage = () => {
     const { email, password } = formData
 
     try {
-      const logIn = await AuthService.getInstance().logIn(email, password)
+      const logIn = await authService.logIn(email, password)
 
       if (logIn.token) {
         localStorageService.setUserToken(logIn.token)
