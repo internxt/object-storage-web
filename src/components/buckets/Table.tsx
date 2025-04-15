@@ -33,10 +33,7 @@ export const BucketsTable = ({ headers }: BucketsTableProps) => {
         </tr>
       </thead>
       <tbody>
-        <tr
-          className="w-full h-12 text-sm text-gray-500 hover:bg-gray-100 hover:cursor-pointer"
-          onClick={() => {}}
-        >
+        <tr className="w-full h-12 text-sm text-gray-500" onClick={() => {}}>
           <td className="w-[33%] px-5">Bucket 1</td>
           <td className="w-[33%] px-5">Region 1</td>
           <td className="w-[33%] px-5">

@@ -2,17 +2,8 @@ export const LOCAL_STORAGE_KEYS = {
   USER_TOKEN: 'userToken',
 }
 
-export const set = (key: string, value: string): void => {
-  localStorage.setItem(key, JSON.stringify(value))
-}
-
-export const get = (key: string): string | null => {
-  const value = localStorage.getItem(key)
-  return value ? JSON.parse(value) : null
-}
-
 export const setUserToken = (token: string): void => {
-  set(LOCAL_STORAGE_KEYS.USER_TOKEN, token)
+  localStorage.setItem(LOCAL_STORAGE_KEYS.USER_TOKEN, token)
 }
 
 export const getUserToken = (): string | null => {
@@ -24,8 +15,6 @@ export const removeUserToken = (): void => {
 }
 
 export const localStorageService = {
-  set,
-  get,
   setUserToken,
   getUserToken,
   removeUserToken,

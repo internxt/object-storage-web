@@ -8,6 +8,7 @@ import {
 import { Layout } from './components/Layout'
 import { BucketsPage } from './views/BucketsPage'
 import { LoginPage } from './views/LoginPage'
+import { UsagePage } from './views/UsagePage'
 
 const ProtectedRoutes = () => (
   <Layout>
@@ -23,7 +24,7 @@ export function App() {
 
         <Route element={<ProtectedRoutes />}>
           <Route path="/buckets" element={<BucketsPage />} />
-          {/* <Route path="/usage" element={<HomePage />} /> */}
+          <Route path="/usage" element={<UsagePage />} />
         </Route>
 
         <Route path="/" element={<Navigate to="/buckets" />} />
