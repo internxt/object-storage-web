@@ -12,7 +12,6 @@ import { JSX, KeyboardEvent, useEffect, useRef, useState } from 'react'
 export interface InputProps {
   className?: string
   label?: string
-
   variant?: 'default' | 'search' | 'password' | 'email'
   accent?: 'error' | 'warning' | 'success'
   disabled?: boolean
