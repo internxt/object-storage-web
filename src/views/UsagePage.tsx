@@ -94,7 +94,7 @@ export const UsagePage = () => {
         </div>
         <div className="flex flex-col w-full justify-between h-full">
           <UsageTable headers={TABLE_HEADERS} usage={paginatedData} />
-          <div className="flex flex-row items-end justify-end w-full pr-10">
+          <div className="flex flex-row items-end justify-end w-full">
             <div className="items-center flex flex-row gap-3">
               <p>
                 {pageInfo.from}-{pageInfo.to} of {totalItems}

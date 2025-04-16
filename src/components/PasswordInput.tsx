@@ -22,6 +22,8 @@ export interface IFormValues {
   userRole: string
   companyName: string
   companyVatId: string
+  newPassword: string
+  repeatNewPassword: string
 }
 
 import { JSX } from 'react'
