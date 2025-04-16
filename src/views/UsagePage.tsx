@@ -6,6 +6,7 @@ import { DateRangePicker } from '../components/DatePicker'
 import dayjs from 'dayjs'
 import { usePaginatedUsageData } from '../hooks/usePaginatedUserData'
 import { CaretLeft, CaretRight } from '@phosphor-icons/react'
+import notificationsService from '../services/notifications.service'
 
 const INFO_CARDS = [
   {
@@ -41,8 +42,15 @@ const TABLE_HEADERS = [
   },
 ]
 
+const DEFAULT_GENERAL_DATA = {
+  totalUsage: '-',
+  downloads: '-',
+  uploads: '-',
+}
+
 export const UsagePage = () => {
   const [usageData, setUsageData] = useState<Usage[]>([])
+  const [generalData, setGeneralData] = useState(DEFAULT_GENERAL_DATA)
 
   const {
     paginatedData,
@@ -54,31 +62,46 @@ export const UsagePage = () => {
     hasPrevPage,
   } = usePaginatedUsageData(usageData, 20)
 
-  const [dateRange, setDateRange] = useState({
-    startDate: dayjs().subtract(1, 'month').toDate(),
-    endDate: dayjs().toDate(),
-  })
-  const totalUsage = usageData[0]
-
   useEffect(() => {
-    usageService
-      .getUsage(
-        dateRange.startDate.toISOString(),
-        dateRange.endDate.toISOString()
-      )
-      .then((usage) => {
-        setUsageData(usage)
-      })
-      .catch((error) => {
-        console.log('Error fetching usage data:', error)
-      })
-  }, [dateRange])
+    const startDate = dayjs().subtract(1, 'month').toDate()
+    const endDate = dayjs().toDate()
 
-  const onRangeChange = (startDate: Date, endDate: Date) => {
-    setDateRange({
-      startDate,
-      endDate,
-    })
+    getUsage(startDate.toDateString(), endDate.toDateString())
+  }, [])
+
+  const getUsage = async (startDate: string, endDate: string) => {
+    try {
+      const usage = await usageService.getUsage(startDate, endDate)
+      if (usage.length === 0) {
+        setGeneralData(DEFAULT_GENERAL_DATA)
+      } else {
+        setGeneralData({
+          downloads: usage[0].downloads.toString(),
+          totalUsage: usage[0].totalUsage.toString(),
+          uploads: usage[0].uploads.toString(),
+        })
+      }
+
+      setUsageData(usage)
+    } catch (error) {
+      const err = error as Error
+      console.log('Error fetching usage data:', error)
+      notificationsService.error({
+        text: err.message,
+      })
+    }
+  }
+
+  const onApplyFilter = async (startDate: string, endDate: string) => {
+    try {
+      await getUsage(startDate, endDate)
+    } catch (error) {
+      const err = error as Error
+      console.log('Error fetching usage data:', error)
+      notificationsService.error({
+        text: err.message,
+      })
+    }
   }
 
   return (
@@ -88,8 +111,8 @@ export const UsagePage = () => {
           <div className="flex w-full">
             <h1 className="text-xl font-bold text-black">Account Usage</h1>
           </div>
-          <div className="flex flex-col w-full justify-end items-end">
-            <DateRangePicker range={dateRange} onChangeDate={onRangeChange} />
+          <div className="flex flex-col w-full justify-end items-end gap-2">
+            <DateRangePicker onApplyFilterButtonClicked={onApplyFilter} />
           </div>
         </div>
         <div className="flex flex-col w-full justify-between h-full">
@@ -132,16 +155,15 @@ export const UsagePage = () => {
         </div>
       </div>
       <div className="flex flex-col w-auto gap-5 justify-center items-center">
-        {totalUsage &&
-          INFO_CARDS.map((infoCard) => {
-            return (
-              <InfoCard
-                key={infoCard.name}
-                value={totalUsage[infoCard.key]}
-                name={infoCard.name}
-              />
-            )
-          })}
+        {INFO_CARDS.map((infoCard) => {
+          return (
+            <InfoCard
+              key={infoCard.name}
+              value={generalData[infoCard.key]}
+              name={infoCard.name}
+            />
+          )
+        })}
       </div>
     </section>
   )

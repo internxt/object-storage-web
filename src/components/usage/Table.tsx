@@ -29,26 +29,25 @@ export const UsageTable = ({ headers, usage }: UsageTableProps) => {
         </tr>
       </thead>
       <tbody>
-        {usage.map(({ id, downloads, recordDate, totalUsage, uploads }) => (
-          <tr
-            key={id}
-            className="w-full h-12 text-sm text-gray-500"
-            onClick={() => {}}
-          >
-            <td key={recordDate} className="w-[25%] px-5 text-left">
-              {recordDate}
-            </td>
-            <td key={totalUsage} className="w-[25%] px-5 text-left">
-              {totalUsage}
-            </td>
-            <td key={downloads} className="w-[25%] px-5 text-left">
-              {downloads}
-            </td>
-            <td key={uploads} className="w-[25%] px-5 text-left">
-              {uploads}
+        {usage.length > 0 ? (
+          usage.map(({ id, downloads, recordDate, totalUsage, uploads }) => (
+            <tr key={id} className="w-full h-12 text-sm text-gray-500">
+              <td className="w-[25%] px-5 text-left">{recordDate}</td>
+              <td className="w-[25%] px-5 text-left">{totalUsage}</td>
+              <td className="w-[25%] px-5 text-left">{downloads}</td>
+              <td className="w-[25%] px-5 text-left">{uploads}</td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td
+              colSpan={headers.length}
+              className="text-center py-4 text-sm text-gray-400"
+            >
+              There are no results to show
             </td>
           </tr>
-        ))}
+        )}
       </tbody>
     </table>
   )
