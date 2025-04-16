@@ -1,9 +1,11 @@
-import { DotsThreeVertical } from '@phosphor-icons/react'
+import { DotsThreeVertical, Trash } from '@phosphor-icons/react'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import { formattedDate } from '../../utils/formattedDate'
 import { FORMATTED_DATE_WITH_TIMEZONE } from '../../views/BucketsPage'
+import { Dropdown } from '../Dropdown'
+import { Bucket } from '../../services/buckets.service'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -16,9 +18,15 @@ export interface HeaderItemsTableProps {
 
 interface BucketsTableProps {
   headers: HeaderItemsTableProps[]
+  buckets: Bucket[]
+  onDeleteBucketsClicked: () => void
 }
 
-export const BucketsTable = ({ headers }: BucketsTableProps) => {
+export const BucketsTable = ({
+  headers,
+  buckets,
+  onDeleteBucketsClicked,
+}: BucketsTableProps) => {
   return (
     <table className="w-full">
       <thead>
@@ -33,16 +41,37 @@ export const BucketsTable = ({ headers }: BucketsTableProps) => {
         </tr>
       </thead>
       <tbody>
-        <tr className="w-full h-12 text-sm text-gray-500" onClick={() => {}}>
-          <td className="w-[33%] px-5">Bucket 1</td>
-          <td className="w-[33%] px-5">Region 1</td>
-          <td className="w-[33%] px-5">
-            {formattedDate(FORMATTED_DATE_WITH_TIMEZONE)}
-          </td>
-          <td className="w-[1%] px-5">
-            <DotsThreeVertical width={20} height={20} weight="bold" />
-          </td>
-        </tr>
+        {buckets.map((bucket) => (
+          <tr
+            className="w-full h-12 text-sm text-gray-500"
+            onClick={() => {}}
+            key={bucket.id}
+          >
+            <td className="w-[33%] px-5">{bucket.name}</td>
+            <td className="w-[33%] px-5">{bucket.region}</td>
+            <td className="w-[33%] px-5">
+              {formattedDate(FORMATTED_DATE_WITH_TIMEZONE, bucket.creationDate)}
+            </td>
+            <td className="w-[1%] px-5">
+              <Dropdown
+                button={
+                  <DotsThreeVertical
+                    size={28}
+                    weight="bold"
+                    className="hover:bg-gray-200 rounded-full p-1"
+                  />
+                }
+                items={[
+                  {
+                    label: 'Delete',
+                    icon: <Trash size={18} className="text-red-600" />,
+                    onClick: onDeleteBucketsClicked,
+                  },
+                ]}
+              />
+            </td>
+          </tr>
+        ))}
       </tbody>
     </table>
   )
