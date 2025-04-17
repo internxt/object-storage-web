@@ -7,6 +7,7 @@ import { CaretDown } from '@phosphor-icons/react'
 import { Separator } from '../Separator'
 import notificationsService from '../../services/notifications.service'
 import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion'
+import { isValidBucketName } from '../../utils/isBucketNameValid'
 
 interface DeleteBucketModalProps {
   isCreateBucketOpened: boolean
@@ -24,6 +25,7 @@ export const CreateBucketModal = ({
 }: DeleteBucketModalProps) => {
   const [bucketName, setBucketName] = useState<string>('')
   const [bucketRegion, setBucketRegion] = useState<Bucket['region']>('eu-ie')
+  const [isNameValid, setIsNameValid] = useState(false)
   const [regions, setRegions] = useState<Region[]>()
 
   useEffect(() => {
@@ -43,6 +45,15 @@ export const CreateBucketModal = ({
     }
   }, [isCreateBucketOpened])
 
+  const onBucketNameChange = (bucketName: string) => {
+    if (!bucketName) {
+      setIsNameValid(true)
+      return
+    }
+    setBucketName(bucketName)
+    setIsNameValid(isValidBucketName(bucketName))
+  }
+
   return (
     <Modal isOpen={isCreateBucketOpened} onClose={onClose}>
       <div className="flex flex-col gap-5">
@@ -52,7 +63,10 @@ export const CreateBucketModal = ({
           <Input
             label="Bucket Name"
             className="text-black/60"
-            onChange={setBucketName}
+            onChange={onBucketNameChange}
+            tooltip="Bucket names must be between 3 and 63 characters, contain only lowercase letters, numbers, dots (.), and hyphens (-). They must start and end with a letter or number, and must not contain consecutive periods or combinations like '-.' or '.-'."
+            accent={!isNameValid ? 'error' : 'success'}
+            message={!isNameValid ? 'Bucket name is invalid' : ''}
           />
           <Dropdown
             width="w-full z-50"
