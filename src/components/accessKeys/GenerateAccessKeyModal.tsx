@@ -35,14 +35,17 @@ export const GenerateAccessKeysModal = ({
   onCreateAccessKey,
 }: CreateAccessKeyModal) => {
   const [accessKeyName, setAccessKeyName] = useState<string>('')
-  const [region, setRegion] = useState<Bucket['region']>('eu-ie')
+  const [region, setRegion] = useState<Bucket['region']>('us-va')
   const [permission, setPermission] = useState<AccessKeyPermission>('read')
   const [regions, setRegions] = useState<Region[]>()
 
   useEffect(() => {
     bucketsService
       .getRegions()
-      .then((regions) => setRegions(regions))
+      .then((regions) => {
+        setRegions(regions)
+        setRegion(regions.find((region) => region.enabled)?.region ?? 'us-va')
+      })
       .catch((err) => {
         const error = err as Error
 
@@ -99,12 +102,30 @@ export const GenerateAccessKeysModal = ({
             items={
               regions
                 ? regions.map((region) => ({
-                    label:
-                      getFlagAndNameFromRegion(region.region).flag +
-                      getFlagAndNameFromRegion(region.region).name,
-
+                    disabled: !region.enabled,
+                    render: () => (
+                      <div className="flex flex-row w-full items-center justify-between">
+                        <div className="px-4 py-2 text-left text-gray-700 flex items-center gap-3">
+                          <p>{getFlagAndNameFromRegion(region.region).flag}</p>
+                          <p className="text-black">
+                            {getFlagAndNameFromRegion(region.region).name}
+                          </p>
+                        </div>
+                        <div className="flex flex-row items-center gap-3">
+                          <div className="h-3 w-3 rounded-full border border-black/30 p-[1px]">
+                            <div
+                              className={`h-full w-full rounded-full  ${
+                                region.enabled ? 'bg-green-500' : 'bg-red-500'
+                              }`}
+                            />
+                          </div>
+                          <p className="text-sm">
+                            {region.enabled ? 'Active' : 'Inactive'}
+                          </p>
+                        </div>
+                      </div>
+                    ),
                     onClick: () => setRegion(region.region),
-                    active: region.enabled,
                   }))
                 : []
             }
