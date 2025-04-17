@@ -1,5 +1,6 @@
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AccountSettings } from './Account'
+import { AccessKeys } from './AccessKeys'
 
 const TAB_SETTINGS = [
   {
@@ -10,7 +11,7 @@ const TAB_SETTINGS = [
   {
     id: 'access-keys',
     name: 'Access Keys',
-    component: <AccountSettings />,
+    component: <AccessKeys />,
   },
 ]
 

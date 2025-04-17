@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { localStorageService } from './localStorage.service'
 
-type RegionBucket = 'eu-ie' | 'us-va'
+export type RegionBucket = 'eu-ie' | 'us-va'
 
 export interface Bucket {
   id: string
