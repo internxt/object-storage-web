@@ -27,19 +27,21 @@ export const CreateBucketModal = ({
   const [regions, setRegions] = useState<Region[]>()
 
   useEffect(() => {
-    bucketsService
-      .getRegions()
-      .then((regions) => setRegions(regions))
-      .catch((err) => {
-        const error = err as Error
+    if (isCreateBucketOpened) {
+      bucketsService
+        .getRegions()
+        .then((regions) => setRegions(regions))
+        .catch((err) => {
+          const error = err as Error
 
-        notificationsService.error({
-          text: error.message,
+          notificationsService.error({
+            text: error.message,
+          })
+
+          onClose()
         })
-
-        onClose()
-      })
-  }, [])
+    }
+  }, [isCreateBucketOpened])
 
   return (
     <Modal isOpen={isCreateBucketOpened} onClose={onClose}>

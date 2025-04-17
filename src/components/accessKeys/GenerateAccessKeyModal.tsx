@@ -40,22 +40,24 @@ export const GenerateAccessKeysModal = ({
   const [regions, setRegions] = useState<Region[]>()
 
   useEffect(() => {
-    bucketsService
-      .getRegions()
-      .then((regions) => {
-        setRegions(regions)
-        setRegion(regions.find((region) => region.enabled)?.region ?? 'us-va')
-      })
-      .catch((err) => {
-        const error = err as Error
-
-        notificationsService.error({
-          text: error.message,
+    if (isCreateAccessKeyModalOpen) {
+      bucketsService
+        .getRegions()
+        .then((regions) => {
+          setRegions(regions)
+          setRegion(regions.find((region) => region.enabled)?.region ?? 'us-va')
         })
+        .catch((err) => {
+          const error = err as Error
 
-        onClose()
-      })
-  }, [])
+          notificationsService.error({
+            text: error.message,
+          })
+
+          onClose()
+        })
+    }
+  }, [isCreateAccessKeyModalOpen])
 
   return (
     <Modal isOpen={isCreateAccessKeyModalOpen} onClose={onClose}>

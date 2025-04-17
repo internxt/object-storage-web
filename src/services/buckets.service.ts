@@ -1,5 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios'
-import { localStorageService } from './localStorage.service'
+import axiosInstance from '../core/config/axios'
 
 export type RegionBucket = 'eu-ie' | 'us-va'
 
@@ -21,16 +20,8 @@ export interface Region {
 }
 
 const getBuckets = async (): Promise<Bucket[]> => {
-  const userToken = localStorageService.getUserToken()
-  const config: AxiosRequestConfig = {
-    headers: {
-      Authorization: `Bearer ${userToken}`,
-    },
-  }
-
-  const bucketsResponse = await axios.get(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets`,
-    config
+  const bucketsResponse = await axiosInstance.get(
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets`
   )
 
   const buckets = bucketsResponse.data.map((bucket: Bucket) => ({
@@ -42,52 +33,26 @@ const getBuckets = async (): Promise<Bucket[]> => {
 }
 
 const createBucket = async (name: Bucket['name'], region: Bucket['region']) => {
-  const userToken = localStorageService.getUserToken()
-  const config: AxiosRequestConfig = {
-    headers: {
-      Authorization: `Bearer ${userToken}`,
-      'Content-Type': 'application/json',
-    },
-  }
-
-  return axios.post(
+  return axiosInstance.post(
     `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets`,
     {
       name,
       region,
-    },
-    config
+    }
   )
 }
 
 const deleteBucket = (bucketName: Bucket['name'], region: Bucket['region']) => {
-  const userToken = localStorageService.getUserToken()
-  const config: AxiosRequestConfig = {
-    headers: {
-      Authorization: `Bearer ${userToken}`,
-    },
-  }
-
-  return axios.delete(
+  return axiosInstance.delete(
     `${
       import.meta.env.VITE_OBJECT_STORAGE_API_URL
-    }/users/buckets/${bucketName}?region=${region}`,
-    config
+    }/users/buckets/${bucketName}?region=${region}`
   )
 }
 
 const getRegions = async (): Promise<Region[]> => {
-  const userToken = localStorageService.getUserToken()
-  const config: AxiosRequestConfig = {
-    headers: {
-      Authorization: `Bearer ${userToken}`,
-    },
-  }
-
-  const regions = await axios.get(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/regions`,
-
-    config
+  const regions = await axiosInstance.get(
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/regions`
   )
 
   return regions.data
