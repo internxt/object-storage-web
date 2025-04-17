@@ -77,14 +77,14 @@ export default function Tooltip({
       className={`relative w-max ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      style={{ lineHeight: 0 }}
+      style={{ lineHeight: 0, maxWidth: '200px' }}
     >
       <div
         className={`pointer-events-none absolute ${tooltipPosition} flex items-center ${trianglePosition} drop-shadow-tooltip transition-all duration-150 ${
           visible ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
         }`}
       >
-        <div className="w-max rounded-lg bg-gray-200 px-4 py-1.5 text-center dark:bg-gray-5">
+        <div className="max-w-xs w-max rounded-lg bg-gray-800 px-4 py-1.5 text-center">
           <p className="text-base text-white">{title}</p>
           {subtitle && <p className="-mt-1 text-sm text-gray-40">{subtitle}</p>}
         </div>

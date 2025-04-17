@@ -2,12 +2,14 @@ import {
   CheckCircle,
   Eye,
   EyeSlash,
+  Info,
   MagnifyingGlass,
   Warning,
   WarningOctagon,
   X,
 } from '@phosphor-icons/react'
 import { JSX, KeyboardEvent, useEffect, useRef, useState } from 'react'
+import Tooltip from './Tooltip'
 
 export interface InputProps {
   className?: string
@@ -30,6 +32,7 @@ export interface InputProps {
   required?: boolean
   labelDataCy?: string
   inputDataCy?: string
+  tooltip?: string
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
 }
 
@@ -128,6 +131,7 @@ const Input = ({
   required = false,
   labelDataCy,
   inputDataCy,
+  tooltip,
   onKeyDown,
 }: InputProps): JSX.Element => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -237,7 +241,7 @@ const Input = ({
 
   switch (accent) {
     case 'success':
-      messageColor = 'text-green'
+      messageColor = 'text-green-500'
       MessageIcon = CheckCircle
       break
     case 'warning':
@@ -245,25 +249,38 @@ const Input = ({
       MessageIcon = Warning
       break
     case 'error':
-      messageColor = 'text-red'
+      messageColor = 'text-red-500'
       MessageIcon = WarningOctagon
       break
     default:
-      messageColor = 'text-gray-80'
+      messageColor = 'text-gray-808'
   }
 
   return (
     <div className={`${className}`}>
       {label ? (
-        <label>
-          <span
-            data-cy={labelDataCy}
-            className={`text-sm ${disabled ? 'text-gray-40' : 'text-gray-80'}`}
-          >
-            {label}
-          </span>
+        <div className="flex flex-col gap-1 w-full">
+          <label className="flex items-center gap-1">
+            <span
+              data-cy={labelDataCy}
+              className={`text-sm ${
+                disabled ? 'text-gray-40' : 'text-gray-80'
+              }`}
+            >
+              {label}
+            </span>
+            {tooltip && (
+              <Tooltip
+                popsFrom="bottom"
+                title={tooltip}
+                className="text-black cursor-pointer z-20"
+              >
+                <Info size={14} />
+              </Tooltip>
+            )}
+          </label>
           {input}
-        </label>
+        </div>
       ) : (
         input
       )}
