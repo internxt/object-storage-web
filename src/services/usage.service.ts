@@ -1,6 +1,5 @@
-import axios, { AxiosRequestConfig } from 'axios'
-import { localStorageService } from './localStorage.service'
 import sizeService from './size.service'
+import axiosInstance from '../core/config/axios'
 
 export interface Usage {
   id: string
@@ -11,21 +10,14 @@ export interface Usage {
 }
 
 const getUsage = async (from: string, to: string): Promise<Usage[]> => {
-  const token = localStorageService.getUserToken()
-
-  const config: AxiosRequestConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    params: {
-      from,
-      to,
-    },
-  }
-
-  const usageResponse = await axios.get(
+  const usageResponse = await axiosInstance.get(
     `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/usage`,
-    config
+    {
+      params: {
+        from,
+        to,
+      },
+    }
   )
 
   const usage = usageResponse.data.map((usage: Usage) => ({

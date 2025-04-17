@@ -1,6 +1,5 @@
-import axios, { AxiosRequestConfig } from 'axios'
-import { localStorageService } from './localStorage.service'
 import { RegionBucket } from './buckets.service'
+import axiosInstance from '../core/config/axios'
 
 export type AccessKeyPermission = 'read' | 'write' | 'read-write'
 
@@ -20,16 +19,8 @@ interface CreateAccessKeyPayload {
 }
 
 const getAccessKeys = async (): Promise<AccessKey[]> => {
-  const userToken = localStorageService.getUserToken()
-  const config: AxiosRequestConfig = {
-    headers: {
-      Authorization: `Bearer ${userToken}`,
-    },
-  }
-
-  const accessKeysResponse = await axios.get(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/access-keys`,
-    config
+  const accessKeysResponse = await axiosInstance.get(
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/access-keys`
   )
 
   return accessKeysResponse.data
@@ -40,21 +31,13 @@ const createAccessKey = async ({
   permission,
   region,
 }: CreateAccessKeyPayload) => {
-  const userToken = localStorageService.getUserToken()
-  const config: AxiosRequestConfig = {
-    headers: {
-      Authorization: `Bearer ${userToken}`,
-    },
-  }
-
-  const createdAccessKeysResponse = await axios.post(
+  const createdAccessKeysResponse = await axiosInstance.post(
     `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/access-keys`,
     {
       name,
       permission,
       region,
-    },
-    config
+    }
   )
 
   return createdAccessKeysResponse.data
@@ -67,20 +50,12 @@ const removeAccessKey = async ({
   region: RegionBucket
   accessKeyId: string
 }) => {
-  const userToken = localStorageService.getUserToken()
-  const config: AxiosRequestConfig = {
-    headers: {
-      Authorization: `Bearer ${userToken}`,
-    },
-  }
-
-  return axios.post(
+  return axiosInstance.post(
     `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/access-keys/remove`,
     {
       region,
       accessKeyId,
-    },
-    config
+    }
   )
 }
 

@@ -1,5 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios'
-import { localStorageService } from './localStorage.service'
+import axiosInstance from '../core/config/axios'
 
 export interface User {
   email: string
@@ -8,16 +7,8 @@ export interface User {
 }
 
 const getUserData = async (): Promise<User> => {
-  const token = localStorageService.getUserToken()
-
-  const config: AxiosRequestConfig = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-  const userDataResponse = await axios.get(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/account`,
-    config
+  const userDataResponse = await axiosInstance.get(
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/account`
   )
 
   return userDataResponse.data
