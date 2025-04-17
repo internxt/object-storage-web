@@ -4,6 +4,7 @@ type DropdownItem = {
   label: string
   icon?: ReactNode
   onClick: () => void
+  render?: () => ReactNode
 }
 
 interface DropdownProps {
@@ -39,7 +40,7 @@ export const Dropdown = ({ button, items, width = 'w-36' }: DropdownProps) => {
           className={`absolute right-0 mt-2 bg-white rounded shadow-lg z-50 ${width}`}
         >
           <div className="flex flex-col py-0.5">
-            {items.map(({ label, icon, onClick }) => (
+            {items.map(({ label, icon, onClick, render }) => (
               <button
                 key={label}
                 onClick={() => {
@@ -48,8 +49,14 @@ export const Dropdown = ({ button, items, width = 'w-36' }: DropdownProps) => {
                 }}
                 className="px-4 py-2 text-left text-gray-700 hover:bg-gray-100 flex items-center justify-between"
               >
-                {label}
-                {icon}
+                {render ? (
+                  render()
+                ) : (
+                  <>
+                    {label}
+                    {icon}
+                  </>
+                )}
               </button>
             ))}
           </div>

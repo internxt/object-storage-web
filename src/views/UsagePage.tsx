@@ -85,7 +85,6 @@ export const UsagePage = () => {
       setUsageData(usage)
     } catch (error) {
       const err = error as Error
-      console.log('Error fetching usage data:', error)
       notificationsService.error({
         text: err.message,
       })
@@ -97,7 +96,6 @@ export const UsagePage = () => {
       await getUsage(startDate, endDate)
     } catch (error) {
       const err = error as Error
-      console.log('Error fetching usage data:', error)
       notificationsService.error({
         text: err.message,
       })

@@ -7,21 +7,32 @@ import { CaretDown } from '@phosphor-icons/react'
 import { Separator } from '../Separator'
 import notificationsService from '../../services/notifications.service'
 import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion'
-import { AccessKeyPermission } from '../../services/access-keys.service'
+import {
+  AccessKey,
+  AccessKeyPermission,
+} from '../../services/access-keys.service'
+import { getAccessPermissionFormatted } from '../../utils/getAccessKeyPermissionFormatted'
 
 interface CreateAccessKeyModal {
-  isCreateBucketOpened: boolean
+  isCreateAccessKeyModalOpen: boolean
   onClose: () => void
-  onCreateBucket: (
-    bucketName: Bucket['name'],
-    bucketRegion: Bucket['region']
+  onCreateAccessKey: (
+    accessKeyName: AccessKey['name'],
+    accessKeyPermission: AccessKeyPermission,
+    accessKeyRegion: AccessKey['region']
   ) => Promise<void>
 }
 
-export const CreateAccesskeyModal = ({
-  isCreateBucketOpened,
+const AccessKeyPermissions: AccessKeyPermission[] = [
+  'read',
+  'write',
+  'read-write',
+]
+
+export const GenerateAccessKeysModal = ({
+  isCreateAccessKeyModalOpen,
   onClose,
-  onCreateBucket,
+  onCreateAccessKey,
 }: CreateAccessKeyModal) => {
   const [accessKeyName, setAccessKeyName] = useState<string>('')
   const [region, setRegion] = useState<Bucket['region']>('eu-ie')
@@ -44,16 +55,34 @@ export const CreateAccesskeyModal = ({
   }, [])
 
   return (
-    <Modal isOpen={isCreateBucketOpened} onClose={onClose}>
+    <Modal isOpen={isCreateAccessKeyModalOpen} onClose={onClose}>
       <div className="flex flex-col gap-5">
-        <p className="text-black text-xl font-semibold">Create Bucket</p>
+        <p className="text-black text-xl font-semibold">Generate Access Key</p>
         <Separator />
         <div className="flex flex-col w-full gap-4">
           <Input
-            label="Bucket Name"
+            label="Access Key Name"
             className="text-black/60"
             onChange={setAccessKeyName}
           />
+          <Dropdown
+            width="w-full z-50"
+            button={
+              <div className="flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center">
+                <div className="flex flex-row gap-2 items-center">
+                  <p className="text-black">
+                    {getAccessPermissionFormatted(permission)}
+                  </p>
+                </div>
+                <CaretDown size={14} className="text-black" />
+              </div>
+            }
+            items={AccessKeyPermissions.map((permission) => ({
+              label: getAccessPermissionFormatted(permission),
+              onClick: () => setPermission(permission),
+            }))}
+          />
+
           <Dropdown
             width="w-full z-50"
             button={
@@ -90,7 +119,7 @@ export const CreateAccesskeyModal = ({
           </button>
           <button
             className="flex text-white bg-blue-600 rounded-sm py-2 px-3"
-            onClick={() => onCreateBucket(accessKeyName, region)}
+            onClick={() => onCreateAccessKey(accessKeyName, permission, region)}
           >
             Create
           </button>

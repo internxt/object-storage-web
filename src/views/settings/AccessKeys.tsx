@@ -4,11 +4,15 @@ import { Separator } from '../../components/Separator'
 import { useEffect, useState } from 'react'
 import {
   AccessKey,
+  AccessKeyPermission,
   accessKeysService,
 } from '../../services/access-keys.service'
 import notificationsService from '../../services/notifications.service'
 import { AccessKeyTable } from './AccessKeysTable'
 import Dialog from '../../components/Dialog'
+import { GenerateAccessKeysModal } from '../../components/accessKeys/GenerateAccessKeyModal'
+import { PreviewGeneratedAccessKeysModal } from '../../components/accessKeys/PreviewGeneratedAccessKeysModal'
+import { copyToClipboard } from '../../utils/copyToClipboard'
 
 const TABLE_HEADERS = [
   {
@@ -57,10 +61,14 @@ const ManageKeysDropdown = ({
 export const AccessKeys = () => {
   const [accessKeys, setAccessKeys] = useState<AccessKey[]>([])
   const [accessKeyToDelete, setAccessKeyToDelete] = useState<AccessKey | null>()
+  const [newGeneratedAccessKey, setNewGeneratedAccessKey] =
+    useState<AccessKey | null>()
   const [isGenerateKeysDialogOpened, setIsGenerateKeysDialogOpened] =
-    useState(false)
+    useState<boolean>(false)
+  const [isPreviewGeneratedKeysModalOpen, setIsPreviewGeneratedKeysModalOpen] =
+    useState<boolean>(false)
   const [isDeleteAccessKeyDialogOpen, setIsDeleteAccessKeyDialogOpen] =
-    useState(false)
+    useState<boolean>(false)
 
   useEffect(() => {
     getAccessKeys()
@@ -83,6 +91,17 @@ export const AccessKeys = () => {
     setIsGenerateKeysDialogOpened(true)
   }
 
+  const onPreviewGeneratedKeysModalOpen = (
+    newGeneratedAccessKey: AccessKey
+  ) => {
+    setNewGeneratedAccessKey(newGeneratedAccessKey)
+    setIsPreviewGeneratedKeysModalOpen(true)
+  }
+
+  const onCloseGenerateNewKeysDialog = () => {
+    setIsGenerateKeysDialogOpened(false)
+  }
+
   const onDeleteKeyButtonClicked = (accessKeyToDelete: AccessKey) => {
     setAccessKeyToDelete(accessKeyToDelete)
     setIsDeleteAccessKeyDialogOpen(true)
@@ -91,6 +110,35 @@ export const AccessKeys = () => {
   const onCloseDeleteBucketModal = () => {
     setIsDeleteAccessKeyDialogOpen(false)
     setAccessKeyToDelete(null)
+  }
+
+  const onClosePreviewGeneratedKeysModal = () => {
+    setIsGenerateKeysDialogOpened(false)
+    setNewGeneratedAccessKey(null)
+  }
+
+  const onGenerateNewKeys = async (
+    accessKeyName: AccessKey['name'],
+    accessKeyPermission: AccessKeyPermission,
+    accessKeyRegion: AccessKey['region']
+  ) => {
+    try {
+      const newAccessKey = await accessKeysService.createAccessKey({
+        name: accessKeyName,
+        permission: accessKeyPermission,
+        region: accessKeyRegion,
+      })
+
+      await getAccessKeys()
+      onCloseGenerateNewKeysDialog()
+      onPreviewGeneratedKeysModalOpen(newAccessKey)
+    } catch (error) {
+      const err = error as Error
+
+      notificationsService.error({
+        text: err.message,
+      })
+    }
   }
 
   const onDeleteAccessKey = async () => {
@@ -107,6 +155,56 @@ export const AccessKeys = () => {
       })
       await getAccessKeys()
       onCloseDeleteBucketModal()
+    } catch (error) {
+      const err = error as Error
+
+      notificationsService.error({
+        text: err.message,
+      })
+    }
+  }
+
+  const onDownloadCredentialsCSV = (
+    name: AccessKey['name'],
+    accessKey: AccessKey['accessKeyId'],
+    secretKey: AccessKey['secretAccessKey']
+  ) => {
+    try {
+      const csvContent = `name,access-key,secret-key\n${name},${accessKey},${secretKey}`
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'credentials.csv'
+      document.body.appendChild(a)
+      a.click()
+
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      notificationsService.success({
+        text: 'The keys have been downloaded successfully',
+      })
+    } catch (error) {
+      const err = error as Error
+      notificationsService.error({
+        text: err.message,
+      })
+    }
+  }
+
+  const onCopyKeys = async (
+    accessKey: AccessKey['accessKeyId'],
+    secretKey: AccessKey['secretAccessKey']
+  ) => {
+    const text = `access-key = ${accessKey}\nsecret-key = ${secretKey}`
+    try {
+      await copyToClipboard(text)
+
+      notificationsService.success({
+        text: 'The keys have been copied successfully',
+      })
     } catch (error) {
       const err = error as Error
 
@@ -133,6 +231,7 @@ export const AccessKeys = () => {
         />
       </div>
 
+      {/* Delete Access Key Dialog */}
       <Dialog
         isOpen={isDeleteAccessKeyDialogOpen}
         onClose={onCloseDeleteBucketModal}
@@ -143,6 +242,22 @@ export const AccessKeys = () => {
         primaryActionColor="danger"
         title="Delete bucket"
         subtitle="By deleting this bucket, all associated usage data will also be permanently removed."
+      />
+
+      {newGeneratedAccessKey && (
+        <PreviewGeneratedAccessKeysModal
+          generatedAccessKey={newGeneratedAccessKey}
+          isModalOpen={isPreviewGeneratedKeysModalOpen}
+          onDownloadCredentials={onDownloadCredentialsCSV}
+          onCopyKeys={onCopyKeys}
+          onClose={onClosePreviewGeneratedKeysModal}
+        />
+      )}
+
+      <GenerateAccessKeysModal
+        isCreateAccessKeyModalOpen={isGenerateKeysDialogOpened}
+        onClose={onCloseGenerateNewKeysDialog}
+        onCreateAccessKey={onGenerateNewKeys}
       />
     </section>
   )
