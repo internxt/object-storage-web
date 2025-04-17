@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Usage } from '../services/usage.service'
 
-export const usePaginatedUsageData = (data: Usage[], itemsPerPage = 20) => {
+export const usePaginatedUsageData = <T>(data: T[], itemsPerPage = 20) => {
   const [currentPage, setCurrentPage] = useState(1)
 
   const totalItems = data.length

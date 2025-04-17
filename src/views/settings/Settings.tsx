@@ -8,7 +8,7 @@ const TAB_SETTINGS = [
     component: <AccountSettings />,
   },
   {
-    id: 'accessKeys',
+    id: 'access-keys',
     name: 'Access Keys',
     component: <AccountSettings />,
   },

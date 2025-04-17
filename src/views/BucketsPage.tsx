@@ -1,4 +1,3 @@
-import { X } from '@phosphor-icons/react'
 import { Separator } from '../components/Separator'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -7,8 +6,14 @@ import {
   BucketsTable,
   HeaderItemsTableProps,
 } from '../components/buckets/Table'
-import { useDebounce } from '../hooks/useDebounce'
 import { useEffect, useState } from 'react'
+import Dialog from '../components/Dialog'
+import { Bucket, bucketsService } from '../services/buckets.service'
+import notificationsService from '../services/notifications.service'
+import { usePaginatedUsageData } from '../hooks/usePaginatedUserData'
+import { CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { CreateBucketModal } from '../components/buckets/CreateBucketModal'
+import { isValidBucketName } from '../utils/isBucketNameValid'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -34,19 +39,87 @@ const HEADER_ITEMS: HeaderItemsTableProps[] = [
 ]
 
 export const BucketsPage = () => {
-  const [searchedBuckets, setSearchedBuckets] = useState<string>('')
-  const debouncedValue = useDebounce(searchedBuckets, 800)
+  const [isDeleteBucketDialogOpened, setIsDeleteBucketDialogOpened] =
+    useState(false)
+  const [isCreateBucketOpened, setIsCreateBucketOpened] = useState(false)
+  const [buckets, setBuckets] = useState<Bucket[]>([])
+  const [bucketToDelete, setBucketToDelete] = useState<Bucket>()
+  const {
+    paginatedData,
+    currentPage,
+    setCurrentPage,
+    pageInfo,
+    totalItems,
+    hasNextPage,
+    hasPrevPage,
+  } = usePaginatedUsageData(buckets, 20)
 
   useEffect(() => {
-    console.log('SEARCHING BUCKETS WITH NAME: ', debouncedValue)
-  }, [debouncedValue])
+    getBuckets()
+  }, [])
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchedBuckets(e.target.value)
+  const getBuckets = async () => {
+    try {
+      const userBuckets = await bucketsService.getBuckets()
+      setBuckets(userBuckets)
+    } catch (err) {
+      const error = err as Error
+
+      notificationsService.error({
+        text: error.message,
+      })
+    }
   }
 
-  const clearSearchInput = () => {
-    setSearchedBuckets('')
+  const onCreateBucket = async (
+    bucketName: Bucket['name'],
+    bucketRegion: Bucket['region']
+  ) => {
+    if (!isValidBucketName(bucketName)) return
+
+    try {
+      await bucketsService.createBucket(bucketName, bucketRegion)
+      await getBuckets()
+      onCloseCreateBucketModal()
+    } catch (err) {
+      const error = err as Error
+
+      notificationsService.error({
+        text: error.message,
+      })
+    }
+  }
+
+  const onDeleteBucket = async () => {
+    if (!bucketToDelete) return
+
+    try {
+      await bucketsService.deleteBucket(
+        bucketToDelete.name,
+        bucketToDelete.region
+      )
+      await getBuckets()
+      onCloseDeleteBucketModal()
+    } catch (err) {
+      const error = err as Error
+
+      notificationsService.error({
+        text: error.message,
+      })
+    }
+  }
+
+  const onOpenDeleteBucketModal = (bucketName: Bucket) => {
+    setIsDeleteBucketDialogOpened(true)
+    setBucketToDelete(bucketName)
+  }
+
+  const onCloseCreateBucketModal = () => {
+    setIsCreateBucketOpened(false)
+  }
+
+  const onCloseDeleteBucketModal = () => {
+    setIsDeleteBucketDialogOpened(false)
   }
 
   return (
@@ -54,38 +127,75 @@ export const BucketsPage = () => {
       <div className="flex flex-col p-8 w-full bg-white gap-5">
         <div className="flex flex-row w-full justify-between items-center">
           <p className="font-semibold text-lg">Buckets</p>
-          <button className="flex items-center px-7 py-2.5 text-white bg-blue-600 rounded-sm text-sm font-semibold">
+          <button
+            className="flex items-center px-7 py-2.5 text-white bg-blue-600 rounded-sm text-sm font-semibold"
+            onClick={() => setIsCreateBucketOpened(true)}
+          >
             Create Bucket
           </button>
         </div>
         <Separator />
-        <div className="flex flex-row max-w-[220px] items-center">
-          <div className={`relative flex-1 bg-gray-100 w-max px-2 py-2.5`}>
-            <input
-              type="text"
-              placeholder="Search"
-              min={0}
-              required
-              className="px-1 rounded-xs text-black/80 text-sm border-none focus:outline-none focus:ring-0"
-              onChange={handleSearch}
-              value={searchedBuckets}
-            />
-            <div
-              onClick={clearSearchInput}
-              onKeyDown={(e) =>
-                (e['code'] === 'Space' || e['code'] === 'Enter') &&
-                clearSearchInput
-              }
-              className="absolute right-4 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center text-gray-400"
-            >
-              <X width={14} height={14} />
+        <div className="flex flex-col w-full">
+          <BucketsTable
+            headers={HEADER_ITEMS}
+            buckets={paginatedData}
+            onDeleteBucketsClicked={onOpenDeleteBucketModal}
+          />
+          <div className="flex flex-row items-end justify-end w-full">
+            <div className="items-center flex flex-row gap-3">
+              <p>
+                {pageInfo.from}-{pageInfo.to} of {totalItems}
+              </p>
+              <div className="flex flex-row gap-3 items-center">
+                <button
+                  disabled={!hasPrevPage}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
+                  <CaretLeft
+                    size={20}
+                    className={`${
+                      !hasPrevPage
+                        ? 'text-gray-300 cursor-no-drop'
+                        : 'text-black'
+                    }`}
+                  />
+                </button>
+                <button
+                  disabled={!hasNextPage}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                >
+                  <CaretRight
+                    size={20}
+                    className={`${
+                      !hasNextPage
+                        ? 'text-gray-300 cursor-no-drop'
+                        : 'text-black'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        <div className="flex flex-col w-full">
-          <BucketsTable headers={HEADER_ITEMS} />
-        </div>
       </div>
+
+      <Dialog
+        isOpen={isDeleteBucketDialogOpened}
+        onClose={onCloseDeleteBucketModal}
+        onPrimaryAction={onDeleteBucket}
+        onSecondaryAction={onCloseDeleteBucketModal}
+        primaryAction="Delete"
+        secondaryAction="Cancel"
+        primaryActionColor="danger"
+        title="Delete bucket"
+        subtitle="By deleting this bucket, all associated usage data will also be permanently removed."
+      />
+
+      <CreateBucketModal
+        isCreateBucketOpened={isCreateBucketOpened}
+        onClose={onCloseCreateBucketModal}
+        onCreateBucket={onCreateBucket}
+      />
     </section>
   )
 }
