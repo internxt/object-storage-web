@@ -60,7 +60,6 @@ const ChangePasswordSection = () => {
       reset()
     } catch (error) {
       const err = error as Error
-      console.error('ERROR WHILE CHANGING PASSWORD: ', error)
       notificationsService.error({
         text: err.message,
       })
