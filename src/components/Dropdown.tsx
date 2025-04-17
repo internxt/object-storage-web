@@ -9,9 +9,10 @@ type DropdownItem = {
 interface DropdownProps {
   button: ReactNode
   items: DropdownItem[]
+  width?: string
 }
 
-export const Dropdown = ({ button, items }: DropdownProps) => {
+export const Dropdown = ({ button, items, width = 'w-36' }: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -30,11 +31,13 @@ export const Dropdown = ({ button, items }: DropdownProps) => {
 
   return (
     <div className="relative" ref={ref}>
-      <div onClick={handleToggle} className="cursor-pointer">
+      <button onClick={handleToggle} className="cursor-pointer w-full">
         {button}
-      </div>
+      </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-36 bg-white rounded shadow-lg z-50">
+        <div
+          className={`absolute right-0 mt-2 bg-white rounded shadow-lg z-50 ${width}`}
+        >
           <div className="flex flex-col py-0.5">
             {items.map(({ label, icon, onClick }) => (
               <button

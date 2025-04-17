@@ -6,6 +6,7 @@ import { formattedDate } from '../../utils/formattedDate'
 import { FORMATTED_DATE_WITH_TIMEZONE } from '../../views/BucketsPage'
 import { Dropdown } from '../Dropdown'
 import { Bucket } from '../../services/buckets.service'
+import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -19,7 +20,7 @@ export interface HeaderItemsTableProps {
 interface BucketsTableProps {
   headers: HeaderItemsTableProps[]
   buckets: Bucket[]
-  onDeleteBucketsClicked: () => void
+  onDeleteBucketsClicked: (bucket: Bucket) => void
 }
 
 export const BucketsTable = ({
@@ -42,13 +43,14 @@ export const BucketsTable = ({
       </thead>
       <tbody>
         {buckets.map((bucket) => (
-          <tr
-            className="w-full h-12 text-sm text-gray-500"
-            onClick={() => {}}
-            key={bucket.id}
-          >
+          <tr className="w-full h-12 text-sm text-gray-500" key={bucket.id}>
             <td className="w-[33%] px-5">{bucket.name}</td>
-            <td className="w-[33%] px-5">{bucket.region}</td>
+            <td className="w-[33%] px-5">
+              <div className="flex flex-row gap-2 items-center">
+                <p>{getFlagAndNameFromRegion(bucket.region).flag}</p>
+                <p>{getFlagAndNameFromRegion(bucket.region).name}</p>
+              </div>
+            </td>
             <td className="w-[33%] px-5">
               {formattedDate(FORMATTED_DATE_WITH_TIMEZONE, bucket.creationDate)}
             </td>
@@ -65,7 +67,7 @@ export const BucketsTable = ({
                   {
                     label: 'Delete',
                     icon: <Trash size={18} className="text-red-600" />,
-                    onClick: onDeleteBucketsClicked,
+                    onClick: () => onDeleteBucketsClicked(bucket),
                   },
                 ]}
               />

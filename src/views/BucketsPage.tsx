@@ -8,11 +8,12 @@ import {
 } from '../components/buckets/Table'
 import { useEffect, useState } from 'react'
 import Dialog from '../components/Dialog'
-import Modal from '../components/Modal'
 import { Bucket, bucketsService } from '../services/buckets.service'
 import notificationsService from '../services/notifications.service'
 import { usePaginatedUsageData } from '../hooks/usePaginatedUserData'
 import { CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { CreateBucketModal } from '../components/buckets/CreateBucketModal'
+import { isValidBucketName } from '../utils/isBucketNameValid'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -42,6 +43,7 @@ export const BucketsPage = () => {
     useState(false)
   const [isCreateBucketOpened, setIsCreateBucketOpened] = useState(false)
   const [buckets, setBuckets] = useState<Bucket[]>([])
+  const [bucketToDelete, setBucketToDelete] = useState<Bucket>()
   const {
     paginatedData,
     currentPage,
@@ -53,17 +55,72 @@ export const BucketsPage = () => {
   } = usePaginatedUsageData(buckets, 20)
 
   useEffect(() => {
-    bucketsService
-      .getBuckets()
-      .then((buckets) => setBuckets(buckets))
-      .catch((err) => {
-        const error = err as Error
-
-        notificationsService.error({
-          text: error.message,
-        })
-      })
+    getBuckets()
   }, [])
+
+  const getBuckets = async () => {
+    try {
+      const userBuckets = await bucketsService.getBuckets()
+      setBuckets(userBuckets)
+    } catch (err) {
+      const error = err as Error
+
+      notificationsService.error({
+        text: error.message,
+      })
+    }
+  }
+
+  const onCreateBucket = async (
+    bucketName: Bucket['name'],
+    bucketRegion: Bucket['region']
+  ) => {
+    if (!isValidBucketName(bucketName)) return
+
+    try {
+      await bucketsService.createBucket(bucketName, bucketRegion)
+      await getBuckets()
+      onCloseCreateBucketModal()
+    } catch (err) {
+      const error = err as Error
+
+      notificationsService.error({
+        text: error.message,
+      })
+    }
+  }
+
+  const onDeleteBucket = async () => {
+    if (!bucketToDelete) return
+
+    try {
+      await bucketsService.deleteBucket(
+        bucketToDelete.name,
+        bucketToDelete.region
+      )
+      await getBuckets()
+      onCloseDeleteBucketModal()
+    } catch (err) {
+      const error = err as Error
+
+      notificationsService.error({
+        text: error.message,
+      })
+    }
+  }
+
+  const onOpenDeleteBucketModal = (bucketName: Bucket) => {
+    setIsDeleteBucketDialogOpened(true)
+    setBucketToDelete(bucketName)
+  }
+
+  const onCloseCreateBucketModal = () => {
+    setIsCreateBucketOpened(false)
+  }
+
+  const onCloseDeleteBucketModal = () => {
+    setIsDeleteBucketDialogOpened(false)
+  }
 
   return (
     <section className="flex flex-col items-center p-7 w-full">
@@ -82,7 +139,7 @@ export const BucketsPage = () => {
           <BucketsTable
             headers={HEADER_ITEMS}
             buckets={paginatedData}
-            onDeleteBucketsClicked={() => setIsDeleteBucketDialogOpened(true)}
+            onDeleteBucketsClicked={onOpenDeleteBucketModal}
           />
           <div className="flex flex-row items-end justify-end w-full">
             <div className="items-center flex flex-row gap-3">
@@ -124,9 +181,9 @@ export const BucketsPage = () => {
 
       <Dialog
         isOpen={isDeleteBucketDialogOpened}
-        onClose={() => setIsDeleteBucketDialogOpened(false)}
-        onPrimaryAction={() => {}}
-        onSecondaryAction={() => setIsDeleteBucketDialogOpened(false)}
+        onClose={onCloseDeleteBucketModal}
+        onPrimaryAction={onDeleteBucket}
+        onSecondaryAction={onCloseDeleteBucketModal}
         primaryAction="Delete"
         secondaryAction="Cancel"
         primaryActionColor="danger"
@@ -134,22 +191,11 @@ export const BucketsPage = () => {
         subtitle="By deleting this bucket, all associated usage data will also be permanently removed."
       />
 
-      <Modal
-        isOpen={isCreateBucketOpened}
-        onClose={() => setIsCreateBucketOpened(false)}
-      >
-        <div className="flex flex-row w-full gap-3 items-center justify-end">
-          <button
-            className="flex text-black hover:bg-gray-200 rounded-sm py-2 px-3"
-            onClick={() => setIsCreateBucketOpened(false)}
-          >
-            Cancel
-          </button>
-          <button className="flex text-white bg-blue-600 rounded-sm py-2 px-3">
-            Create
-          </button>
-        </div>
-      </Modal>
+      <CreateBucketModal
+        isCreateBucketOpened={isCreateBucketOpened}
+        onClose={onCloseCreateBucketModal}
+        onCreateBucket={onCreateBucket}
+      />
     </section>
   )
 }
