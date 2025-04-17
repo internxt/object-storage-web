@@ -1,10 +1,11 @@
 import { ReactNode, useEffect, useRef, useState } from 'react'
 
 type DropdownItem = {
-  label: string
+  label?: string
   icon?: ReactNode
   onClick: () => void
   render?: () => ReactNode
+  disabled?: boolean
 }
 
 interface DropdownProps {
@@ -40,14 +41,19 @@ export const Dropdown = ({ button, items, width = 'w-36' }: DropdownProps) => {
           className={`absolute right-0 mt-2 bg-white rounded shadow-lg z-50 ${width}`}
         >
           <div className="flex flex-col py-0.5">
-            {items.map(({ label, icon, onClick, render }) => (
+            {items.map(({ label, icon, disabled = false, onClick, render }) => (
               <button
                 key={label}
                 onClick={() => {
                   onClick()
                   setIsOpen(false)
                 }}
-                className="px-4 py-2 text-left text-gray-700 hover:bg-gray-100 flex items-center justify-between"
+                className={`px-4 py-2 text-left flex items-center justify-between ${
+                  disabled
+                    ? 'text-black/30 !cursor-no-drop'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                disabled={disabled}
               >
                 {render ? (
                   render()
