@@ -48,6 +48,8 @@ const DEFAULT_GENERAL_DATA = {
   uploads: '-',
 }
 
+const PAGINATED_ITEMS = 20
+
 export const UsagePage = () => {
   const [usageData, setUsageData] = useState<Usage[]>([])
   const [generalData, setGeneralData] = useState(DEFAULT_GENERAL_DATA)
@@ -60,7 +62,7 @@ export const UsagePage = () => {
     totalItems,
     hasNextPage,
     hasPrevPage,
-  } = usePaginatedUsageData(usageData, 20)
+  } = usePaginatedUsageData(usageData, PAGINATED_ITEMS)
 
   useEffect(() => {
     const startDate = dayjs().subtract(1, 'month').toDate()
@@ -152,7 +154,7 @@ export const UsagePage = () => {
           </div>
         </div>
       </div>
-      <div className="flex flex-col w-auto gap-5 justify-center items-center">
+      <div className="flex flex-col w-auto gap-5 items-center">
         {INFO_CARDS.map((infoCard) => {
           return (
             <InfoCard

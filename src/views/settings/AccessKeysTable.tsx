@@ -28,7 +28,7 @@ export const AccessKeyTable = ({
   return (
     <table className="w-full">
       <thead>
-        <tr className="w-full h-12 bg-gray-100 text-black text-sm">
+        <tr className="w-full h-12 bg-gray-10 text-black text-sm">
           {headers.map((header) => (
             <th key={header.key} className="w-[33%] px-5 text-left">
               {header.title}

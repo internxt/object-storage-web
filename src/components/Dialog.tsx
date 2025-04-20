@@ -110,7 +110,7 @@ const Dialog = ({
           }`}
         >
           <div
-            className={`absolute inset-0 bg-gray-100/50 transition-opacity
+            className={`absolute inset-0 bg-gray-10/50 transition-opacity
              duration-150 dark:bg-black/75
               ${transitionOpacity}
             `}
@@ -152,7 +152,7 @@ const Dialog = ({
                 className={`flex px-3 py-2 rounded-sm ${
                   primaryActionColor === 'danger'
                     ? 'bg-red-500 hover:bg-red-600 text-white'
-                    : 'bg-blue-500'
+                    : 'bg-primary'
                 }`}
               >
                 {primaryAction}

@@ -81,7 +81,7 @@ export const LoginPage = () => {
             minLength={{ value: 1, message: 'Password must not be empty' }}
             error={errors.password}
           />
-          <button className="flex w-full py-2 items-center justify-center bg-blue-500 rounded-sm">
+          <button className="flex w-full py-2 items-center justify-center bg-primary rounded-sm">
             <p className="text-white font-medium">Sign in</p>
           </button>
         </form>

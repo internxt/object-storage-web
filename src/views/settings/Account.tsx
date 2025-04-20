@@ -13,14 +13,14 @@ const AvatarComponent = () => (
   <div className="flex flex-col gap-2 w-max">
     <DefaultAvatar diameter={190} className="rounded-none" />
     <div className="flex flex-row gap-3 bg-[#F5F6F8] items-center justify-center">
-      <div className="p-1 bg-blue-600" />
+      <div className="p-1 bg-primary" />
       <p className="text-gray-500 py-1">Active</p>
     </div>
   </div>
 )
 
 const UserSection = ({ user }: { user: User }) => (
-  <div className="flex flex-col rounded-sm bg-white gap-7 p-7">
+  <div className="flex flex-col rounded-sm bg-white gap-7 p-7 w-full">
     <p className="text-xl font-semibold">Profile</p>
     <Separator />
     <div className="flex flex-row items-center gap-4">
@@ -109,7 +109,7 @@ const ChangePasswordSection = () => {
           )}
         />
 
-        <button className="flex w-full items-center py-2 text-white bg-blue-500 rounded-sm justify-center">
+        <button className="flex w-full items-center py-2 text-white bg-primary rounded-sm justify-center">
           Change Password
         </button>
       </form>

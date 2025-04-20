@@ -63,7 +63,7 @@ export const PreviewGeneratedAccessKeysModal = ({
         </div>
         <div className="flex flex-row w-full gap-3 items-center justify-end">
           <button
-            className="flex text-white bg-blue-600 rounded-sm py-2 px-3"
+            className="flex text-white bg-primary rounded-sm py-2 px-3"
             onClick={() =>
               onDownloadCredentials(
                 generatedAccessKey.name,
@@ -75,7 +75,7 @@ export const PreviewGeneratedAccessKeysModal = ({
             Download Keys
           </button>
           <button
-            className="flex text-white bg-blue-600 rounded-sm py-2 px-3"
+            className="flex text-white bg-primary rounded-sm py-2 px-3"
             onClick={() =>
               onCopyKeys(
                 generatedAccessKey.accessKeyId,

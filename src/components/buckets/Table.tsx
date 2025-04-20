@@ -31,7 +31,7 @@ export const BucketsTable = ({
   return (
     <table className="w-full">
       <thead>
-        <tr className="w-full h-12 bg-gray-100 text-black text-sm">
+        <tr className="w-full h-12 bg-gray-10 text-black text-sm">
           {headers.map((header) => (
             <th key={header.sortKey} className="w-[33%] px-5 text-left">
               {header.title}
@@ -60,7 +60,7 @@ export const BucketsTable = ({
                   <DotsThreeVertical
                     size={28}
                     weight="bold"
-                    className="hover:bg-gray-200 rounded-full p-1"
+                    className="hover:bg-gray-20 rounded-full p-1"
                   />
                 }
                 items={[
