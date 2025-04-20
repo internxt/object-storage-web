@@ -12,9 +12,11 @@ import {
   AccessKeyPermission,
 } from '../../services/access-keys.service'
 import { getAccessPermissionFormatted } from '../../utils/getAccessKeyPermissionFormatted'
+import Button from '../Button'
 
 interface CreateAccessKeyModal {
   isCreateAccessKeyModalOpen: boolean
+  isLoading: boolean
   onClose: () => void
   onCreateAccessKey: (
     accessKeyName: AccessKey['name'],
@@ -31,6 +33,7 @@ const AccessKeyPermissions: AccessKeyPermission[] = [
 
 export const GenerateAccessKeysModal = ({
   isCreateAccessKeyModalOpen,
+  isLoading,
   onClose,
   onCreateAccessKey,
 }: CreateAccessKeyModal) => {
@@ -134,18 +137,22 @@ export const GenerateAccessKeysModal = ({
           />
         </div>
         <div className="flex flex-row w-full gap-3 items-center justify-end">
-          <button
-            className="flex text-black hover:bg-gray-200 rounded-sm py-2 px-3"
+          <Button
+            className="rounded-md"
+            variant="secondary"
+            disabled={isLoading}
             onClick={onClose}
           >
             Cancel
-          </button>
-          <button
-            className="flex text-white bg-primary rounded-sm py-2 px-3"
+          </Button>
+          <Button
+            className="rounded-md"
+            loading={isLoading}
+            disabled={!accessKeyName || isLoading}
             onClick={() => onCreateAccessKey(accessKeyName, permission, region)}
           >
             Create
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

@@ -4,6 +4,7 @@ import 'react-date-range/dist/styles.css'
 import 'react-date-range/dist/theme/default.css'
 import { formattedDate } from '../utils/formattedDate'
 import dayjs from 'dayjs'
+import Button from './Button'
 
 interface DateRangePickerProps {
   onApplyFilterButtonClicked: (
@@ -25,7 +26,6 @@ export const DateRangePicker = ({
   })
   const ref = useRef<HTMLDivElement>(null)
 
-  // Handle outside click to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (ref.current && !ref.current.contains(event.target as Node)) {
@@ -54,12 +54,12 @@ export const DateRangePicker = ({
 
   return (
     <div className="relative w-max" ref={ref}>
-      <button
+      <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-4 py-2 bg-primary text-white rounded shadow-sm text-sm"
+        className="flex w-max text-white px-3 py-2 rounded-md text-sm"
       >
         {formattedLabel()}
-      </button>
+      </Button>
 
       {isOpen && (
         <div className="absolute right-0 z-50 flex flex-col gap-3 mt-2 shadow-lg bg-white rounded">
@@ -86,12 +86,12 @@ export const DateRangePicker = ({
             maxDate={new Date()}
           />
           <div className="flex p-2 justify-end">
-            <button
-              className="flex w-max bg-primary text-white px-3 py-2 rounded-sm"
+            <Button
+              className="flex w-max text-white px-3 py-2 rounded-md"
               onClick={handleApply}
             >
               Apply
-            </button>
+            </Button>
           </div>
         </div>
       )}

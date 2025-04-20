@@ -1,4 +1,5 @@
 import { JSX, useEffect, useState } from 'react'
+import Button from './Button'
 
 export interface DialogProps {
   isOpen: boolean
@@ -110,7 +111,7 @@ const Dialog = ({
           }`}
         >
           <div
-            className={`absolute inset-0 bg-gray-10/50 transition-opacity
+            className={`absolute inset-0 bg-gray-100/50 transition-opacity
              duration-150 dark:bg-black/75
               ${transitionOpacity}
             `}
@@ -127,7 +128,7 @@ const Dialog = ({
               -translate-x-1/2
               -translate-y-1/2
               transform rounded-2xl
-              bg-white p-5
+              bg-surface p-5
               transition-all
               duration-150
               dark:bg-gray-1
@@ -135,28 +136,27 @@ const Dialog = ({
               ${transitionOpacity}`}
           >
             <div className="flex flex-col space-y-2">
-              <p className="text-2xl font-medium">{title}</p>
+              <p className="text-2xl font-medium text-gray-100">{title}</p>
               <p className="text-gray-60">{subtitle}</p>
             </div>
 
             <div className="mt-5 flex justify-end space-x-2">
-              <button
+              <Button
+                variant="secondary"
                 onClick={onSecondaryAction}
                 disabled={isLoading}
-                className="flex px-3 py-2 rounded-sm hover:bg-gray-300"
               >
                 {secondaryAction}
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={onPrimaryAction}
-                className={`flex px-3 py-2 rounded-sm ${
-                  primaryActionColor === 'danger'
-                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                    : 'bg-primary'
-                }`}
+                loading={isLoading}
+                variant={
+                  primaryActionColor === 'primary' ? 'primary' : 'destructive'
+                }
               >
                 {primaryAction}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

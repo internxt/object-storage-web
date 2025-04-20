@@ -19,7 +19,7 @@ const TabSelector = ({ activeTab }: { activeTab: string }) => {
   const navigate = useNavigate()
 
   return (
-    <div className="flex gap-8 pl-5 bg-white w-full rounded-sm shadow-sm">
+    <div className="flex gap-8 pl-5 bg-white w-full rounded-md shadow-sm">
       {TAB_SETTINGS.map((tab) => (
         <button
           key={tab.id}
