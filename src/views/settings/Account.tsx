@@ -8,6 +8,8 @@ import { IFormValues } from '../../components/PasswordInput'
 import TextInput from '../../components/auth/TextInput'
 import notificationsService from '../../services/notifications.service'
 import { authService } from '../../services/auth.service'
+import Button from '../../components/Button'
+import { useState } from 'react'
 
 const AvatarComponent = () => (
   <div className="flex flex-col gap-2 w-max">
@@ -20,7 +22,7 @@ const AvatarComponent = () => (
 )
 
 const UserSection = ({ user }: { user: User }) => (
-  <div className="flex flex-col rounded-sm bg-white gap-7 p-7 w-full">
+  <div className="flex flex-col rounded-md bg-white gap-7 p-7 w-full">
     <p className="text-xl font-semibold">Profile</p>
     <Separator />
     <div className="flex flex-row items-center gap-4">
@@ -46,13 +48,18 @@ const ChangePasswordSection = () => {
     watch,
     control,
     reset,
-    formState: { errors },
-  } = useForm<IFormValues>()
+    getValues,
+    formState: { errors, isValid },
+  } = useForm<IFormValues>({
+    mode: 'onChange',
+  })
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   const newPassword = watch('newPassword')
 
   const onSubmit = async ({ newPassword }: IFormValues) => {
     try {
+      setIsChangingPassword(true)
       await authService.changePassword(newPassword)
       notificationsService.success({
         text: 'Password changed successfully',
@@ -63,11 +70,13 @@ const ChangePasswordSection = () => {
       notificationsService.error({
         text: err.message,
       })
+    } finally {
+      setIsChangingPassword(false)
     }
   }
 
   return (
-    <div className="flex flex-col rounded-sm bg-white gap-7 p-7">
+    <div className="flex flex-col rounded-md bg-white gap-7 p-7">
       <p className="text-xl font-semibold">Change Password</p>
       <Separator />
       <form
@@ -80,6 +89,7 @@ const ChangePasswordSection = () => {
           label="newPassword"
           placeholder="New password"
           register={register}
+          minLength={8}
           error={errors.newPassword}
         />
 
@@ -101,6 +111,7 @@ const ChangePasswordSection = () => {
                 error={errors.repeatNewPassword}
                 label="repeatNewPassword"
                 register={register}
+                minLength={8}
               />
               {fieldState.error && (
                 <p className="text-red-500">{fieldState.error.message}</p>
@@ -109,9 +120,17 @@ const ChangePasswordSection = () => {
           )}
         />
 
-        <button className="flex w-full items-center py-2 text-white bg-primary rounded-sm justify-center">
+        <Button
+          type="submit"
+          loading={isChangingPassword}
+          disabled={
+            !isValid ||
+            (!getValues().newPassword && !getValues().repeatNewPassword) ||
+            isChangingPassword
+          }
+        >
           Change Password
-        </button>
+        </Button>
       </form>
     </div>
   )
@@ -120,7 +139,7 @@ const ChangePasswordSection = () => {
 export const AccountSettings = () => {
   const { user } = useUser()
   return (
-    <section className="flex flex-col gap-10 min-h-screen">
+    <section className="flex flex-col gap-10">
       <UserSection user={user!} />
       <ChangePasswordSection />
     </section>

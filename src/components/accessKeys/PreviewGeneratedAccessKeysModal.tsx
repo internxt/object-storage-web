@@ -3,6 +3,7 @@ import { AccessKey } from '../../services/access-keys.service'
 import Input from '../Input'
 import Modal from '../Modal'
 import { Separator } from '../Separator'
+import Button from '../Button'
 
 interface PreviewGeneratedAccessKeysModalProps {
   generatedAccessKey: AccessKey
@@ -62,8 +63,8 @@ export const PreviewGeneratedAccessKeysModal = ({
           />
         </div>
         <div className="flex flex-row w-full gap-3 items-center justify-end">
-          <button
-            className="flex text-white bg-primary rounded-sm py-2 px-3"
+          <Button
+            className="rounded-md"
             onClick={() =>
               onDownloadCredentials(
                 generatedAccessKey.name,
@@ -73,9 +74,9 @@ export const PreviewGeneratedAccessKeysModal = ({
             }
           >
             Download Keys
-          </button>
-          <button
-            className="flex text-white bg-primary rounded-sm py-2 px-3"
+          </Button>
+          <Button
+            className="rounded-md"
             onClick={() =>
               onCopyKeys(
                 generatedAccessKey.accessKeyId,
@@ -84,7 +85,7 @@ export const PreviewGeneratedAccessKeysModal = ({
             }
           >
             Copy Keys
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

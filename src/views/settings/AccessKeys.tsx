@@ -69,6 +69,8 @@ export const AccessKeys = () => {
     useState<boolean>(false)
   const [isDeleteAccessKeyDialogOpen, setIsDeleteAccessKeyDialogOpen] =
     useState<boolean>(false)
+  const [isGeneratingAccessKeys, setIsGeneratingAccessKeys] = useState(false)
+  const [isDeletingAccessKey, setIsDeletingAccessKey] = useState(false)
 
   useEffect(() => {
     getAccessKeys()
@@ -123,6 +125,7 @@ export const AccessKeys = () => {
     accessKeyRegion: AccessKey['region']
   ) => {
     try {
+      setIsGeneratingAccessKeys(true)
       const newAccessKey = await accessKeysService.createAccessKey({
         name: accessKeyName,
         permission: accessKeyPermission,
@@ -138,6 +141,8 @@ export const AccessKeys = () => {
       notificationsService.error({
         text: err.message,
       })
+    } finally {
+      setIsGeneratingAccessKeys(false)
     }
   }
 
@@ -145,6 +150,7 @@ export const AccessKeys = () => {
     if (!accessKeyToDelete) return
 
     try {
+      setIsDeletingAccessKey(true)
       await accessKeysService.removeAccessKey({
         accessKeyId: accessKeyToDelete.accessKeyId,
         region: accessKeyToDelete?.region,
@@ -161,6 +167,8 @@ export const AccessKeys = () => {
       notificationsService.error({
         text: err.message,
       })
+    } finally {
+      setIsDeletingAccessKey(false)
     }
   }
 
@@ -215,8 +223,8 @@ export const AccessKeys = () => {
   }
 
   return (
-    <section className="flex flex-col gap-10 min-h-screen">
-      <div className="flex flex-col rounded-sm bg-white gap-7 p-7">
+    <section className="flex flex-col gap-10 overflow-hidden">
+      <div className="flex flex-col rounded-md bg-white gap-7 p-7">
         <div className="flex flex-row w-full justify-between">
           <p className="text-xl font-semibold">Access Keys</p>
           <ManageKeysDropdown
@@ -234,6 +242,7 @@ export const AccessKeys = () => {
       {/* Delete Access Key Dialog */}
       <Dialog
         isOpen={isDeleteAccessKeyDialogOpen}
+        isLoading={isDeletingAccessKey}
         onClose={onCloseDeleteBucketModal}
         onPrimaryAction={onDeleteAccessKey}
         onSecondaryAction={onCloseDeleteBucketModal}
@@ -256,6 +265,7 @@ export const AccessKeys = () => {
 
       <GenerateAccessKeysModal
         isCreateAccessKeyModalOpen={isGenerateKeysDialogOpened}
+        isLoading={isGeneratingAccessKeys}
         onClose={onCloseGenerateNewKeysDialog}
         onCreateAccessKey={onGenerateNewKeys}
       />

@@ -241,7 +241,7 @@ const Input = ({
 
   switch (accent) {
     case 'success':
-      messageColor = 'text-green-500'
+      messageColor = 'text-green'
       MessageIcon = CheckCircle
       break
     case 'warning':
@@ -249,7 +249,7 @@ const Input = ({
       MessageIcon = Warning
       break
     case 'error':
-      messageColor = 'text-red-500'
+      messageColor = 'text-red'
       MessageIcon = WarningOctagon
       break
     default:

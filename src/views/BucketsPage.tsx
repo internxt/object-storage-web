@@ -14,6 +14,7 @@ import { usePaginatedUsageData } from '../hooks/usePaginatedUserData'
 import { CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { CreateBucketModal } from '../components/buckets/CreateBucketModal'
 import { isValidBucketName } from '../utils/isBucketNameValid'
+import Button from '../components/Button'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -43,6 +44,8 @@ export const BucketsPage = () => {
     useState(false)
   const [isCreateBucketOpened, setIsCreateBucketOpened] = useState(false)
   const [buckets, setBuckets] = useState<Bucket[]>([])
+  const [isCreatingBucket, setIsCreatingBucket] = useState(false)
+  const [isDeletingBucket, setIsDeletingBucket] = useState(false)
   const [bucketToDelete, setBucketToDelete] = useState<Bucket>()
   const {
     paginatedData,
@@ -77,6 +80,8 @@ export const BucketsPage = () => {
   ) => {
     if (!isValidBucketName(bucketName)) return
 
+    setIsCreatingBucket(true)
+
     try {
       await bucketsService.createBucket(bucketName, bucketRegion)
       await getBuckets()
@@ -87,12 +92,15 @@ export const BucketsPage = () => {
       notificationsService.error({
         text: error.message,
       })
+    } finally {
+      setIsCreatingBucket(false)
     }
   }
 
   const onDeleteBucket = async () => {
     if (!bucketToDelete) return
 
+    setIsDeletingBucket(true)
     try {
       await bucketsService.deleteBucket(
         bucketToDelete.name,
@@ -106,7 +114,13 @@ export const BucketsPage = () => {
       notificationsService.error({
         text: error.message,
       })
+    } finally {
+      setIsDeletingBucket(false)
     }
+  }
+
+  const onCreateBucketButtonClicked = () => {
+    setIsCreateBucketOpened(true)
   }
 
   const onOpenDeleteBucketModal = (bucketName: Bucket) => {
@@ -124,15 +138,12 @@ export const BucketsPage = () => {
 
   return (
     <section className="flex flex-col items-center p-7 w-full">
-      <div className="flex flex-col p-8 w-full bg-white gap-5">
+      <div className="flex flex-col p-8 w-full bg-white gap-5 rounded-md">
         <div className="flex flex-row w-full justify-between items-center">
           <p className="font-semibold text-lg">Buckets</p>
-          <button
-            className="flex items-center px-7 py-2.5 text-white bg-primary rounded-sm text-sm font-semibold"
-            onClick={() => setIsCreateBucketOpened(true)}
-          >
+          <Button className="rounded-md" onClick={onCreateBucketButtonClicked}>
             Create Bucket
-          </button>
+          </Button>
         </div>
         <Separator />
         <div className="flex flex-col w-full">
@@ -155,7 +166,7 @@ export const BucketsPage = () => {
                     size={20}
                     className={`${
                       !hasPrevPage
-                        ? 'text-gray-300 cursor-no-drop'
+                        ? 'text-gray-30 cursor-no-drop'
                         : 'text-black'
                     }`}
                   />
@@ -168,7 +179,7 @@ export const BucketsPage = () => {
                     size={20}
                     className={`${
                       !hasNextPage
-                        ? 'text-gray-300 cursor-no-drop'
+                        ? 'text-gray-30 cursor-no-drop'
                         : 'text-black'
                     }`}
                   />
@@ -184,6 +195,7 @@ export const BucketsPage = () => {
         onClose={onCloseDeleteBucketModal}
         onPrimaryAction={onDeleteBucket}
         onSecondaryAction={onCloseDeleteBucketModal}
+        isLoading={isDeletingBucket}
         primaryAction="Delete"
         secondaryAction="Cancel"
         primaryActionColor="danger"
@@ -193,6 +205,7 @@ export const BucketsPage = () => {
 
       <CreateBucketModal
         isCreateBucketOpened={isCreateBucketOpened}
+        isLoading={isCreatingBucket}
         onClose={onCloseCreateBucketModal}
         onCreateBucket={onCreateBucket}
       />

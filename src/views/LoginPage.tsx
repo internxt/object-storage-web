@@ -4,10 +4,21 @@ import TextInput from '../components/auth/TextInput'
 import { authService } from '../services/auth.service'
 import { useNavigate } from 'react-router-dom'
 import { localStorageService } from '../services/localStorage.service'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import Button from '../components/Button'
+import { WarningCircle } from '@phosphor-icons/react'
 
 export const LoginPage = () => {
   const navigate = useNavigate()
+  const {
+    register,
+    formState: { errors, isValid },
+    handleSubmit,
+  } = useForm<IFormValues>({
+    mode: 'onChange',
+  })
+  const [isLoggingUser, setIsLoggingUser] = useState<boolean>(false)
+  const [loginError, setLoginError] = useState<string>()
 
   useEffect(() => {
     const useToken = localStorageService.getUserToken()
@@ -17,13 +28,13 @@ export const LoginPage = () => {
     }
   }, [])
 
-  const {
-    register,
-    formState: { errors, isValid },
-    handleSubmit,
-  } = useForm<IFormValues>({
-    mode: 'onChange',
-  })
+  useEffect(() => {
+    if (loginError) {
+      setTimeout(() => {
+        setLoginError('')
+      }, 4000)
+    }
+  }, [loginError])
 
   const onSubmit = async (
     formData: { email: string; password: string },
@@ -31,8 +42,10 @@ export const LoginPage = () => {
   ) => {
     event?.preventDefault()
     const { email, password } = formData
+    setLoginError('')
 
     try {
+      setIsLoggingUser(true)
       const logIn = await authService.logIn(email, password)
 
       if (logIn.token) {
@@ -43,12 +56,15 @@ export const LoginPage = () => {
     } catch (error) {
       // Handle error
       console.error('Error logging in', error)
+      setLoginError('Invalid credentials')
+    } finally {
+      setIsLoggingUser(false)
     }
   }
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center">
-      <div className="flex flex-col bg-white p-5 rounded-sm gap-5 max-w-[440px] w-full items-center">
+    <div className="flex flex-col w-screen min-h-screen items-center justify-center">
+      <div className="flex flex-col w-full bg-white p-10 rounded-md gap-5 max-w-[440px] w-full items-center">
         <img
           src="https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png"
           alt="Internxt logo"
@@ -81,9 +97,23 @@ export const LoginPage = () => {
             minLength={{ value: 1, message: 'Password must not be empty' }}
             error={errors.password}
           />
-          <button className="flex w-full py-2 items-center justify-center bg-primary rounded-sm">
+          {loginError && (
+            <div className="flex flex-row items-start pt-1">
+              <div className="flex h-5 flex-row items-center">
+                <WarningCircle weight="fill" className="mr-1 h-4 text-red" />
+              </div>
+              <span className="font-base w-56 text-sm text-red">
+                {loginError}
+              </span>
+            </div>
+          )}
+          <Button
+            disabled={!isValid || isLoggingUser}
+            loading={isLoggingUser}
+            type="submit"
+          >
             <p className="text-white font-medium">Sign in</p>
-          </button>
+          </Button>
         </form>
       </div>
     </div>

@@ -8,10 +8,12 @@ import { Separator } from '../Separator'
 import notificationsService from '../../services/notifications.service'
 import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion'
 import { isValidBucketName } from '../../utils/isBucketNameValid'
+import Button from '../Button'
 
 interface DeleteBucketModalProps {
   isCreateBucketOpened: boolean
   onClose: () => void
+  isLoading: boolean
   onCreateBucket: (
     bucketName: Bucket['name'],
     bucketRegion: Bucket['region']
@@ -20,19 +22,26 @@ interface DeleteBucketModalProps {
 
 export const CreateBucketModal = ({
   isCreateBucketOpened,
+  isLoading,
   onClose,
   onCreateBucket,
 }: DeleteBucketModalProps) => {
   const [bucketName, setBucketName] = useState<string>('')
   const [bucketRegion, setBucketRegion] = useState<Bucket['region']>('eu-ie')
   const [isNameValid, setIsNameValid] = useState(false)
+  const [isRegionValid, setIsRegionValid] = useState(false)
   const [regions, setRegions] = useState<Region[]>()
 
   useEffect(() => {
     if (isCreateBucketOpened) {
       bucketsService
         .getRegions()
-        .then((regions) => setRegions(regions))
+        .then((regions) => {
+          setRegions(regions)
+          setBucketRegion(
+            regions.find((region) => region.enabled)?.region ?? 'eu-ie'
+          )
+        })
         .catch((err) => {
           const error = err as Error
 
@@ -65,8 +74,8 @@ export const CreateBucketModal = ({
             className="text-black/60"
             onChange={onBucketNameChange}
             tooltip="Bucket names must be between 3 and 63 characters, contain only lowercase letters, numbers, dots (.), and hyphens (-). They must start and end with a letter or number, and must not contain consecutive periods or combinations like '-.' or '.-'."
-            accent={!isNameValid ? 'error' : 'success'}
-            message={!isNameValid ? 'Bucket name is invalid' : ''}
+            accent={!isNameValid && bucketName ? 'error' : 'success'}
+            message={!isNameValid && bucketName ? 'Bucket name is invalid' : ''}
           />
           <Dropdown
             width="w-full z-50"
@@ -97,7 +106,7 @@ export const CreateBucketModal = ({
                           <div className="h-3 w-3 rounded-full border border-black/30 p-[1px]">
                             <div
                               className={`h-full w-full rounded-full  ${
-                                region.enabled ? 'bg-green-500' : 'bg-red-500'
+                                region.enabled ? 'bg-green' : 'bg-red'
                               }`}
                             />
                           </div>
@@ -108,7 +117,10 @@ export const CreateBucketModal = ({
                       </div>
                     ),
 
-                    onClick: () => setBucketRegion(region.region),
+                    onClick: () => {
+                      setBucketRegion(region.region)
+                      setIsRegionValid(region.enabled)
+                    },
                     active: region.enabled,
                   }))
                 : []
@@ -116,18 +128,22 @@ export const CreateBucketModal = ({
           />
         </div>
         <div className="flex flex-row w-full gap-3 items-center justify-end">
-          <button
-            className="flex text-black hover:bg-gray-200 rounded-sm py-2 px-3"
+          <Button
+            variant="secondary"
             onClick={onClose}
+            className="rounded-md"
+            disabled={isLoading}
           >
             Cancel
-          </button>
-          <button
-            className="flex text-white bg-primary rounded-sm py-2 px-3"
+          </Button>
+          <Button
+            className="rounded-md"
+            disabled={(!isNameValid && !isRegionValid) || isLoading}
+            loading={isLoading}
             onClick={() => onCreateBucket(bucketName, bucketRegion)}
           >
             Create
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>
