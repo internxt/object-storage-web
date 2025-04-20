@@ -26,8 +26,8 @@ const TabSelector = ({ activeTab }: { activeTab: string }) => {
           onClick={() => navigate(`/settings/${tab.id}`)}
           className={`py-3 flex border-b-4 text-sm px-1 font-medium transition-all ${
             activeTab === tab.id
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-gray-50 hover:text-gray-70'
           }`}
         >
           {tab.name}
@@ -45,7 +45,7 @@ export const SettingsPage = () => {
   if (!currentTab) return <Navigate to="/settings/profile" replace />
 
   return (
-    <section className="flex flex-col gap-10 items-center justify-center">
+    <section className="flex w-full flex-col gap-10 items-center justify-center">
       <div className="flex flex-col gap-8 pt-10 max-w-[800px] w-full">
         <h1 className="text-lg font-medium">Settings</h1>
         <TabSelector activeTab={tab!} />

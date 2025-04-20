@@ -155,7 +155,7 @@ const Input = ({
   const borderColor =
     variant === 'search'
       ? 'border-transparent'
-      : 'border-gray-200 disabled:border-gray-100'
+      : 'border-gray-30 disabled:border-gray-10'
 
   const placeholderColor =
     variant === 'search' ? 'placeholder-gray-40' : 'placeholder-gray-30'

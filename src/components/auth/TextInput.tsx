@@ -45,7 +45,7 @@ export default function TextInput({
 }: Readonly<InputProps>): JSX.Element {
   const borderColor = error
     ? 'border-red-200 border-2'
-    : 'border-gray-200 disabled:border-gray-100'
+    : 'border-gray-30 disabled:border-gray-10'
 
   const placeholderColor = 'placeholder-gray-30'
 

@@ -56,7 +56,7 @@ export const DateRangePicker = ({
     <div className="relative w-max" ref={ref}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-4 py-2 bg-blue-600 text-white rounded shadow-sm text-sm"
+        className="px-4 py-2 bg-primary text-white rounded shadow-sm text-sm"
       >
         {formattedLabel()}
       </button>
@@ -87,7 +87,7 @@ export const DateRangePicker = ({
           />
           <div className="flex p-2 justify-end">
             <button
-              className="flex w-max bg-blue-600 text-white px-3 py-2 rounded-sm"
+              className="flex w-max bg-primary text-white px-3 py-2 rounded-sm"
               onClick={handleApply}
             >
               Apply

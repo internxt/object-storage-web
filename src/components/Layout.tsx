@@ -30,7 +30,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex flex-row w-screen h-[60px] justify-between gap-10 items-center px-10 bg-[#091E42]">
+      <div className="flex flex-row w-screen h-[60px] justify-between gap-10 items-center px-10 bg-[#091E42] fixed z-10">
         <div className="flex flex-row items-center h-full gap-10">
           <img
             src={
@@ -87,7 +87,9 @@ export const Layout = ({ children }: { children: ReactNode }) => {
           ]}
         />
       </div>
-      {children}
+      <div className="flex py-20 w-screen items-center justify-center">
+        {children}
+      </div>
     </div>
   )
 }

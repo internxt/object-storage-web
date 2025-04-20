@@ -51,7 +51,7 @@ export const Dropdown = ({ button, items, width = 'w-36' }: DropdownProps) => {
                 className={`px-4 py-2 text-left flex items-center justify-between ${
                   disabled
                     ? 'text-black/30 !cursor-no-drop'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    : 'text-gray-700 hover:bg-gray-10'
                 }`}
                 disabled={disabled}
               >

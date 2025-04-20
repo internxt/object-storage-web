@@ -128,7 +128,7 @@ export const BucketsPage = () => {
         <div className="flex flex-row w-full justify-between items-center">
           <p className="font-semibold text-lg">Buckets</p>
           <button
-            className="flex items-center px-7 py-2.5 text-white bg-blue-600 rounded-sm text-sm font-semibold"
+            className="flex items-center px-7 py-2.5 text-white bg-primary rounded-sm text-sm font-semibold"
             onClick={() => setIsCreateBucketOpened(true)}
           >
             Create Bucket

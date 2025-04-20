@@ -123,7 +123,7 @@ export const CreateBucketModal = ({
             Cancel
           </button>
           <button
-            className="flex text-white bg-blue-600 rounded-sm py-2 px-3"
+            className="flex text-white bg-primary rounded-sm py-2 px-3"
             onClick={() => onCreateBucket(bucketName, bucketRegion)}
           >
             Create

@@ -117,7 +117,7 @@ export const GenerateAccessKeysModal = ({
                           <div className="h-3 w-3 rounded-full border border-black/30 p-[1px]">
                             <div
                               className={`h-full w-full rounded-full  ${
-                                region.enabled ? 'bg-green-500' : 'bg-red-500'
+                                region.enabled ? 'bg-green' : 'bg-red'
                               }`}
                             />
                           </div>
@@ -141,7 +141,7 @@ export const GenerateAccessKeysModal = ({
             Cancel
           </button>
           <button
-            className="flex text-white bg-blue-600 rounded-sm py-2 px-3"
+            className="flex text-white bg-primary rounded-sm py-2 px-3"
             onClick={() => onCreateAccessKey(accessKeyName, permission, region)}
           >
             Create
