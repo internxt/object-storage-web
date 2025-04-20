@@ -15,7 +15,7 @@ export const LoadingRowSkeleton = ({
           {new Array(numberOfColumns).fill(null).map((_, index) => (
             <td className={`w-[${itemWidth}] px-5`} key={index}>
               <div className="flex flex-col w-full gap-1">
-                <div className="h-4 w-full animate-pulse rounded bg-gray-80 dark:bg-gray-20" />
+                <div className="h-4 w-full animate-pulse rounded bg-gray-50 dark:bg-gray-20" />
               </div>
             </td>
           ))}
