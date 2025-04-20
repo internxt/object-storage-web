@@ -50,9 +50,12 @@ const DEFAULT_GENERAL_DATA = {
 
 const PAGINATED_ITEMS = 20
 
+export type BODY_STATE = 'loading' | 'empty' | 'items'
+
 export const UsagePage = () => {
   const [usageData, setUsageData] = useState<Usage[]>([])
   const [generalData, setGeneralData] = useState(DEFAULT_GENERAL_DATA)
+  const [tableBodyState, setTableBodyState] = useState<BODY_STATE>('loading')
 
   const {
     paginatedData,
@@ -73,15 +76,18 @@ export const UsagePage = () => {
 
   const getUsage = async (startDate: string, endDate: string) => {
     try {
+      setTableBodyState('loading')
       const usage = await usageService.getUsage(startDate, endDate)
       if (usage.length === 0) {
         setGeneralData(DEFAULT_GENERAL_DATA)
+        setTableBodyState('empty')
       } else {
         setGeneralData({
           downloads: usage[0].downloads.toString(),
           totalUsage: usage[0].totalUsage.toString(),
           uploads: usage[0].uploads.toString(),
         })
+        setTableBodyState('items')
       }
 
       setUsageData(usage)
@@ -90,6 +96,7 @@ export const UsagePage = () => {
       notificationsService.error({
         text: err.message,
       })
+      setTableBodyState('empty')
     }
   }
 
@@ -116,7 +123,11 @@ export const UsagePage = () => {
           </div>
         </div>
         <div className="flex flex-col w-full justify-between h-full">
-          <UsageTable headers={TABLE_HEADERS} usage={paginatedData} />
+          <UsageTable
+            headers={TABLE_HEADERS}
+            usage={paginatedData}
+            bodyState={tableBodyState}
+          />
           <div className="flex flex-row items-end justify-end w-full">
             <div className="items-center flex flex-row gap-3">
               <p>
