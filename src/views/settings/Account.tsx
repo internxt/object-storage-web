@@ -139,7 +139,7 @@ const ChangePasswordSection = () => {
 export const AccountSettings = () => {
   const { user } = useUser()
   return (
-    <section className="flex flex-col gap-10 min-h-screen">
+    <section className="flex flex-col gap-10">
       <UserSection user={user!} />
       <ChangePasswordSection />
     </section>

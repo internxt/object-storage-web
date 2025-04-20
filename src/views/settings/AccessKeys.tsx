@@ -223,7 +223,7 @@ export const AccessKeys = () => {
   }
 
   return (
-    <section className="flex flex-col gap-10 min-h-screen">
+    <section className="flex flex-col gap-10 overflow-hidden">
       <div className="flex flex-col rounded-md bg-white gap-7 p-7">
         <div className="flex flex-row w-full justify-between">
           <p className="text-xl font-semibold">Access Keys</p>

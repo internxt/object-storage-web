@@ -45,9 +45,9 @@ export const SettingsPage = () => {
   if (!currentTab) return <Navigate to="/settings/profile" replace />
 
   return (
-    <section className="flex w-full flex-col gap-10 items-center justify-center">
+    <section className="flex w-full flex-col gap-10 items-center justify-center overflow-hidden">
       <div className="flex flex-col gap-8 pt-10 max-w-[800px] w-full">
-        <h1 className="text-lg font-medium">Settings</h1>
+        <h1 className="text-lg font-semibold">Settings</h1>
         <TabSelector activeTab={tab!} />
         {currentTab.component}
       </div>
