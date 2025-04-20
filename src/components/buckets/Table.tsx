@@ -7,6 +7,7 @@ import { FORMATTED_DATE_WITH_TIMEZONE } from '../../views/BucketsPage'
 import { Dropdown } from '../Dropdown'
 import { Bucket } from '../../services/buckets.service'
 import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion'
+import { LoadingRowSkeleton } from '../LoadingSkeleton'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -42,38 +43,45 @@ export const BucketsTable = ({
         </tr>
       </thead>
       <tbody>
-        {buckets.map((bucket) => (
-          <tr className="w-full h-12 text-sm text-gray-500" key={bucket.id}>
-            <td className="w-[33%] px-5">{bucket.name}</td>
-            <td className="w-[33%] px-5">
-              <div className="flex flex-row gap-2 items-center">
-                <p>{getFlagAndNameFromRegion(bucket.region).flag}</p>
-                <p>{getFlagAndNameFromRegion(bucket.region).name}</p>
-              </div>
-            </td>
-            <td className="w-[33%] px-5">
-              {formattedDate(FORMATTED_DATE_WITH_TIMEZONE, bucket.creationDate)}
-            </td>
-            <td className="w-[1%] px-5">
-              <Dropdown
-                button={
-                  <DotsThreeVertical
-                    size={28}
-                    weight="bold"
-                    className="hover:bg-gray-20 rounded-full p-1"
-                  />
-                }
-                items={[
-                  {
-                    label: 'Delete',
-                    icon: <Trash size={18} className="text-red-600" />,
-                    onClick: () => onDeleteBucketsClicked(bucket),
-                  },
-                ]}
-              />
-            </td>
-          </tr>
-        ))}
+        {buckets.length > 0 ? (
+          buckets.map((bucket) => (
+            <tr className="w-full h-12 text-sm text-gray-500" key={bucket.id}>
+              <td className="w-[33%] px-5">{bucket.name}</td>
+              <td className="w-[33%] px-5">
+                <div className="flex flex-row gap-2 items-center">
+                  <p>{getFlagAndNameFromRegion(bucket.region).flag}</p>
+                  <p>{getFlagAndNameFromRegion(bucket.region).name}</p>
+                </div>
+              </td>
+              <td className="w-[33%] px-5">
+                {formattedDate(
+                  FORMATTED_DATE_WITH_TIMEZONE,
+                  bucket.creationDate
+                )}
+              </td>
+              <td className="w-[1%] px-5">
+                <Dropdown
+                  button={
+                    <DotsThreeVertical
+                      size={28}
+                      weight="bold"
+                      className="hover:bg-gray-20 rounded-full p-1"
+                    />
+                  }
+                  items={[
+                    {
+                      label: 'Delete',
+                      icon: <Trash size={18} className="text-red-600" />,
+                      onClick: () => onDeleteBucketsClicked(bucket),
+                    },
+                  ]}
+                />
+              </td>
+            </tr>
+          ))
+        ) : (
+          <LoadingRowSkeleton numberOfColumns={4} numberOfRows={5} />
+        )}
       </tbody>
     </table>
   )
