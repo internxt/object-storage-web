@@ -4,7 +4,7 @@ import TextInput from '../components/auth/TextInput'
 import { authService } from '../services/auth.service'
 import { useNavigate } from 'react-router-dom'
 import { localStorageService } from '../services/localStorage.service'
-import { useEffect, useState } from 'react'
+import { BaseSyntheticEvent, useEffect, useState } from 'react'
 import Button from '../components/Button'
 import { WarningCircle } from '@phosphor-icons/react'
 
@@ -38,7 +38,7 @@ export const LoginPage = () => {
 
   const onSubmit = async (
     formData: { email: string; password: string },
-    event
+    event: BaseSyntheticEvent<object, unknown, unknown> | undefined
   ) => {
     event?.preventDefault()
     const { email, password } = formData
@@ -64,7 +64,7 @@ export const LoginPage = () => {
 
   return (
     <div className="flex flex-col w-screen min-h-screen items-center justify-center">
-      <div className="flex flex-col w-full bg-white p-10 rounded-md gap-5 max-w-[440px] w-full items-center">
+      <div className="flex flex-col w-full bg-white p-10 rounded-md gap-5 max-w-[440px] items-center">
         <img
           src="https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png"
           alt="Internxt logo"
