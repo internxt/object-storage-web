@@ -1,35 +1,35 @@
-import { useEffect, useState } from 'react'
-import { Bucket, bucketsService, Region } from '../../services/buckets.service'
-import Modal from '../Modal'
-import Input from '../Input'
-import { Dropdown } from '../Dropdown'
-import { CaretDown } from '@phosphor-icons/react'
-import { Separator } from '../Separator'
-import notificationsService from '../../services/notifications.service'
-import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion'
+import { useEffect, useState } from 'react';
+import { Bucket, bucketsService, Region } from '../../services/buckets.service';
+import Modal from '../Modal';
+import Input from '../Input';
+import { Dropdown } from '../Dropdown';
+import { CaretDown } from '@phosphor-icons/react';
+import { Separator } from '../Separator';
+import notificationsService from '../../services/notifications.service';
+import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion';
 import {
   AccessKey,
   AccessKeyPermission,
-} from '../../services/access-keys.service'
-import { getAccessPermissionFormatted } from '../../utils/getAccessKeyPermissionFormatted'
-import Button from '../Button'
+} from '../../services/access-keys.service';
+import { getAccessPermissionFormatted } from '../../utils/getAccessKeyPermissionFormatted';
+import Button from '../Button';
 
 interface CreateAccessKeyModal {
-  isCreateAccessKeyModalOpen: boolean
-  isLoading: boolean
-  onClose: () => void
+  isCreateAccessKeyModalOpen: boolean;
+  isLoading: boolean;
+  onClose: () => void;
   onCreateAccessKey: (
     accessKeyName: AccessKey['name'],
     accessKeyPermission: AccessKeyPermission,
     accessKeyRegion: AccessKey['region']
-  ) => Promise<void>
+  ) => Promise<void>;
 }
 
 const AccessKeyPermissions: AccessKeyPermission[] = [
   'read',
   'write',
   'read-write',
-]
+];
 
 export const GenerateAccessKeysModal = ({
   isCreateAccessKeyModalOpen,
@@ -37,52 +37,55 @@ export const GenerateAccessKeysModal = ({
   onClose,
   onCreateAccessKey,
 }: CreateAccessKeyModal) => {
-  const [accessKeyName, setAccessKeyName] = useState<string>('')
-  const [region, setRegion] = useState<Bucket['region']>('us-va')
-  const [permission, setPermission] = useState<AccessKeyPermission>('read')
-  const [regions, setRegions] = useState<Region[]>()
+  const [accessKeyName, setAccessKeyName] = useState<string>('');
+  const [region, setRegion] = useState<Bucket['region']>('us-va');
+  const [permission, setPermission] = useState<AccessKeyPermission>('read');
+  const [regions, setRegions] = useState<Region[]>();
 
   useEffect(() => {
     if (isCreateAccessKeyModalOpen) {
       bucketsService
         .getRegions()
         .then((regions) => {
-          setRegions(regions)
-          setRegion(regions.find((region) => region.enabled)?.region ?? 'us-va')
+          setRegions(regions);
+          setRegion(
+            regions.find((region) => region.enabled)?.region ?? 'us-va'
+          );
         })
         .catch((err) => {
-          const error = err as Error
+          const error = err as Error;
 
           notificationsService.error({
             text: error.message,
-          })
+          });
 
-          onClose()
-        })
+          onClose();
+        });
     }
-  }, [isCreateAccessKeyModalOpen])
+  }, [isCreateAccessKeyModalOpen]);
 
   return (
     <Modal isOpen={isCreateAccessKeyModalOpen} onClose={onClose}>
-      <div className="flex flex-col gap-5">
-        <p className="text-black text-xl font-semibold">Generate Access Key</p>
+      <div className='flex flex-col gap-5'>
+        <p className='text-black text-xl font-semibold'>Generate Access Key</p>
         <Separator />
-        <div className="flex flex-col w-full gap-4">
+        <div className='flex flex-col w-full gap-4'>
           <Input
-            label="Access Key Name"
-            className="text-black/60"
+            label='Access Key Name'
+            className='text-black/60'
             onChange={setAccessKeyName}
           />
           <Dropdown
-            width="w-full z-50"
+            width='w-full z-50'
+            label='Permissions'
             button={
-              <div className="flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center">
-                <div className="flex flex-row gap-2 items-center">
-                  <p className="text-black">
+              <div className='flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center'>
+                <div className='flex flex-row gap-2 items-center'>
+                  <p className='text-black'>
                     {getAccessPermissionFormatted(permission)}
                   </p>
                 </div>
-                <CaretDown size={14} className="text-black" />
+                <CaretDown size={14} className='text-black' />
               </div>
             }
             items={AccessKeyPermissions.map((permission) => ({
@@ -92,16 +95,17 @@ export const GenerateAccessKeysModal = ({
           />
 
           <Dropdown
-            width="w-full z-50"
+            width='w-full z-50'
+            label='Region'
             button={
-              <div className="flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center">
-                <div className="flex flex-row gap-2 items-center">
+              <div className='flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center'>
+                <div className='flex flex-row gap-2 items-center'>
                   <p>{getFlagAndNameFromRegion(region).flag}</p>
-                  <p className="text-black">
+                  <p className='text-black'>
                     {getFlagAndNameFromRegion(region).name}
                   </p>
                 </div>
-                <CaretDown size={14} className="text-black" />
+                <CaretDown size={14} className='text-black' />
               </div>
             }
             items={
@@ -109,22 +113,22 @@ export const GenerateAccessKeysModal = ({
                 ? regions.map((region) => ({
                     disabled: !region.enabled,
                     render: () => (
-                      <div className="flex flex-row w-full items-center justify-between">
-                        <div className="px-4 py-2 text-left text-gray-700 flex items-center gap-3">
+                      <div className='flex flex-row w-full items-center justify-between'>
+                        <div className='px-4 py-2 text-left text-gray-700 flex items-center gap-3'>
                           <p>{getFlagAndNameFromRegion(region.region).flag}</p>
-                          <p className="text-black">
+                          <p className='text-black'>
                             {getFlagAndNameFromRegion(region.region).name}
                           </p>
                         </div>
-                        <div className="flex flex-row items-center gap-3">
-                          <div className="h-3 w-3 rounded-full border border-black/30 p-[1px]">
+                        <div className='flex flex-row items-center gap-3'>
+                          <div className='h-3 w-3 rounded-full border border-black/30 p-[1px]'>
                             <div
                               className={`h-full w-full rounded-full  ${
                                 region.enabled ? 'bg-green' : 'bg-red'
                               }`}
                             />
                           </div>
-                          <p className="text-sm">
+                          <p className='text-sm'>
                             {region.enabled ? 'Active' : 'Inactive'}
                           </p>
                         </div>
@@ -136,17 +140,17 @@ export const GenerateAccessKeysModal = ({
             }
           />
         </div>
-        <div className="flex flex-row w-full gap-3 items-center justify-end">
+        <div className='flex flex-row w-full gap-3 items-center justify-end'>
           <Button
-            className="rounded-md"
-            variant="secondary"
+            className='rounded-md'
+            variant='secondary'
             disabled={isLoading}
             onClick={onClose}
           >
             Cancel
           </Button>
           <Button
-            className="rounded-md"
+            className='rounded-md'
             loading={isLoading}
             disabled={!accessKeyName || isLoading}
             onClick={() => onCreateAccessKey(accessKeyName, permission, region)}
@@ -156,5 +160,5 @@ export const GenerateAccessKeysModal = ({
         </div>
       </div>
     </Modal>
-  )
-}
+  );
+};
