@@ -31,7 +31,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
-    "@internxt/prettier-config": "^1.0.1",
     "@tailwindcss/postcss": "^4.1.4",
     "@types/react": "^19.0.10",
     "@types/react-date-range": "^1.4.10",
