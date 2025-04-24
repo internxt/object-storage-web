@@ -10,12 +10,18 @@ type DropdownItem = {
 };
 
 interface DropdownProps {
+  label?: string;
   button: ReactNode;
   items: DropdownItem[];
   width?: string;
 }
 
-export const Dropdown = ({ button, items, width = 'w-36' }: DropdownProps) => {
+export const Dropdown = ({
+  button,
+  items,
+  width = 'w-36',
+  label,
+}: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -56,7 +62,15 @@ export const Dropdown = ({ button, items, width = 'w-36' }: DropdownProps) => {
   const otherClasses = width?.replace(widthClass, '').trim() || '';
 
   return (
-    <div className='relative' ref={ref}>
+    <div className='relative flex flex-col gap-1' ref={ref}>
+      {label && (
+        <div className='flex flex-col gap-1 w-full'>
+          <label className='flex items-center gap-1'>
+            <span className={`text-sm text-gray-80`}>{label}</span>
+          </label>
+        </div>
+      )}
+
       <button
         ref={buttonRef}
         onClick={handleToggle}
