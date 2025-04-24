@@ -273,7 +273,7 @@ const Input = ({
               <Tooltip
                 popsFrom='bottom'
                 title={tooltip}
-                className='text-black cursor-pointer z-20' 
+                className='text-black cursor-pointer z-20'
               >
                 <Info size={14} />
               </Tooltip>
