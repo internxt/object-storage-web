@@ -1,4 +1,4 @@
-import { JSX, ReactNode, useRef, useState } from 'react'
+import { JSX, ReactNode, useRef, useState } from 'react';
 
 export default function Tooltip({
   children,
@@ -8,73 +8,73 @@ export default function Tooltip({
   className,
   delayInMs,
 }: Readonly<{
-  children: ReactNode
-  title: string
-  subtitle?: string
-  popsFrom: 'right' | 'left' | 'top' | 'bottom'
-  className?: string
-  delayInMs?: number
+  children: ReactNode;
+  title: string;
+  subtitle?: string;
+  popsFrom: 'right' | 'left' | 'top' | 'bottom';
+  className?: string;
+  delayInMs?: number;
 }>): JSX.Element {
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(false);
 
-  const timeoutRef = useRef<null | number>(null)
+  const timeoutRef = useRef<null | number>(null);
 
   function show() {
-    setVisible(true)
+    setVisible(true);
   }
 
   function hide() {
-    setVisible(false)
+    setVisible(false);
   }
 
   function handleMouseEnter() {
     if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current)
+      clearTimeout(timeoutRef.current);
     }
-    show()
+    show();
   }
   function handleMouseLeave() {
     if (delayInMs) {
       timeoutRef.current = setTimeout(() => {
-        timeoutRef.current = null
-        hide()
-      }, delayInMs) as unknown as number
+        timeoutRef.current = null;
+        hide();
+      }, delayInMs) as unknown as number;
     } else {
-      hide()
+      hide();
     }
   }
 
-  let tooltipPosition = ''
-  let trianglePosition = ''
-  let triangle = ''
+  let tooltipPosition = '';
+  let trianglePosition = '';
+  let triangle = '';
 
   switch (popsFrom) {
     case 'right':
-      tooltipPosition = 'left-full top-1/2 -translate-y-1/2 ml-1.5'
-      trianglePosition = 'flex-row-reverse'
-      triangle = 'polygon(100% 0%, 100% 100%, 0% 50%)'
-      break
+      tooltipPosition = 'left-full top-1/2 -translate-y-1/2 ml-1.5';
+      trianglePosition = 'flex-row-reverse';
+      triangle = 'polygon(100% 0%, 100% 100%, 0% 50%)';
+      break;
     case 'left':
-      tooltipPosition = 'right-full top-1/2 -translate-y-1/2 mr-1.5'
-      trianglePosition = 'flex-row'
-      triangle = 'polygon(0% 0%, 0% 100%, 100% 50%)'
-      break
+      tooltipPosition = 'right-full top-1/2 -translate-y-1/2 mr-1.5';
+      trianglePosition = 'flex-row';
+      triangle = 'polygon(0% 0%, 0% 100%, 100% 50%)';
+      break;
     case 'top':
       tooltipPosition =
-        'bottom-full left-1/2 -translate-x-1/2 mb-1.5 origin-bottom'
-      trianglePosition = 'flex-col'
-      triangle = 'polygon(0% 0%, 100% 0%, 50% 100%)'
-      break
+        'bottom-full left-1/2 -translate-x-1/2 mb-1.5 origin-bottom';
+      trianglePosition = 'flex-col';
+      triangle = 'polygon(0% 0%, 100% 0%, 50% 100%)';
+      break;
     case 'bottom':
-      tooltipPosition = 'top-full left-1/2 -translate-x-1/2 mt-1.5'
-      trianglePosition = 'flex-col-reverse'
-      triangle = 'polygon(50% 0%, 0% 100%, 100% 100%)'
-      break
+      tooltipPosition = 'top-full left-1/2 -translate-x-1/2 mt-1.5';
+      trianglePosition = 'flex-col-reverse';
+      triangle = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+      break;
   }
 
   return (
     <div
-      className={`relative w-max ${className}`}
+      className={`relative w-max ${className} `}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{ lineHeight: 0, maxWidth: '200px' }}
@@ -84,9 +84,9 @@ export default function Tooltip({
           visible ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
         }`}
       >
-        <div className="max-w-xs w-max rounded-lg bg-gray-800 px-4 py-1.5 text-center">
-          <p className="text-base text-white">{title}</p>
-          {subtitle && <p className="-mt-1 text-sm text-gray-40">{subtitle}</p>}
+        <div className='max-w-xs w-max rounded-lg bg-gray-80 px-4 py-1.5 text-center'>
+          <p className='text-base text-white'>{title}</p>
+          {subtitle && <p className='-mt-1 text-sm text-gray-40'>{subtitle}</p>}
         </div>
         <div
           className={`bg-gray-90 dark:bg-gray-5 ${
@@ -102,5 +102,5 @@ export default function Tooltip({
       </div>
       {children}
     </div>
-  )
+  );
 }

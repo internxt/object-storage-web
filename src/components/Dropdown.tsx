@@ -40,16 +40,20 @@ export const Dropdown = ({ button, items, width = 'w-36' }: DropdownProps) => {
   }, []);
 
   const getDropdownPosition = () => {
-    if (!buttonRef.current) return { top: 0, left: 0 };
+    if (!buttonRef.current) return { top: 0, left: 0, width: 0 };
 
     const rect = buttonRef.current.getBoundingClientRect();
     return {
       top: rect.bottom + window.scrollY,
       right: window.innerWidth - rect.right - window.scrollX,
+      width: rect.width,
     };
   };
 
   const position = getDropdownPosition();
+
+  const widthClass = width?.match(/w-[^\s]+/)?.[0] || '';
+  const otherClasses = width?.replace(widthClass, '').trim() || '';
 
   return (
     <div className='relative' ref={ref}>
@@ -65,11 +69,15 @@ export const Dropdown = ({ button, items, width = 'w-36' }: DropdownProps) => {
         createPortal(
           <div
             ref={dropdownRef}
-            className={`fixed bg-white rounded shadow-lg ${width}`}
+            className={`fixed bg-white rounded shadow-lg ${otherClasses}`}
             style={{
               top: `${position.top}px`,
               right: `${position.right}px`,
               zIndex: 9999,
+              width:
+                widthClass === 'w-full' ? `${position.width}px` : undefined,
+              minWidth:
+                widthClass !== 'w-full' ? `${position.width}px` : undefined,
             }}
           >
             <div className='flex flex-col py-0.5'>
