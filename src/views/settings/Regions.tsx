@@ -70,7 +70,7 @@ export const Regions = () => {
                           region.enabled ? 'select-text' : ''
                         }`}
                       >
-                        {region.id}.s3.internxt.com
+                        {region.storageDns}
                       </p>
                     </td>
 
