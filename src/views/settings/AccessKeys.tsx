@@ -8,7 +8,7 @@ import {
   accessKeysService,
 } from '../../services/access-keys.service'
 import notificationsService from '../../services/notifications.service'
-import { AccessKeyTable } from './AccessKeysTable'
+import { AccessKeyTable } from '../../components/accessKeys/AccessKeysTable'
 import Dialog from '../../components/Dialog'
 import { GenerateAccessKeysModal } from '../../components/accessKeys/GenerateAccessKeyModal'
 import { PreviewGeneratedAccessKeysModal } from '../../components/accessKeys/PreviewGeneratedAccessKeysModal'

@@ -136,7 +136,7 @@ const ChangePasswordSection = () => {
   )
 }
 
-export const AccountSettings = () => {
+export const Profile = () => {
   const { user } = useUser()
   return (
     <section className="flex flex-col gap-10">

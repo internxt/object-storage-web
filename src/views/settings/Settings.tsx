@@ -1,17 +1,23 @@
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { AccountSettings } from './Account'
+import { Profile } from './Profile'
 import { AccessKeys } from './AccessKeys'
+import { Regions } from './Regions'
 
 const TAB_SETTINGS = [
   {
     id: 'profile',
     name: 'Profile',
-    component: <AccountSettings />,
+    component: <Profile />,
   },
   {
     id: 'access-keys',
     name: 'Access Keys',
     component: <AccessKeys />,
+  },
+  {
+    id: 'regions',
+    name: 'Regions',
+    component: <Regions />,
   },
 ]
 
