@@ -41,7 +41,7 @@ export const Regions = () => {
           <tr className="h-12 bg-gray-10 text-black text-sm">
             <th className="px-5 text-left">Name</th>
             <th className="px-5 text-left w-[60%]">Endpoint</th>
-            <th className="px-5 text-left">Active</th>
+            <th className="px-5 text-left">Status</th>
           </tr>
         </thead>
         <tbody>
