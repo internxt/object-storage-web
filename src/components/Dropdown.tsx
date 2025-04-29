@@ -125,10 +125,12 @@ export const Dropdown = ({
                     {render ? (
                       render()
                     ) : (
-                      <>
-                        {label}
-                        {icon}
-                      </>
+                      <div className='flex justify-between items-center w-full gap-2'>
+                        <span className='flex-1'>{label}</span>
+                        {icon && (
+                          <span className='flex items-center'>{icon}</span>
+                        )}
+                      </div>
                     )}
                   </button>
                 )
