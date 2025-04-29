@@ -3,9 +3,9 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { formattedDate } from '../../utils/formattedDate';
-import { Dropdown } from '../../components/Dropdown';
+import { Dropdown } from '../Dropdown';
 import { AccessKey } from '../../services/access-keys.service';
-import { LoadingRowSkeleton } from '../../components/LoadingSkeleton';
+import { LoadingRowSkeleton } from '../LoadingSkeleton';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
