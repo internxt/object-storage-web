@@ -1,77 +1,89 @@
-import { DotsThreeVertical, Trash } from '@phosphor-icons/react'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
-import { formattedDate } from '../../utils/formattedDate'
-import { FORMATTED_DATE_WITH_TIMEZONE } from '../../views/BucketsPage'
-import { Dropdown } from '../Dropdown'
-import { Bucket } from '../../services/buckets.service'
-import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion'
-import { LoadingRowSkeleton } from '../LoadingSkeleton'
+import { DotsThreeVertical, Trash } from '@phosphor-icons/react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { formattedDate } from '../../utils/formattedDate';
+import { FORMATTED_DATE_WITH_TIMEZONE } from '../../views/BucketsPage';
+import { Dropdown } from '../Dropdown';
+import { Bucket } from '../../services/buckets.service';
+import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion';
+import { LoadingRowSkeleton } from '../LoadingSkeleton';
 
-dayjs.extend(utc)
-dayjs.extend(timezone)
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export interface HeaderItemsTableProps {
-  title: string
-  sortKey: string
-  defaultDirection: string
+  title: string;
+  sortKey: string;
+  defaultDirection: string;
 }
 
 interface BucketsTableProps {
-  headers: HeaderItemsTableProps[]
-  buckets: Bucket[]
-  onDeleteBucketsClicked: (bucket: Bucket) => void
+  headers: HeaderItemsTableProps[];
+  buckets: Bucket[];
+  onDeleteBucketsClicked: (bucket: Bucket) => void;
+  isLoading: boolean;
 }
 
 export const BucketsTable = ({
   headers,
   buckets,
   onDeleteBucketsClicked,
+  isLoading = false,
 }: BucketsTableProps) => {
+  if (isLoading) {
+    return <LoadingRowSkeleton numberOfColumns={4} numberOfRows={5} />;
+  }
+
   return (
-    <table className="w-full">
+    <table className='w-full'>
       <thead>
-        <tr className="w-full h-12 bg-gray-10 text-black text-sm">
+        <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
           {headers.map((header) => (
-            <th key={header.sortKey} className="w-[33%] px-5 text-left">
+            <th key={header.sortKey} className='w-[33%] px-5 text-left'>
               {header.title}
             </th>
           ))}
 
-          <th className="w-[1%]" />
+          <th className='w-[1%]' />
         </tr>
       </thead>
       <tbody>
-        {buckets.length > 0 ? (
+        {buckets.length === 0 ? (
+          <tr className='w-full h-12 text-sm text-gray-500'>
+            <td colSpan={headers.length} className='text-center'>
+              No buckets found
+            </td>
+          </tr>
+        ) : (
           buckets.map((bucket) => (
-            <tr className="w-full h-12 text-sm text-gray-500" key={bucket.id}>
-              <td className="w-[33%] px-5">{bucket.name}</td>
-              <td className="w-[33%] px-5">
-                <div className="flex flex-row gap-2 items-center">
+            <tr className='w-full h-12 text-sm text-gray-500' key={bucket.id}>
+              <td className='w-[33%] px-5'>{bucket.name}</td>
+              <td className='w-[33%] px-5'>
+                <div className='flex flex-row gap-2 items-center'>
                   <p>{getFlagAndNameFromRegion(bucket.region).flag}</p>
                   <p>{getFlagAndNameFromRegion(bucket.region).name}</p>
                 </div>
               </td>
-              <td className="w-[33%] px-5">
+              <td className='w-[33%] px-5'>
                 {formattedDate(
                   FORMATTED_DATE_WITH_TIMEZONE,
                   bucket.creationDate
                 )}
               </td>
-              <td className="w-[1%] px-5">
+              <td className='w-[1%] px-5'>
                 <Dropdown
                   button={
                     <DotsThreeVertical
                       size={28}
-                      weight="bold"
-                      className="hover:bg-gray-20 rounded-full p-1"
+                      weight='bold'
+                      className='hover:bg-gray-20 rounded-full p-1'
                     />
                   }
                   items={[
                     {
                       label: 'Delete',
-                      icon: <Trash size={18} className="text-red-600" />,
+                      icon: <Trash size={18} className='text-red-600' />,
                       onClick: () => onDeleteBucketsClicked(bucket),
                     },
                   ]}
@@ -79,10 +91,8 @@ export const BucketsTable = ({
               </td>
             </tr>
           ))
-        ) : (
-          <LoadingRowSkeleton numberOfColumns={4} numberOfRows={5} />
         )}
       </tbody>
     </table>
-  )
-}
+  );
+};
