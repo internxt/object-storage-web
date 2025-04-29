@@ -29,7 +29,22 @@ export const AccessKeyTable = ({
   isLoading = false,
 }: BucketsTableProps) => {
   if (isLoading) {
-    return <LoadingRowSkeleton numberOfColumns={3} numberOfRows={5} />;
+    return (
+      <table className='w-full'>
+        <thead>
+          <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
+            {headers.map((header) => (
+              <th key={header.key} className='w-[33%] px-5 text-left'>
+                {header.title}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          <LoadingRowSkeleton numberOfColumns={3} numberOfRows={3} />
+        </tbody>
+      </table>
+    );
   }
 
   return (
