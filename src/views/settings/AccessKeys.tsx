@@ -1,18 +1,18 @@
-import { Gear, Key } from '@phosphor-icons/react'
-import { Dropdown } from '../../components/Dropdown'
-import { Separator } from '../../components/Separator'
-import { useEffect, useState } from 'react'
+import { Gear, Key } from '@phosphor-icons/react';
+import { Dropdown } from '../../components/Dropdown';
+import { Separator } from '../../components/Separator';
+import { useEffect, useState } from 'react';
 import {
   AccessKey,
   AccessKeyPermission,
   accessKeysService,
-} from '../../services/access-keys.service'
-import notificationsService from '../../services/notifications.service'
-import { AccessKeyTable } from '../../components/accessKeys/AccessKeysTable'
-import Dialog from '../../components/Dialog'
-import { GenerateAccessKeysModal } from '../../components/accessKeys/GenerateAccessKeyModal'
-import { PreviewGeneratedAccessKeysModal } from '../../components/accessKeys/PreviewGeneratedAccessKeysModal'
-import { copyToClipboard } from '../../utils/copyToClipboard'
+} from '../../services/access-keys.service';
+import notificationsService from '../../services/notifications.service';
+import { AccessKeyTable } from '../../components/accessKeys/AccessKeysTable';
+import Dialog from '../../components/Dialog';
+import { GenerateAccessKeysModal } from '../../components/accessKeys/GenerateAccessKeyModal';
+import { PreviewGeneratedAccessKeysModal } from '../../components/accessKeys/PreviewGeneratedAccessKeysModal';
+import { copyToClipboard } from '../../utils/copyToClipboard';
 
 const TABLE_HEADERS = [
   {
@@ -27,10 +27,10 @@ const TABLE_HEADERS = [
     title: 'Created On',
     key: 'createdOn',
   },
-]
+];
 
 interface ManageKeysDropdownProps {
-  onGenerateNewKeysButtonClicked: () => void
+  onGenerateNewKeysButtonClicked: () => void;
 }
 
 const ManageKeysDropdown = ({
@@ -38,10 +38,10 @@ const ManageKeysDropdown = ({
 }: ManageKeysDropdownProps) => {
   return (
     <Dropdown
-      width="w-full z-50"
+      width='w-full z-50'
       button={
-        <div className="flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center">
-          <div className="flex flex-row gap-2 items-center">
+        <div className='flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center'>
+          <div className='flex flex-row gap-2 items-center'>
             <p>Manage Access keys</p>
             <Gear />
           </div>
@@ -55,69 +55,74 @@ const ManageKeysDropdown = ({
         },
       ]}
     />
-  )
-}
+  );
+};
 
 export const AccessKeys = () => {
-  const [accessKeys, setAccessKeys] = useState<AccessKey[]>([])
-  const [accessKeyToDelete, setAccessKeyToDelete] = useState<AccessKey | null>()
+  const [accessKeys, setAccessKeys] = useState<AccessKey[]>([]);
+  const [accessKeyToDelete, setAccessKeyToDelete] =
+    useState<AccessKey | null>();
   const [newGeneratedAccessKey, setNewGeneratedAccessKey] =
-    useState<AccessKey | null>()
+    useState<AccessKey | null>();
   const [isGenerateKeysDialogOpened, setIsGenerateKeysDialogOpened] =
-    useState<boolean>(false)
+    useState<boolean>(false);
   const [isPreviewGeneratedKeysModalOpen, setIsPreviewGeneratedKeysModalOpen] =
-    useState<boolean>(false)
+    useState<boolean>(false);
   const [isDeleteAccessKeyDialogOpen, setIsDeleteAccessKeyDialogOpen] =
-    useState<boolean>(false)
-  const [isGeneratingAccessKeys, setIsGeneratingAccessKeys] = useState(false)
-  const [isDeletingAccessKey, setIsDeletingAccessKey] = useState(false)
+    useState<boolean>(false);
+  const [isGeneratingAccessKeys, setIsGeneratingAccessKeys] = useState(false);
+  const [isDeletingAccessKey, setIsDeletingAccessKey] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    getAccessKeys()
-  }, [])
+    getAccessKeys();
+  }, []);
 
   const getAccessKeys = async () => {
     try {
-      const accessKeys = await accessKeysService.getAccessKeys()
-      setAccessKeys(accessKeys)
+      setIsLoading(true);
+      const accessKeys = await accessKeysService.getAccessKeys();
+      setAccessKeys(accessKeys);
     } catch (error) {
-      const err = error as Error
+      const err = error as Error;
 
       notificationsService.error({
         text: err.message,
-      })
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   const onGenerateNewKeysButtonClicked = () => {
-    setIsGenerateKeysDialogOpened(true)
-  }
+    setIsGenerateKeysDialogOpened(true);
+  };
 
   const onPreviewGeneratedKeysModalOpen = (
     newGeneratedAccessKey: AccessKey
   ) => {
-    setNewGeneratedAccessKey(newGeneratedAccessKey)
-    setIsPreviewGeneratedKeysModalOpen(true)
-  }
+    setNewGeneratedAccessKey(newGeneratedAccessKey);
+    setIsPreviewGeneratedKeysModalOpen(true);
+  };
 
   const onCloseGenerateNewKeysDialog = () => {
-    setIsGenerateKeysDialogOpened(false)
-  }
+    setIsGenerateKeysDialogOpened(false);
+  };
 
   const onDeleteKeyButtonClicked = (accessKeyToDelete: AccessKey) => {
-    setAccessKeyToDelete(accessKeyToDelete)
-    setIsDeleteAccessKeyDialogOpen(true)
-  }
+    setAccessKeyToDelete(accessKeyToDelete);
+    setIsDeleteAccessKeyDialogOpen(true);
+  };
 
   const onCloseDeleteBucketModal = () => {
-    setIsDeleteAccessKeyDialogOpen(false)
-    setAccessKeyToDelete(null)
-  }
+    setIsDeleteAccessKeyDialogOpen(false);
+    setAccessKeyToDelete(null);
+  };
 
   const onClosePreviewGeneratedKeysModal = () => {
-    setIsGenerateKeysDialogOpened(false)
-    setNewGeneratedAccessKey(null)
-  }
+    setIsGenerateKeysDialogOpened(false);
+    setNewGeneratedAccessKey(null);
+  };
 
   const onGenerateNewKeys = async (
     accessKeyName: AccessKey['name'],
@@ -125,52 +130,52 @@ export const AccessKeys = () => {
     accessKeyRegion: AccessKey['region']
   ) => {
     try {
-      setIsGeneratingAccessKeys(true)
+      setIsGeneratingAccessKeys(true);
       const newAccessKey = await accessKeysService.createAccessKey({
         name: accessKeyName,
         permission: accessKeyPermission,
         region: accessKeyRegion,
-      })
+      });
 
-      await getAccessKeys()
-      onCloseGenerateNewKeysDialog()
-      onPreviewGeneratedKeysModalOpen(newAccessKey)
+      await getAccessKeys();
+      onCloseGenerateNewKeysDialog();
+      onPreviewGeneratedKeysModalOpen(newAccessKey);
     } catch (error) {
-      const err = error as Error
+      const err = error as Error;
 
       notificationsService.error({
         text: err.message,
-      })
+      });
     } finally {
-      setIsGeneratingAccessKeys(false)
+      setIsGeneratingAccessKeys(false);
     }
-  }
+  };
 
   const onDeleteAccessKey = async () => {
-    if (!accessKeyToDelete) return
+    if (!accessKeyToDelete) return;
 
     try {
-      setIsDeletingAccessKey(true)
+      setIsDeletingAccessKey(true);
       await accessKeysService.removeAccessKey({
         accessKeyId: accessKeyToDelete.accessKeyId,
         region: accessKeyToDelete?.region,
-      })
+      });
 
       notificationsService.success({
         text: `The access key ${accessKeyToDelete.name} has been deleted successfully`,
-      })
-      await getAccessKeys()
-      onCloseDeleteBucketModal()
+      });
+      await getAccessKeys();
+      onCloseDeleteBucketModal();
     } catch (error) {
-      const err = error as Error
+      const err = error as Error;
 
       notificationsService.error({
         text: err.message,
-      })
+      });
     } finally {
-      setIsDeletingAccessKey(false)
+      setIsDeletingAccessKey(false);
     }
-  }
+  };
 
   const onDownloadCredentialsCSV = (
     name: AccessKey['name'],
@@ -178,55 +183,55 @@ export const AccessKeys = () => {
     secretKey: AccessKey['secretAccessKey']
   ) => {
     try {
-      const csvContent = `name,access-key,secret-key\n${name},${accessKey},${secretKey}`
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const csvContent = `name,access-key,secret-key\n${name},${accessKey},${secretKey}`;
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'credentials.csv'
-      document.body.appendChild(a)
-      a.click()
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'credentials.csv';
+      document.body.appendChild(a);
+      a.click();
 
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
       notificationsService.success({
         text: 'The keys have been downloaded successfully',
-      })
+      });
     } catch (error) {
-      const err = error as Error
+      const err = error as Error;
       notificationsService.error({
         text: err.message,
-      })
+      });
     }
-  }
+  };
 
   const onCopyKeys = async (
     accessKey: AccessKey['accessKeyId'],
     secretKey: AccessKey['secretAccessKey']
   ) => {
-    const text = `access-key = ${accessKey}\nsecret-key = ${secretKey}`
+    const text = `access-key = ${accessKey}\nsecret-key = ${secretKey}`;
     try {
-      await copyToClipboard(text)
+      await copyToClipboard(text);
 
       notificationsService.success({
         text: 'The keys have been copied successfully',
-      })
+      });
     } catch (error) {
-      const err = error as Error
+      const err = error as Error;
 
       notificationsService.error({
         text: err.message,
-      })
+      });
     }
-  }
+  };
 
   return (
-    <section className="flex flex-col gap-10 overflow-hidden">
-      <div className="flex flex-col rounded-md bg-white gap-7 p-7">
-        <div className="flex flex-row w-full justify-between">
-          <p className="text-xl font-semibold">Access Keys</p>
+    <section className='flex flex-col gap-10 overflow-hidden'>
+      <div className='flex flex-col rounded-md bg-white gap-7 p-7'>
+        <div className='flex flex-row w-full justify-between'>
+          <p className='text-xl font-semibold'>Access Keys</p>
           <ManageKeysDropdown
             onGenerateNewKeysButtonClicked={onGenerateNewKeysButtonClicked}
           />
@@ -236,6 +241,7 @@ export const AccessKeys = () => {
           accessKeys={accessKeys}
           headers={TABLE_HEADERS}
           onDeleteAccessKey={onDeleteKeyButtonClicked}
+          isLoading={isLoading}
         />
       </div>
 
@@ -246,11 +252,11 @@ export const AccessKeys = () => {
         onClose={onCloseDeleteBucketModal}
         onPrimaryAction={onDeleteAccessKey}
         onSecondaryAction={onCloseDeleteBucketModal}
-        primaryAction="Delete"
-        secondaryAction="Cancel"
-        primaryActionColor="danger"
-        title="Delete bucket"
-        subtitle="By deleting this bucket, all associated usage data will also be permanently removed."
+        primaryAction='Delete'
+        secondaryAction='Cancel'
+        primaryActionColor='danger'
+        title='Delete bucket'
+        subtitle='By deleting this bucket, all associated usage data will also be permanently removed.'
       />
 
       {newGeneratedAccessKey && (
@@ -270,5 +276,5 @@ export const AccessKeys = () => {
         onCreateAccessKey={onGenerateNewKeys}
       />
     </section>
-  )
-}
+  );
+};
