@@ -49,12 +49,12 @@ export const Dropdown = ({
   }, []);
 
   const getDropdownPosition = () => {
-    if (!buttonRef.current) return { top: 0, left: 0, width: 0 };
+    if (!buttonRef.current) return { top: 0, right: 0, width: 0 };
 
     const rect = buttonRef.current.getBoundingClientRect();
     return {
-      top: rect.bottom + window.scrollY,
-      right: window.innerWidth - rect.right - window.scrollX,
+      top: rect.bottom + 4,
+      right: window.innerWidth - rect.right,
       width: rect.width,
     };
   };
@@ -91,7 +91,7 @@ export const Dropdown = ({
         createPortal(
           <div
             ref={dropdownRef}
-            className={`fixed bg-white mt-1.5 rounded shadow-lg ${otherClasses}`}
+            className={`fixed bg-white rounded shadow-lg ${otherClasses}`}
             style={{
               top: `${position.top}px`,
               right: `${position.right}px`,
@@ -104,7 +104,7 @@ export const Dropdown = ({
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className='flex flex-col py-0.5'>
+            <div className='flex flex-col'>
               {items.map(
                 ({ label, icon, disabled = false, onClick, render }, index) => (
                   <button
