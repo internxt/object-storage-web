@@ -13,6 +13,7 @@ import notificationsService from '../services/notifications.service';
 import { usePaginatedUsageData } from '../hooks/usePaginatedUserData';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { CreateBucketModal } from '../components/buckets/CreateBucketModal';
+import { BucketUsageModal } from '../components/buckets/BucketUsageModal';
 import { isValidBucketName } from '../utils/isBucketNameValid';
 import Button from '../components/Button';
 
@@ -43,10 +44,14 @@ export const BucketsPage = () => {
   const [isDeleteBucketDialogOpened, setIsDeleteBucketDialogOpened] =
     useState(false);
   const [isCreateBucketOpened, setIsCreateBucketOpened] = useState(false);
+  const [isBucketUsageModalOpened, setIsBucketUsageModalOpened] =
+    useState(false);
   const [buckets, setBuckets] = useState<Bucket[]>([]);
   const [isCreatingBucket, setIsCreatingBucket] = useState(false);
   const [isDeletingBucket, setIsDeletingBucket] = useState(false);
   const [bucketToDelete, setBucketToDelete] = useState<Bucket>();
+  const [selectedBucketForUsage, setSelectedBucketForUsage] =
+    useState<Bucket>();
   const [isLoading, setIsLoading] = useState(false);
   const {
     paginatedData,
@@ -127,9 +132,14 @@ export const BucketsPage = () => {
     setIsCreateBucketOpened(true);
   };
 
-  const onOpenDeleteBucketModal = (bucketName: Bucket) => {
+  const onOpenDeleteBucketModal = (bucket: Bucket) => {
     setIsDeleteBucketDialogOpened(true);
-    setBucketToDelete(bucketName);
+    setBucketToDelete(bucket);
+  };
+
+  const onOpenBucketUsageModal = (bucket: Bucket) => {
+    setSelectedBucketForUsage(bucket);
+    setIsBucketUsageModalOpened(true);
   };
 
   const onCloseCreateBucketModal = () => {
@@ -138,6 +148,11 @@ export const BucketsPage = () => {
 
   const onCloseDeleteBucketModal = () => {
     setIsDeleteBucketDialogOpened(false);
+  };
+
+  const onCloseBucketUsageModal = () => {
+    setIsBucketUsageModalOpened(false);
+    setSelectedBucketForUsage(undefined);
   };
 
   return (
@@ -155,6 +170,7 @@ export const BucketsPage = () => {
             headers={HEADER_ITEMS}
             buckets={paginatedData}
             onDeleteBucketsClicked={onOpenDeleteBucketModal}
+            onViewUsageClicked={onOpenBucketUsageModal}
             isLoading={isLoading}
           />
           <div className='flex flex-row items-end justify-end w-full'>
@@ -214,6 +230,16 @@ export const BucketsPage = () => {
         onClose={onCloseCreateBucketModal}
         onCreateBucket={onCreateBucket}
       />
+
+      {selectedBucketForUsage?.bucketNumber && (
+        <BucketUsageModal
+          isOpen={isBucketUsageModalOpened}
+          onClose={onCloseBucketUsageModal}
+          bucketNumber={selectedBucketForUsage.bucketNumber}
+          bucketName={selectedBucketForUsage.name}
+          bucketRegion={selectedBucketForUsage.region}
+        />
+      )}
     </section>
   );
 };
