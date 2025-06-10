@@ -5,6 +5,7 @@ export interface Bucket {
   name: string;
   region: string;
   creationDate: Date;
+  bucketNumber?: number;
 }
 
 export interface Region {
@@ -44,16 +45,37 @@ export interface BucketUsageResponse {
 }
 
 const getBuckets = async (): Promise<Bucket[]> => {
-  const bucketsResponse = await axiosInstance.get(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets`
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 2);
+
+  const usageResponse = await axiosInstance.get(
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets/usages`,
+    {
+      params: {
+        from: yesterday.toISOString(),
+        to: today.toISOString(),
+        perPage: 100,
+      },
+    }
   );
 
-  const buckets = bucketsResponse.data.map((bucket: Bucket) => ({
-    ...bucket,
-    id: crypto.randomUUID(),
-  }));
+  const uniqueBuckets = new Map<string, Bucket>();
 
-  return buckets;
+  usageResponse.data.items.forEach((item: BucketUsageItem) => {
+    const bucketKey = `${item.name}-${item.region}`;
+    if (!uniqueBuckets.has(bucketKey)) {
+      uniqueBuckets.set(bucketKey, {
+        id: crypto.randomUUID(),
+        name: item.name,
+        region: item.region,
+        creationDate: new Date(),
+        bucketNumber: item.bucketNumber,
+      });
+    }
+  });
+
+  return Array.from(uniqueBuckets.values());
 };
 
 const createBucket = async (name: Bucket['name'], region: Bucket['region']) => {
@@ -85,7 +107,7 @@ const getRegions = async (): Promise<Region[]> => {
 const getBucketUsage = async (
   startDate: Date,
   endDate: Date,
-  _bucketName?: Bucket['name'],
+  bucketNumber?: number,
   page?: number,
   perPage?: number
 ): Promise<BucketUsageResponse> => {
@@ -100,6 +122,7 @@ const getBucketUsage = async (
         to: toDate,
         ...(page !== undefined && { page }),
         ...(perPage !== undefined && { perPage }),
+        ...(bucketNumber !== undefined && { bucketId: bucketNumber }),
       },
     }
   );
@@ -110,28 +133,23 @@ const getBucketUsage = async (
 const getAllBucketUsage = async (
   startDate: Date,
   endDate: Date,
-  bucketName?: Bucket['name'],
-  onProgress?: (current: number, total: number, page: number) => void
+  bucketNumber?: number,
+  perPage?: number
 ): Promise<BucketUsageItem[]> => {
   let allItems: BucketUsageItem[] = [];
   let currentPage = 0;
   let hasMoreData = true;
-  let totalItems = 0;
 
   while (hasMoreData) {
     const response = await getBucketUsage(
       startDate,
       endDate,
-      bucketName,
-      currentPage
+      bucketNumber,
+      currentPage,
+      perPage ?? 50
     );
 
     allItems = [...allItems, ...response.items];
-    totalItems = response.total;
-
-    if (onProgress) {
-      onProgress(allItems.length, totalItems, currentPage + 1);
-    }
 
     const expectedTotal = response.total;
     hasMoreData = allItems.length < expectedTotal && response.items.length > 0;
@@ -139,12 +157,38 @@ const getAllBucketUsage = async (
     currentPage++;
 
     if (currentPage > 100) {
-      console.warn('Pagination safety limit reached');
       break;
     }
   }
 
   return allItems;
+};
+
+const getBucketsFromUsage = async (): Promise<
+  { bucketNumber: number; name: string; region: string }[]
+> => {
+  const today = new Date();
+  const monthAgo = new Date();
+  monthAgo.setDate(monthAgo.getDate() - 30);
+
+  const allUsageData = await getAllBucketUsage(monthAgo, today);
+
+  const uniqueBuckets = new Map<
+    number,
+    { bucketNumber: number; name: string; region: string }
+  >();
+
+  allUsageData.forEach((item) => {
+    if (!uniqueBuckets.has(item.bucketNumber)) {
+      uniqueBuckets.set(item.bucketNumber, {
+        bucketNumber: item.bucketNumber,
+        name: item.name,
+        region: item.region,
+      });
+    }
+  });
+
+  return Array.from(uniqueBuckets.values());
 };
 
 export const bucketsService = {
@@ -154,4 +198,5 @@ export const bucketsService = {
   getRegions,
   getBucketUsage,
   getAllBucketUsage,
+  getBucketsFromUsage,
 };

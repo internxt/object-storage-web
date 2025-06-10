@@ -1,4 +1,4 @@
-import { DotsThreeVertical, Trash } from '@phosphor-icons/react';
+import { DotsThreeVertical, Trash, ChartBar } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -22,6 +22,7 @@ interface BucketsTableProps {
   headers: HeaderItemsTableProps[];
   buckets: Bucket[];
   onDeleteBucketsClicked: (bucket: Bucket) => void;
+  onViewUsageClicked: (bucket: Bucket) => void;
   isLoading: boolean;
 }
 
@@ -29,6 +30,7 @@ export const BucketsTable = ({
   headers,
   buckets,
   onDeleteBucketsClicked,
+  onViewUsageClicked,
   isLoading = false,
 }: BucketsTableProps) => {
   if (isLoading) {
@@ -98,6 +100,12 @@ export const BucketsTable = ({
                     />
                   }
                   items={[
+                    {
+                      label: 'View Usage',
+                      icon: <ChartBar size={18} className='text-blue-600' />,
+                      onClick: () => onViewUsageClicked(bucket),
+                      disabled: !bucket.bucketNumber,
+                    },
                     {
                       label: 'Delete',
                       icon: <Trash size={18} className='text-red-600' />,

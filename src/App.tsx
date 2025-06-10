@@ -10,7 +10,6 @@ import { LoginPage } from './views/LoginPage';
 import { UsagePage } from './views/UsagePage';
 import { SettingsPage } from './views/settings/Settings';
 import { UserProvider } from './context/userContext';
-import TestBucketUsage from './views/TestBucketUsage';
 
 export function App() {
   return (
@@ -23,7 +22,6 @@ export function App() {
             <Route path='/buckets' element={<BucketsPage />} />
             <Route path='/usage' element={<UsagePage />} />
             <Route path='/settings/:tab' element={<SettingsPage />} />
-            <Route path='/test/usage' element={<TestBucketUsage />} />
           </Route>
 
           <Route path='/' element={<Navigate to='/buckets' />} />
