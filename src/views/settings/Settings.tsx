@@ -1,13 +1,19 @@
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { Profile } from './Profile'
-import { AccessKeys } from './AccessKeys'
-import { Regions } from './Regions'
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Profile } from './Profile';
+import { AccessKeys } from './AccessKeys';
+import { Regions } from './Regions';
+import Members from './Members';
 
 const TAB_SETTINGS = [
   {
     id: 'profile',
     name: 'Profile',
     component: <Profile />,
+  },
+  {
+    id: 'members',
+    name: 'Members',
+    component: <Members />,
   },
   {
     id: 'access-keys',
@@ -19,13 +25,13 @@ const TAB_SETTINGS = [
     name: 'Regions',
     component: <Regions />,
   },
-]
+];
 
 const TabSelector = ({ activeTab }: { activeTab: string }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
-    <div className="flex gap-8 pl-5 bg-white w-full rounded-md shadow-sm">
+    <div className='flex gap-8 pl-5 bg-white w-full rounded-md shadow-sm'>
       {TAB_SETTINGS.map((tab) => (
         <button
           key={tab.id}
@@ -40,23 +46,23 @@ const TabSelector = ({ activeTab }: { activeTab: string }) => {
         </button>
       ))}
     </div>
-  )
-}
+  );
+};
 
 export const SettingsPage = () => {
-  const { tab } = useParams<{ tab: string }>()
+  const { tab } = useParams<{ tab: string }>();
 
-  const currentTab = TAB_SETTINGS.find((t) => t.id === tab)
+  const currentTab = TAB_SETTINGS.find((t) => t.id === tab);
 
-  if (!currentTab) return <Navigate to="/settings/profile" replace />
+  if (!currentTab) return <Navigate to='/settings/profile' replace />;
 
   return (
-    <section className="flex w-full flex-col gap-10 items-center justify-center overflow-hidden">
-      <div className="flex flex-col gap-8 pt-10 max-w-[800px] w-full">
-        <h1 className="text-lg font-semibold">Settings</h1>
+    <section className='flex w-full flex-col gap-10 items-center justify-center overflow-hidden'>
+      <div className='flex flex-col gap-8 pt-10 max-w-[800px] w-full'>
+        <h1 className='text-lg font-semibold'>Settings</h1>
         <TabSelector activeTab={tab!} />
         {currentTab.component}
       </div>
     </section>
-  )
-}
+  );
+};
