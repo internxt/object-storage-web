@@ -1,5 +1,7 @@
 import axiosInstance from '../core/config/axios';
 
+export type RegionBucket = 'eu-ie' | 'us-va';
+
 export interface Bucket {
   id: string;
   name: string;
