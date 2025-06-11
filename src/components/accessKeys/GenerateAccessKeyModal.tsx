@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Bucket, bucketsService, Region } from '../../services/buckets.service';
+import {
+  Bucket,
+  bucketsService,
+  Region,
+  RegionBucket,
+} from '../../services/buckets.service';
 import Modal from '../Modal';
 import Input from '../Input';
 import { Dropdown } from '../Dropdown';
@@ -153,7 +158,13 @@ export const GenerateAccessKeysModal = ({
             className='rounded-md'
             loading={isLoading}
             disabled={!accessKeyName || isLoading}
-            onClick={() => onCreateAccessKey(accessKeyName, permission, region)}
+            onClick={() =>
+              onCreateAccessKey(
+                accessKeyName,
+                permission,
+                region as RegionBucket
+              )
+            }
           >
             Create
           </Button>
