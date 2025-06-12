@@ -20,8 +20,8 @@ export function App() {
 
           <Route element={<AuthRoute />}>
             <Route path='/buckets' element={<BucketsPage />} />
-            <Route path='/usage' element={<UsagePage />} />
             <Route path='/settings/:tab' element={<SettingsPage />} />
+            <Route path='/usage' element={<UsagePage />} />
           </Route>
 
           <Route path='/' element={<Navigate to='/buckets' />} />
