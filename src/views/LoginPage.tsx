@@ -8,7 +8,7 @@ import { BaseSyntheticEvent, useEffect, useState } from 'react';
 import Button from '../components/Button';
 import { WarningCircle } from '@phosphor-icons/react';
 import { useUser } from '../context/userContext';
-import { userService } from '../services/user.service';
+// import { userService } from '../services/user.service'; // Temporarily commented out - not needed during login
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -54,8 +54,15 @@ export const LoginPage = () => {
       if (logIn.token) {
         localStorageService.setUserToken(logIn.token);
 
-        const userData = await userService.getUserData();
-        setUser(userData);
+        // TODO: Temporarily commented out
+        // const userData = await userService.getUserData();
+        // setUser(userData);
+
+        setUser({
+          email: email,
+          id: 'temp-id',
+          usage: 0,
+        });
       }
 
       navigate('/buckets');
