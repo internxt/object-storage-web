@@ -5,7 +5,7 @@ import {
   MembersTable,
   HeaderItemsTableProps,
   BODY_STATE,
-} from '../../components/members/MembersTable';
+} from '../../components/settings/MembersTable';
 import Button from '../../components/Button';
 import { usePaginatedUsageData } from '../../hooks/usePaginatedUserData';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
