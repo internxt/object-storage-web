@@ -1,4 +1,4 @@
-import { User, userService } from '../services/user.service';
+import { User } from '../services/user.service';
 import {
   createContext,
   useState,
@@ -34,8 +34,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
-        const userData = await userService.getUserData();
-        setUser(userData);
+        // TODO: Temporarily commented out
+        // const userData = await userService.getUserData();
+        // setUser(userData);
+        setUser({
+          email: 'authenticated-user',
+          id: 'temp-id',
+          usage: 0,
+        });
       } catch (error) {
         console.error('Error fetching user data:', error);
         setUser(null);
