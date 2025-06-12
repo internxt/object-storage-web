@@ -3,6 +3,7 @@ import { Profile } from './Profile';
 import { AccessKeys } from './AccessKeys';
 import { Regions } from './Regions';
 import Members from './Members';
+import Billing from './Billing';
 
 const TAB_SETTINGS = [
   {
@@ -24,6 +25,11 @@ const TAB_SETTINGS = [
     id: 'regions',
     name: 'Regions',
     component: <Regions />,
+  },
+  {
+    id: 'billing',
+    name: 'Billing',
+    component: <Billing />,
   },
 ];
 
