@@ -77,7 +77,7 @@ export const BillingTable = ({
               colSpan={headers.length + 1}
               className='text-center py-4 text-sm text-gray-400'
             >
-              No members found
+              No invoices found
             </td>
           </tr>
         )}
