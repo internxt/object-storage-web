@@ -7,6 +7,8 @@ import dayjs from 'dayjs';
 import { usePaginatedUsageData } from '../hooks/usePaginatedUserData';
 import { CaretLeft, CaretRight, Export } from '@phosphor-icons/react';
 import notificationsService from '../services/notifications.service';
+import { ExportModal, ExportFormat } from '../components/usage/ExportModal';
+import { exportUsageData } from '../utils/exportUtils';
 
 const TABLE_HEADERS = [
   {
@@ -61,9 +63,11 @@ export const UsagePage = () => {
   const [summaryData, setSummaryData] =
     useState<UsageSummary>(DEFAULT_SUMMARY_DATA);
   const [tableBodyState, setTableBodyState] = useState<BODY_STATE>('loading');
-  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
-    start: dayjs().subtract(1, 'month').format('DD-MMM-YYYY'),
-    end: dayjs().format('DD-MMM-YYYY'),
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [currentDateRange, setCurrentDateRange] = useState({
+    startDate: dayjs().subtract(1, 'month').toDate().toISOString(),
+    endDate: dayjs().toDate().toISOString(),
   });
 
   const {
@@ -79,19 +83,6 @@ export const UsagePage = () => {
   useEffect(() => {
     const startDate = dayjs().subtract(1, 'month').toDate();
     const endDate = dayjs().toDate();
-
-    setDateRange({
-      start: startDate.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }),
-      end: endDate.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }),
-    });
 
     getUsage(startDate.toDateString(), endDate.toDateString());
   }, []);
@@ -113,6 +104,7 @@ export const UsagePage = () => {
       }
 
       setUsageData(usage);
+      setCurrentDateRange({ startDate, endDate });
     } catch (error) {
       const err = error as Error;
       notificationsService.error({
@@ -124,18 +116,6 @@ export const UsagePage = () => {
 
   const onApplyFilter = async (startDate: string, endDate: string) => {
     try {
-      setDateRange({
-        start: new Date(startDate).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        }),
-        end: new Date(endDate).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        }),
-      });
       await getUsage(startDate, endDate);
     } catch (error) {
       const err = error as Error;
@@ -146,7 +126,44 @@ export const UsagePage = () => {
   };
 
   const handleExport = () => {
-    // TODO: Implement export functionality
+    setIsExportModalOpen(true);
+  };
+
+  const handleExportConfirm = async (format: ExportFormat) => {
+    try {
+      setIsExporting(true);
+
+      if (usageData.length === 0) {
+        notificationsService.error({
+          text: 'No data available to export',
+        });
+        return;
+      }
+
+      exportUsageData(
+        usageData,
+        format,
+        currentDateRange.startDate,
+        currentDateRange.endDate
+      );
+
+      notificationsService.success({
+        text: `Usage data exported successfully as ${format}`,
+      });
+
+      setIsExportModalOpen(false);
+    } catch (error) {
+      const err = error as Error;
+      notificationsService.error({
+        text: `Export failed: ${err.message}`,
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportModalClose = () => {
+    setIsExportModalOpen(false);
   };
 
   const formatWithBestUnit = (valueInGB: number): string => {
@@ -178,16 +195,13 @@ export const UsagePage = () => {
           </div>
           <div className='flex flex-col w-full justify-end items-end gap-2'>
             <div className='flex items-center gap-4'>
-              <span className='text-sm text-gray-600'>
-                {dateRange.start} - {dateRange.end}
-              </span>
               <DateRangePicker
                 onApplyFilterButtonClicked={onApplyFilter}
                 returnISOString={true}
               />
               <button
                 onClick={handleExport}
-                className='flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors'
+                className='flex items-center gap-2 px-4 py-2 bg-gray-10 text-black rounded-md hover:bg-blue-700 transition-colors'
               >
                 <Export size={16} />
                 Export
@@ -246,23 +260,34 @@ export const UsagePage = () => {
           usedCapacity={formatWithBestUnit(summaryData.usedCapacity)}
           remainingCapacity={formatWithBestUnit(summaryData.remainingCapacity)}
           className='col-span-4 h-full'
+          tooltip='The total amount of storage provisioned for the account.'
         />
         <InfoCard
           value={summaryData.totalApiCalls.toLocaleString()}
           name='Total API Calls'
           className='col-span-2 h-full'
+          tooltip='API Calls is the sum of all API Calls across all buckets for the date range. This also includes API Calls not made to a specific bucket.'
         />
         <InfoCard
           value={formatWithBestUnit(summaryData.totalEgress)}
           name='Total Egress'
           className='col-span-2 h-full'
+          tooltip='Egress is the sum of all Egress across all buckets for the date range.'
         />
         <InfoCard
           value={formatWithBestUnit(summaryData.totalIngress)}
           name='Total Ingress'
           className='col-span-2 h-full'
+          tooltip='Ingress is the sum of all Ingress across all buckets for the date range.'
         />
       </div>
+
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={handleExportModalClose}
+        onExport={handleExportConfirm}
+        isLoading={isExporting}
+      />
     </section>
   );
 };
