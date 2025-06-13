@@ -65,6 +65,10 @@ const getBuckets = async (): Promise<Bucket[]> => {
   const uniqueBuckets = new Map<string, Bucket>();
 
   usageResponse.data.items.forEach((item: BucketUsageItem) => {
+    if (item.bucketDeleteTime !== null) {
+      return;
+    }
+
     const bucketKey = `${item.name}-${item.region}`;
     if (!uniqueBuckets.has(bucketKey)) {
       uniqueBuckets.set(bucketKey, {
