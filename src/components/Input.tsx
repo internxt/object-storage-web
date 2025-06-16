@@ -3,7 +3,6 @@ import {
   Eye,
   EyeSlash,
   Info,
-  MagnifyingGlass,
   Warning,
   WarningOctagon,
   X,
@@ -154,24 +153,26 @@ const Input = ({
 
   const borderColor =
     variant === 'search'
-      ? 'border-transparent'
+      ? 'border-gray-30'
       : 'border-gray-30 disabled:border-gray-10';
 
   const placeholderColor =
     variant === 'search' ? 'placeholder-gray-40' : 'placeholder-gray-30';
 
-  const padding = variant === 'search' ? 'pr-4 pl-10' : 'px-4';
+  const padding = variant === 'search' ? 'pl-4 pr-10' : 'px-4';
 
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+
+  const background = variant === 'search' ? 'bg-gray-5' : 'bg-transparent';
 
   const input = (
     <div className='relative'>
       <input
         ref={inputRef}
         disabled={disabled}
-        className={` h-10 w-full rounded-md border bg-transparent text-lg font-normal text-gray-800 outline-none disabled:text-gray-40 disabled:placeholder-gray-20
-          ${borderColor} ${placeholderColor} ${padding}`}
+        className={` h-10 w-full rounded-md border text-lg font-normal text-gray-800 outline-none disabled:text-gray-40 disabled:placeholder-gray-20
+          ${borderColor} ${placeholderColor} ${padding} ${background}`}
         type={
           variant === 'password' && !showPassword
             ? 'password'
@@ -211,14 +212,6 @@ const Input = ({
           {showPassword ? <Eye size={24} /> : <EyeSlash size={24} />}
         </div>
       )}
-      {variant === 'search' && (
-        <MagnifyingGlass
-          className={`absolute left-4 top-1/2 -translate-y-1/2 ${
-            disabled ? 'text-gray-20' : 'text-gray-40'
-          }`}
-          size={20}
-        />
-      )}
       {variant === 'search' && value && !disabled && (
         <div
           role='button'
@@ -227,8 +220,7 @@ const Input = ({
             e.preventDefault();
             if (onClear) onClear();
           }}
-          className={`absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer py-2 pl-2 text-gray-40 
-            ${isFocused ? 'bg-white' : 'bg-gray-5'}`}
+          className='absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer py-2 pl-2 text-gray-40'
         >
           <X size={20} />
         </div>

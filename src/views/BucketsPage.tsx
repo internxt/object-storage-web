@@ -165,20 +165,22 @@ export const BucketsPage = () => {
         <div className='flex flex-row w-full justify-between items-center'>
           <p className='font-semibold text-lg'>Buckets</p>
           <Button
-            className='rounded-md'
+            className='rounded-md hidden'
             onClick={onCreateBucketButtonClicked}
             disabled
           >
             Create Bucket
           </Button>
         </div>
-        <Input
-          placeholder='Search'
-          variant='search'
-          value={searchQuery}
-          onChange={setSearchQuery}
-          onClear={() => setSearchQuery('')}
-        />
+        <div className='flex flex-row w-full justify-between items-center'>
+          <Input
+            placeholder='Search'
+            variant='search'
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onClear={() => setSearchQuery('')}
+          />
+        </div>
         <Separator />
         <div className='flex flex-col w-full'>
           <div className='overflow-x-auto'>

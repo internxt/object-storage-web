@@ -37,6 +37,7 @@ export interface BucketUsageItem {
   region: string;
   bucketNumber: number;
   bucketDeleteTime: string | null;
+  createdAt?: number;
 }
 
 export interface BucketUsageResponse {
@@ -75,7 +76,7 @@ const getBuckets = async (): Promise<Bucket[]> => {
         id: crypto.randomUUID(),
         name: item.name,
         region: item.region,
-        creationDate: new Date(),
+        creationDate: new Date(item.createdAt ?? Date.now()),
         bucketNumber: item.bucketNumber,
       });
     }

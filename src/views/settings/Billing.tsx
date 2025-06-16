@@ -5,6 +5,7 @@ import {
   BODY_STATE,
   HeaderItemsTableProps,
 } from '../../components/settings/BillingTable';
+import { Separator } from '../../components/Separator';
 
 const TABLE_HEADERS: HeaderItemsTableProps[] = [
   {
@@ -44,11 +45,19 @@ const Billing = () => {
   };
 
   return (
-    <BillingTable
-      headers={TABLE_HEADERS}
-      invoices={invoices}
-      bodyState={tableBodyState}
-    />
+    <div className='flex flex-col rounded-md bg-white gap-7 p-7'>
+      <div className='flex flex-row w-full justify-between items-center'>
+        <p className='text-xl font-semibold'>Billing</p>
+      </div>
+      <Separator />
+      <div className='flex flex-col w-full gap-4'>
+        <BillingTable
+          headers={TABLE_HEADERS}
+          invoices={invoices}
+          bodyState={tableBodyState}
+        />
+      </div>
+    </div>
   );
 };
 

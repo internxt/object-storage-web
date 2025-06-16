@@ -20,11 +20,13 @@ const TAB_SETTINGS = [
     id: 'access-keys',
     name: 'Access Keys',
     component: <AccessKeys />,
+    hidden: true,
   },
   {
     id: 'regions',
     name: 'Regions',
     component: <Regions />,
+    hidden: true,
   },
   {
     id: 'billing',
@@ -38,7 +40,7 @@ const TabSelector = ({ activeTab }: { activeTab: string }) => {
 
   return (
     <div className='flex gap-8 pl-5 bg-white w-full rounded-md shadow-sm'>
-      {TAB_SETTINGS.map((tab) => (
+      {TAB_SETTINGS.filter((tab) => !tab.hidden).map((tab) => (
         <button
           key={tab.id}
           onClick={() => navigate(`/settings/${tab.id}`)}
