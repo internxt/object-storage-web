@@ -99,6 +99,7 @@ export const BucketUsageModal = ({
     value: {
       label: selectedMetricOption.label,
       color: selectedMetricOption.color,
+      formatter: (value: number) => formatMetricValue(value, selectedMetric),
     },
   };
 
@@ -189,9 +190,13 @@ export const BucketUsageModal = ({
               >
                 <CartesianGrid strokeDasharray='3 3' className='stroke-muted' />
                 <XAxis
-                  dataKey='date'
+                  dataKey='timestamp'
                   tickFormatter={formatChartDate}
                   className='text-xs fill-muted-foreground'
+                  type='number'
+                  domain={['dataMin', 'dataMax']}
+                  scale='time'
+                  interval='preserveStartEnd'
                 />
                 <YAxis
                   tickFormatter={(value: number) =>
@@ -199,7 +204,15 @@ export const BucketUsageModal = ({
                   }
                   className='text-xs fill-muted-foreground'
                 />
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      labelFormatter={(timestamp) =>
+                        new Date(Number(timestamp)).toLocaleDateString('sv-SE')
+                      }
+                    />
+                  }
+                />
                 <Area
                   type='monotone'
                   dataKey='value'

@@ -1,4 +1,4 @@
-import { DotsThreeVertical, Trash, ChartBar } from '@phosphor-icons/react';
+import { DotsThreeVertical, ChartBar, Database } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -21,7 +21,7 @@ export interface HeaderItemsTableProps {
 interface BucketsTableProps {
   headers: HeaderItemsTableProps[];
   buckets: Bucket[];
-  onDeleteBucketsClicked: (bucket: Bucket) => void;
+  // onDeleteBucketsClicked: (bucket: Bucket) => void;
   onViewUsageClicked: (bucket: Bucket) => void;
   isLoading: boolean;
 }
@@ -29,7 +29,7 @@ interface BucketsTableProps {
 export const BucketsTable = ({
   headers,
   buckets,
-  onDeleteBucketsClicked,
+  // onDeleteBucketsClicked,
   onViewUsageClicked,
   isLoading = false,
 }: BucketsTableProps) => {
@@ -56,7 +56,7 @@ export const BucketsTable = ({
 
   return (
     <table className='w-full'>
-      <thead>
+      <thead className='sticky top-0 z-10'>
         <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
           {headers.map((header) => (
             <th key={header.sortKey} className='w-[33%] px-5 text-left'>
@@ -77,7 +77,14 @@ export const BucketsTable = ({
         ) : (
           buckets.map((bucket) => (
             <tr className='w-full h-12 text-sm text-gray-500' key={bucket.id}>
-              <td className='w-[33%] px-5'>{bucket.name}</td>
+              <td className='w-[33%] px-5'>
+                <div className='flex flex-row gap-2 items-center'>
+                  <Database size={18} className='text-blue-600' />
+                  <span className='text-primary font-medium'>
+                    {bucket.name}
+                  </span>
+                </div>
+              </td>
               <td className='w-[33%] px-5'>
                 <div className='flex flex-row gap-2 items-center'>
                   <p>{getFlagAndNameFromRegion(bucket.region).flag}</p>
@@ -106,11 +113,11 @@ export const BucketsTable = ({
                       onClick: () => onViewUsageClicked(bucket),
                       disabled: !bucket.bucketNumber,
                     },
-                    {
-                      label: 'Delete',
-                      icon: <Trash size={18} className='text-red-600' />,
-                      onClick: () => onDeleteBucketsClicked(bucket),
-                    },
+                    // {
+                    //   label: 'Delete',
+                    //   icon: <Trash size={18} className='text-red-600' />,
+                    //   onClick: () => onDeleteBucketsClicked(bucket),
+                    // },
                   ]}
                 />
               </td>

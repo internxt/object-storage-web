@@ -40,6 +40,8 @@ export interface Usage {
   apiCalls: number;
   egress: number;
   ingress: number;
+  storageWrote: number;
+  storageRead: number;
 }
 
 export interface UsageSummary {
@@ -121,6 +123,8 @@ const getUsage = async (
     apiCalls: usage.apiCalls,
     egress: usage.egress,
     ingress: usage.ingress,
+    storageWrote: usage.storageWrote,
+    storageRead: usage.storageRead,
   }));
 
   usage.sort(

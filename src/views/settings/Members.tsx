@@ -8,7 +8,7 @@ import {
 } from '../../components/settings/MembersTable';
 import Button from '../../components/Button';
 import { usePaginatedUsageData } from '../../hooks/usePaginatedUserData';
-import { CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { Pagination } from '../../components/ui/Pagination';
 
 const TABLE_HEADERS: HeaderItemsTableProps[] = [
   {
@@ -31,15 +31,8 @@ const Members = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [tableBodyState, setTableBodyState] = useState<BODY_STATE>('loading');
 
-  const {
-    paginatedData,
-    currentPage,
-    setCurrentPage,
-    pageInfo,
-    totalItems,
-    hasNextPage,
-    hasPrevPage,
-  } = usePaginatedUsageData(members, PAGINATED_ITEMS);
+  const { paginatedData, currentPage, setCurrentPage, pageInfo, totalItems } =
+    usePaginatedUsageData(members, PAGINATED_ITEMS);
 
   useEffect(() => {
     getMembers();
@@ -88,7 +81,7 @@ const Members = () => {
       <div className='flex flex-row w-full justify-between items-center'>
         <p className='text-xl font-semibold'>Members</p>
         <Button
-          className='rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2'
+          className='rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 hidden'
           onClick={handleCreateMember}
         >
           Create Member
@@ -111,34 +104,12 @@ const Members = () => {
                 {pageInfo.from}-{pageInfo.to} of {totalItems}
               </p>
               <div className='flex flex-row gap-3 items-center'>
-                <button
-                  disabled={!hasPrevPage}
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  className='p-1 disabled:opacity-50 disabled:cursor-not-allowed'
-                >
-                  <CaretLeft
-                    size={20}
-                    className={`${
-                      !hasPrevPage
-                        ? 'text-gray-30 cursor-no-drop'
-                        : 'text-black'
-                    }`}
-                  />
-                </button>
-                <button
-                  disabled={!hasNextPage}
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  className='p-1 disabled:opacity-50 disabled:cursor-not-allowed'
-                >
-                  <CaretRight
-                    size={20}
-                    className={`${
-                      !hasNextPage
-                        ? 'text-gray-30 cursor-no-drop'
-                        : 'text-black'
-                    }`}
-                  />
-                </button>
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={totalItems}
+                  pageSize={PAGINATED_ITEMS}
+                  onPageChange={setCurrentPage}
+                />
               </div>
             </div>
           </div>

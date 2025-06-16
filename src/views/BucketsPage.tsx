@@ -6,16 +6,17 @@ import {
   BucketsTable,
   HeaderItemsTableProps,
 } from '../components/buckets/Table';
-import { useEffect, useState } from 'react';
-import Dialog from '../components/Dialog';
+import { useEffect, useMemo, useState } from 'react';
+// import Dialog from '../components/Dialog';
 import { Bucket, bucketsService } from '../services/buckets.service';
 import notificationsService from '../services/notifications.service';
 import { usePaginatedUsageData } from '../hooks/usePaginatedUserData';
-import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { CreateBucketModal } from '../components/buckets/CreateBucketModal';
 import { BucketUsageModal } from '../components/buckets/BucketUsageModal';
 import { isValidBucketName } from '../utils/isBucketNameValid';
 import Button from '../components/Button';
+import { Pagination } from '../components/ui/Pagination';
+import Input from '../components/Input';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -41,27 +42,30 @@ const HEADER_ITEMS: HeaderItemsTableProps[] = [
 ];
 
 export const BucketsPage = () => {
-  const [isDeleteBucketDialogOpened, setIsDeleteBucketDialogOpened] =
-    useState(false);
+  // const [isDeleteBucketDialogOpened, setIsDeleteBucketDialogOpened] =
+  //   useState(false);
   const [isCreateBucketOpened, setIsCreateBucketOpened] = useState(false);
   const [isBucketUsageModalOpened, setIsBucketUsageModalOpened] =
     useState(false);
   const [buckets, setBuckets] = useState<Bucket[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isCreatingBucket, setIsCreatingBucket] = useState(false);
-  const [isDeletingBucket, setIsDeletingBucket] = useState(false);
-  const [bucketToDelete, setBucketToDelete] = useState<Bucket>();
+  // const [isDeletingBucket, setIsDeletingBucket] = useState(false);
+  // const [bucketToDelete, setBucketToDelete] = useState<Bucket>();
   const [selectedBucketForUsage, setSelectedBucketForUsage] =
     useState<Bucket>();
   const [isLoading, setIsLoading] = useState(false);
-  const {
-    paginatedData,
-    currentPage,
-    setCurrentPage,
-    pageInfo,
-    totalItems,
-    hasNextPage,
-    hasPrevPage,
-  } = usePaginatedUsageData(buckets, 20);
+
+  const filteredBuckets = useMemo(
+    () =>
+      buckets.filter((bucket) =>
+        bucket.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [buckets, searchQuery]
+  );
+
+  const { paginatedData, currentPage, setCurrentPage, totalItems } =
+    usePaginatedUsageData(filteredBuckets, 20);
 
   useEffect(() => {
     getBuckets();
@@ -106,36 +110,36 @@ export const BucketsPage = () => {
     }
   };
 
-  const onDeleteBucket = async () => {
-    if (!bucketToDelete) return;
+  // const onDeleteBucket = async () => {
+  //   if (!bucketToDelete) return;
 
-    setIsDeletingBucket(true);
-    try {
-      await bucketsService.deleteBucket(
-        bucketToDelete.name,
-        bucketToDelete.region
-      );
-      await getBuckets();
-      onCloseDeleteBucketModal();
-    } catch (err) {
-      const error = err as Error;
+  //   setIsDeletingBucket(true);
+  //   try {
+  //     await bucketsService.deleteBucket(
+  //       bucketToDelete.name,
+  //       bucketToDelete.region
+  //     );
+  //     await getBuckets();
+  //     onCloseDeleteBucketModal();
+  //   } catch (err) {
+  //     const error = err as Error;
 
-      notificationsService.error({
-        text: error.message,
-      });
-    } finally {
-      setIsDeletingBucket(false);
-    }
-  };
+  //     notificationsService.error({
+  //       text: error.message,
+  //     });
+  //   } finally {
+  //     setIsDeletingBucket(false);
+  //   }
+  // };
 
   const onCreateBucketButtonClicked = () => {
     setIsCreateBucketOpened(true);
   };
 
-  const onOpenDeleteBucketModal = (bucket: Bucket) => {
-    setIsDeleteBucketDialogOpened(true);
-    setBucketToDelete(bucket);
-  };
+  // const onOpenDeleteBucketModal = (bucket: Bucket) => {
+  //   setIsDeleteBucketDialogOpened(true);
+  //   setBucketToDelete(bucket);
+  // };
 
   const onOpenBucketUsageModal = (bucket: Bucket) => {
     setSelectedBucketForUsage(bucket);
@@ -146,9 +150,9 @@ export const BucketsPage = () => {
     setIsCreateBucketOpened(false);
   };
 
-  const onCloseDeleteBucketModal = () => {
-    setIsDeleteBucketDialogOpened(false);
-  };
+  // const onCloseDeleteBucketModal = () => {
+  //   setIsDeleteBucketDialogOpened(false);
+  // };
 
   const onCloseBucketUsageModal = () => {
     setIsBucketUsageModalOpened(false);
@@ -160,58 +164,46 @@ export const BucketsPage = () => {
       <div className='flex flex-col p-8 w-full bg-white gap-5 rounded-md'>
         <div className='flex flex-row w-full justify-between items-center'>
           <p className='font-semibold text-lg'>Buckets</p>
-          <Button className='rounded-md' onClick={onCreateBucketButtonClicked}>
+          <Button
+            className='rounded-md hidden'
+            onClick={onCreateBucketButtonClicked}
+            disabled
+          >
             Create Bucket
           </Button>
         </div>
+        <div className='flex flex-row w-full justify-between items-center'>
+          <Input
+            placeholder='Search'
+            variant='search'
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onClear={() => setSearchQuery('')}
+          />
+        </div>
         <Separator />
         <div className='flex flex-col w-full'>
-          <BucketsTable
-            headers={HEADER_ITEMS}
-            buckets={paginatedData}
-            onDeleteBucketsClicked={onOpenDeleteBucketModal}
-            onViewUsageClicked={onOpenBucketUsageModal}
-            isLoading={isLoading}
-          />
-          <div className='flex flex-row items-end justify-end w-full'>
-            <div className='items-center flex flex-row gap-3'>
-              <p>
-                {pageInfo.from}-{pageInfo.to} of {totalItems}
-              </p>
-              <div className='flex flex-row gap-3 items-center'>
-                <button
-                  disabled={!hasPrevPage}
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                >
-                  <CaretLeft
-                    size={20}
-                    className={`${
-                      !hasPrevPage
-                        ? 'text-gray-30 cursor-no-drop'
-                        : 'text-black'
-                    }`}
-                  />
-                </button>
-                <button
-                  disabled={!hasNextPage}
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                >
-                  <CaretRight
-                    size={20}
-                    className={`${
-                      !hasNextPage
-                        ? 'text-gray-30 cursor-no-drop'
-                        : 'text-black'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
+          <div className='overflow-x-auto'>
+            <BucketsTable
+              headers={HEADER_ITEMS}
+              buckets={paginatedData}
+              // onDeleteBucketsClicked={onOpenDeleteBucketModal}
+              onViewUsageClicked={onOpenBucketUsageModal}
+              isLoading={isLoading}
+            />
+          </div>
+          <div className='flex flex-row items-center justify-end w-full mt-4'>
+            <Pagination
+              currentPage={currentPage}
+              totalItems={totalItems}
+              pageSize={20}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
       </div>
 
-      <Dialog
+      {/* <Dialog
         isOpen={isDeleteBucketDialogOpened}
         onClose={onCloseDeleteBucketModal}
         onPrimaryAction={onDeleteBucket}
@@ -222,7 +214,7 @@ export const BucketsPage = () => {
         primaryActionColor='danger'
         title='Delete bucket'
         subtitle='By deleting this bucket, all associated usage data will also be permanently removed.'
-      />
+      /> */}
 
       <CreateBucketModal
         isCreateBucketOpened={isCreateBucketOpened}

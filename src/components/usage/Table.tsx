@@ -21,7 +21,8 @@ interface UsageTableProps {
 
 const formatStorageToTB = (valueInGB: number): string => {
   const valueInTB = valueInGB / 1024;
-  return valueInTB.toFixed(3);
+  const roundedValue = Math.ceil(valueInTB * 1000) / 1000;
+  return roundedValue.toFixed(3);
 };
 
 const formatNumber = (value: number): string => {

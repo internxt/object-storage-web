@@ -45,7 +45,7 @@ export const BillingTable = ({
       case 'created':
         return getDate(invoice.created);
       case 'total':
-        return <p className='text-black'>{invoice.total}</p>;
+        return <p className='text-black'>€ {invoice.total.toFixed(2)}</p>;
       default:
         return '-';
     }

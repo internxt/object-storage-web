@@ -1,5 +1,5 @@
-import { Database } from '@phosphor-icons/react';
-
+import { Database, Info } from '@phosphor-icons/react';
+import Tooltip from '../Tooltip';
 interface InfoCardProps {
   value: string;
   name: string;
@@ -10,6 +10,7 @@ interface InfoCardProps {
   }>;
   isWider?: boolean;
   className?: string;
+  tooltip?: string;
 }
 
 export const InfoCard = ({
@@ -19,6 +20,7 @@ export const InfoCard = ({
   subValues,
   isWider,
   className,
+  tooltip,
 }: InfoCardProps) => {
   return (
     <div
@@ -37,6 +39,11 @@ export const InfoCard = ({
             <p className='font-medium text-lg'>{value}</p>
             <div className='flex flex-row gap-2 items-center text-black/60'>
               <p className='text-sm'>{name}</p>
+              {tooltip && (
+                <Tooltip title={tooltip} popsFrom='bottom' className='text-xs'>
+                  <Info size={16} />
+                </Tooltip>
+              )}
             </div>
           </div>
         </div>
@@ -65,11 +72,13 @@ export const CapacityCard = ({
   usedCapacity,
   remainingCapacity,
   className,
+  tooltip,
 }: {
   totalCapacity: string;
   usedCapacity: string;
   remainingCapacity: string;
   className?: string;
+  tooltip?: string;
 }) => {
   return (
     <InfoCard
@@ -82,6 +91,7 @@ export const CapacityCard = ({
       ]}
       isWider={true}
       className={className}
+      tooltip={tooltip}
     />
   );
 };

@@ -37,6 +37,7 @@ export interface BucketUsageItem {
   region: string;
   bucketNumber: number;
   bucketDeleteTime: string | null;
+  createdAt?: number;
 }
 
 export interface BucketUsageResponse {
@@ -65,13 +66,17 @@ const getBuckets = async (): Promise<Bucket[]> => {
   const uniqueBuckets = new Map<string, Bucket>();
 
   usageResponse.data.items.forEach((item: BucketUsageItem) => {
+    if (item.bucketDeleteTime !== null) {
+      return;
+    }
+
     const bucketKey = `${item.name}-${item.region}`;
     if (!uniqueBuckets.has(bucketKey)) {
       uniqueBuckets.set(bucketKey, {
         id: crypto.randomUUID(),
         name: item.name,
         region: item.region,
-        creationDate: new Date(),
+        creationDate: new Date(item.createdAt ?? Date.now()),
         bucketNumber: item.bucketNumber,
       });
     }

@@ -32,6 +32,7 @@ export const METRIC_OPTIONS: MetricOption[] = [
 
 export interface ChartDataPoint {
   date: string;
+  timestamp: number;
   value: number;
   name: string;
   region: string;
@@ -39,21 +40,23 @@ export interface ChartDataPoint {
 }
 
 export const formatStorageValue = (valueInGB: number): string => {
-  if (valueInGB >= 1024) {
+  if (valueInGB >= 1000) {
     // Convert to TB
-    return `${(valueInGB / 1024).toFixed(2)} TB`;
+    return `${(valueInGB / 1000).toFixed(2)} TB`;
   } else if (valueInGB >= 1) {
     // Keep as GB
     return `${valueInGB.toFixed(3)} GB`;
   } else if (valueInGB >= 0.001) {
     // Convert to MB
-    return `${(valueInGB * 1024).toFixed(2)} MB`;
+    return `${(valueInGB * 1000).toFixed(2)} MB`;
   } else if (valueInGB >= 0.000001) {
     // Convert to KB
-    return `${(valueInGB * 1024 * 1024).toFixed(2)} KB`;
+    return `${(valueInGB * 1000 * 1000).toFixed(2)} KB`;
+  } else if (valueInGB === 0) {
+    return '0 B';
   } else {
     // Convert to Bytes
-    return `${(valueInGB * 1024 * 1024 * 1024).toFixed(0)} B`;
+    return `${(valueInGB * 1000 * 1000 * 1000).toFixed(0)} B`;
   }
 };
 
@@ -87,16 +90,17 @@ export const transformBucketUsageForChart = (
   return usageData
     .map((item) => ({
       date: item.startTime,
+      timestamp: new Date(item.startTime).getTime(),
       value: item[selectedMetric],
       name: item.name,
       region: item.region,
       originalValue: item[selectedMetric],
     }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    .sort((a, b) => a.timestamp - b.timestamp);
 };
 
-export const formatChartDate = (dateStr: string): string => {
-  return new Date(dateStr).toLocaleDateString('en-US', {
+export const formatChartDate = (timestamp: number): string => {
+  return new Date(timestamp).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
   });
@@ -119,6 +123,7 @@ export const aggregateUsageByDate = (
     } else {
       aggregated.set(date, {
         date,
+        timestamp: new Date(date).getTime(),
         value,
         name: 'All Buckets',
         region: 'Multiple',
@@ -128,6 +133,6 @@ export const aggregateUsageByDate = (
   });
 
   return Array.from(aggregated.values()).sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    (a, b) => a.timestamp - b.timestamp
   );
 };

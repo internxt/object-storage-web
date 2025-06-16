@@ -29,20 +29,16 @@ const getStatusBadge = (status: string) => {
 
   if (statusLower === 'active') {
     return (
-      <div className='flex flex-row items-center gap-3'>
-        <div className='h-3 w-3 rounded-full border border-black/30 p-[1px]'>
-          <div className='h-full w-full rounded-full bg-green' />
-        </div>
-        <p className='text-sm'>Active</p>
+      <div className='flex items-center justify-center rounded-sm bg-badge-active-bg px-2 py-1 w-fit'>
+        <p className='text-xs font-medium text-badge-active-text m-1'>Active</p>
       </div>
     );
   } else if (statusLower === 'inactive') {
     return (
-      <div className='flex flex-row items-center gap-3'>
-        <div className='h-3 w-3 rounded-full border border-black/30 p-[1px]'>
-          <div className='h-full w-full rounded-full bg-red' />
-        </div>
-        <p className='text-sm'>Inactive</p>
+      <div className='flex items-center justify-center rounded-sm bg-badge-inactive-bg px-2 py-1 w-fit'>
+        <p className='text-xs font-medium text-badge-inactive-text m-1'>
+          Inactive
+        </p>
       </div>
     );
   }
@@ -123,7 +119,7 @@ export const MembersTable = ({
                   {renderCellValue(member, header.key)}
                 </td>
               ))}
-              <td className='w-[1%] px-5'>
+              <td className='w-[1%] px-5 hidden'>
                 <Dropdown
                   button={
                     <DotsThreeVertical
