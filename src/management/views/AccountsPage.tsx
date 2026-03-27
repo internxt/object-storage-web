@@ -114,7 +114,7 @@ export const AccountsPage = () => {
       {/* Date picker */}
       <div className='flex justify-end'>
         <DateRangePicker
-          onApplyFilterButtonClicked={(start) => {
+          onApplyFilterButtonClicked={async (start) => {
             setSelectedDate(dayjs(start).format('YYYY-MM-DD'));
           }}
           returnISOString={true}
