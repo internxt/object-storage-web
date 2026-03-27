@@ -10,25 +10,38 @@ import { LoginPage } from './views/LoginPage';
 import { UsagePage } from './views/UsagePage';
 import { SettingsPage } from './views/settings/Settings';
 import { UserProvider } from './context/userContext';
+import { ManagementProvider } from './management/context/managementContext';
+import { ManagementLoginPage } from './management/views/ManagementLoginPage';
+import { AccountsPage } from './management/views/AccountsPage';
+import { ManagementAuthRoute } from './management/components/ManagementAuthRoute';
 
 export function App() {
   return (
     <UserProvider>
-      <Router>
-        <Routes>
-          <Route path='/login' element={<LoginPage />} />
+      <ManagementProvider>
+        <Router>
+          <Routes>
+            <Route path='/login' element={<LoginPage />} />
 
-          <Route element={<AuthRoute />}>
-            <Route path='/buckets' element={<BucketsPage />} />
-            <Route path='/settings/:tab' element={<SettingsPage />} />
-            <Route path='/usage' element={<UsagePage />} />
-          </Route>
+            <Route element={<AuthRoute />}>
+              <Route path='/buckets' element={<BucketsPage />} />
+              <Route path='/settings/:tab' element={<SettingsPage />} />
+              <Route path='/usage' element={<UsagePage />} />
+            </Route>
 
-          <Route path='/' element={<Navigate to='/buckets' />} />
+            <Route path='/' element={<Navigate to='/buckets' />} />
 
-          {/* <Route path="*" element={<NotFoundPage />} /> */}
-        </Routes>
-      </Router>
+            {/* Management console */}
+            <Route path='/management/login' element={<ManagementLoginPage />} />
+            <Route element={<ManagementAuthRoute />}>
+              <Route path='/management/accounts' element={<AccountsPage />} />
+            </Route>
+            <Route path='/management' element={<Navigate to='/management/accounts' />} />
+
+            {/* <Route path="*" element={<NotFoundPage />} /> */}
+          </Routes>
+        </Router>
+      </ManagementProvider>
     </UserProvider>
   );
 }
