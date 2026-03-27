@@ -36,27 +36,15 @@ export interface CreateSubAccountDto {
   trialDays?: number;
 }
 
-export interface UsageRecord {
-  activeStorage: number;
-  deletedStorage: number;
-  activeObjects: number;
-  deletedObjects: number;
-  apiCalls: number;
-  egress: number;
-  ingress: number;
-  recordDate: string;
-}
+const RCS_TB = 1126.4; // Hardcoded Reserved Capacity Storage
 
-export interface UsagesResponse {
-  usages: UsageRecord[];
-  totalReservedCapacity?: number;
-  totalAllocatedStorage?: number;
-  usedBillableStorage?: number;
-  remainingCapacity?: number;
-  subAccountStorage?: number;
-  controlAccountStorage?: number;
-  totalActiveObjects?: number;
-  totalDeletedObjects?: number;
+export interface UsagesSummary {
+  storageProviderId: string;
+  date: string;
+  usedBillableStorageTb: number;
+  // Derived on the frontend
+  totalReservedCapacityTB: number;
+  remainingCapacityTB: number;
 }
 
 // Shape returned by Wasabi via the backend
@@ -126,12 +114,20 @@ async function reactivateSubAccount(id: string): Promise<void> {
   await axios.put(`${API()}/sub-accounts/${id}/reactivate`, {}, { headers: headers() });
 }
 
-async function getUsages(from: string, to: string, page = 0, perPage = 20): Promise<UsagesResponse> {
-  const response = await axios.get(`${API()}/usages`, {
+async function getUsagesSummary(date?: string): Promise<UsagesSummary | null> {
+  const response = await axios.get(`${API()}/usages/summary`, {
     headers: headers(),
-    params: { from, to, page, perPage },
+    params: date ? { date } : {},
   });
-  return response.data;
+  const data = response.data;
+  if (!data) return null;
+  return {
+    storageProviderId: data.storageProviderId,
+    date: data.date,
+    usedBillableStorageTb: data.usedBillableStorageTb,
+    totalReservedCapacityTB: RCS_TB,
+    remainingCapacityTB: RCS_TB - data.usedBillableStorageTb,
+  };
 }
 
 async function getInvoices(params: { from?: string; to?: string; page?: number; perPage?: number }) {
@@ -155,7 +151,7 @@ export const managementService = {
   createSubAccount,
   suspendSubAccount,
   reactivateSubAccount,
-  getUsages,
+  getUsagesSummary,
   getInvoices,
   getBuckets,
 };

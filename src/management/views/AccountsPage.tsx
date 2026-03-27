@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { MagnifyingGlass, CaretLeft, CaretRight, FunnelSimple } from '@phosphor-icons/react';
-import { managementService, SubAccount, UsagesResponse } from '../services/management.service';
+import { managementService, SubAccount, UsagesSummary } from '../services/management.service';
 import { StatsHeader } from '../components/StatsHeader';
 import { SubAccountsTable } from '../components/SubAccountsTable';
 import { CreateSubAccountModal } from '../components/CreateSubAccountModal';
@@ -17,7 +17,7 @@ const STATUS_OPTIONS = [
 ] as const;
 
 export const AccountsPage = () => {
-  const [usagesData, setUsagesData] = useState<UsagesResponse | null>(null);
+  const [usagesData, setUsagesData] = useState<UsagesSummary | null>(null);
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
   const [totalSubAccounts, setTotalSubAccounts] = useState(0);
   const [page, setPage] = useState(0);
@@ -38,9 +38,7 @@ export const AccountsPage = () => {
 
   const fetchUsages = async () => {
     try {
-      const from = dayjs(selectedDate).startOf('day').toISOString();
-      const to = dayjs(selectedDate).endOf('day').toISOString();
-      const data = await managementService.getUsages(from, to);
+      const data = await managementService.getUsagesSummary(selectedDate);
       setUsagesData(data);
     } catch (err) {
       const e = err as Error;
@@ -108,17 +106,6 @@ export const AccountsPage = () => {
   const fromItem = totalSubAccounts === 0 ? 0 : page * PER_PAGE + 1;
   const toItem = Math.min((page + 1) * PER_PAGE, totalSubAccounts);
 
-  // Derive control account row from usage data
-  const controlAccountRow = usagesData
-    ? {
-        name: 'Internxt',
-        email: '',
-        activeStorage: (usagesData.controlAccountStorage ?? 0) * 1024,
-        deletedStorage: 0,
-        creationDate: '',
-        recordDate: selectedDate,
-      }
-    : null;
 
   return (
     <div className='flex flex-col gap-4'>
@@ -132,42 +119,6 @@ export const AccountsPage = () => {
           }}
           returnISOString={true}
         />
-      </div>
-
-      {/* My Control Account */}
-      <div className='bg-white rounded border border-gray-200 p-4'>
-        <h2 className='text-sm font-semibold text-gray-700 mb-3'>My Control Account</h2>
-        <table className='w-full text-sm text-left'>
-          <thead>
-            <tr className='border-b border-gray-200'>
-              {['Name', 'Account Email', 'Active Storage (TB)', 'Deleted Storage (TB)', 'Creation Date', 'Record Date'].map(
-                (h) => (
-                  <th key={h} className='px-3 py-2 text-xs font-medium text-gray-500'>
-                    {h}
-                  </th>
-                )
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {controlAccountRow ? (
-              <tr className='border-b border-gray-100'>
-                <td className='px-3 py-2 text-blue-600'>{controlAccountRow.name}</td>
-                <td className='px-3 py-2 text-gray-500'>{controlAccountRow.email || '—'}</td>
-                <td className='px-3 py-2'>{(controlAccountRow.activeStorage / 1024).toFixed(8)}</td>
-                <td className='px-3 py-2'>{(controlAccountRow.deletedStorage / 1024).toFixed(8)}</td>
-                <td className='px-3 py-2 text-gray-500'>{controlAccountRow.creationDate || '—'}</td>
-                <td className='px-3 py-2 text-gray-500'>{controlAccountRow.recordDate}</td>
-              </tr>
-            ) : (
-              <tr>
-                <td colSpan={6} className='px-3 py-4 text-center text-gray-400'>
-                  Loading...
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
       </div>
 
       {/* Sub-Accounts */}

@@ -109,10 +109,7 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
     'Storage Utilization',
     'Creation Date',
     'Deletion Date',
-    'Trial Expiration',
-    'MFA',
     'Status',
-    'Record Date',
     '',
   ];
 
@@ -156,12 +153,9 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
                 </td>
                 <td className='px-3 py-2 text-gray-500 whitespace-nowrap'>{formatDate(acc.creationDate)}</td>
                 <td className='px-3 py-2 text-gray-500 whitespace-nowrap'>{formatDate(acc.deletionDate)}</td>
-                <td className='px-3 py-2 text-gray-500 whitespace-nowrap'>{formatDate(acc.trialExpiration)}</td>
-                <td className='px-3 py-2 text-gray-500'>{acc.mfa ? 'Yes' : '—'}</td>
                 <td className='px-3 py-2'>
                   <StatusBadge status={acc.status} />
                 </td>
-                <td className='px-3 py-2 text-gray-500 whitespace-nowrap'>{formatDate(acc.recordDate)}</td>
                 <td className='px-3 py-2'>
                   <ActionsMenu account={acc} onSuspend={onSuspend} onReactivate={onReactivate} />
                 </td>
