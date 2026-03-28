@@ -86,9 +86,9 @@ const PasswordInput = ({
         onClick={() => setShowPassword(!showPassword)}
       >
         {showPassword ? (
-          <EyeSlash className='h-5 w-5 text-gray-400' />
-        ) : (
           <Eye className='h-5 w-5 text-gray-400' />
+        ) : (
+          <EyeSlash className='h-5 w-5 text-gray-400' />
         )}
       </button>
     </div>

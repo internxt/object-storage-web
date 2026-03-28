@@ -5,7 +5,6 @@ import { managementService, SubAccount, UsagesSummary } from '../services/manage
 import { StatsHeader } from '../components/StatsHeader';
 import { SubAccountsTable } from '../components/SubAccountsTable';
 import { CreateSubAccountModal } from '../components/CreateSubAccountModal';
-import { DateRangePicker } from '../../components/DatePicker';
 import notificationsService from '../../services/notifications.service';
 
 const PER_PAGE = 20;
@@ -26,11 +25,11 @@ export const AccountsPage = () => {
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   const [isSubAccountsLoading, setIsSubAccountsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(() => dayjs().format('YYYY-MM-DD'));
+  const selectedDate = dayjs().format('YYYY-MM-DD');
 
   useEffect(() => {
     fetchUsages();
-  }, [selectedDate]);
+  }, []);
 
   useEffect(() => {
     fetchSubAccounts();
@@ -109,20 +108,10 @@ export const AccountsPage = () => {
 
   return (
     <div className='flex flex-col gap-5'>
-      {/* Date picker + Stats */}
-      <div className='flex justify-end'>
-        <DateRangePicker
-          onApplyFilterButtonClicked={async (start) => {
-            setSelectedDate(dayjs(start).format('YYYY-MM-DD'));
-          }}
-          returnISOString={true}
-        />
-      </div>
-
       <StatsHeader data={usagesData} />
 
       {/* Sub-Accounts */}
-      <div className='bg-white rounded-xl border border-gray-100 shadow-sm p-6'>
+      <div className='bg-white rounded-xl shadow-sm p-6'>
         <div className='flex items-center justify-between mb-5'>
           <div>
             <h2 className='text-base font-semibold text-gray-900'>Sub-Accounts</h2>

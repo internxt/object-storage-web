@@ -7,11 +7,11 @@ interface Props {
 
 function tbDisplay(value?: number): string {
   if (value == null) return '—';
-  return `${value.toFixed(4)} TB`;
+  return `${value.toFixed(2)} TB`;
 }
 
 export const StatsHeader = ({ data }: Props) => {
-  const rcs = data?.totalReservedCapacityTB;
+  const rcs = 1126.4;
   const used = data?.usedBillableStorageTb;
   const remaining = data?.remainingCapacityTB;
   const usagePercent = rcs && used ? Math.min(100, (used / rcs) * 100) : 0;
@@ -20,10 +20,14 @@ export const StatsHeader = ({ data }: Props) => {
     usagePercent >= 90 ? 'bg-red-500' : usagePercent >= 70 ? 'bg-orange-400' : 'bg-indigo-500';
 
   return (
-    <div className='bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden'>
+    <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
       <div className='flex divide-x divide-gray-100'>
         {/* Stats + progress */}
         <div className='flex-1 p-6 flex flex-col gap-6'>
+          <div>
+            <p className='text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-0.5'>Overview</p>
+            <h2 className='text-sm font-semibold text-gray-700'>Storage summary</h2>
+          </div>
           <div className='grid grid-cols-3 gap-6'>
             <StatCard
               label='Total Reserved Capacity'

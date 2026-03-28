@@ -10,16 +10,23 @@ interface Props {
 }
 
 const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
-  const config: Record<SubAccount['status'], { dot: string; text: string; bg: string; border: string; label: string }> = {
-    PAID_ACCOUNT: { dot: 'bg-emerald-400', text: 'text-emerald-800', bg: 'bg-emerald-100', border: 'border-emerald-300', label: 'Paid' },
-    ON_TRIAL:     { dot: 'bg-blue-400',    text: 'text-blue-700',    bg: 'bg-blue-50',     border: 'border-blue-200',    label: 'Trial' },
-    SUSPENDED:    { dot: 'bg-red-400',     text: 'text-red-700',     bg: 'bg-red-50',      border: 'border-red-200',     label: 'Suspended' },
-  };
-  const { dot, text, bg, border, label } = config[status];
+  if (!status) return null;
+
+  const config = {
+    PAID_ACCOUNT: { bg: '#22c55e', border: '#16a34a', color: '#fff', dot: 'rgba(255,255,255,0.6)', label: 'Paid' },
+    ON_TRIAL:     { bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8', dot: '#60a5fa',            label: 'Trial' },
+    SUSPENDED:    { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171',            label: 'Suspended' },
+  }[status];
+
+  if (!config) return <span className='text-xs text-gray-400'>{status}</span>;
+
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${text} ${bg} ${border}`}>
-      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dot}`} />
-      {label}
+    <span
+      className='inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border'
+      style={{ background: config.bg, borderColor: config.border, color: config.color }}
+    >
+      <span className='w-1.5 h-1.5 rounded-full flex-shrink-0' style={{ background: config.dot }} />
+      {config.label}
     </span>
   );
 };
@@ -86,14 +93,14 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
   ];
 
   return (
-    <div className='overflow-x-auto rounded-lg border border-gray-100'>
+    <div className='overflow-x-auto rounded-xl shadow-sm'>
       <table className='w-full text-sm text-left'>
         <thead>
-          <tr className='bg-gradient-to-r from-[#060e5c] to-[#0d2aad]'>
+          <tr className='bg-gray-50'>
             {headers.map((h, i) => (
               <th
                 key={`${h}-${i}`}
-                className='px-4 py-3 text-xs font-semibold text-blue-100 whitespace-nowrap uppercase tracking-wider first:rounded-tl-lg last:rounded-tr-lg'
+                className='px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap tracking-wide first:rounded-tl-lg last:rounded-tr-lg'
               >
                 {h}
               </th>
