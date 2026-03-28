@@ -108,10 +108,8 @@ export const AccountsPage = () => {
 
 
   return (
-    <div className='flex flex-col gap-4'>
-      <StatsHeader data={usagesData} />
-
-      {/* Date picker */}
+    <div className='flex flex-col gap-5'>
+      {/* Date picker + Stats */}
       <div className='flex justify-end'>
         <DateRangePicker
           onApplyFilterButtonClicked={async (start) => {
@@ -121,56 +119,73 @@ export const AccountsPage = () => {
         />
       </div>
 
+      <StatsHeader data={usagesData} />
+
       {/* Sub-Accounts */}
-      <div className='bg-white rounded border border-gray-200 p-4'>
-        <div className='flex items-center justify-between mb-3'>
-          <h2 className='text-sm font-semibold text-gray-700'>Sub-Accounts</h2>
+      <div className='bg-white rounded-xl border border-gray-100 shadow-sm p-6'>
+        <div className='flex items-center justify-between mb-5'>
+          <div>
+            <h2 className='text-base font-semibold text-gray-900'>Sub-Accounts</h2>
+            {totalSubAccounts > 0 && (
+              <p className='text-xs text-gray-400 mt-0.5'>{totalSubAccounts} accounts total</p>
+            )}
+          </div>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className='bg-[#5b47e0] hover:bg-[#4a38c8] text-white text-sm font-medium px-4 py-2 rounded'
+            className='bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm shadow-indigo-200'
           >
-            Create Sub-Account
+            + Create Sub-Account
           </button>
         </div>
 
-        <div className='flex items-center gap-2 mb-3'>
-          <div className='flex items-center border border-gray-300 rounded px-2 gap-1 flex-1 max-w-xs'>
-            <MagnifyingGlass size={16} className='text-gray-400' />
+        <div className='flex items-center gap-2 mb-4'>
+          <div className='flex items-center border border-gray-200 rounded-lg px-3 gap-2 flex-1 max-w-sm bg-white focus-within:border-indigo-400 transition-colors'>
+            <MagnifyingGlass size={15} className='text-gray-400 flex-shrink-0' />
             <input
               type='text'
-              placeholder='Search...'
+              placeholder='Search accounts…'
               value={searchName}
               onChange={(e) => handleSearch(e.target.value)}
-              className='text-sm py-1.5 outline-none flex-1'
+              className='text-sm py-2 outline-none flex-1 bg-transparent text-gray-700 placeholder-gray-400'
             />
           </div>
 
           <div className='relative'>
             <button
               onClick={() => setFilterMenuOpen((o) => !o)}
-              className='flex items-center gap-1 border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50'
+              className={`flex items-center gap-1.5 border rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                statusFilter
+                  ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
+                  : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
             >
               <FunnelSimple size={14} />
-              Filter By
+              {statusFilter ? STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label : 'Filter'}
             </button>
             {filterMenuOpen && (
-              <div className='absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded shadow-md w-40 z-10'>
-                {STATUS_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      setStatusFilter(opt.value);
-                      setPage(0);
-                      setFilterMenuOpen(false);
-                    }}
-                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${
-                      statusFilter === opt.value ? 'font-medium text-blue-600' : 'text-gray-700'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className='fixed inset-0 z-10' onClick={() => setFilterMenuOpen(false)} />
+                <div className='absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg w-44 z-20 overflow-hidden'>
+                  {STATUS_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setStatusFilter(opt.value);
+                        setPage(0);
+                        setFilterMenuOpen(false);
+                      }}
+                      className={`flex items-center justify-between w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                        statusFilter === opt.value
+                          ? 'bg-indigo-50 text-indigo-700 font-medium'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {opt.label}
+                      {statusFilter === opt.value && <span className='text-indigo-500'>✓</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -183,24 +198,31 @@ export const AccountsPage = () => {
         />
 
         {/* Pagination */}
-        <div className='flex items-center justify-end gap-3 mt-3'>
-          <span className='text-sm text-gray-500'>
-            {fromItem}-{toItem} of {totalSubAccounts}
+        <div className='flex items-center justify-between mt-4 pt-4 border-t border-gray-50'>
+          <span className='text-xs text-gray-400'>
+            Showing {fromItem}–{toItem} of {totalSubAccounts} accounts
           </span>
-          <button
-            disabled={!hasPrev}
-            onClick={() => setPage((p) => p - 1)}
-            className='p-1 disabled:opacity-40 disabled:cursor-not-allowed'
-          >
-            <CaretLeft size={18} className={hasPrev ? 'text-gray-700' : 'text-gray-300'} />
-          </button>
-          <button
-            disabled={!hasNext}
-            onClick={() => setPage((p) => p + 1)}
-            className='p-1 disabled:opacity-40 disabled:cursor-not-allowed'
-          >
-            <CaretRight size={18} className={hasNext ? 'text-gray-700' : 'text-gray-300'} />
-          </button>
+          <div className='flex items-center gap-1'>
+            <button
+              disabled={!hasPrev}
+              onClick={() => setPage((p) => p - 1)}
+              className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+            >
+              <CaretLeft size={14} />
+              Prev
+            </button>
+            <span className='px-3 py-1.5 text-sm text-gray-500'>
+              {page + 1} / {Math.max(1, totalPages)}
+            </span>
+            <button
+              disabled={!hasNext}
+              onClick={() => setPage((p) => p + 1)}
+              className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+            >
+              Next
+              <CaretRight size={14} />
+            </button>
+          </div>
         </div>
       </div>
 

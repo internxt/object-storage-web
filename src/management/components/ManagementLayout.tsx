@@ -17,28 +17,22 @@ export const ManagementLayout = ({ children }: { children: ReactNode }) => {
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `px-4 py-4 text-sm font-medium border-b-2 transition-colors ${
       isActive
-        ? 'border-green-500 text-green-400'
-        : 'border-transparent text-gray-300 hover:text-white'
+        ? 'border-white text-white'
+        : 'border-transparent text-blue-200 hover:text-white'
     }`;
 
   return (
-    <div className='flex flex-col min-h-screen bg-gray-50'>
-      <header className='bg-[#1a1f2e] text-white flex items-center justify-between px-6'>
+    <div className='flex flex-col min-h-screen bg-[#f0f2f5]'>
+      <header className='bg-gradient-to-br from-[#060e5c] to-[#0d2aad] text-white flex items-center justify-between px-6'>
         <div className='flex items-center gap-6'>
           <img
-            src='https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png'
+            src='/logo.png'
             alt='logo'
-            className='h-8 brightness-0 invert'
+            className='h-9'
           />
           <nav className='flex items-stretch'>
             <NavLink to='/management/accounts' className={navLinkClass}>
               Accounts
-            </NavLink>
-            <NavLink to='/management/invoices' className={navLinkClass}>
-              Invoices
-            </NavLink>
-            <NavLink to='/management/integrations' className={navLinkClass}>
-              Integrations
             </NavLink>
           </nav>
         </div>
@@ -55,7 +49,7 @@ export const ManagementLayout = ({ children }: { children: ReactNode }) => {
             <div className='absolute right-0 top-full mt-1 bg-white text-gray-800 rounded shadow-md w-40 z-50'>
               <button
                 onClick={handleLogOut}
-                className='flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100'
+                className='flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200'
               >
                 <SignOut size={16} />
                 Sign out
@@ -65,7 +59,7 @@ export const ManagementLayout = ({ children }: { children: ReactNode }) => {
         </div>
       </header>
 
-      <main className='flex-1 p-6 overflow-auto'>{children}</main>
+      <main className='flex-1 p-6 overflow-auto bg-[#f0f2f5]'>{children}</main>
     </div>
   );
 };

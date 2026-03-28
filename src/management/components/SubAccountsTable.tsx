@@ -10,38 +10,17 @@ interface Props {
 }
 
 const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
-  const styles: Record<SubAccount['status'], string> = {
-    PAID_ACCOUNT: 'bg-green-100 text-green-700',
-    ON_TRIAL: 'bg-blue-100 text-blue-700',
-    SUSPENDED: 'bg-red-100 text-red-700',
+  const config: Record<SubAccount['status'], { dot: string; text: string; bg: string; border: string; label: string }> = {
+    PAID_ACCOUNT: { dot: 'bg-emerald-400', text: 'text-emerald-800', bg: 'bg-emerald-100', border: 'border-emerald-300', label: 'Paid' },
+    ON_TRIAL:     { dot: 'bg-blue-400',    text: 'text-blue-700',    bg: 'bg-blue-50',     border: 'border-blue-200',    label: 'Trial' },
+    SUSPENDED:    { dot: 'bg-red-400',     text: 'text-red-700',     bg: 'bg-red-50',      border: 'border-red-200',     label: 'Suspended' },
   };
-  const labels: Record<SubAccount['status'], string> = {
-    PAID_ACCOUNT: 'Paid Account',
-    ON_TRIAL: 'On Trial',
-    SUSPENDED: 'Suspended',
-  };
+  const { dot, text, bg, border, label } = config[status];
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${styles[status]}`}>
-      {labels[status]}
+    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${text} ${bg} ${border}`}>
+      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dot}`} />
+      {label}
     </span>
-  );
-};
-
-const UtilizationBar = ({
-  used,
-  quota,
-}: {
-  used?: number;
-  quota?: number;
-}) => {
-  const pct = quota && used ? Math.min(100, (used / quota) * 100) : 0;
-  return (
-    <div className='flex flex-col gap-0.5 min-w-[80px]'>
-      <div className='w-full bg-gray-200 rounded-full h-1.5'>
-        <div className='bg-blue-500 h-1.5 rounded-full' style={{ width: `${pct}%` }} />
-      </div>
-      <span className='text-xs text-gray-500'>{pct.toFixed(0)}%</span>
-    </div>
   );
 };
 
@@ -60,37 +39,31 @@ const ActionsMenu = ({
     <div className='relative'>
       <button
         onClick={() => setOpen((o) => !o)}
-        className='p-1 rounded hover:bg-gray-100'
+        className='p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors'
       >
-        <DotsThree size={18} />
+        <DotsThree size={18} weight='bold' />
       </button>
       {open && (
-        <div
-          className='absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded shadow-md w-36 z-10'
-          onBlur={() => setOpen(false)}
-        >
-          {account.status !== 'SUSPENDED' ? (
-            <button
-              onClick={() => {
-                onSuspend(account.id);
-                setOpen(false);
-              }}
-              className='block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50'
-            >
-              Suspend
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                onReactivate(account.id);
-                setOpen(false);
-              }}
-              className='block w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-50'
-            >
-              Reactivate
-            </button>
-          )}
-        </div>
+        <>
+          <div className='fixed inset-0 z-10' onClick={() => setOpen(false)} />
+          <div className='absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg w-36 z-20 overflow-hidden'>
+            {account.status !== 'SUSPENDED' ? (
+              <button
+                onClick={() => { onSuspend(account.id); setOpen(false); }}
+                className='block w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors'
+              >
+                Suspend
+              </button>
+            ) : (
+              <button
+                onClick={() => { onReactivate(account.id); setOpen(false); }}
+                className='block w-full text-left px-4 py-2.5 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors'
+              >
+                Reactivate
+              </button>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
@@ -106,57 +79,61 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
     'Channel Account',
     'Active Storage (TB)',
     'Deleted Storage (TB)',
-    'Storage Utilization',
-    'Creation Date',
-    'Deletion Date',
+    'Created',
+    'Deleted',
     'Status',
     '',
   ];
 
   return (
-    <div className='overflow-x-auto'>
+    <div className='overflow-x-auto rounded-lg border border-gray-100'>
       <table className='w-full text-sm text-left'>
         <thead>
-          <tr className='border-b border-gray-200 bg-gray-50'>
-            {headers.map((h) => (
-              <th key={h} className='px-3 py-2 text-xs font-medium text-gray-500 whitespace-nowrap'>
+          <tr className='bg-gradient-to-r from-[#060e5c] to-[#0d2aad]'>
+            {headers.map((h, i) => (
+              <th
+                key={`${h}-${i}`}
+                className='px-4 py-3 text-xs font-semibold text-blue-100 whitespace-nowrap uppercase tracking-wider first:rounded-tl-lg last:rounded-tr-lg'
+              >
                 {h}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className='divide-y divide-gray-100 bg-white'>
           {isLoading ? (
-            <tr>
-              <td colSpan={headers.length} className='text-center py-8 text-gray-400'>
-                Loading...
+            <tr className='bg-white'>
+              <td colSpan={headers.length} className='text-center py-12'>
+                <div className='flex flex-col items-center gap-2 text-gray-400'>
+                  <div className='w-5 h-5 border-2 border-gray-300 border-t-indigo-500 rounded-full animate-spin' />
+                  <span className='text-sm'>Loading accounts…</span>
+                </div>
               </td>
             </tr>
           ) : subAccounts.length === 0 ? (
-            <tr>
-              <td colSpan={headers.length} className='text-center py-8 text-gray-400'>
+            <tr className='bg-white'>
+              <td colSpan={headers.length} className='text-center py-12 text-gray-400 text-sm'>
                 No sub-accounts found
               </td>
             </tr>
           ) : (
             subAccounts.map((acc) => (
-              <tr key={acc.id} className='border-b border-gray-100 hover:bg-gray-50'>
-                <td className='px-3 py-2 text-blue-600 hover:underline cursor-pointer truncate max-w-[140px]'>
-                  {acc.name || acc.id}
+              <tr key={acc.id} className='bg-white hover:bg-indigo-50/40 transition-colors group'>
+                <td className='px-4 py-3 font-medium text-indigo-600 hover:text-indigo-800 cursor-pointer truncate max-w-[140px]'>
+                  {acc.name || (
+                    <span className='font-mono text-xs text-gray-500'>{acc.id.slice(0, 12)}…</span>
+                  )}
                 </td>
-                <td className='px-3 py-2 text-gray-700'>{acc.email}</td>
-                <td className='px-3 py-2 text-gray-500'>{acc.channelAccount || '—'}</td>
-                <td className='px-3 py-2 text-gray-700'>{acc.activeStorage?.toFixed(8) ?? '—'}</td>
-                <td className='px-3 py-2 text-gray-700'>{acc.deletedStorage?.toFixed(8) ?? '—'}</td>
-                <td className='px-3 py-2'>
-                  <UtilizationBar used={acc.activeStorage} quota={acc.storageQuotaTB} />
-                </td>
-                <td className='px-3 py-2 text-gray-500 whitespace-nowrap'>{formatDate(acc.creationDate)}</td>
-                <td className='px-3 py-2 text-gray-500 whitespace-nowrap'>{formatDate(acc.deletionDate)}</td>
-                <td className='px-3 py-2'>
+                <td className='px-4 py-3 text-gray-700'>{acc.email}</td>
+                <td className='px-4 py-3 text-gray-400'>{acc.channelAccount || '—'}</td>
+                <td className='px-4 py-3 text-gray-700 font-mono text-xs'>{acc.activeStorage?.toFixed(8) ?? '—'}</td>
+                <td className='px-4 py-3 text-gray-700 font-mono text-xs'>{acc.deletedStorage?.toFixed(8) ?? '—'}</td>
+                <td className='px-4 py-3 text-gray-500 whitespace-nowrap text-xs'>{formatDate(acc.creationDate)}</td>
+                <td className='px-4 py-3 text-gray-400 whitespace-nowrap text-xs'>{formatDate(acc.deletionDate)}</td>
+                <td className='px-4 py-3'>
                   <StatusBadge status={acc.status} />
                 </td>
-                <td className='px-3 py-2'>
+                <td className='px-4 py-3 opacity-0 group-hover:opacity-100 transition-opacity'>
                   <ActionsMenu account={acc} onSuspend={onSuspend} onReactivate={onReactivate} />
                 </td>
               </tr>
