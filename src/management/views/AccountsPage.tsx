@@ -121,14 +121,14 @@ export const AccountsPage = () => {
           </div>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className='bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm shadow-indigo-200'
+            className='bg-indigo hover:bg-indigo-dark active:bg-indigo-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm'
           >
-            + Create Sub-Account
+            Create Sub-Account
           </button>
         </div>
 
         <div className='flex items-center gap-2 mb-4'>
-          <div className='flex items-center border border-gray-200 rounded-lg px-3 gap-2 flex-1 max-w-sm bg-white focus-within:border-indigo-400 transition-colors'>
+          <div className='flex items-center border border-gray-200 rounded-lg px-3 gap-2 flex-1 max-w-sm bg-white focus-within:border-indigo transition-colors'>
             <MagnifyingGlass size={15} className='text-gray-400 flex-shrink-0' />
             <input
               type='text'
@@ -144,7 +144,7 @@ export const AccountsPage = () => {
               onClick={() => setFilterMenuOpen((o) => !o)}
               className={`flex items-center gap-1.5 border rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 statusFilter
-                  ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
+                  ? 'border-indigo bg-indigo/10 text-indigo'
                   : 'border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -165,12 +165,12 @@ export const AccountsPage = () => {
                       }}
                       className={`flex items-center justify-between w-full text-left px-4 py-2.5 text-sm transition-colors ${
                         statusFilter === opt.value
-                          ? 'bg-indigo-50 text-indigo-700 font-medium'
+                          ? 'bg-indigo/10 text-indigo font-medium'
                           : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       {opt.label}
-                      {statusFilter === opt.value && <span className='text-indigo-500'>✓</span>}
+                      {statusFilter === opt.value && <span className='text-indigo'>✓</span>}
                     </button>
                   ))}
                 </div>
