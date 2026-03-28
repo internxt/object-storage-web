@@ -13,6 +13,7 @@ import { UserProvider } from './context/userContext';
 import { ManagementProvider } from './management/context/managementContext';
 import { ManagementLoginPage } from './management/views/ManagementLoginPage';
 import { AccountsPage } from './management/views/AccountsPage';
+import { SubAccountDetailPage } from './management/views/SubAccountDetailPage';
 import { ManagementAuthRoute } from './management/components/ManagementAuthRoute';
 
 export function App() {
@@ -35,6 +36,7 @@ export function App() {
             <Route path='/management/login' element={<ManagementLoginPage />} />
             <Route element={<ManagementAuthRoute />}>
               <Route path='/management/accounts' element={<AccountsPage />} />
+              <Route path='/management/accounts/:id' element={<SubAccountDetailPage />} />
             </Route>
             <Route path='/management' element={<Navigate to='/management/accounts' />} />
 

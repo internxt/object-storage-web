@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { DotsThree } from '@phosphor-icons/react';
 import { SubAccount } from '../services/management.service';
 
@@ -107,6 +108,7 @@ const formatDate = (date?: string) =>
   date ? new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoading }: Props) => {
+  const navigate = useNavigate();
   const headers = [
     'Name',
     'Account Email',
@@ -153,7 +155,10 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
           ) : (
             subAccounts.map((acc) => (
               <tr key={acc.id} className='bg-white hover:bg-indigo-50/40 transition-colors group'>
-                <td className='px-4 py-3 font-medium text-indigo-600 hover:text-indigo-800 cursor-pointer truncate max-w-[140px]'>
+                <td
+                  className='px-4 py-3 font-medium text-indigo-600 hover:text-indigo-800 cursor-pointer truncate max-w-[140px]'
+                  onClick={() => navigate(`/management/accounts/${acc.id}`)}
+                >
                   {acc.name || (
                     <span className='font-mono text-xs text-gray-500'>{acc.id.slice(0, 12)}…</span>
                   )}

@@ -130,6 +130,85 @@ async function getUsagesSummary(date?: string): Promise<UsagesSummary | null> {
   };
 }
 
+export interface SubAccountDetail {
+  id: number;
+  name: string;
+  contactEmail: string | null;
+  status: 'ON_TRIAL' | 'PAID_ACCOUNT' | 'SUSPENDED';
+  creationDate: string;
+  activeStorage: number;
+  deletedStorage: number;
+  trialQuota: number | null;
+  trialExpiration: string | null;
+  wasabiAccountNumber: string;
+  wasabiAccountName: string;
+  country: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  website: string | null;
+  address1: string | null;
+  address2: string | null;
+  mainPhone: string | null;
+  billingPhone: string | null;
+  billingEmail: string | null;
+  channelAccountName?: string | null;
+  ftpEnabled: boolean;
+}
+
+export interface SubAccountUsage {
+  id: number;
+  startTime: string;
+  endTime: string;
+  activeStorage: number;
+  deletedStorage: number;
+  storageWrote: number;
+  storageRead: number;
+  activeObjects: number;
+  deletedObjects: number;
+  egress: number;
+  ingress: number;
+  apiCalls: number;
+}
+
+export interface UpdateSubAccountDto {
+  name?: string;
+  contactEmail?: string;
+  billingEmail?: string;
+  mainPhone?: string;
+  billingPhone?: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zip?: string;
+  businessNumber?: string;
+  taxId?: string;
+  website?: string;
+}
+
+async function updateSubAccount(id: string, dto: UpdateSubAccountDto): Promise<void> {
+  await axios.patch(`${API()}/sub-accounts/${id}`, dto, { headers: headers() });
+}
+
+async function getSubAccountById(id: string): Promise<SubAccountDetail> {
+  const response = await axios.get(`${API()}/sub-accounts/${id}`, { headers: headers() });
+  return response.data;
+}
+
+async function getSubAccountUsages(
+  id: string,
+  params: { from: string; to: string; page?: number; perPage?: number },
+): Promise<{ items: SubAccountUsage[]; totalItems: number }> {
+  const response = await axios.get(`${API()}/sub-accounts/${id}/usages`, {
+    headers: headers(),
+    params,
+  });
+  const data = response.data;
+  return { items: data.items ?? [], totalItems: data.totalItems ?? data.items?.length ?? 0 };
+}
+
 async function getInvoices(params: { from?: string; to?: string; page?: number; perPage?: number }) {
   const response = await axios.get(`${API()}/invoices`, {
     headers: headers(),
@@ -148,6 +227,9 @@ async function getBuckets(params: { from?: string; to?: string; page?: number; p
 
 export const managementService = {
   getSubAccounts,
+  getSubAccountById,
+  updateSubAccount,
+  getSubAccountUsages,
   createSubAccount,
   suspendSubAccount,
   reactivateSubAccount,
