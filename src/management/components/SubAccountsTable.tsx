@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { DotsThree } from '@phosphor-icons/react';
 import { SubAccount } from '../services/management.service';
 
@@ -41,19 +42,44 @@ const ActionsMenu = ({
   onReactivate: (id: string) => void;
 }) => {
   const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, right: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+    setOpen((o) => !o);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [open]);
 
   return (
-    <div className='relative'>
+    <div>
       <button
-        onClick={() => setOpen((o) => !o)}
-        className='p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors'
+        ref={btnRef}
+        onClick={handleOpen}
+        className='p-1.5 rounded-lg hover:bg-gray-300/50 text-gray-400 hover:text-gray-600 transition-colors'
       >
         <DotsThree size={18} weight='bold' />
       </button>
-      {open && (
+      {open && createPortal(
         <>
-          <div className='fixed inset-0 z-10' onClick={() => setOpen(false)} />
-          <div className='absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg w-36 z-20 overflow-hidden'>
+          <div className='fixed inset-0 z-40' onClick={() => setOpen(false)} />
+          <div
+            className='fixed bg-white border border-gray-200 rounded-lg shadow-lg w-36 z-50 overflow-hidden'
+            style={{ top: coords.top, right: coords.right }}
+          >
             {account.status !== 'SUSPENDED' ? (
               <button
                 onClick={() => { onSuspend(account.id); setOpen(false); }}
@@ -70,7 +96,8 @@ const ActionsMenu = ({
               </button>
             )}
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </div>
   );
@@ -140,7 +167,7 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
                 <td className='px-4 py-3'>
                   <StatusBadge status={acc.status} />
                 </td>
-                <td className='px-4 py-3 opacity-0 group-hover:opacity-100 transition-opacity'>
+                <td className='px-4 py-3'>
                   <ActionsMenu account={acc} onSuspend={onSuspend} onReactivate={onReactivate} />
                 </td>
               </tr>
