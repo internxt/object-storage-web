@@ -60,13 +60,11 @@ const StatBlock = ({
   value,
   accent,
   muted = false,
-  large = false,
 }: {
   label: string;
   value: string;
   accent?: string;
   muted?: boolean;
-  large?: boolean
 }) => (
   <div className='flex flex-col gap-1.5 flex-1'>
     <span className='text-[11px] font-medium text-gray-400 tracking-wide'>{label}</span>
