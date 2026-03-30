@@ -1,14 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { DotsThree } from '@phosphor-icons/react';
+import { DotsThree, ArrowUp, ArrowDown } from '@phosphor-icons/react';
 import { SubAccount } from '../services/management.service';
+
+export type SortOrder = 'asc' | 'desc';
 
 interface Props {
   subAccounts: SubAccount[];
   onSuspend: (id: string) => void;
   onReactivate: (id: string) => void;
   isLoading: boolean;
+  sortOrder?: SortOrder;
+  onSortActiveStorage?: (order: SortOrder) => void;
 }
 
 const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
@@ -125,22 +129,41 @@ const COL_HEADERS = [
   { label: '', align: 'right' },
 ] as const;
 
-export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoading }: Props) => {
+export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoading, sortOrder, onSortActiveStorage }: Props) => {
   const navigate = useNavigate();
+
+  const handleActiveStorageSort = () => {
+    onSortActiveStorage?.(sortOrder === 'asc' ? 'desc' : 'asc');
+  };
 
   return (
     <div className='overflow-x-auto'>
       <table className='w-full text-sm text-left border-separate border-spacing-0'>
         <thead>
           <tr>
-            {COL_HEADERS.map((h, i) => (
-              <th
-                key={i}
-                className={`px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-400 border-b border-gray-100 bg-white whitespace-nowrap ${h.align === 'right' ? 'text-right' : ''}`}
-              >
-                {h.label}
-              </th>
-            ))}
+            {COL_HEADERS.map((h, i) => {
+              const isActiveStorage = h.label === 'Active Storage (TB)';
+              return (
+                <th
+                  key={i}
+                  onClick={isActiveStorage ? handleActiveStorageSort : undefined}
+                  className={`px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-400 border-b border-gray-100 bg-white whitespace-nowrap ${h.align === 'right' ? 'text-right' : ''} ${isActiveStorage ? 'cursor-pointer hover:text-gray-600 select-none' : ''}`}
+                >
+                  {isActiveStorage ? (
+                    <span className='inline-flex items-center gap-1 justify-end w-full'>
+                      {h.label}
+                      {sortOrder === 'asc' ? (
+                        <ArrowUp size={11} weight='bold' className='text-indigo-400' />
+                      ) : sortOrder === 'desc' ? (
+                        <ArrowDown size={11} weight='bold' className='text-indigo-400' />
+                      ) : (
+                        <ArrowUp size={11} weight='bold' className='text-gray-200' />
+                      )}
+                    </span>
+                  ) : h.label}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>

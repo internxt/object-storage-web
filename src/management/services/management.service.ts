@@ -74,6 +74,8 @@ async function getSubAccounts(params: {
   perPage?: number;
   status?: 'ON_TRIAL' | 'PAID_ACCOUNT' | 'SUSPENDED';
   name?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }): Promise<SubAccountsResponse> {
   const response = await axios.get(`${API()}/sub-accounts`, {
     headers: headers(),

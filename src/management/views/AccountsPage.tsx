@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { MagnifyingGlass, CaretLeft, CaretRight, FunnelSimple } from '@phosphor-icons/react';
 import { managementService, SubAccount, UsagesSummary } from '../services/management.service';
 import { StatsHeader } from '../components/StatsHeader';
-import { SubAccountsTable } from '../components/SubAccountsTable';
+import { SubAccountsTable, SortOrder } from '../components/SubAccountsTable';
 import { CreateSubAccountModal } from '../components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
 
@@ -24,13 +24,14 @@ export const AccountsPage = () => {
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   const [isSubAccountsLoading, setIsSubAccountsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [activeStorageSortOrder, setActiveStorageSortOrder] = useState<SortOrder | undefined>('desc');
   useEffect(() => {
     fetchUsages();
   }, []);
 
   useEffect(() => {
     fetchSubAccounts();
-  }, [page, statusFilter]);
+  }, [page, statusFilter, activeStorageSortOrder]);
 
   const fetchUsages = async () => {
     try {
@@ -50,6 +51,8 @@ export const AccountsPage = () => {
         perPage: PER_PAGE,
         status: statusFilter as SubAccount['status'] | undefined || undefined,
         name: name || searchName || undefined,
+        sortBy: activeStorageSortOrder ? 'activeStorage' : undefined,
+        sortOrder: activeStorageSortOrder,
       });
       setSubAccounts(res.subAccounts ?? []);
       setTotalSubAccounts(res.total ?? 0);
@@ -181,6 +184,8 @@ export const AccountsPage = () => {
           onSuspend={handleSuspend}
           onReactivate={handleReactivate}
           isLoading={isSubAccountsLoading}
+          sortOrder={activeStorageSortOrder}
+          onSortActiveStorage={(order) => { setPage(0); setActiveStorageSortOrder(order); }}
         />
 
         {/* Pagination */}
