@@ -62,6 +62,7 @@ interface DbSubAccount {
   status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
   email: string | null;
   activeStorageBytes: number;
+  deletedStorageBytes: number;
   createdAt: string;
 }
 
@@ -74,7 +75,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     email: raw.email ?? '',
     status: raw.status === 'SUSPENDED' ? 'SUSPENDED' : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
-    deletedStorage: 0,
+    deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
     recordDate: '',
   };
