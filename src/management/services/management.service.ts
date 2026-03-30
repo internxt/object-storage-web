@@ -47,39 +47,30 @@ export interface UsagesSummary {
   remainingCapacityTB: number;
 }
 
-// Shape returned by Wasabi via the backend
-interface WasabiSubAccount {
-  id: number;
+// Shape returned by the backend DB (provider-agnostic)
+interface DbSubAccount {
+  id: string;
   name: string;
-  contactEmail?: string;
-  status: 'ON_TRIAL' | 'PAID_ACCOUNT' | 'SUSPENDED';
-  creationDate?: string;
-  deletionDate?: string;
-  trialExpiration?: string;
-  activeStorage?: number;
-  deletedStorage?: number;
-  trialQuotaTB?: number;
-  purchasedStorageTB?: number;
-  mfaEnabled?: boolean;
-  recordDate?: string;
-  channelAccountName?: string;
+  storageProviderId: string;
+  storageProvider: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
+  email: string | null;
+  activeStorageBytes: number;
+  createdAt: string;
 }
 
-function mapWasabiSubAccount(raw: WasabiSubAccount): SubAccount {
+const BYTES_TO_TB = 1 / 1_000_000_000_000;
+
+function mapDbSubAccount(raw: DbSubAccount): SubAccount {
   return {
-    id: String(raw.id),
-    name: raw.name,
-    email: raw.contactEmail ?? '',
-    status: raw.status,
-    activeStorage: raw.activeStorage ?? 0,
-    deletedStorage: raw.deletedStorage ?? 0,
-    storageQuotaTB: raw.purchasedStorageTB ?? raw.trialQuotaTB,
-    creationDate: raw.creationDate ?? '',
-    deletionDate: raw.deletionDate,
-    trialExpiration: raw.trialExpiration,
-    mfa: raw.mfaEnabled,
-    recordDate: raw.recordDate ?? '',
-    channelAccount: raw.channelAccountName,
+    id: raw.id,
+    name: raw.id,
+    email: raw.email ?? '',
+    status: raw.status === 'SUSPENDED' ? 'SUSPENDED' : 'PAID_ACCOUNT',
+    activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
+    deletedStorage: 0,
+    creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
+    recordDate: '',
   };
 }
 
@@ -94,11 +85,10 @@ async function getSubAccounts(params: {
     params,
   });
   const data = response.data;
-  // Wasabi returns { items: [...], totalItems?: number } or similar
-  const rawItems: WasabiSubAccount[] = data.items ?? data.subAccounts ?? [];
+  const rawItems: DbSubAccount[] = Array.isArray(data) ? data : (data.items ?? data.subAccounts ?? []);
   return {
-    subAccounts: rawItems.map(mapWasabiSubAccount),
-    total: data.totalItems ?? data.total ?? rawItems.length,
+    subAccounts: rawItems.map(mapDbSubAccount),
+    total: rawItems.length,
   };
 }
 

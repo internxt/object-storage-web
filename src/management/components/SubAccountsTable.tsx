@@ -159,9 +159,7 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
                   className='px-4 py-3 font-medium text-indigo-600 hover:text-indigo-800 cursor-pointer truncate max-w-[140px]'
                   onClick={() => navigate(`/management/accounts/${acc.id}`)}
                 >
-                  {acc.name || (
-                    <span className='font-mono text-xs text-gray-500'>{acc.id.slice(0, 12)}…</span>
-                  )}
+                  <span className='font-mono text-xs'>{acc.id}</span>
                 </td>
                 <td className='px-4 py-3 text-gray-700'>{acc.email}</td>
                 <td className='px-4 py-3 text-gray-400'>{acc.channelAccount || '—'}</td>
