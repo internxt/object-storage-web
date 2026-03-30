@@ -34,6 +34,14 @@ export const AccountsPage = () => {
     fetchSubAccounts();
   }, [page, statusFilter, activeStorageSortOrder]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(0);
+      fetchSubAccounts();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchName]);
+
   const fetchUsages = async () => {
     try {
       const [data, top] = await Promise.all([
@@ -48,14 +56,14 @@ export const AccountsPage = () => {
     }
   };
 
-  const fetchSubAccounts = async (name?: string) => {
+  const fetchSubAccounts = async () => {
     setIsSubAccountsLoading(true);
     try {
       const res = await managementService.getSubAccounts({
         page,
         perPage: PER_PAGE,
         status: statusFilter as SubAccount['status'] | undefined || undefined,
-        name: name || searchName || undefined,
+        name: searchName || undefined,
         sortBy: activeStorageSortOrder ? 'activeStorage' : undefined,
         sortOrder: activeStorageSortOrder,
       });
@@ -71,8 +79,6 @@ export const AccountsPage = () => {
 
   const handleSearch = (value: string) => {
     setSearchName(value);
-    setPage(0);
-    fetchSubAccounts(value);
   };
 
   const handleSuspend = async (id: string) => {
