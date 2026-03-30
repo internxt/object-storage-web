@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import dayjs from 'dayjs';
 import { MagnifyingGlass, CaretLeft, CaretRight, FunnelSimple } from '@phosphor-icons/react';
 import { managementService, SubAccount, UsagesSummary } from '../services/management.service';
 import { StatsHeader } from '../components/StatsHeader';
@@ -25,8 +24,6 @@ export const AccountsPage = () => {
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   const [isSubAccountsLoading, setIsSubAccountsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const selectedDate = dayjs().format('YYYY-MM-DD');
-
   useEffect(() => {
     fetchUsages();
   }, []);
@@ -37,7 +34,7 @@ export const AccountsPage = () => {
 
   const fetchUsages = async () => {
     try {
-      const data = await managementService.getUsagesSummary(selectedDate);
+      const data = await managementService.getUsagesSummary();
       setUsagesData(data);
     } catch (err) {
       const e = err as Error;

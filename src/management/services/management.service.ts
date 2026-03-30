@@ -36,13 +36,8 @@ export interface CreateSubAccountDto {
   trialDays?: number;
 }
 
-const RCS_TB = 1126.4; // Hardcoded Reserved Capacity Storage
-
 export interface UsagesSummary {
-  storageProviderId: string;
-  date: string;
   usedBillableStorageTb: number;
-  // Derived on the frontend
   totalReservedCapacityTB: number;
   remainingCapacityTB: number;
 }
@@ -104,19 +99,14 @@ async function reactivateSubAccount(id: string): Promise<void> {
   await axios.put(`${API()}/sub-accounts/${id}/reactivate`, {}, { headers: headers() });
 }
 
-async function getUsagesSummary(date?: string): Promise<UsagesSummary | null> {
-  const response = await axios.get(`${API()}/usages/summary`, {
-    headers: headers(),
-    params: date ? { date } : {},
-  });
+async function getUsagesSummary(): Promise<UsagesSummary | null> {
+  const response = await axios.get(`${API()}/usages/summary`, { headers: headers() });
   const data = response.data;
   if (!data) return null;
   return {
-    storageProviderId: data.storageProviderId,
-    date: data.date,
     usedBillableStorageTb: data.usedBillableStorageTb,
-    totalReservedCapacityTB: RCS_TB,
-    remainingCapacityTB: RCS_TB - data.usedBillableStorageTb,
+    totalReservedCapacityTB: data.totalReservedCapacityTB,
+    remainingCapacityTB: data.remainingCapacityTB,
   };
 }
 
