@@ -4,6 +4,16 @@ import { managementAuthService } from './management-auth.service';
 const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/management`;
 const headers = () => managementAuthService.getAuthHeaders();
 
+axios.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err?.response?.status === 401 && !window.location.pathname.endsWith('/login')) {
+      window.location.href = '/management/login';
+    }
+    return Promise.reject(err);
+  },
+);
+
 export interface SubAccount {
   id: string;
   name: string;
@@ -17,7 +27,7 @@ export interface SubAccount {
   deletionDate?: string;
   trialExpiration?: string;
   mfa?: boolean;
-  status: 'ON_TRIAL' | 'PAID_ACCOUNT' | 'SUSPENDED';
+  status: 'PAID_ACCOUNT' | 'SUSPENDED';
   recordDate: string;
 }
 
@@ -72,7 +82,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
 async function getSubAccounts(params: {
   page?: number;
   perPage?: number;
-  status?: 'ON_TRIAL' | 'PAID_ACCOUNT' | 'SUSPENDED';
+  status?: 'PAID_ACCOUNT' | 'SUSPENDED';
   name?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
@@ -116,7 +126,7 @@ export interface SubAccountDetail {
   id: number;
   name: string;
   contactEmail: string | null;
-  status: 'ON_TRIAL' | 'PAID_ACCOUNT' | 'SUSPENDED';
+  status: 'PAID_ACCOUNT' | 'SUSPENDED';
   creationDate: string;
   activeStorage: number;
   deletedStorage: number;

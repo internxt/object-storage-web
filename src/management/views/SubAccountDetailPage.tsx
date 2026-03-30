@@ -13,7 +13,6 @@ const PER_PAGE = 20;
 const StatusBadge = ({ status }: { status: SubAccountDetail['status'] }) => {
   const config = {
     PAID_ACCOUNT: { bg: '#22c55e', border: '#16a34a', color: '#fff', dot: 'rgba(255,255,255,0.6)', label: 'Paid Account' },
-    ON_TRIAL:     { bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8', dot: '#60a5fa',            label: 'On Trial' },
     SUSPENDED:    { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171',            label: 'Suspended' },
   }[status];
 

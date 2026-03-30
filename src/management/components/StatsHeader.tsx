@@ -30,7 +30,7 @@ export const StatsHeader = ({ data }: Props) => {
         <div className='flex items-start gap-0 mb-8'>
           <StatBlock label='Total Reserved' value={tbDisplay(rcs)} muted />
           <Divider />
-          <StatBlock label='Used Billable' value={tbDisplay(used)} accent='#6366f1' large />
+          <StatBlock label='Used Billable' value={tbDisplay(used)} accent='#6366f1' />
           <Divider />
           <StatBlock label='Remaining' value={tbDisplay(remaining)} accent='#10b981' />
         </div>
@@ -66,13 +66,12 @@ const StatBlock = ({
   value: string;
   accent?: string;
   muted?: boolean;
-  large?: boolean;
 }) => (
   <div className='flex flex-col gap-1.5 flex-1'>
     <span className='text-[11px] font-medium text-gray-400 tracking-wide'>{label}</span>
     <div className='flex items-baseline gap-1.5'>
       <span
-        className={`font-semibold tracking-tight leading-none ${large ? 'text-4xl' : 'text-3xl'} ${muted ? 'text-gray-800' : ''}`}
+        className={`font-semibold tracking-tight leading-none text-3xl ${muted ? 'text-gray-800' : ''}`}
         style={accent ? { color: accent } : undefined}
       >
         {value}

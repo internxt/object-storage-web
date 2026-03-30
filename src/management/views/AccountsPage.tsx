@@ -10,7 +10,6 @@ const PER_PAGE = 20;
 const STATUS_OPTIONS = [
   { label: 'All', value: '' },
   { label: 'Paid Account', value: 'PAID_ACCOUNT' },
-  { label: 'On Trial', value: 'ON_TRIAL' },
   { label: 'Suspended', value: 'SUSPENDED' },
 ] as const;
 

@@ -20,7 +20,6 @@ const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
 
   const config = {
     PAID_ACCOUNT: { bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d', dot: '#22c55e', label: 'Paid' },
-    ON_TRIAL:     { bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8', dot: '#60a5fa', label: 'Trial' },
     SUSPENDED:    { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171', label: 'Suspended' },
   }[status];
 
@@ -193,7 +192,7 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
                   className={`px-4 py-3.5 ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}
                   onClick={() => navigate(`/management/accounts/${acc.id}`)}
                 >
-                  <span className='font-mono text-[11px] text-indigo-500 hover:text-indigo-700 cursor-pointer tracking-tight'>
+                  <span className='font-mono text-[11px] text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2 cursor-pointer tracking-tight'>
                     {acc.id.slice(0, 8)}…{acc.id.slice(-4)}
                   </span>
                 </td>
