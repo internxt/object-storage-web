@@ -11,6 +11,7 @@ interface Props {
   onSuspend: (id: string) => void;
   onReactivate: (id: string) => void;
   isLoading: boolean;
+  pendingAccountId?: string | null;
   sortOrder?: SortOrder;
   onSortActiveStorage?: (order: SortOrder) => void;
 }
@@ -128,7 +129,7 @@ const COL_HEADERS = [
   { label: '', align: 'right' },
 ] as const;
 
-export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoading, sortOrder, onSortActiveStorage }: Props) => {
+export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoading, pendingAccountId, sortOrder, onSortActiveStorage }: Props) => {
   const navigate = useNavigate();
 
   const handleActiveStorageSort = () => {
@@ -234,7 +235,11 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
 
                 {/* Actions */}
                 <td className={`px-3 py-3.5 text-right ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                  <ActionsMenu account={acc} onSuspend={onSuspend} onReactivate={onReactivate} />
+                  {pendingAccountId === acc.id ? (
+                    <div className='w-4 h-4 border-2 border-gray-200 border-t-indigo-400 rounded-full animate-spin inline-block' />
+                  ) : (
+                    <ActionsMenu account={acc} onSuspend={onSuspend} onReactivate={onReactivate} />
+                  )}
                 </td>
               </tr>
             ))

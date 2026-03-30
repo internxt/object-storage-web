@@ -24,6 +24,7 @@ export const AccountsPage = () => {
   const [isSubAccountsLoading, setIsSubAccountsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [activeStorageSortOrder, setActiveStorageSortOrder] = useState<SortOrder | undefined>('desc');
+  const [pendingAccountId, setPendingAccountId] = useState<string | null>(null);
   useEffect(() => {
     fetchUsages();
   }, []);
@@ -70,6 +71,7 @@ export const AccountsPage = () => {
   };
 
   const handleSuspend = async (id: string) => {
+    setPendingAccountId(id);
     try {
       await managementService.suspendSubAccount(id);
       notificationsService.success({ text: 'Account suspended' });
@@ -77,10 +79,13 @@ export const AccountsPage = () => {
     } catch (err) {
       const e = err as Error;
       notificationsService.error({ text: e.message });
+    } finally {
+      setPendingAccountId(null);
     }
   };
 
   const handleReactivate = async (id: string) => {
+    setPendingAccountId(id);
     try {
       await managementService.reactivateSubAccount(id);
       notificationsService.success({ text: 'Account reactivated' });
@@ -88,6 +93,8 @@ export const AccountsPage = () => {
     } catch (err) {
       const e = err as Error;
       notificationsService.error({ text: e.message });
+    } finally {
+      setPendingAccountId(null);
     }
   };
 
@@ -183,6 +190,7 @@ export const AccountsPage = () => {
           onSuspend={handleSuspend}
           onReactivate={handleReactivate}
           isLoading={isSubAccountsLoading}
+          pendingAccountId={pendingAccountId}
           sortOrder={activeStorageSortOrder}
           onSortActiveStorage={(order) => { setPage(0); setActiveStorageSortOrder(order); }}
         />
