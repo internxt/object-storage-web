@@ -50,6 +50,7 @@ export interface UsagesSummary {
   usedBillableStorageTb: number;
   totalReservedCapacityTB: number;
   remainingCapacityTB: number;
+  momGrowthPercent: number | null;
 }
 
 // Shape returned by the backend DB (provider-agnostic)
@@ -119,6 +120,7 @@ async function getUsagesSummary(): Promise<UsagesSummary | null> {
     usedBillableStorageTb: data.usedBillableStorageTb,
     totalReservedCapacityTB: data.totalReservedCapacityTB,
     remainingCapacityTB: data.remainingCapacityTB,
+    momGrowthPercent: data.momGrowthPercent ?? null,
   };
 }
 

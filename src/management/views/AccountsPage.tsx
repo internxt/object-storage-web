@@ -15,6 +15,7 @@ const STATUS_OPTIONS = [
 
 export const AccountsPage = () => {
   const [usagesData, setUsagesData] = useState<UsagesSummary | null>(null);
+  const [topClient, setTopClient] = useState<SubAccount | null>(null);
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
   const [totalSubAccounts, setTotalSubAccounts] = useState(0);
   const [page, setPage] = useState(0);
@@ -35,8 +36,12 @@ export const AccountsPage = () => {
 
   const fetchUsages = async () => {
     try {
-      const data = await managementService.getUsagesSummary();
+      const [data, top] = await Promise.all([
+        managementService.getUsagesSummary(),
+        managementService.getSubAccounts({ page: 0, perPage: 1, sortBy: 'activeStorage', sortOrder: 'desc' }),
+      ]);
       setUsagesData(data);
+      setTopClient(top.subAccounts[0] ?? null);
     } catch (err) {
       const e = err as Error;
       notificationsService.error({ text: e.message });
@@ -114,7 +119,7 @@ export const AccountsPage = () => {
 
   return (
     <div className='flex flex-col gap-5'>
-      <StatsHeader data={usagesData} />
+      <StatsHeader data={usagesData} topClient={topClient} />
 
       {/* Sub-Accounts */}
       <div className='bg-white rounded-xl shadow-sm p-6'>
