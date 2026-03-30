@@ -80,10 +80,10 @@ async function getSubAccounts(params: {
     params,
   });
   const data = response.data;
-  const rawItems: DbSubAccount[] = Array.isArray(data) ? data : (data.items ?? data.subAccounts ?? []);
+  const rawItems: DbSubAccount[] = Array.isArray(data) ? data : (data.items ?? []);
   return {
     subAccounts: rawItems.map(mapDbSubAccount),
-    total: rawItems.length,
+    total: data.total ?? rawItems.length,
   };
 }
 
