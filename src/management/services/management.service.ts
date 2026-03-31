@@ -8,6 +8,7 @@ axios.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err?.response?.status === 401 && !window.location.pathname.endsWith('/login')) {
+      managementAuthService.logOut();
       window.location.href = '/management/login';
     }
     return Promise.reject(err);
@@ -50,6 +51,7 @@ export interface UsagesSummary {
   usedBillableStorageTb: number;
   totalReservedCapacityTB: number;
   remainingCapacityTB: number;
+  momGrowthPercent: number | null;
 }
 
 // Shape returned by the backend DB (provider-agnostic)
@@ -61,6 +63,7 @@ interface DbSubAccount {
   status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
   email: string | null;
   activeStorageBytes: number;
+  deletedStorageBytes: number;
   createdAt: string;
 }
 
@@ -73,7 +76,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     email: raw.email ?? '',
     status: raw.status === 'SUSPENDED' ? 'SUSPENDED' : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
-    deletedStorage: 0,
+    deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
     recordDate: '',
   };
@@ -119,6 +122,7 @@ async function getUsagesSummary(): Promise<UsagesSummary | null> {
     usedBillableStorageTb: data.usedBillableStorageTb,
     totalReservedCapacityTB: data.totalReservedCapacityTB,
     remainingCapacityTB: data.remainingCapacityTB,
+    momGrowthPercent: data.momGrowthPercent ?? null,
   };
 }
 

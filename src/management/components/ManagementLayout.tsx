@@ -26,13 +26,16 @@ export const ManagementLayout = ({ children }: { children: ReactNode }) => {
       <header className='bg-gradient-to-br from-[#060e5c] to-[#0d2aad] text-white flex items-center justify-between px-6'>
         <div className='flex items-center gap-6'>
           <img
-            src='/logo.png'
+            src='/logo.svg'
             alt='logo'
-            className='h-9'
+            className='h-5'
           />
           <nav className='flex items-stretch'>
             <NavLink to='/management/accounts' className={navLinkClass}>
               Accounts
+            </NavLink>
+            <NavLink to='/management/partners' className={navLinkClass}>
+              Partners
             </NavLink>
           </nav>
         </div>

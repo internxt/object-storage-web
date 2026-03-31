@@ -137,7 +137,13 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
   };
 
   return (
-    <div className='overflow-x-auto'>
+    <div className='overflow-x-auto relative'>
+      {/* Subtle loading bar */}
+      <div className={`absolute top-0 left-0 right-0 h-[2px] overflow-hidden transition-opacity duration-300 ${isLoading ? 'opacity-100' : 'opacity-0'}`}>
+        <div className='h-full bg-indigo-400/30 w-full'>
+          <div className='h-full bg-indigo-400 animate-loading-bar' />
+        </div>
+      </div>
       <table className='w-full text-sm text-left border-separate border-spacing-0'>
         <thead>
           <tr>
@@ -166,17 +172,8 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
             })}
           </tr>
         </thead>
-        <tbody>
-          {isLoading ? (
-            <tr>
-              <td colSpan={COL_HEADERS.length} className='text-center py-16'>
-                <div className='flex flex-col items-center gap-2.5 text-gray-300'>
-                  <div className='w-5 h-5 border-2 border-gray-200 border-t-indigo-400 rounded-full animate-spin' />
-                  <span className='text-xs font-medium'>Loading accounts…</span>
-                </div>
-              </td>
-            </tr>
-          ) : subAccounts.length === 0 ? (
+        <tbody className={`transition-opacity duration-200 ${isLoading ? 'opacity-40' : 'opacity-100'}`}>
+          {subAccounts.length === 0 && !isLoading ? (
             <tr>
               <td colSpan={COL_HEADERS.length} className='text-center py-16 text-gray-300 text-sm font-medium'>
                 No sub-accounts found
