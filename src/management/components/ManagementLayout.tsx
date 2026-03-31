@@ -34,6 +34,9 @@ export const ManagementLayout = ({ children }: { children: ReactNode }) => {
             <NavLink to='/management/accounts' className={navLinkClass}>
               Accounts
             </NavLink>
+            <NavLink to='/management/partners' className={navLinkClass}>
+              Partners
+            </NavLink>
           </nav>
         </div>
 

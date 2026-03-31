@@ -14,6 +14,8 @@ import { ManagementProvider } from './management/context/managementContext';
 import { ManagementLoginPage } from './management/views/ManagementLoginPage';
 import { AccountsPage } from './management/views/AccountsPage';
 import { SubAccountDetailPage } from './management/views/SubAccountDetailPage';
+import { PartnersPage } from './management/views/PartnersPage';
+import { PartnerDetailPage } from './management/views/PartnerDetailPage';
 import { ManagementAuthRoute } from './management/components/ManagementAuthRoute';
 
 export function App() {
@@ -37,6 +39,8 @@ export function App() {
             <Route element={<ManagementAuthRoute />}>
               <Route path='/management/accounts' element={<AccountsPage />} />
               <Route path='/management/accounts/:id' element={<SubAccountDetailPage />} />
+              <Route path='/management/partners' element={<PartnersPage />} />
+              <Route path='/management/partners/:id' element={<PartnerDetailPage />} />
             </Route>
             <Route path='/management' element={<Navigate to='/management/accounts' />} />
 
