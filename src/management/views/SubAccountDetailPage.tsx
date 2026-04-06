@@ -5,7 +5,7 @@ import { ArrowLeft, Database, Package, CaretLeft, CaretRight } from '@phosphor-i
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
-import { managementService, SubAccountDetail, SubAccountUsage, UpdateSubAccountDto } from '../services/management.service';
+import { managementService, SubAccountDetail, SubAccountUsage } from '../services/management.service';
 import notificationsService from '../../services/notifications.service';
 
 const PER_PAGE = 20;
@@ -46,23 +46,6 @@ const DetailField = ({ label, value }: { label: string; value?: string | number 
   </div>
 );
 
-const FormField = ({ label, type, value, onChange }: {
-  label: string;
-  type: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}) => (
-  <div className='flex flex-col gap-1'>
-    <label className='text-xs text-gray-400 uppercase tracking-wide'>{label}</label>
-    <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      className='text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-100 transition-colors'
-    />
-  </div>
-);
-
 const fmt = (n: number, decimals = 8) => n.toFixed(decimals);
 const fmtDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD-MMM-YYYY HH:mm') : s;
 const fmtChartDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD MMM') : s;
@@ -82,20 +65,11 @@ export const SubAccountDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [usagesLoading, setUsagesLoading] = useState(false);
 
-  const [form, setForm] = useState<UpdateSubAccountDto>({});
-  const [original, setOriginal] = useState<UpdateSubAccountDto>({});
-  const [savingForm, setSavingForm] = useState(false);
-
-  const isDirty = form.name !== original.name || form.contactEmail !== original.contactEmail;
-
   useEffect(() => {
     managementService
       .getSubAccountById(id!)
       .then((data) => {
         setAccount(data);
-        const initial = { name: data.name ?? '', contactEmail: data.contactEmail ?? '' };
-        setForm(initial);
-        setOriginal(initial);
       })
       .catch((e) => notificationsService.error({ text: e.message }))
       .finally(() => setLoading(false));
@@ -117,26 +91,6 @@ export const SubAccountDetailPage = () => {
       setUsagesLoading(false);
     }
   };
-
-  const handleSaveForm = async () => {
-    setSavingForm(true);
-    try {
-      await managementService.updateSubAccount(id!, { name: form.name, contactEmail: form.contactEmail });
-      setAccount((prev) => prev ? { ...prev, name: form.name!, contactEmail: form.contactEmail ?? null } : prev);
-      setOriginal({ name: form.name, contactEmail: form.contactEmail });
-      notificationsService.success({ text: 'Account updated' });
-    } catch (e: any) {
-      notificationsService.error({ text: e.message });
-    } finally {
-      setSavingForm(false);
-    }
-  };
-
-  const field = (key: keyof UpdateSubAccountDto) => ({
-    value: form[key] ?? '',
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((prev) => ({ ...prev, [key]: e.target.value })),
-  });
 
   const totalPages = Math.ceil(totalUsages / PER_PAGE);
   const latestUsage = usages[0];
