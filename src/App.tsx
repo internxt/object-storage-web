@@ -32,7 +32,7 @@ export function App() {
               <Route path='/usage' element={<UsagePage />} />
             </Route>
 
-            <Route path='/' element={<Navigate to='/buckets' />} />
+            <Route path='/' element={<Navigate to='/management/accounts' />} />
 
             {/* Management console */}
             <Route path='/management/login' element={<ManagementLoginPage />} />
