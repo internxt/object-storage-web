@@ -5,7 +5,7 @@ import { ArrowLeft, Database, Package, CaretLeft, CaretRight } from '@phosphor-i
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
-import { managementService, SubAccountDetail, SubAccountUsage, UpdateSubAccountDto } from '../services/management.service';
+import { managementService, SubAccountDetail, SubAccountUsage } from '../services/management.service';
 import notificationsService from '../../services/notifications.service';
 
 const PER_PAGE = 20;
@@ -46,23 +46,6 @@ const DetailField = ({ label, value }: { label: string; value?: string | number 
   </div>
 );
 
-const FormField = ({ label, type, value, onChange }: {
-  label: string;
-  type: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}) => (
-  <div className='flex flex-col gap-1'>
-    <label className='text-xs text-gray-400 uppercase tracking-wide'>{label}</label>
-    <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      className='text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-100 transition-colors'
-    />
-  </div>
-);
-
 const fmt = (n: number, decimals = 8) => n.toFixed(decimals);
 const fmtDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD-MMM-YYYY HH:mm') : s;
 const fmtChartDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD MMM') : s;
@@ -76,25 +59,17 @@ export const SubAccountDetailPage = () => {
   const [totalUsages, setTotalUsages] = useState(0);
   const [page, setPage] = useState(0);
   const [tab, setTab] = useState<'usage' | 'account'>('usage');
-  const [from, setFrom] = useState(() => dayjs().subtract(30, 'day').format('YYYY-MM-DD'));
+  const MAX_RANGE_DAYS = 15;
+  const [from, setFrom] = useState(() => dayjs().subtract(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD'));
   const [to, setTo] = useState(() => dayjs().format('YYYY-MM-DD'));
   const [loading, setLoading] = useState(true);
   const [usagesLoading, setUsagesLoading] = useState(false);
-
-  const [form, setForm] = useState<UpdateSubAccountDto>({});
-  const [original, setOriginal] = useState<UpdateSubAccountDto>({});
-  const [savingForm, setSavingForm] = useState(false);
-
-  const isDirty = form.name !== original.name || form.contactEmail !== original.contactEmail;
 
   useEffect(() => {
     managementService
       .getSubAccountById(id!)
       .then((data) => {
         setAccount(data);
-        const initial = { name: data.name ?? '', contactEmail: data.contactEmail ?? '' };
-        setForm(initial);
-        setOriginal(initial);
       })
       .catch((e) => notificationsService.error({ text: e.message }))
       .finally(() => setLoading(false));
@@ -108,7 +83,7 @@ export const SubAccountDetailPage = () => {
     setUsagesLoading(true);
     try {
       const res = await managementService.getSubAccountUsages(id!, { from, to, page, perPage: PER_PAGE });
-      setUsages(res.items);
+      setUsages(res.items.reverse());
       setTotalUsages(res.totalItems);
     } catch (e: any) {
       notificationsService.error({ text: e.message });
@@ -116,26 +91,6 @@ export const SubAccountDetailPage = () => {
       setUsagesLoading(false);
     }
   };
-
-  const handleSaveForm = async () => {
-    setSavingForm(true);
-    try {
-      await managementService.updateSubAccount(id!, { name: form.name, contactEmail: form.contactEmail });
-      setAccount((prev) => prev ? { ...prev, name: form.name!, contactEmail: form.contactEmail ?? null } : prev);
-      setOriginal({ name: form.name, contactEmail: form.contactEmail });
-      notificationsService.success({ text: 'Account updated' });
-    } catch (e: any) {
-      notificationsService.error({ text: e.message });
-    } finally {
-      setSavingForm(false);
-    }
-  };
-
-  const field = (key: keyof UpdateSubAccountDto) => ({
-    value: form[key] ?? '',
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((prev) => ({ ...prev, [key]: e.target.value })),
-  });
 
   const totalPages = Math.ceil(totalUsages / PER_PAGE);
   const latestUsage = usages[0];
@@ -217,21 +172,32 @@ export const SubAccountDetailPage = () => {
         {tab === 'usage' && (
           <div className='p-5 flex flex-col gap-5'>
             {/* Date range */}
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 flex-wrap'>
               <label className='text-xs text-gray-500'>From</label>
               <input
                 type='date'
                 value={from}
-                onChange={(e) => { setFrom(e.target.value); setPage(0); }}
+                max={dayjs(to).subtract(1, 'day').format('YYYY-MM-DD')}
+                onChange={(e) => {
+                  const newFrom = e.target.value;
+                  setFrom(newFrom);
+                  if (dayjs(to).diff(dayjs(newFrom), 'day') > MAX_RANGE_DAYS) {
+                    setTo(dayjs(newFrom).add(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD'));
+                  }
+                  setPage(0);
+                }}
                 className='border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400'
               />
               <label className='text-xs text-gray-500'>To</label>
               <input
                 type='date'
                 value={to}
+                min={dayjs(from).add(1, 'day').format('YYYY-MM-DD')}
+                max={dayjs(from).add(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD')}
                 onChange={(e) => { setTo(e.target.value); setPage(0); }}
                 className='border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400'
               />
+              <span className='text-xs text-gray-400'>Max {MAX_RANGE_DAYS} days</span>
             </div>
 
             {/* Chart */}
@@ -289,7 +255,7 @@ export const SubAccountDetailPage = () => {
                     <tr>
                       <td colSpan={6} className='text-center py-10 text-sm text-gray-400'>No usage data for this period</td>
                     </tr>
-                  ) : usages.map((u) => (
+                  ) : usages.reverse().map((u) => (
                     <tr key={u.id} className='hover:bg-gray-50 transition-colors'>
                       <td className='px-4 py-3 text-gray-600 whitespace-nowrap text-xs'>{fmtDate(u.startTime)}</td>
                       <td className='px-4 py-3 text-gray-600 whitespace-nowrap text-xs'>{fmtDate(u.endTime)}</td>
@@ -335,26 +301,11 @@ export const SubAccountDetailPage = () => {
           <div className='p-6 flex flex-col gap-6'>
             {/* Read-only info */}
             <div className='grid grid-cols-2 gap-x-10 gap-y-4 lg:grid-cols-4 pb-5 border-b border-gray-100'>
-              <DetailField label='Account ID' value={account.id} />
+              <DetailField label='Account ID' value={id} />
               <DetailField label='Status' value={account.status} />
               <DetailField label='Creation Date' value={account.creationDate ? dayjs(account.creationDate).format('DD-MMM-YYYY') : null} />
-              <DetailField label='Channel Account' value={account.channelAccountName} />
-            </div>
-
-            {/* Editable form */}
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-              <FormField label='Name' type='text' {...field('name')} />
-              <FormField label='Contact Email' type='email' {...field('contactEmail')} />
-            </div>
-
-            <div className='flex justify-end pt-2 border-t border-gray-100'>
-              <button
-                onClick={handleSaveForm}
-                disabled={!isDirty || savingForm}
-                className='bg-[#5b47e0] hover:bg-[#4a38c8] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors'
-              >
-                {savingForm ? 'Saving…' : 'Update'}
-              </button>
+              <DetailField label='Partner Account' value={account.channelAccountName} />
+              <DetailField label='Email' value={account.contactEmail} />
             </div>
           </div>
         )}

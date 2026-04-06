@@ -44,7 +44,7 @@ const COL_HEADERS = [
   { label: 'Sub-accounts',        align: 'right' },
   { label: 'Active Storage (TB)', align: 'right' },
   { label: 'Status',              align: 'left'  },
-  { label: 'Provider Created',    align: 'left'  },
+  { label: 'Partner Created',    align: 'left'  },
   { label: 'Created',             align: 'left'  },
 ] as const;
 
