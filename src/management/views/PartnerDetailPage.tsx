@@ -129,7 +129,7 @@ export const PartnerDetailPage = () => {
         <StatCard
           icon={<Database size={20} weight='duotone' className='text-indigo-600' />}
           value={formatDate(partner.providerCreatedAt)}
-          label='Provider Created'
+          label='Partner Created'
         />
       </div>
 
