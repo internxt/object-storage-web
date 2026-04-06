@@ -109,7 +109,7 @@ export const SubAccountDetailPage = () => {
     setUsagesLoading(true);
     try {
       const res = await managementService.getSubAccountUsages(id!, { from, to, page, perPage: PER_PAGE });
-      setUsages(res.items);
+      setUsages(res.items.reverse());
       setTotalUsages(res.totalItems);
     } catch (e: any) {
       notificationsService.error({ text: e.message });
@@ -141,7 +141,7 @@ export const SubAccountDetailPage = () => {
   const totalPages = Math.ceil(totalUsages / PER_PAGE);
   const latestUsage = usages[0];
 
-  const chartData = [...usages].reverse().map((u) => ({
+  const chartData = usages.map((u) => ({
     date: fmtChartDate(u.startTime),
     active: parseFloat(u.activeStorage.toFixed(2)),
     deleted: parseFloat(u.deletedStorage.toFixed(2)),
@@ -301,7 +301,7 @@ export const SubAccountDetailPage = () => {
                     <tr>
                       <td colSpan={6} className='text-center py-10 text-sm text-gray-400'>No usage data for this period</td>
                     </tr>
-                  ) : usages.map((u) => (
+                  ) : usages.reverse().map((u) => (
                     <tr key={u.id} className='hover:bg-gray-50 transition-colors'>
                       <td className='px-4 py-3 text-gray-600 whitespace-nowrap text-xs'>{fmtDate(u.startTime)}</td>
                       <td className='px-4 py-3 text-gray-600 whitespace-nowrap text-xs'>{fmtDate(u.endTime)}</td>
@@ -347,26 +347,11 @@ export const SubAccountDetailPage = () => {
           <div className='p-6 flex flex-col gap-6'>
             {/* Read-only info */}
             <div className='grid grid-cols-2 gap-x-10 gap-y-4 lg:grid-cols-4 pb-5 border-b border-gray-100'>
-              <DetailField label='Account ID' value={account.id} />
+              <DetailField label='Account ID' value={id} />
               <DetailField label='Status' value={account.status} />
               <DetailField label='Creation Date' value={account.creationDate ? dayjs(account.creationDate).format('DD-MMM-YYYY') : null} />
-              <DetailField label='Channel Account' value={account.channelAccountName} />
-            </div>
-
-            {/* Editable form */}
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-              <FormField label='Name' type='text' {...field('name')} />
-              <FormField label='Contact Email' type='email' {...field('contactEmail')} />
-            </div>
-
-            <div className='flex justify-end pt-2 border-t border-gray-100'>
-              <button
-                onClick={handleSaveForm}
-                disabled={!isDirty || savingForm}
-                className='bg-[#5b47e0] hover:bg-[#4a38c8] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors'
-              >
-                {savingForm ? 'Saving…' : 'Update'}
-              </button>
+              <DetailField label='Partner Account' value={account.channelAccountName} />
+              <DetailField label='Email' value={account.contactEmail} />
             </div>
           </div>
         )}
