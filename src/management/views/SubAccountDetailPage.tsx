@@ -76,7 +76,8 @@ export const SubAccountDetailPage = () => {
   const [totalUsages, setTotalUsages] = useState(0);
   const [page, setPage] = useState(0);
   const [tab, setTab] = useState<'usage' | 'account'>('usage');
-  const [from, setFrom] = useState(() => dayjs().subtract(30, 'day').format('YYYY-MM-DD'));
+  const MAX_RANGE_DAYS = 15;
+  const [from, setFrom] = useState(() => dayjs().subtract(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD'));
   const [to, setTo] = useState(() => dayjs().format('YYYY-MM-DD'));
   const [loading, setLoading] = useState(true);
   const [usagesLoading, setUsagesLoading] = useState(false);
@@ -140,7 +141,7 @@ export const SubAccountDetailPage = () => {
   const totalPages = Math.ceil(totalUsages / PER_PAGE);
   const latestUsage = usages[0];
 
-  const chartData = usages.map((u) => ({
+  const chartData = [...usages].reverse().map((u) => ({
     date: fmtChartDate(u.startTime),
     active: parseFloat(u.activeStorage.toFixed(2)),
     deleted: parseFloat(u.deletedStorage.toFixed(2)),
@@ -217,21 +218,32 @@ export const SubAccountDetailPage = () => {
         {tab === 'usage' && (
           <div className='p-5 flex flex-col gap-5'>
             {/* Date range */}
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 flex-wrap'>
               <label className='text-xs text-gray-500'>From</label>
               <input
                 type='date'
                 value={from}
-                onChange={(e) => { setFrom(e.target.value); setPage(0); }}
+                max={dayjs(to).subtract(1, 'day').format('YYYY-MM-DD')}
+                onChange={(e) => {
+                  const newFrom = e.target.value;
+                  setFrom(newFrom);
+                  if (dayjs(to).diff(dayjs(newFrom), 'day') > MAX_RANGE_DAYS) {
+                    setTo(dayjs(newFrom).add(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD'));
+                  }
+                  setPage(0);
+                }}
                 className='border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400'
               />
               <label className='text-xs text-gray-500'>To</label>
               <input
                 type='date'
                 value={to}
+                min={dayjs(from).add(1, 'day').format('YYYY-MM-DD')}
+                max={dayjs(from).add(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD')}
                 onChange={(e) => { setTo(e.target.value); setPage(0); }}
                 className='border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400'
               />
+              <span className='text-xs text-gray-400'>Max {MAX_RANGE_DAYS} days</span>
             </div>
 
             {/* Chart */}
