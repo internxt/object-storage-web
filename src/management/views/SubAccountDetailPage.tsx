@@ -83,7 +83,8 @@ export const SubAccountDetailPage = () => {
     setUsagesLoading(true);
     try {
       const res = await managementService.getSubAccountUsages(id!, { from, to, page, perPage: PER_PAGE });
-      setUsages(res.items.reverse());
+      const sorted = res.items.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+      setUsages(sorted);
       setTotalUsages(res.totalItems);
     } catch (e: any) {
       notificationsService.error({ text: e.message });
@@ -95,11 +96,14 @@ export const SubAccountDetailPage = () => {
   const totalPages = Math.ceil(totalUsages / PER_PAGE);
   const latestUsage = usages[0];
 
-  const chartData = usages.map((u) => ({
-    date: fmtChartDate(u.startTime),
-    active: parseFloat(u.activeStorage.toFixed(2)),
-    deleted: parseFloat(u.deletedStorage.toFixed(2)),
-  }));
+  const chartData = usages
+    .slice()
+    .reverse()
+    .map((u) => ({
+      date: fmtChartDate(u.startTime),
+      active: parseFloat(u.activeStorage.toFixed(2)),
+      deleted: parseFloat(u.deletedStorage.toFixed(2)),
+    }));
 
   if (loading) {
     return (
@@ -255,7 +259,7 @@ export const SubAccountDetailPage = () => {
                     <tr>
                       <td colSpan={6} className='text-center py-10 text-sm text-gray-400'>No usage data for this period</td>
                     </tr>
-                  ) : usages.reverse().map((u) => (
+                  ) : usages.map((u) => (
                     <tr key={u.id} className='hover:bg-gray-50 transition-colors'>
                       <td className='px-4 py-3 text-gray-600 whitespace-nowrap text-xs'>{fmtDate(u.startTime)}</td>
                       <td className='px-4 py-3 text-gray-600 whitespace-nowrap text-xs'>{fmtDate(u.endTime)}</td>
