@@ -8,6 +8,13 @@ import {
 import { managementService, SubAccountDetail, SubAccountUsage } from '../services/management.service';
 import notificationsService from '../../services/notifications.service';
 
+type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'>;
+
+interface SubAccountDetailPageProps {
+  backPath?: string;
+  service?: SubAccountService;
+}
+
 const PER_PAGE = 20;
 
 const StatusBadge = ({ status }: { status: SubAccountDetail['status'] }) => {
@@ -50,7 +57,7 @@ const fmt = (n: number, decimals = 8) => n.toFixed(decimals);
 const fmtDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD-MMM-YYYY HH:mm') : s;
 const fmtChartDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD MMM') : s;
 
-export const SubAccountDetailPage = () => {
+export const SubAccountDetailPage = ({ backPath = '/management/accounts', service = managementService }: SubAccountDetailPageProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -66,7 +73,7 @@ export const SubAccountDetailPage = () => {
   const [usagesLoading, setUsagesLoading] = useState(false);
 
   useEffect(() => {
-    managementService
+    service
       .getSubAccountById(id!)
       .then((data) => {
         setAccount(data);
@@ -82,7 +89,7 @@ export const SubAccountDetailPage = () => {
   const fetchUsages = async () => {
     setUsagesLoading(true);
     try {
-      const res = await managementService.getSubAccountUsages(id!, { from, to, page, perPage: PER_PAGE });
+      const res = await service.getSubAccountUsages(id!, { from, to, page, perPage: PER_PAGE });
       const sorted = res.items.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
       setUsages(sorted);
       setTotalUsages(res.totalItems);
@@ -125,7 +132,7 @@ export const SubAccountDetailPage = () => {
       {/* Header */}
       <div className='flex items-start gap-4'>
         <button
-          onClick={() => navigate('/management/accounts')}
+          onClick={() => navigate(backPath)}
           className='flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm hover:bg-gray-50 transition-colors flex-shrink-0'
         >
           <ArrowLeft size={14} />

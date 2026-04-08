@@ -14,6 +14,7 @@ interface Props {
   pendingAccountId?: string | null;
   sortOrder?: SortOrder;
   onSortActiveStorage?: (order: SortOrder) => void;
+  detailBasePath?: string;
 }
 
 const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
@@ -129,7 +130,7 @@ const COL_HEADERS = [
   { label: '', align: 'right' },
 ] as const;
 
-export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoading, pendingAccountId, sortOrder, onSortActiveStorage }: Props) => {
+export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoading, pendingAccountId, sortOrder, onSortActiveStorage, detailBasePath = '/management/accounts' }: Props) => {
   const navigate = useNavigate();
 
   const handleActiveStorageSort = () => {
@@ -188,7 +189,7 @@ export const SubAccountsTable = ({ subAccounts, onSuspend, onReactivate, isLoadi
                 {/* Name / ID */}
                 <td
                   className={`px-4 py-3.5 ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}
-                  onClick={() => navigate(`/management/accounts/${acc.id}`)}
+                  onClick={() => navigate(`${detailBasePath}/${acc.id}`)}
                 >
                   <span className='font-mono text-[11px] text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2 cursor-pointer tracking-tight'>
                     {acc.id.slice(0, 8)}…{acc.id.slice(-4)}
