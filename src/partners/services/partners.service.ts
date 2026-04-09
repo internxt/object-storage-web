@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { partnersAuthService } from './partners-auth.service';
-import { SubAccount } from '../../management/components/SubAccountsTable';
+import { SubAccount } from '../../management/services/management.service';
 
 const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners`;
 const headers = () => partnersAuthService.getAuthHeaders();

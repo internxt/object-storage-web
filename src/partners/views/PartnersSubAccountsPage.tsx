@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { MagnifyingGlass, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { partnersService, PartnersUsageSummary } from '../services/partners.service';
-import { SubAccount, SubAccountsTable, SortOrder } from '../../management/components/SubAccountsTable';
+import { SubAccount } from '../../management/services/management.service';
+import { SubAccountsTable, SortOrder } from '../../management/components/SubAccountsTable';
 import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
 
