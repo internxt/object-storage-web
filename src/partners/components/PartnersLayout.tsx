@@ -1,12 +1,14 @@
 import { ReactNode, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { usePartners } from '../context/partnersContext';
-import { SignOut, User } from '@phosphor-icons/react';
+import { SignOut, User, LockKey } from '@phosphor-icons/react';
+import { ChangePasswordModal } from './ChangePasswordModal';
 
 export const PartnersLayout = ({ children }: { children: ReactNode }) => {
   const { logOut } = usePartners();
   const navigate = useNavigate();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const handleLogOut = () => {
     logOut();
@@ -40,20 +42,30 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
             <User size={18} />
           </button>
           {userMenuOpen && (
-            <div className='absolute right-0 top-full mt-1 bg-white text-gray-800 rounded shadow-md w-40 z-50'>
-              <button
-                onClick={handleLogOut}
-                className='flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200'
-              >
-                <SignOut size={16} />
-                Sign out
-              </button>
+            <div className='absolute right-0 top-full mt-1 bg-white rounded shadow-md w-44 z-50' style={{ color: '#374151' }}>
+              {[
+                { label: 'Change Password', icon: <LockKey size={16} />, onClick: () => { setUserMenuOpen(false); setChangePasswordOpen(true); }, extraClass: 'rounded-t' },
+                { label: 'Sign out', icon: <SignOut size={16} />, onClick: handleLogOut, extraClass: 'border-t border-gray-200 rounded-b' },
+              ].map(({ label, icon, onClick, extraClass }) => (
+                <button
+                  key={label}
+                  onClick={onClick}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#1f2937'; e.currentTarget.style.color = 'white'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = ''; }}
+                  className={`flex items-center gap-2 w-full px-4 py-2 text-sm transition-colors ${extraClass}`}
+                >
+                  {icon}
+                  {label}
+                </button>
+              ))}
             </div>
           )}
         </div>
       </header>
 
       <main className='flex-1 p-6 overflow-auto bg-[#f0f2f5]'>{children}</main>
+
+      <ChangePasswordModal isOpen={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
     </div>
   );
 };

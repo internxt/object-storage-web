@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { partnersAuthService } from './partners-auth.service';
 import { SubAccount } from '../../management/services/management.service';
+import notificationsService from '../../services/notifications.service';
 
 const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners`;
 const headers = () => partnersAuthService.getAuthHeaders();
@@ -8,8 +9,13 @@ const headers = () => partnersAuthService.getAuthHeaders();
 axios.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err?.response?.status === 401 && window.location.pathname.startsWith('/partners') && !window.location.pathname.endsWith('/login')) {
+    if (
+      err?.response?.status === 401 &&
+      window.location.pathname.startsWith('/partners') &&
+      !window.location.pathname.endsWith('/login')
+    ) {
       partnersAuthService.logOut();
+      notificationsService.error({ text: 'Session expired. Please log in again.' });
       window.location.href = '/partners/login';
     }
     return Promise.reject(err);
@@ -99,6 +105,11 @@ async function getSubAccountUsages(
   return { items: data.items ?? [], totalItems: data.totalItems ?? data.items?.length ?? 0 };
 }
 
+async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const response = await axios.put<{ token: string }>(`${API()}/password`, { currentPassword, newPassword }, { headers: headers() });
+  partnersAuthService.setToken(response.data.token);
+}
+
 export const partnersService = {
   getSubAccounts,
   getSubAccountById,
@@ -107,4 +118,5 @@ export const partnersService = {
   suspendSubAccount,
   reactivateSubAccount,
   getUsageSummary,
+  changePassword,
 };

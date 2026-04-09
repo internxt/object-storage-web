@@ -35,5 +35,6 @@ export const partnersAuthService = {
   logIn,
   logOut,
   getToken,
+  setToken,
   getAuthHeaders,
 };
