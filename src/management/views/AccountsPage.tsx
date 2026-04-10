@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { MagnifyingGlass, CaretLeft, CaretRight, FunnelSimple } from '@phosphor-icons/react';
 import { managementService, SubAccount, UsagesSummary } from '../services/management.service';
 import { StatsHeader } from '../components/StatsHeader';
-import { SubAccountsTable, SortOrder } from '../components/SubAccountsTable';
+import { ManagementSubAccountsTable } from '../components/ManagementSubAccountsTable';
+import { SortOrder } from '../components/SubAccountsTable';
 import { CreateSubAccountModal } from '../components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
 
@@ -196,14 +197,14 @@ export const AccountsPage = () => {
           </div>
         </div>
 
-        <SubAccountsTable
+        <ManagementSubAccountsTable
           subAccounts={subAccounts}
           onSuspend={handleSuspend}
           onReactivate={handleReactivate}
           isLoading={isSubAccountsLoading}
           pendingAccountId={pendingAccountId}
           sortOrder={activeStorageSortOrder}
-          onSortActiveStorage={(order) => { setPage(0); setActiveStorageSortOrder(order); }}
+          onSortActiveStorage={(order: SortOrder) => { setPage(0); setActiveStorageSortOrder(order); }}
         />
 
         {/* Pagination */}

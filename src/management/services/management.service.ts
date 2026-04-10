@@ -20,6 +20,7 @@ export interface SubAccount {
   name: string;
   email: string;
   channelAccount?: string;
+  partnerId?: string | null;
   activeStorage: number;
   deletedStorage: number;
   storageUtilization?: number;

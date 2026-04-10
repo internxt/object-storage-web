@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { MagnifyingGlass, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { partnersService, PartnersUsageSummary } from '../services/partners.service';
 import { SubAccount } from '../../management/services/management.service';
-import { SubAccountsTable, SortOrder } from '../../management/components/SubAccountsTable';
+import { PartnersSubAccountsTable } from '../../management/components/PartnersSubAccountsTable';
+import { SortOrder } from '../../management/components/SubAccountsTable';
 import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
 
@@ -163,15 +164,14 @@ export const PartnersSubAccountsPage = () => {
           </div>
         </div>
 
-        <SubAccountsTable
+        <PartnersSubAccountsTable
           subAccounts={subAccounts}
           onSuspend={handleSuspend}
           onReactivate={handleReactivate}
           isLoading={isLoading}
           pendingAccountId={pendingAccountId}
           sortOrder={activeStorageSortOrder}
-          onSortActiveStorage={(order) => { setPage(0); setActiveStorageSortOrder(order); }}
-          detailBasePath='/partners/sub-accounts'
+          onSortActiveStorage={(order: SortOrder) => { setPage(0); setActiveStorageSortOrder(order); }}
         />
 
         <div className='flex items-center justify-between mt-4 pt-4 border-t border-gray-50'>

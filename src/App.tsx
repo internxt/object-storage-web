@@ -38,7 +38,12 @@ export function App() {
                 <Route path='/usage' element={<UsagePage />} />
               </Route>
 
-              <Route path='/' element={<Navigate to='/management/accounts' />} />
+              <Route
+                path='/'
+                element={
+                  <Navigate to={window.location.hostname === 'os.partners.internxt.com' ? '/partners/login' : '/management/accounts'} />
+                }
+              />
 
               {/* Management console */}
               <Route path='/management/login' element={<ManagementLoginPage />} />
