@@ -53,6 +53,7 @@ export function App() {
               {/* Partners console */}
               <Route path='/partners/login' element={<PartnersLoginPage />} />
               <Route element={<PartnersAuthRoute />}>
+                <Route path='/partners' element={<Navigate to='/partners/sub-accounts' />} />
                 <Route path='/partners/sub-accounts' element={<PartnersSubAccountsPage />} />
                 <Route path='/partners/sub-accounts/:id' element={<PartnersSubAccountDetailPage />} />
               </Route>

@@ -1,14 +1,29 @@
 import { ReactNode, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { usePartners } from '../context/partnersContext';
-import { SignOut, User, LockKey } from '@phosphor-icons/react';
+import { SignOut, User, LockKey, ArrowSquareOut } from '@phosphor-icons/react';
 import { ChangePasswordModal } from './ChangePasswordModal';
+import { partnersService } from '../services/partners.service';
+import notificationsService from '../../services/notifications.service';
 
 export const PartnersLayout = ({ children }: { children: ReactNode }) => {
   const { logOut } = usePartners();
   const navigate = useNavigate();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
+
+  const openBilling = async () => {
+    setBillingLoading(true);
+    try {
+      const { url } = await partnersService.createBillingPortalSession();
+      window.open(url, '_blank');
+    } catch {
+      notificationsService.error({ text: 'Failed to open billing portal' });
+    } finally {
+      setBillingLoading(false);
+    }
+  };
 
   const handleLogOut = () => {
     logOut();
@@ -31,6 +46,14 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
             <NavLink to='/partners/sub-accounts' className={navLinkClass}>
               Sub-Accounts
             </NavLink>
+            <button
+              onClick={openBilling}
+              disabled={billingLoading}
+              className='flex items-center gap-1.5 px-4 py-4 text-sm font-medium border-b-2 border-transparent text-blue-200 hover:text-white transition-colors disabled:opacity-50'
+            >
+              Billing
+              <ArrowSquareOut size={14} />
+            </button>
           </nav>
         </div>
 

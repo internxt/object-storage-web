@@ -105,6 +105,15 @@ async function getSubAccountUsages(
   return { items: data.items ?? [], totalItems: data.totalItems ?? data.items?.length ?? 0 };
 }
 
+async function createBillingPortalSession(): Promise<{ url: string }> {
+  const response = await axios.post<{ url: string }>(
+    `${API()}/billing-portal`,
+    { returnUrl: window.location.href },
+    { headers: headers() },
+  );
+  return response.data;
+}
+
 async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
   const response = await axios.put<{ token: string }>(`${API()}/password`, { currentPassword, newPassword }, { headers: headers() });
   partnersAuthService.setToken(response.data.token);
@@ -118,5 +127,6 @@ export const partnersService = {
   suspendSubAccount,
   reactivateSubAccount,
   getUsageSummary,
+  createBillingPortalSession,
   changePassword,
 };
