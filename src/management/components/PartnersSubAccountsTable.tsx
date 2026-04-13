@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { DotsThree } from '@phosphor-icons/react';
 import { SubAccount } from '../services/management.service';
 import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable';
+import { ConfirmActionModal } from './ConfirmActionModal';
 
 interface Props {
   subAccounts: SubAccount[];
@@ -53,6 +54,7 @@ const ActionsMenu = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, right: 0 });
+  const [confirmAction, setConfirmAction] = useState<'suspend' | 'reactivate' | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const handleOpen = () => {
@@ -74,6 +76,12 @@ const ActionsMenu = ({
     };
   }, [open]);
 
+  const handleConfirm = () => {
+    if (confirmAction === 'suspend') onSuspend(account.id);
+    else if (confirmAction === 'reactivate') onReactivate(account.id);
+    setConfirmAction(null);
+  };
+
   return (
     <div>
       <button ref={btnRef} onClick={handleOpen} className='p-1.5 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors'>
@@ -87,11 +95,11 @@ const ActionsMenu = ({
             style={{ top: coords.top, right: coords.right, boxShadow: '0 8px 30px rgba(0,0,0,0.10)' }}
           >
             {account.status !== 'SUSPENDED' ? (
-              <button onClick={() => { onSuspend(account.id); setOpen(false); }} className='block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors'>
+              <button onClick={() => { setConfirmAction('suspend'); setOpen(false); }} className='block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors'>
                 Suspend
               </button>
             ) : (
-              <button onClick={() => { onReactivate(account.id); setOpen(false); }} className='block w-full text-left px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors'>
+              <button onClick={() => { setConfirmAction('reactivate'); setOpen(false); }} className='block w-full text-left px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors'>
                 Reactivate
               </button>
             )}
@@ -99,6 +107,24 @@ const ActionsMenu = ({
         </>,
         document.body,
       )}
+      <ConfirmActionModal
+        isOpen={confirmAction === 'suspend'}
+        title='Suspend account?'
+        description='This will suspend the account and block access. You can reactivate it at any time.'
+        confirmLabel='Suspend'
+        variant='danger'
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmAction(null)}
+      />
+      <ConfirmActionModal
+        isOpen={confirmAction === 'reactivate'}
+        title='Reactivate account?'
+        description='This will restore access to the account.'
+        confirmLabel='Reactivate'
+        variant='success'
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 };
