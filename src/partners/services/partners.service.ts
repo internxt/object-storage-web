@@ -54,6 +54,11 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
   };
 }
 
+async function getMe(): Promise<{ id: string; name: string | null; email: string | null }> {
+  const response = await axios.get(`${API()}/me`, { headers: headers() });
+  return response.data;
+}
+
 async function getSubAccounts(params: {
   page?: number;
   perPage?: number;
@@ -105,6 +110,31 @@ async function getSubAccountUsages(
   return { items: data.items ?? [], totalItems: data.totalItems ?? data.items?.length ?? 0 };
 }
 
+export interface PartnerMember {
+  id: string;
+  email: string;
+  entityType: string;
+  entityId: string;
+  createdAt: string;
+}
+
+async function listMembers(): Promise<PartnerMember[]> {
+  const response = await axios.get(`${API()}/members`, { headers: headers() });
+  return response.data;
+}
+
+async function createMember(email: string, password: string): Promise<void> {
+  await axios.post(`${API()}/members`, { email, password }, { headers: headers() });
+}
+
+async function deleteMember(id: string): Promise<void> {
+  await axios.delete(`${API()}/members/${id}`, { headers: headers() });
+}
+
+async function updateMember(id: string, dto: { email?: string; newPassword?: string }): Promise<void> {
+  await axios.patch(`${API()}/members/${id}`, dto, { headers: headers() });
+}
+
 async function createBillingPortalSession(): Promise<{ url: string }> {
   const response = await axios.post<{ url: string }>(
     `${API()}/billing-portal`,
@@ -120,6 +150,7 @@ async function changePassword(currentPassword: string, newPassword: string): Pro
 }
 
 export const partnersService = {
+  getMe,
   getSubAccounts,
   getSubAccountById,
   getSubAccountUsages,
@@ -129,4 +160,8 @@ export const partnersService = {
   getUsageSummary,
   createBillingPortalSession,
   changePassword,
+  listMembers,
+  createMember,
+  deleteMember,
+  updateMember,
 };
