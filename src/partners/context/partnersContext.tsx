@@ -3,6 +3,7 @@ import { partnersAuthService } from '../services/partners-auth.service';
 
 interface PartnersContextType {
   isAuthenticated: boolean;
+  isViewer: boolean;
   logIn: (email: string, password: string) => Promise<void>;
   logOut: () => void;
 }
@@ -13,20 +14,25 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => !!partnersAuthService.getToken()
   );
+  const [isViewer, setIsViewer] = useState(
+    () => partnersAuthService.getRole() === 'member'
+  );
 
   const logIn = async (email: string, password: string) => {
     await partnersAuthService.logIn(email, password);
     setIsAuthenticated(true);
+    setIsViewer(partnersAuthService.getRole() === 'member');
   };
 
   const logOut = () => {
     partnersAuthService.logOut();
     setIsAuthenticated(false);
+    setIsViewer(false);
   };
 
   const value = useMemo(
-    () => ({ isAuthenticated, logIn, logOut }),
-    [isAuthenticated]
+    () => ({ isAuthenticated, isViewer, logIn, logOut }),
+    [isAuthenticated, isViewer]
   );
 
   return (
