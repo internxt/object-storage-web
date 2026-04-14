@@ -1,15 +1,26 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { getData as getCountries } from 'country-list';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (dto: { name: string; email: string; password: string }) => Promise<void>;
+  onSubmit: (dto: { name: string; email: string; password: string; country: string; postalCode: string }) => Promise<void>;
 }
 
-type FormValues = { name: string; email: string; password: string };
+type FormValues = { name: string; email: string; password: string; country: string; postalCode: string };
+
+const countries = getCountries().sort((a: { code: string; name: string }, b: { code: string; name: string }) => a.name.localeCompare(b.name));
+
+function countryFlag(code: string): string {
+  return code
+    .toUpperCase()
+    .split('')
+    .map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0)))
+    .join('');
+}
 
 export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,6 +88,34 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
             />
           </Field>
 
+          <div className='flex gap-3'>
+            <Field label='Country' error={errors.country?.message}>
+              <select
+                {...register('country', { required: 'Country is required' })}
+                className={selectClass}
+                defaultValue=''
+              >
+                <option value='' disabled>Select country…</option>
+                {countries.map(({ code, name }: { code: string; name: string }) => (
+                  <option key={code} value={code}>
+                    {countryFlag(code)} {name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label='Postal Code' error={errors.postalCode?.message}>
+              <input
+                {...register('postalCode', {
+                  required: 'Postal code is required',
+                  maxLength: { value: 20, message: 'Too long' },
+                })}
+                placeholder='28001'
+                className={inputClass}
+              />
+            </Field>
+          </div>
+
           {error && <p className='text-sm text-red-600'>{error}</p>}
 
           <div className='flex justify-end gap-3 pt-2'>
@@ -95,6 +134,9 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
 
 const inputClass =
   'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+
+const selectClass =
+  'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white';
 
 const Field = ({
   label,
