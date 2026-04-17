@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { managementService, SubAccountDetail, SubAccountUsage } from '../services/management.service';
 import notificationsService from '../../services/notifications.service';
+import { exportAsCSV } from '../../utils/exportUtils';
 
 type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'>;
 
@@ -101,7 +102,7 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
     }
   };
 
-  const exportUsages = async (format: 'CSV' | 'JSON') => {
+  const exportUsages = async () => {
     setExporting(true);
     try {
       let all: SubAccountUsage[] = [];
@@ -115,16 +116,10 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
       all.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 
       const filename = `usages_${account?.contactEmail ?? id}_${from}_${to}`;
-      if (format === 'JSON') {
-        const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
-        downloadBlob(blob, `${filename}.json`);
-      } else {
-        const headers = ['id', 'startTime', 'endTime', 'activeStorage', 'deletedStorage', 'storageWrote', 'storageRead', 'activeObjects', 'deletedObjects', 'egress', 'ingress', 'apiCalls'];
-        const rows = all.map((u) => headers.map((h) => String((u as any)[h] ?? '')).join(','));
-        const csv = [headers.join(','), ...rows].join('\n');
-        const blob = new Blob([csv], { type: 'text/csv' });
-        downloadBlob(blob, `${filename}.csv`);
-      }
+      const numericFields = new Set(['activeStorage', 'deletedStorage', 'storageWrote', 'storageRead', 'egress', 'ingress']);
+      const headers: (keyof SubAccountUsage)[] = ['id', 'startTime', 'endTime', 'activeStorage', 'deletedStorage', 'storageWrote', 'storageRead', 'activeObjects', 'deletedObjects', 'egress', 'ingress', 'apiCalls'];
+      const data = all.map((u) => Object.fromEntries(headers.map((h) => [h, u[h] ?? ''])));
+      exportAsCSV(data, numericFields, filename);
     } catch (e: any) {
       notificationsService.error({ text: e.message });
     } finally {
@@ -132,14 +127,6 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
     }
   };
 
-  const downloadBlob = (blob: Blob, name: string) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   const totalPages = Math.ceil(totalUsages / PER_PAGE);
   const latestUsage = usages[0];
@@ -252,7 +239,7 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
               <span className='text-xs text-gray-400'>Max {MAX_RANGE_DAYS} days</span>
               <button
                 disabled={exporting}
-                onClick={() => exportUsages('CSV')}
+                onClick={() => exportUsages()}
                 className='ml-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
               >
                 <DownloadSimple size={14} />
