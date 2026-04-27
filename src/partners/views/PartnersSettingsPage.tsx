@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Trash, Password, Plus, X, Eye, EyeSlash } from '@phosphor-icons/react';
+import dayjs from 'dayjs';
+import { Trash, Password, Plus, X, Eye, EyeSlash, DownloadSimple } from '@phosphor-icons/react';
 import { partnersService, PartnerMember } from '../services/partners.service';
+import { exportAsCSV } from '../../utils/exportUtils';
 import notificationsService from '../../services/notifications.service';
 
 const Field = ({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) => (
@@ -55,8 +57,10 @@ const validatePassword = (p: string) => {
   return errs;
 };
 
+const MAX_EXPORT_RANGE_DAYS = 40;
+
 const ProfileTab = () => {
-  const [profile, setProfile] = useState<{ name: string | null; email: string | null } | null>(null);
+  const [profile, setProfile] = useState<{ name: string | null; email: string | null; createdAt: string } | null>(null);
 
   const [current, setCurrent] = useState('');
   const [newPwd, setNewPwd] = useState('');
@@ -64,9 +68,29 @@ const ProfileTab = () => {
   const [touched, setTouched] = useState({ newPwd: false, confirm: false });
   const [saving, setSaving] = useState(false);
 
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportFrom, setExportFrom] = useState(() => dayjs().startOf('month').format('YYYY-MM-DD'));
+  const [exportTo, setExportTo] = useState(() => dayjs().format('YYYY-MM-DD'));
+
   useEffect(() => {
     partnersService.getMe().then(setProfile).catch(() => {});
   }, []);
+
+  const handleExportUsages = async () => {
+    setIsExporting(true);
+    try {
+      const data = await partnersService.exportDailyUsage({ startDate: exportFrom, endDate: exportTo });
+      exportAsCSV(
+        data as Record<string, unknown>[],
+        new Set(['usageGb']),
+        `partner_usage_export_${exportFrom}_to_${exportTo}`,
+      );
+    } catch (err) {
+      notificationsService.error({ text: (err as Error).message });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const policyErrors = touched.newPwd ? validatePassword(newPwd) : [];
   const sameAsCurrent = touched.newPwd && newPwd.length > 0 && newPwd === current;
@@ -105,6 +129,48 @@ const ProfileTab = () => {
             <p className='text-xs font-medium text-gray-500 mb-0.5'>Email</p>
             <p className='text-sm text-gray-800'>{profile?.email ?? '—'}</p>
           </div>
+        </div>
+      </div>
+
+      {/* Export usage */}
+      <div className='bg-white rounded-xl shadow-sm p-6 flex flex-col gap-4'>
+        <div>
+          <h3 className='text-sm font-semibold text-gray-800'>Export Usage</h3>
+          <p className='text-xs text-gray-400 mt-0.5'>Download your global daily usage as a CSV file (max. 40 days)</p>
+        </div>
+        <div className='flex items-center gap-2'>
+          <input
+            type='date'
+            value={exportFrom}
+            min={profile?.createdAt?.slice(0, 10)}
+            max={dayjs(exportTo).subtract(1, 'day').format('YYYY-MM-DD')}
+            onChange={(e) => {
+              const newFrom = e.target.value;
+              setExportFrom(newFrom);
+              if (dayjs(exportTo).diff(dayjs(newFrom), 'day') > MAX_EXPORT_RANGE_DAYS) {
+                setExportTo(dayjs(newFrom).add(MAX_EXPORT_RANGE_DAYS, 'day').format('YYYY-MM-DD'));
+              }
+            }}
+            className='border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-400'
+          />
+          <span className='text-xs text-gray-400'>–</span>
+          <input
+            type='date'
+            value={exportTo}
+            min={dayjs(exportFrom).add(1, 'day').format('YYYY-MM-DD')}
+            max={dayjs().format('YYYY-MM-DD')}
+            onChange={(e) => setExportTo(e.target.value)}
+            className='border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-400'
+          />
+          <button
+            onClick={handleExportUsages}
+            disabled={isExporting}
+            style={{ backgroundColor: '#1d4ed8', color: '#fff' }}
+            className='flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed'
+          >
+            <DownloadSimple size={15} />
+            {isExporting ? 'Exporting…' : 'Export CSV'}
+          </button>
         </div>
       </div>
 

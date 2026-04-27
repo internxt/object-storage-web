@@ -54,7 +54,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
   };
 }
 
-async function getMe(): Promise<{ id: string; name: string | null; email: string | null }> {
+async function getMe(): Promise<{ id: string; name: string | null; email: string | null; createdAt: string }> {
   const response = await axios.get(`${API()}/me`, { headers: headers() });
   return response.data;
 }
@@ -135,6 +135,16 @@ async function updateMember(id: string, dto: { email?: string; newPassword?: str
   await axios.patch(`${API()}/members/${id}`, dto, { headers: headers() });
 }
 
+export interface DailyUsageEntry {
+  date: string;
+  usageGb: number;
+}
+
+async function exportDailyUsage(params?: { startDate?: string; endDate?: string }): Promise<DailyUsageEntry[]> {
+  const response = await axios.get(`${API()}/usages/export`, { headers: headers(), params });
+  return response.data;
+}
+
 async function createBillingPortalSession(): Promise<{ url: string }> {
   const response = await axios.post<{ url: string }>(
     `${API()}/billing-portal`,
@@ -151,6 +161,7 @@ async function changePassword(currentPassword: string, newPassword: string): Pro
 
 export const partnersService = {
   getMe,
+  exportDailyUsage,
   getSubAccounts,
   getSubAccountById,
   getSubAccountUsages,
