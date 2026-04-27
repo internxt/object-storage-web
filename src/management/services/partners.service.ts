@@ -36,7 +36,7 @@ export interface PartnerSubAccount {
   createdAt: string | null;
 }
 
-async function createPartner(dto: { name: string; email: string; password: string }): Promise<void> {
+async function createPartner(dto: { name: string; email: string; password: string; country: string; postalCode: string }): Promise<void> {
   await axios.post(`${API()}/partners`, dto, { headers: headers() });
 }
 
