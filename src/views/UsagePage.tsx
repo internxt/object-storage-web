@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import { usePaginatedUsageData } from '../hooks/usePaginatedUserData';
 import { CaretLeft, CaretRight, Export } from '@phosphor-icons/react';
 import notificationsService from '../services/notifications.service';
-import { ExportModal, ExportFormat } from '../components/usage/ExportModal';
+import { ExportModal } from '../components/usage/ExportModal';
 import { exportUsageData } from '../utils/exportUtils';
 
 const TABLE_HEADERS = [
@@ -129,7 +129,7 @@ export const UsagePage = () => {
     setIsExportModalOpen(true);
   };
 
-  const handleExportConfirm = async (format: ExportFormat) => {
+  const handleExportConfirm = async () => {
     try {
       setIsExporting(true);
 
@@ -142,13 +142,12 @@ export const UsagePage = () => {
 
       exportUsageData(
         usageData,
-        format,
         currentDateRange.startDate,
         currentDateRange.endDate
       );
 
       notificationsService.success({
-        text: `Usage data exported successfully as ${format}`,
+        text: 'Usage data exported successfully as CSV',
       });
 
       setIsExportModalOpen(false);

@@ -6,10 +6,12 @@ import { PartnersSubAccountsTable } from '../../management/components/PartnersSu
 import { SortOrder } from '../../management/components/SubAccountsTable';
 import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
+import { usePartners } from '../context/partnersContext';
 
 const PER_PAGE = 20;
 
 export const PartnersSubAccountsPage = () => {
+  const { isViewer } = usePartners();
   const [usageSummary, setUsageSummary] = useState<PartnersUsageSummary | null>(null);
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
   const [total, setTotal] = useState(0);
@@ -143,12 +145,14 @@ export const PartnersSubAccountsPage = () => {
             <h2 className='text-base font-semibold text-gray-900'>Sub-Accounts</h2>
             {total > 0 && <p className='text-xs text-gray-400 mt-0.5'>{total} accounts total</p>}
           </div>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className='bg-indigo hover:bg-indigo-dark active:bg-indigo-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm'
-          >
-            Create Sub-Account
-          </button>
+          {!isViewer && (
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className='bg-indigo hover:bg-indigo-dark active:bg-indigo-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm'
+            >
+              Create Sub-Account
+            </button>
+          )}
         </div>
 
         <div className='flex items-center gap-2 mb-4'>
@@ -172,6 +176,7 @@ export const PartnersSubAccountsPage = () => {
           pendingAccountId={pendingAccountId}
           sortOrder={activeStorageSortOrder}
           onSortActiveStorage={(order: SortOrder) => { setPage(0); setActiveStorageSortOrder(order); }}
+          readOnly={isViewer}
         />
 
         <div className='flex items-center justify-between mt-4 pt-4 border-t border-gray-50'>

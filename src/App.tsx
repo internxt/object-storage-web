@@ -22,6 +22,7 @@ import { PartnersLoginPage } from './partners/views/PartnersLoginPage';
 import { PartnersAuthRoute } from './partners/components/PartnersAuthRoute';
 import { PartnersSubAccountsPage } from './partners/views/PartnersSubAccountsPage';
 import { PartnersSubAccountDetailPage } from './partners/views/PartnersSubAccountDetailPage';
+import { PartnersSettingsPage } from './partners/views/PartnersSettingsPage';
 
 export function App() {
   return (
@@ -61,6 +62,7 @@ export function App() {
                 <Route path='/partners' element={<Navigate to='/partners/sub-accounts' />} />
                 <Route path='/partners/sub-accounts' element={<PartnersSubAccountsPage />} />
                 <Route path='/partners/sub-accounts/:id' element={<PartnersSubAccountDetailPage />} />
+                <Route path='/partners/settings' element={<PartnersSettingsPage />} />
               </Route>
 
               {/* <Route path="*" element={<NotFoundPage />} /> */}

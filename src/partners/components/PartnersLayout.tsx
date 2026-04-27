@@ -1,16 +1,14 @@
 import { ReactNode, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { usePartners } from '../context/partnersContext';
-import { SignOut, User, LockKey, ArrowSquareOut } from '@phosphor-icons/react';
-import { ChangePasswordModal } from './ChangePasswordModal';
+import { SignOut, User, ArrowSquareOut, GearSix } from '@phosphor-icons/react';
 import { partnersService } from '../services/partners.service';
 import notificationsService from '../../services/notifications.service';
 
 export const PartnersLayout = ({ children }: { children: ReactNode }) => {
-  const { logOut } = usePartners();
+  const { logOut, isViewer } = usePartners();
   const navigate = useNavigate();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [billingLoading, setBillingLoading] = useState(false);
 
   const openBilling = async () => {
@@ -46,14 +44,16 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
             <NavLink to='/partners/sub-accounts' className={navLinkClass}>
               Sub-Accounts
             </NavLink>
-            <button
-              onClick={openBilling}
-              disabled={billingLoading}
-              className='flex items-center gap-1.5 px-4 py-4 text-sm font-medium border-b-2 border-transparent text-blue-200 hover:text-white transition-colors disabled:opacity-50'
-            >
-              Billing
-              <ArrowSquareOut size={14} />
-            </button>
+            {!isViewer && (
+              <button
+                onClick={openBilling}
+                disabled={billingLoading}
+                className='flex items-center gap-1.5 px-4 py-4 text-sm font-medium border-b-2 border-transparent text-blue-200 hover:text-white transition-colors disabled:opacity-50'
+              >
+                Billing
+                <ArrowSquareOut size={14} />
+              </button>
+            )}
           </nav>
         </div>
 
@@ -67,8 +67,18 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
           {userMenuOpen && (
             <div className='absolute right-0 top-full mt-1 bg-white rounded shadow-md w-44 z-50' style={{ color: '#374151' }}>
               {[
-                { label: 'Change Password', icon: <LockKey size={16} />, onClick: () => { setUserMenuOpen(false); setChangePasswordOpen(true); }, extraClass: 'rounded-t' },
-                { label: 'Sign out', icon: <SignOut size={16} />, onClick: handleLogOut, extraClass: 'border-t border-gray-200 rounded-b' },
+                ...(!isViewer ? [{
+                  label: 'Settings',
+                  icon: <GearSix size={16} />,
+                  onClick: () => { setUserMenuOpen(false); navigate('/partners/settings'); },
+                  extraClass: 'rounded-t',
+                }] : []),
+                {
+                  label: 'Sign out',
+                  icon: <SignOut size={16} />,
+                  onClick: handleLogOut,
+                  extraClass: isViewer ? 'rounded' : 'border-t border-gray-200 rounded-b',
+                },
               ].map(({ label, icon, onClick, extraClass }) => (
                 <button
                   key={label}
@@ -87,8 +97,6 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
       </header>
 
       <main className='flex-1 p-6 overflow-auto bg-[#f0f2f5]'>{children}</main>
-
-      <ChangePasswordModal isOpen={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
     </div>
   );
 };

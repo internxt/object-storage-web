@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { ArrowLeft, Database, Package, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { ArrowLeft, Database, Package, CaretLeft, CaretRight, DownloadSimple } from '@phosphor-icons/react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import { managementService, SubAccountDetail, SubAccountUsage } from '../services/management.service';
 import notificationsService from '../../services/notifications.service';
+import { exportAsCSV } from '../../utils/exportUtils';
 
 type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'>;
 
@@ -66,11 +67,12 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
   const [totalUsages, setTotalUsages] = useState(0);
   const [page, setPage] = useState(0);
   const [tab, setTab] = useState<'usage' | 'account'>('usage');
-  const MAX_RANGE_DAYS = 15;
+  const MAX_RANGE_DAYS = 31;
   const [from, setFrom] = useState(() => dayjs().subtract(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD'));
   const [to, setTo] = useState(() => dayjs().format('YYYY-MM-DD'));
   const [loading, setLoading] = useState(true);
   const [usagesLoading, setUsagesLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     service
@@ -99,6 +101,32 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
       setUsagesLoading(false);
     }
   };
+
+  const exportUsages = async () => {
+    setExporting(true);
+    try {
+      let all: SubAccountUsage[] = [];
+      let p = 0;
+      while (true) {
+        const res = await service.getSubAccountUsages(id!, { from, to, page: p, perPage: 500 });
+        all = all.concat(res.items);
+        if (all.length >= res.totalItems || res.items.length === 0) break;
+        p++;
+      }
+      all.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+
+      const filename = `usages_${account?.contactEmail ?? id}_${from}_${to}`;
+      const numericFields = new Set(['activeStorage', 'deletedStorage', 'storageWrote', 'storageRead', 'egress', 'ingress']);
+      const headers: (keyof SubAccountUsage)[] = ['id', 'startTime', 'endTime', 'activeStorage', 'deletedStorage', 'storageWrote', 'storageRead', 'activeObjects', 'deletedObjects', 'egress', 'ingress', 'apiCalls'];
+      const data = all.map((u) => Object.fromEntries(headers.map((h) => [h, u[h] ?? ''])));
+      exportAsCSV(data, numericFields, filename);
+    } catch (e: any) {
+      notificationsService.error({ text: e.message });
+    } finally {
+      setExporting(false);
+    }
+  };
+
 
   const totalPages = Math.ceil(totalUsages / PER_PAGE);
   const latestUsage = usages[0];
@@ -209,6 +237,14 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
                 className='border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400'
               />
               <span className='text-xs text-gray-400'>Max {MAX_RANGE_DAYS} days</span>
+              <button
+                disabled={exporting}
+                onClick={() => exportUsages()}
+                className='ml-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+              >
+                <DownloadSimple size={14} />
+                {exporting ? 'Exporting…' : 'Export CSV'}
+              </button>
             </div>
 
             {/* Chart */}

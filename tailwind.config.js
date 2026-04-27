@@ -1,4 +1,4 @@
-const { config } = require('@internxt/css-config');
+const { default: config } = require('@internxt/css-config');
 
 module.exports = {
   ...config,

@@ -14,6 +14,7 @@ interface Props {
   pendingAccountId?: string | null;
   sortOrder?: SortOrder;
   onSortActiveStorage?: (order: SortOrder) => void;
+  readOnly?: boolean;
 }
 
 const formatDate = (date?: string) =>
@@ -137,6 +138,7 @@ export const PartnersSubAccountsTable = ({
   pendingAccountId,
   sortOrder,
   onSortActiveStorage,
+  readOnly = false,
 }: Props) => {
   const navigate = useNavigate();
 
@@ -175,16 +177,16 @@ export const PartnersSubAccountsTable = ({
       header: 'Status',
       cell: (acc) => <StatusBadge status={acc.status} />,
     },
-    {
+    ...(!readOnly ? [{
       header: '',
-      align: 'right',
-      cell: (acc) =>
+      align: 'right' as const,
+      cell: (acc: SubAccount) =>
         pendingAccountId === acc.id ? (
           <div className='w-4 h-4 border-2 border-gray-200 border-t-indigo-400 rounded-full animate-spin inline-block' />
         ) : (
           <ActionsMenu account={acc} onSuspend={onSuspend} onReactivate={onReactivate} />
         ),
-    },
+    }] : []),
   ];
 
   return (
