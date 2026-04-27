@@ -81,7 +81,7 @@ const ProfileTab = () => {
     try {
       const data = await partnersService.exportDailyUsage({ startDate: exportFrom, endDate: exportTo });
       exportAsCSV(
-        data as Record<string, unknown>[],
+        data as unknown as Record<string, unknown>[],
         new Set(['usageGb']),
         `partner_usage_export_${exportFrom}_to_${exportTo}`,
       );
