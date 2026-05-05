@@ -244,14 +244,6 @@ export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit }: Props) => {
             )}
           </Field>
 
-          <Field label='Customer ID' error={errors.customerId?.message}>
-            <input
-              {...register('customerId', { required: 'Customer ID is required' })}
-              placeholder='Customer ID'
-              className={inputClass}
-            />
-          </Field>
-
           {error && (
             <p className='text-sm text-red-600'>{error}</p>
           )}

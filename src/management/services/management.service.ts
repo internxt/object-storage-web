@@ -42,7 +42,6 @@ export interface CreateSubAccountDto {
   name: string;
   email: string;
   password: string;
-  customerId: string;
   isTrial?: boolean;
   trialQuotaTB?: number;
   trialDays?: number;
