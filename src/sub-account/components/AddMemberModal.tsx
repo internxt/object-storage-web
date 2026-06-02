@@ -33,7 +33,7 @@ export const AddMemberModal = ({ isOpen, isLoading, onClose, onAdd }: AddMemberM
         </div>
         <div className='flex flex-col gap-1'>
           <label className='text-sm font-medium text-gray-700'>Password (optional)</label>
-          <Input value={password} onChange={setPassword} placeholder='Leave empty for SSO-only' type='password' />
+          <Input value={password} onChange={setPassword} placeholder='Leave empty for SSO-only' variant='password' />
         </div>
         <div className='flex flex-col gap-1'>
           <label className='text-sm font-medium text-gray-700'>Role</label>
@@ -50,7 +50,7 @@ export const AddMemberModal = ({ isOpen, isLoading, onClose, onAdd }: AddMemberM
           <Button variant='secondary' type='button' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button type='submit' disabled={!email || isLoading} isLoading={isLoading}>
+          <Button type='submit' disabled={!email || isLoading} loading={isLoading}>
             Add Member
           </Button>
         </div>

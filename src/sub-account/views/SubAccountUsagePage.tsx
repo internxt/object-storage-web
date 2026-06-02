@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Usage, usageService } from '../../services/usage.service';
 import { UsageTable } from '../../components/usage/Table';
-import { DateRangePicker } from '../../components/DatePicker';
 import dayjs from 'dayjs';
 import { usePaginatedUsageData } from '../../hooks/usePaginatedUserData';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
@@ -22,17 +21,14 @@ const PAGINATED_ITEMS = 20;
 export const SubAccountUsagePage = () => {
   const [usage, setUsage] = useState<Usage[]>([]);
   const [bodyState, setBodyState] = useState<BODY_STATE>('loading');
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
-    dayjs().subtract(30, 'days').toDate(),
-    dayjs().toDate(),
-  ]);
+  const [fromDate, setFromDate] = useState(dayjs().subtract(30, 'days').format('YYYY-MM-DD'));
+  const [toDate, setToDate] = useState(dayjs().format('YYYY-MM-DD'));
 
   const { paginatedData, currentPage, setCurrentPage, totalItems } = usePaginatedUsageData(usage, PAGINATED_ITEMS);
 
   useEffect(() => {
-    const [from, to] = dateRange;
-    if (from && to) fetchUsage(from, to);
-  }, [dateRange]);
+    if (fromDate && toDate) fetchUsage(new Date(fromDate), new Date(toDate));
+  }, [fromDate, toDate]);
 
   const fetchUsage = async (from: Date, to: Date) => {
     setBodyState('loading');
@@ -54,7 +50,11 @@ export const SubAccountUsagePage = () => {
       <div className='flex flex-col p-8 w-full bg-white gap-5 rounded-md'>
         <div className='flex flex-row w-full justify-between items-center'>
           <p className='font-semibold text-lg'>Usage</p>
-          <DateRangePicker value={dateRange} onChange={setDateRange} />
+          <div className='flex items-center gap-2 text-sm text-gray-600'>
+            <input type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} className='border border-gray-300 rounded px-2 py-1 text-sm' />
+            <span>—</span>
+            <input type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} className='border border-gray-300 rounded px-2 py-1 text-sm' />
+          </div>
         </div>
 
         <UsageTable headers={TABLE_HEADERS} bodyState={bodyState} usage={paginatedData} />

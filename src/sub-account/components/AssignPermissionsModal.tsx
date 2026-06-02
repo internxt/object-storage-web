@@ -61,7 +61,7 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
           <Button variant='secondary' type='button' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button type='submit' disabled={!bucketName || isLoading} isLoading={isLoading}>
+          <Button type='submit' disabled={!bucketName || isLoading} loading={isLoading}>
             Assign
           </Button>
         </div>

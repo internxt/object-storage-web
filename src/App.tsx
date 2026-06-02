@@ -6,7 +6,6 @@ import {
 } from 'react-router-dom';
 import { AuthRoute } from './components/AuthRoute';
 import { BucketsPage } from './views/BucketsPage';
-import { BucketDetailPage } from './views/BucketDetailPage';
 import { LoginPage } from './views/LoginPage';
 import { UsagePage } from './views/UsagePage';
 import { SettingsPage } from './views/settings/Settings';
@@ -44,7 +43,6 @@ export function App() {
 
               <Route element={<AuthRoute />}>
                 <Route path='/buckets' element={<BucketsPage />} />
-                <Route path='/buckets/:bucketName' element={<BucketDetailPage />} />
                 <Route path='/settings/:tab' element={<SettingsPage />} />
                 <Route path='/usage' element={<UsagePage />} />
               </Route>

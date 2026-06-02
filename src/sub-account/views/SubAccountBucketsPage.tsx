@@ -1,47 +1,39 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-import { Separator } from '../../components/Separator';
-import { BucketsTable, HeaderItemsTableProps } from '../../components/buckets/Table';
+import { Database } from '@phosphor-icons/react';
 import { S3Bucket, s3Service } from '../../services/s3.service';
 import notificationsService from '../../services/notifications.service';
-import { usePaginatedUsageData } from '../../hooks/usePaginatedUserData';
-import { CreateBucketModal } from '../../components/buckets/CreateBucketModal';
-import { BucketSettingsModal } from '../../components/buckets/BucketSettingsModal';
+import { bucketsService, SubAccountRegion } from '../../services/buckets.service';
 import { isValidBucketName } from '../../utils/isBucketNameValid';
 import Button from '../../components/Button';
 import { Pagination } from '../../components/ui/Pagination';
 import Input from '../../components/Input';
+import Modal from '../../components/Modal';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
 import { useSubAccount } from '../context/SubAccountContext';
-import { bucketsService, Region } from '../../services/buckets.service';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const HEADER_ITEMS: HeaderItemsTableProps[] = [
-  { title: 'Bucket', sortKey: 'bucket', defaultDirection: 'ASC' },
-  { title: 'Region', sortKey: 'region', defaultDirection: 'ASC' },
-  { title: 'Creation Time', sortKey: 'createdAt', defaultDirection: 'ASC' },
-];
+import { usePaginatedUsageData } from '../../hooks/usePaginatedUserData';
+import { LoadingRowSkeleton } from '../../components/LoadingSkeleton';
 
 export const SubAccountBucketsPage = () => {
   const navigate = useNavigate();
   const { entityId, memberId, isAdmin } = useSubAccount();
   const { client, credentials } = useSubAccountS3Client(entityId, memberId);
-  const [isCreateBucketOpened, setIsCreateBucketOpened] = useState(false);
   const [buckets, setBuckets] = useState<S3Bucket[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isCreatingBucket, setIsCreatingBucket] = useState(false);
-  const [selectedBucketForSettings, setSelectedBucketForSettings] = useState<S3Bucket>();
   const [isLoading, setIsLoading] = useState(false);
-  const [regions, setRegions] = useState<Region[]>([]);
+  const [regions, setRegions] = useState<SubAccountRegion[]>([]);
+
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [bucketName, setBucketName] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState<SubAccountRegion | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
-    bucketsService.getRegions().then(setRegions).catch(() => {});
+    bucketsService.getSubAccountRegions().then((r) => {
+      setRegions(r);
+      if (r.length > 0) setSelectedRegion(r[0]);
+    }).catch(() => {});
   }, []);
 
   const filteredBuckets = useMemo(
@@ -74,35 +66,29 @@ export const SubAccountBucketsPage = () => {
     }
   };
 
-  const onCreateBucket = async (bucketName: string, bucketRegion: string, endpoint: string) => {
-    if (import.meta.env.DEV) console.log('[create-bucket] onCreateBucket called', { bucketName, bucketRegion, endpoint, hasCredentials: !!credentials, nameValid: isValidBucketName(bucketName) });
-    if (!credentials || !isValidBucketName(bucketName)) return;
-    setIsCreatingBucket(true);
+  const onCreateBucket = async () => {
+    if (!credentials || !selectedRegion || !isValidBucketName(bucketName)) return;
+    setIsCreating(true);
     const regionClient = new S3Client({
-      endpoint: `https://${endpoint}`,
-      region: bucketRegion,
+      endpoint: `https://${selectedRegion.endpoint}`,
+      region: selectedRegion.slug,
       credentials: { accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey },
       forcePathStyle: true,
     });
     try {
-      if (import.meta.env.DEV) console.log('[create-bucket] calling s3Service.createBucket', { bucketName, bucketRegion, endpoint });
-      await s3Service.createBucket(regionClient, bucketName, bucketRegion);
-      if (import.meta.env.DEV) console.log('[create-bucket] bucket created successfully');
+      await s3Service.createBucket(regionClient, bucketName, selectedRegion.slug);
       await getBuckets();
-      setIsCreateBucketOpened(false);
+      setIsCreateOpen(false);
+      setBucketName('');
     } catch (err) {
-      if (import.meta.env.DEV) console.error('[create-bucket] s3Service.createBucket failed', err);
       notificationsService.error({ text: (err as Error).message });
     } finally {
       regionClient.destroy();
-      setIsCreatingBucket(false);
+      setIsCreating(false);
     }
   };
 
-  const onBucketDeleted = async () => {
-    setSelectedBucketForSettings(undefined);
-    await getBuckets();
-  };
+  const HEADERS = ['Bucket', 'Region', 'Creation Time'];
 
   return (
     <section className='flex flex-col items-center p-7 w-full'>
@@ -110,7 +96,7 @@ export const SubAccountBucketsPage = () => {
         <div className='flex flex-row w-full justify-between items-center'>
           <p className='font-semibold text-lg'>Buckets</p>
           {isAdmin && (
-            <Button className='rounded-md' onClick={() => setIsCreateBucketOpened(true)}>
+            <Button className='rounded-md' onClick={() => setIsCreateOpen(true)}>
               Create Bucket
             </Button>
           )}
@@ -124,49 +110,101 @@ export const SubAccountBucketsPage = () => {
             onClear={() => setSearchQuery('')}
           />
         </div>
-        <Separator />
-        <div className='flex flex-col w-full'>
-          <div className='overflow-x-auto'>
-            <BucketsTable
-              headers={HEADER_ITEMS}
-              buckets={paginatedData}
-              onBucketClick={(b) => {
-                const endpoint = regions.find((r) => r.slug === b.region)?.endpoint;
-                const query = endpoint ? `?endpoint=${encodeURIComponent(endpoint)}&region=${b.region}` : '';
-                navigate(`/subaccount/buckets/${b.name}${query}`);
-              }}
-              onSettingsClicked={(b) => isAdmin && setSelectedBucketForSettings(b)}
-              isLoading={isLoading}
-            />
-          </div>
-          <div className='flex flex-row items-center justify-end w-full mt-4'>
-            <Pagination
-              currentPage={currentPage}
-              totalItems={totalItems}
-              pageSize={20}
-              onPageChange={setCurrentPage}
-            />
-          </div>
+
+        <div className='overflow-x-auto'>
+          {isLoading ? (
+            <table className='w-full'>
+              <thead>
+                <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
+                  {HEADERS.map((h) => <th key={h} className='w-[33%] px-5 text-left'>{h}</th>)}
+                </tr>
+              </thead>
+              <tbody><LoadingRowSkeleton numberOfColumns={3} numberOfRows={5} /></tbody>
+            </table>
+          ) : (
+            <table className='w-full'>
+              <thead className='sticky top-0 z-10'>
+                <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
+                  {HEADERS.map((h) => <th key={h} className='w-[33%] px-5 text-left'>{h}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedData.length === 0 ? (
+                  <tr><td colSpan={3} className='text-center py-8 text-gray-400 text-sm'>No buckets found</td></tr>
+                ) : (
+                  paginatedData.map((bucket) => {
+                    const region = regions.find((r) => r.slug === bucket.region);
+                    const query = region ? `?endpoint=${encodeURIComponent(region.endpoint)}&region=${region.slug}` : '';
+                    return (
+                      <tr
+                        key={bucket.name}
+                        className='w-full h-12 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer border-b border-gray-100'
+                        onClick={() => navigate(`/subaccount/buckets/${bucket.name}${query}`)}
+                      >
+                        <td className='w-[33%] px-5'>
+                          <div className='flex items-center gap-2'>
+                            <Database size={18} className='text-blue-600' />
+                            <span className='font-medium text-blue-700'>{bucket.name}</span>
+                          </div>
+                        </td>
+                        <td className='w-[33%] px-5'>{region?.name ?? bucket.region ?? '—'}</td>
+                        <td className='w-[33%] px-5 text-gray-400'>
+                          {bucket.creationDate ? new Date(bucket.creationDate).toLocaleDateString() : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className='flex flex-row items-center justify-end w-full'>
+          <Pagination currentPage={currentPage} totalItems={totalItems} pageSize={20} onPageChange={setCurrentPage} />
         </div>
       </div>
 
-      {isAdmin && (
-        <CreateBucketModal
-          isCreateBucketOpened={isCreateBucketOpened}
-          isLoading={isCreatingBucket}
-          onClose={() => setIsCreateBucketOpened(false)}
-          onCreateBucket={onCreateBucket}
-        />
-      )}
-
-      {selectedBucketForSettings && (
-        <BucketSettingsModal
-          isOpen={!!selectedBucketForSettings}
-          bucket={selectedBucketForSettings}
-          onClose={() => setSelectedBucketForSettings(undefined)}
-          onDeleted={onBucketDeleted}
-        />
-      )}
+      <Modal isOpen={isCreateOpen} onClose={() => !isCreating && setIsCreateOpen(false)}>
+        <div className='flex flex-col gap-5 w-full min-w-[400px]'>
+          <p className='text-black text-xl font-semibold'>Create Bucket</p>
+          <div className='flex flex-col gap-1'>
+            <label className='text-sm text-gray-700'>Bucket Name</label>
+            <input
+              type='text'
+              placeholder='my-bucket'
+              value={bucketName}
+              onChange={(e) => setBucketName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && onCreateBucket()}
+              className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400'
+              autoFocus
+            />
+          </div>
+          <div className='flex flex-col gap-1'>
+            <label className='text-sm text-gray-700'>Region</label>
+            <select
+              value={selectedRegion?.slug ?? ''}
+              onChange={(e) => setSelectedRegion(regions.find((r) => r.slug === e.target.value) ?? null)}
+              className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-400'
+            >
+              {regions.map((r) => <option key={r.slug} value={r.slug}>{r.name}</option>)}
+            </select>
+          </div>
+          <div className='flex gap-3 justify-end'>
+            <Button variant='secondary' className='rounded-md' onClick={() => setIsCreateOpen(false)} disabled={isCreating}>
+              Cancel
+            </Button>
+            <Button
+              className='rounded-md'
+              disabled={!isValidBucketName(bucketName) || !selectedRegion || isCreating}
+              loading={isCreating}
+              onClick={onCreateBucket}
+            >
+              Create
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </section>
   );
 };

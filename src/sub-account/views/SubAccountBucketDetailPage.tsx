@@ -20,7 +20,7 @@ export const SubAccountBucketDetailPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const prefix = searchParams.get('prefix') ?? '';
 
-  const { entityId, memberId, isAdmin } = useSubAccount();
+  const { entityId, memberId } = useSubAccount();
   const { credentials } = useSubAccountS3Client(entityId, memberId);
   const endpointRef = useRef(searchParams.get('endpoint'));
   const regionRef = useRef(searchParams.get('region'));
@@ -227,8 +227,7 @@ export const SubAccountBucketDetailPage = () => {
                       className='rounded-md flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50'
                       disabled={hasSelectedFolder}
                       onClick={() => setIsDeleteDialogOpen(true)}
-                      title={hasSelectedFolder ? 'Deselect folders before deleting' : undefined}
-                    >
+                        >
                       <Trash size={16} />
                       Delete ({selectedKeys.size})
                     </Button>

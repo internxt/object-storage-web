@@ -20,6 +20,13 @@ export interface Region {
   userId: string;
 }
 
+export interface SubAccountRegion {
+  id: string;
+  slug: string;
+  name: string;
+  endpoint: string;
+}
+
 export interface BucketUsageItem {
   id: number;
   startTime: string;
@@ -198,11 +205,19 @@ const getBucketsFromUsage = async (): Promise<
   return Array.from(uniqueBuckets.values());
 };
 
+const getSubAccountRegions = async (): Promise<SubAccountRegion[]> => {
+  const response = await axiosInstance.get(
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/regions`
+  );
+  return response.data;
+};
+
 export const bucketsService = {
   getBuckets,
   createBucket,
   deleteBucket,
   getRegions,
+  getSubAccountRegions,
   getBucketUsage,
   getAllBucketUsage,
   getBucketsFromUsage,
