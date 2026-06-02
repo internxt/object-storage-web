@@ -6,6 +6,7 @@ import {
 } from 'react-router-dom';
 import { AuthRoute } from './components/AuthRoute';
 import { BucketsPage } from './views/BucketsPage';
+import { BucketDetailPage } from './views/BucketDetailPage';
 import { LoginPage } from './views/LoginPage';
 import { UsagePage } from './views/UsagePage';
 import { SettingsPage } from './views/settings/Settings';
@@ -23,18 +24,27 @@ import { PartnersAuthRoute } from './partners/components/PartnersAuthRoute';
 import { PartnersSubAccountsPage } from './partners/views/PartnersSubAccountsPage';
 import { PartnersSubAccountDetailPage } from './partners/views/PartnersSubAccountDetailPage';
 import { PartnersSettingsPage } from './partners/views/PartnersSettingsPage';
+import { SubAccountProvider } from './sub-account/context/SubAccountContext';
+import { SubAccountLoginPage } from './sub-account/views/SubAccountLoginPage';
+import { SubAccountAuthRoute } from './sub-account/components/SubAccountAuthRoute';
+import { SubAccountBucketsPage } from './sub-account/views/SubAccountBucketsPage';
+import { SubAccountBucketDetailPage } from './sub-account/views/SubAccountBucketDetailPage';
+import { SubAccountUsagePage } from './sub-account/views/SubAccountUsagePage';
+import { SubAccountSettingsPage } from './sub-account/views/SubAccountSettingsPage';
 
 export function App() {
   return (
     <UserProvider>
       <ManagementProvider>
         <PartnersProvider>
+          <SubAccountProvider>
           <Router>
             <Routes>
               <Route path='/login' element={<LoginPage />} />
 
               <Route element={<AuthRoute />}>
                 <Route path='/buckets' element={<BucketsPage />} />
+                <Route path='/buckets/:bucketName' element={<BucketDetailPage />} />
                 <Route path='/settings/:tab' element={<SettingsPage />} />
                 <Route path='/usage' element={<UsagePage />} />
               </Route>
@@ -65,9 +75,20 @@ export function App() {
                 <Route path='/partners/settings' element={<PartnersSettingsPage />} />
               </Route>
 
+              {/* Sub-account console */}
+              <Route path='/subaccount/login' element={<SubAccountLoginPage />} />
+              <Route element={<SubAccountAuthRoute />}>
+                <Route path='/subaccount/buckets' element={<SubAccountBucketsPage />} />
+                <Route path='/subaccount/buckets/:bucketName' element={<SubAccountBucketDetailPage />} />
+                <Route path='/subaccount/usage' element={<SubAccountUsagePage />} />
+                <Route path='/subaccount/settings' element={<SubAccountSettingsPage />} />
+              </Route>
+              <Route path='/subaccount' element={<Navigate to='/subaccount/buckets' />} />
+
               {/* <Route path="*" element={<NotFoundPage />} /> */}
             </Routes>
           </Router>
+          </SubAccountProvider>
         </PartnersProvider>
       </ManagementProvider>
     </UserProvider>
