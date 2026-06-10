@@ -45,6 +45,7 @@ async function getPartners(params: {
   perPage?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  includeDeleted?: boolean;
 }): Promise<PartnersResponse> {
   const response = await axios.get(`${API()}/partners`, {
     headers: headers(),
