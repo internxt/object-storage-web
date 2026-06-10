@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Trash, LockKey, Eye, EyeSlash, Gear, Info, DotsThreeVertical, CaretDown, PencilSimple, Plus } from '@phosphor-icons/react';
+import { TrashIcon, LockKeyIcon, EyeIcon, EyeSlashIcon, GearIcon, InfoIcon, DotsThreeVerticalIcon, CaretDownIcon, PencilSimpleIcon, PlusIcon } from '@phosphor-icons/react';
 import subAccountAxios from '../core/sub-account-axios';
 import { subAccountS3CredentialsService, S3Credentials } from '../services/sub-account-s3-credentials.service';
 import { useSubAccount } from '../context/SubAccountContext';
@@ -60,8 +60,8 @@ const ReadField = ({ label, value, mono = false }: { label: string; value: strin
 
 /** Password input with eye toggle */
 const PasswordInput = ({
-  label, placeholder = '', value, show, onChange, onToggle,
-}: { label: string; placeholder?: string; value: string; show: boolean; onChange: (v: string) => void; onToggle: () => void }) => (
+  label, placeholder = '', value, show, onChange, onToggle, noPaste = false,
+}: { label: string; placeholder?: string; value: string; show: boolean; onChange: (v: string) => void; onToggle: () => void; noPaste?: boolean }) => (
   <div>
     <p className='text-sm font-medium text-gray-100 mb-1.5'>{label}</p>
     <div className='relative'>
@@ -70,6 +70,7 @@ const PasswordInput = ({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onPaste={noPaste ? (e) => e.preventDefault() : undefined}
         className='w-full h-10 bg-gray-5 border border-gray-10 rounded-lg px-3 pr-10 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary'
       />
       <button
@@ -77,7 +78,7 @@ const PasswordInput = ({
         onClick={onToggle}
         className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-50 hover:text-gray-60'
       >
-        {show ? <EyeSlash size={16} /> : <Eye size={16} />}
+        {show ? <EyeIcon size={16} /> : <EyeSlashIcon size={16} />}
       </button>
     </div>
   </div>
@@ -148,7 +149,22 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
 
   const initials = email ? avatarInitials(email) : '—';
   const canUpdate = email.trim().length > 0 && email !== savedEmail;
+  const [isSavingPw, setIsSavingPw] = useState(false);
   const canUpdatePw = oldPw.length > 0 && newPw.length >= 8 && newPw === confirmPw;
+
+  const handleUpdatePassword = async () => {
+    if (!canUpdatePw) return;
+    setIsSavingPw(true);
+    try {
+      await subAccountAxios.patch(`/sub-accounts/${entityId}/members/${memberId}`, { oldPassword: oldPw, newPassword: newPw });
+      notificationsService.success({ text: 'Password updated' });
+      setOldPw(''); setNewPw(''); setConfirmPw('');
+    } catch (err: any) {
+      notificationsService.error({ text: err?.response?.data?.message ?? 'Failed to update password' });
+    } finally {
+      setIsSavingPw(false);
+    }
+  };
 
   const handleUpdateEmail = async () => {
     if (!canUpdate) return;
@@ -174,7 +190,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
             className='inline-flex items-center gap-2 h-8 px-3 bg-surface border border-gray-100/10 text-gray-80 rounded-lg text-sm font-medium hover:bg-gray-1 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
             onClick={handleUpdateEmail}
           >
-            <PencilSimple size={14} />
+            <PencilSimpleIcon size={14} />
             {isSavingEmail ? 'Saving…' : 'Update'}
           </button>
         }
@@ -204,14 +220,14 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
         <div className='flex flex-col gap-4'>
           <PasswordInput label='Old password' value={oldPw} show={showOld} onChange={setOldPw} onToggle={() => setShowOld(v => !v)} />
           <PasswordInput label='New password' placeholder='At least 8 characters' value={newPw} show={showNew} onChange={setNewPw} onToggle={() => setShowNew(v => !v)} />
-          <PasswordInput label='Confirm password' placeholder='Repeat new password' value={confirmPw} show={showConfirm} onChange={setConfirmPw} onToggle={() => setShowConfirm(v => !v)} />
+          <PasswordInput label='Confirm password' placeholder='Repeat new password' value={confirmPw} show={showConfirm} onChange={setConfirmPw} onToggle={() => setShowConfirm(v => !v)} noPaste />
           <div className='flex justify-end mt-1'>
             <button
-              disabled={!canUpdatePw}
+              disabled={!canUpdatePw || isSavingPw}
               className='h-10 px-4 bg-primary hover:bg-blue-60 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors'
-              onClick={() => notificationsService.error({ text: 'Password change not yet available' })}
+              onClick={handleUpdatePassword}
             >
-              Update
+              {isSavingPw ? 'Saving…' : 'Update'}
             </button>
           </div>
         </div>
@@ -297,7 +313,7 @@ const MembersTab = ({ entityId }: { entityId: string }) => {
           onClick={() => setIsAddMemberOpen(true)}
           className='inline-flex items-center gap-2 h-10 px-4 bg-primary hover:bg-blue-60 text-white rounded-lg text-sm font-medium transition-colors'
         >
-          <Plus size={14} weight='bold' />
+          <PlusIcon size={14} weight='bold' />
           Add member
         </button>
       }
@@ -336,10 +352,10 @@ const MembersTab = ({ entityId }: { entityId: string }) => {
                 <td className='py-3.5'>
                   <div className='flex items-center gap-1 justify-end'>
                     <button onClick={() => setPermissionMember(m)} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-gray-80 transition-colors' title='Assign permissions'>
-                      <LockKey size={16} />
+                      <LockKeyIcon size={16} />
                     </button>
                     <button onClick={() => setMemberToDelete(m)} disabled={deletingMemberId === m.id} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-red disabled:opacity-40 transition-colors' title='Remove member'>
-                      <Trash size={16} />
+                      <TrashIcon size={16} />
                     </button>
                   </div>
                 </td>
@@ -383,15 +399,15 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-2'>
           <h2 className='text-base font-semibold text-gray-100'>Access Keys</h2>
-          <Info size={15} className='text-gray-50' />
+          <InfoIcon size={15} className='text-gray-50' />
         </div>
         <Dropdown
           width='w-52'
           button={
             <div className='inline-flex items-center gap-2 h-8 px-3 bg-surface border border-gray-100/10 text-gray-80 rounded-lg text-sm font-medium hover:bg-gray-1 cursor-pointer select-none whitespace-nowrap transition-colors'>
-              <Gear size={14} />
+              <GearIcon size={14} />
               Manage Access Keys
-              <CaretDown size={12} />
+              <CaretDownIcon size={12} />
             </div>
           }
           items={[{ label: 'Regenerate', onClick: () => notificationsService.error({ text: 'Not yet available' }) }]}
@@ -422,7 +438,7 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
                       {revealed ? credentials.accessKeyId : credentials.accessKeyId.slice(0, 8) + '••••••••••••'}
                     </span>
                     <button onClick={() => setRevealed(v => !v)} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-gray-80 transition-colors'>
-                      {revealed ? <EyeSlash size={15} /> : <Eye size={15} />}
+                      {revealed ? <EyeSlashIcon size={15} /> : <EyeIcon size={15} />}
                     </button>
                   </div>
                 </td>
@@ -432,7 +448,7 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
                     <Pill type='primary' />
                     <Dropdown
                       width='w-44'
-                      button={<button className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-80 hover:text-gray-100 transition-colors'><DotsThreeVertical size={17} /></button>}
+                      button={<button className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-80 hover:text-gray-100 transition-colors'><DotsThreeVerticalIcon size={17} /></button>}
                       items={[
                         { label: 'Copy Access Key', onClick: async () => { await copyToClipboard(credentials.accessKeyId); notificationsService.success({ text: 'Access Key ID copied' }); } },
                         { label: 'Copy Secret Key', onClick: async () => { await copyToClipboard(credentials.secretAccessKey); notificationsService.success({ text: 'Secret Key copied' }); } },
