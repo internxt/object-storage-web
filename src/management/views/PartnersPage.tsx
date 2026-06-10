@@ -20,6 +20,7 @@ export const PartnersPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<SortOrder | undefined>('desc');
+  const [showDeleted, setShowDeleted] = useState(false);
 
   useEffect(() => {
     fetchSummary();
@@ -27,7 +28,7 @@ export const PartnersPage = () => {
 
   useEffect(() => {
     fetchPartners();
-  }, [page, sortOrder]);
+  }, [page, sortOrder, showDeleted]);
 
   const fetchSummary = async () => {
     try {
@@ -47,6 +48,7 @@ export const PartnersPage = () => {
         perPage: PER_PAGE,
         sortBy: sortOrder ? 'activeStorage' : undefined,
         sortOrder,
+        includeDeleted: showDeleted,
       });
       setPartners(res.partners);
       setTotal(res.total);
@@ -128,12 +130,23 @@ export const PartnersPage = () => {
               <p className='text-xs text-gray-400 mt-0.5'>{total} partners total</p>
             )}
           </div>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className='bg-indigo hover:bg-indigo-dark active:bg-indigo-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm'
-          >
-            Create Partner
-          </button>
+          <div className='flex items-center gap-4'>
+            <label className='flex items-center gap-2 cursor-pointer select-none'>
+              <input
+                type='checkbox'
+                checked={showDeleted}
+                onChange={(e) => { setPage(0); setShowDeleted(e.target.checked); }}
+                className='w-4 h-4 rounded border-gray-300 text-indigo accent-indigo cursor-pointer'
+              />
+              <span className='text-sm text-gray-500'>Show deleted</span>
+            </label>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className='bg-indigo hover:bg-indigo-dark active:bg-indigo-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm'
+            >
+              Create Partner
+            </button>
+          </div>
         </div>
 
         <PartnersTable
