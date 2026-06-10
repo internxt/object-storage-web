@@ -122,8 +122,10 @@ const SectionCard = ({ title, action, children }: { title: string; action?: Reac
 // ─── Profile Tab ──────────────────────────────────────────────────────────────
 
 const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: string; role: string }) => {
+  const [savedEmail, setSavedEmail] = useState('');
   const [email, setEmail] = useState('');
   const [memberCreatedAt, setMemberCreatedAt] = useState('');
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [oldPw, setOldPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -136,6 +138,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
       .then((res) => {
         const me = res.data.find((m) => m.id === memberId);
         if (me) {
+          setSavedEmail(me.email);
           setEmail(me.email);
           if (me.createdAt) setMemberCreatedAt(new Date(me.createdAt).toLocaleDateString());
         }
@@ -143,8 +146,23 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
       .catch(() => {});
   }, [entityId, memberId]);
 
-  const initials  = email ? avatarInitials(email) : '—';
-  const canUpdate = oldPw.length > 0 && newPw.length >= 8 && newPw === confirmPw;
+  const initials = email ? avatarInitials(email) : '—';
+  const canUpdate = email.trim().length > 0 && email !== savedEmail;
+  const canUpdatePw = oldPw.length > 0 && newPw.length >= 8 && newPw === confirmPw;
+
+  const handleUpdateEmail = async () => {
+    if (!canUpdate) return;
+    setIsSavingEmail(true);
+    try {
+      await subAccountAxios.patch(`/sub-accounts/${entityId}/members/${memberId}`, { email: email.trim() });
+      setSavedEmail(email.trim());
+      notificationsService.success({ text: 'Email updated' });
+    } catch (err: any) {
+      notificationsService.error({ text: err?.response?.data?.message ?? 'Failed to update email' });
+    } finally {
+      setIsSavingEmail(false);
+    }
+  };
 
   return (
     <div className='flex flex-col gap-5'>
@@ -152,11 +170,12 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
         title='Profile'
         action={
           <button
-            className='inline-flex items-center gap-2 h-8 px-3 bg-surface border border-gray-100/10 text-gray-80 rounded-lg text-sm font-medium hover:bg-gray-1 transition-colors'
-            onClick={() => notificationsService.error({ text: 'Profile update not yet available' })}
+            disabled={!canUpdate || isSavingEmail}
+            className='inline-flex items-center gap-2 h-8 px-3 bg-surface border border-gray-100/10 text-gray-80 rounded-lg text-sm font-medium hover:bg-gray-1 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+            onClick={handleUpdateEmail}
           >
             <PencilSimple size={14} />
-            Update
+            {isSavingEmail ? 'Saving…' : 'Update'}
           </button>
         }
       >
@@ -166,7 +185,15 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
             <Pill type='active' />
           </div>
           <div className='flex-1 flex flex-col gap-4'>
-            <ReadField label='Email' value={email} />
+            <div>
+              <p className='text-sm font-medium text-gray-100 mb-1.5'>Email</p>
+              <input
+                type='email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className='w-full h-10 bg-gray-5 border border-gray-10 rounded-lg px-3 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary'
+              />
+            </div>
             <ReadField label='Member role' value={role} />
             <ReadField label='Created at' value={memberCreatedAt} />
           </div>
@@ -180,7 +207,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
           <PasswordInput label='Confirm password' placeholder='Repeat new password' value={confirmPw} show={showConfirm} onChange={setConfirmPw} onToggle={() => setShowConfirm(v => !v)} />
           <div className='flex justify-end mt-1'>
             <button
-              disabled={!canUpdate}
+              disabled={!canUpdatePw}
               className='h-10 px-4 bg-primary hover:bg-blue-60 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors'
               onClick={() => notificationsService.error({ text: 'Password change not yet available' })}
             >
