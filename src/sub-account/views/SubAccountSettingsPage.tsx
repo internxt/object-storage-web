@@ -238,7 +238,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
 
 // ─── Members Tab ──────────────────────────────────────────────────────────────
 
-const MembersTab = ({ entityId }: { entityId: string }) => {
+const MembersTab = ({ entityId, ssoEnabled }: { entityId: string; ssoEnabled: boolean }) => {
   const [members, setMembers]             = useState<MemberItem[]>([]);
   const [isLoading, setIsLoading]         = useState(false);
   const [isAddMemberOpen, setIsAddMemberOpen]   = useState(false);
@@ -365,7 +365,7 @@ const MembersTab = ({ entityId }: { entityId: string }) => {
         </table>
       )}
 
-      <AddMemberModal isOpen={isAddMemberOpen} isLoading={isAddingMember} onClose={() => setIsAddMemberOpen(false)} onAdd={onAddMember} />
+      <AddMemberModal isOpen={isAddMemberOpen} isLoading={isAddingMember} ssoEnabled={ssoEnabled} onClose={() => setIsAddMemberOpen(false)} onAdd={onAddMember} />
       {permissionMember && (
         <AssignPermissionsModal isOpen={!!permissionMember} isLoading={isAssigningPermission} memberEmail={permissionMember.email} onClose={() => setPermissionMember(null)} onAssign={onAssignPermissions} />
       )}
@@ -501,7 +501,7 @@ const AccountTab = ({ entityId, memberId }: { entityId: string; memberId: string
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const SubAccountSettingsPage = () => {
-  const { entityId, memberId, isAdmin } = useSubAccount();
+  const { entityId, memberId, isAdmin, ssoEnabled } = useSubAccount();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
 
   const role = (() => {
@@ -544,7 +544,7 @@ export const SubAccountSettingsPage = () => {
 
       {/* Tab content */}
       {activeTab === 'profile'     && entityId && memberId && <ProfileTab    entityId={entityId} memberId={memberId} role={role} />}
-      {activeTab === 'members'     && entityId             && <MembersTab    entityId={entityId} />}
+      {activeTab === 'members'     && entityId             && <MembersTab    entityId={entityId} ssoEnabled={ssoEnabled} />}
       {activeTab === 'access-keys' && entityId && memberId && <AccessKeysTab entityId={entityId} memberId={memberId} />}
       {activeTab === 'account'     && entityId && memberId && <AccountTab    entityId={entityId} memberId={memberId} />}
     </div>

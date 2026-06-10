@@ -67,6 +67,17 @@ function getEntityId(): string | null {
   }
 }
 
+function getSsoEnabled(): boolean {
+  const token = getToken();
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.ssoEnabled === true;
+  } catch {
+    return false;
+  }
+}
+
 export const subAccountAuthService = {
   logIn,
   logOut,
@@ -76,4 +87,5 @@ export const subAccountAuthService = {
   getRole,
   getMemberId,
   getEntityId,
+  getSsoEnabled,
 };

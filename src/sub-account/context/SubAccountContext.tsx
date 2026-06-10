@@ -4,6 +4,7 @@ import { subAccountAuthService } from '../services/sub-account-auth.service';
 interface SubAccountContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
+  ssoEnabled: boolean;
   memberId: string | null;
   entityId: string | null;
   logIn: (email: string, password: string) => Promise<void>;
@@ -19,6 +20,9 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(
     () => subAccountAuthService.getRole() === 'admin',
   );
+  const [ssoEnabled, setSsoEnabled] = useState(
+    () => subAccountAuthService.getSsoEnabled(),
+  );
   const [memberId, setMemberId] = useState(
     () => subAccountAuthService.getMemberId(),
   );
@@ -31,6 +35,7 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     console.log('[sub-account] context: logIn done, setting isAuthenticated=true');
     setIsAuthenticated(true);
     setIsAdmin(subAccountAuthService.getRole() === 'admin');
+    setSsoEnabled(subAccountAuthService.getSsoEnabled());
     setMemberId(subAccountAuthService.getMemberId());
     setEntityId(subAccountAuthService.getEntityId());
   };
@@ -39,13 +44,14 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     subAccountAuthService.logOut();
     setIsAuthenticated(false);
     setIsAdmin(false);
+    setSsoEnabled(false);
     setMemberId(null);
     setEntityId(null);
   };
 
   const value = useMemo(
-    () => ({ isAuthenticated, isAdmin, memberId, entityId, logIn, logOut }),
-    [isAuthenticated, isAdmin, memberId, entityId],
+    () => ({ isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, logIn, logOut }),
+    [isAuthenticated, isAdmin, ssoEnabled, memberId, entityId],
   );
 
   return <SubAccountContext.Provider value={value}>{children}</SubAccountContext.Provider>;
