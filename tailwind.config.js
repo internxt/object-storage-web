@@ -9,7 +9,8 @@ module.exports = {
       ...config.theme?.extend,
       fontFamily: {
         ...config.theme?.extend?.fontFamily,
-        sans: ['Roboto', 'ui-sans-serif', 'system-ui'],
+        sans: ['Instrument Sans', 'ui-sans-serif', 'system-ui'],
+        mono: ['ui-monospace', 'SF Mono', 'Menlo', 'Consolas', 'monospace'],
       },
       keyframes: {
         'loading-bar': {
