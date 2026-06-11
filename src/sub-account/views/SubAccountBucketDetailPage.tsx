@@ -83,7 +83,7 @@ const ReadField = ({ label, value, mono = false, fullWidth = false }:
     }}>{label}</span>
     <span style={{
       fontSize: 14, color: T.gray100, lineHeight: 1.5,
-      fontFamily: mono ? 'var(--font-mono,monospace)' : 'inherit',
+      fontFamily: mono ? 'var(--font-mono,monospace)' : undefined,
       wordBreak: 'break-all',
     }}>
       {value || '—'}
@@ -106,7 +106,7 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
       style={{
         fontSize: 13, fontWeight: 500, cursor: active ? 'default' : 'pointer',
         color: active ? T.gray100 : T.gray50,
-        background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
+        background: 'none', border: 'none', padding: 0,
       }}
       onMouseEnter={e => !active && (e.currentTarget.style.color = T.gray80)}
       onMouseLeave={e => !active && (e.currentTarget.style.color = T.gray50)}
@@ -148,7 +148,7 @@ const ActionItem = ({ icon, label, danger = false, onClick }:
       padding: '9px 14px', background: 'none', border: 'none',
       cursor: 'pointer', fontSize: 13,
       color: danger ? '#E50B00' : T.gray80,
-      textAlign: 'left', fontFamily: 'inherit',
+      textAlign: 'left',
     }}
     onMouseEnter={e => { e.currentTarget.style.background = danger ? '#fff5f5' : T.gray5; }}
     onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
@@ -299,14 +299,14 @@ const EmptyState = ({ searchQuery, onCreateFolder, onUpload }:
           display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
           border: `1px solid ${T.gray20}`, borderRadius: 8, background: '#fff',
           color: T.gray80, fontSize: 13, fontWeight: 500,
-          cursor: 'pointer', fontFamily: 'inherit',
+          cursor: 'pointer',
         }}>
           <FolderPlusIcon size={15} /> Create folder
         </button>
         <button onClick={onUpload} style={{
           display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
           border: 'none', borderRadius: 8, background: T.primary,
-          color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+          color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer',
         }}>
           <UploadSimpleIcon size={15} weight="bold" /> Upload files
         </button>
@@ -482,8 +482,7 @@ export const SubAccountBucketDetailPage = () => {
   const inputShared: React.CSSProperties = {
     height: 40, padding: '0 12px',
     border: `1px solid ${T.gray20}`, borderRadius: 8,
-    fontSize: 14, color: T.gray100, outline: 'none',
-    fontFamily: 'inherit', background: T.gray10,
+    fontSize: 14, color: T.gray100, outline: 'none', background: T.gray10,
     width: '100%', boxSizing: 'border-box',
   };
 
@@ -545,7 +544,6 @@ export const SubAccountBucketDetailPage = () => {
                 style={{
                   padding: '14px 16px', fontSize: 14, fontWeight: 500, cursor: 'pointer',
                   background: 'none', border: 'none', borderBottom: '2px solid', marginBottom: -1,
-                  fontFamily: 'inherit',
                   borderBottomColor: activeTab === tab ? T.primary : 'transparent',
                   color: activeTab === tab ? T.primary : T.gray50,
                   transition: 'color 120ms, border-color 120ms',
@@ -580,7 +578,7 @@ export const SubAccountBucketDetailPage = () => {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                         border: '1px solid #fca5a5', borderRadius: 8, background: '#fff5f5',
-                        color: '#E50B00', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+                        color: '#E50B00', fontSize: 13, fontWeight: 500, cursor: 'pointer',
                       }}
                     >
                       <TrashIcon size={15} /> Delete ({selectedKeys.size})
@@ -593,7 +591,7 @@ export const SubAccountBucketDetailPage = () => {
                       display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                       border: `1px solid ${T.gray20}`, borderRadius: 8, background: '#fff',
                       color: T.gray80, fontSize: 13, fontWeight: 500,
-                      cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                      cursor: 'pointer', whiteSpace: 'nowrap',
                     }}
                   >
                     <FolderPlusIcon size={16} /> Create folder
@@ -605,7 +603,7 @@ export const SubAccountBucketDetailPage = () => {
                       display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                       border: 'none', borderRadius: 8, background: T.primary,
                       color: '#fff', fontSize: 13, fontWeight: 500,
-                      cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                      cursor: 'pointer', whiteSpace: 'nowrap',
                     }}
                   >
                     <UploadSimpleIcon size={16} weight="bold" /> Upload files

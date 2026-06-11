@@ -44,3 +44,33 @@ export const card: CSSProperties = {
   borderRadius: 12,
   boxShadow:    shadow.sm,
 };
+
+// ─── Form element styles ──────────────────────────────────────────────────────
+
+const CARET_SVG = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238E8E94' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`;
+
+export const form = {
+  label: {
+    ...text.label, marginBottom: 4, display: 'block',
+  } satisfies CSSProperties,
+  hint: {
+    fontSize: 12, color: T.gray60, marginTop: 3,
+  } satisfies CSSProperties,
+  select: {
+    height: 40, width: '100%', padding: '0 12px', paddingRight: 32,
+    border: `1px solid ${T.gray20}`, borderRadius: 8,
+    fontSize: 14, color: T.gray100,
+    background: T.white, outline: 'none',
+    appearance: 'none' as const,
+    backgroundImage: CARET_SVG,
+    backgroundRepeat: 'no-repeat' as const,
+    backgroundPosition: 'right 12px center',
+  } satisfies CSSProperties,
+  textarea: {
+    width: '100%', height: 96, padding: '10px 12px',
+    border: `1px solid ${T.gray20}`, borderRadius: 8,
+    fontSize: 14, color: T.gray100, lineHeight: 1.5,
+    background: T.white, outline: 'none', resize: 'none' as const,
+    boxSizing: 'border-box' as const,
+  } satisfies CSSProperties,
+} as const;

@@ -2,23 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { T } from '../tokens';
-
-const selectStyle: React.CSSProperties = {
-  height: 40, width: '100%', padding: '0 12px',
-  border: `1px solid ${T.gray20}`, borderRadius: 8,
-  fontSize: 14, color: T.gray100,
-  background: '#fff', outline: 'none',
-  fontFamily: 'inherit', appearance: 'none',
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238E8E94' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right 12px center',
-  paddingRight: 32,
-};
-
-const labelStyle: React.CSSProperties = {
-  ...text.label, marginBottom: 4, display: 'block',
-};
+import { T, text, form } from '../tokens';
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -56,12 +40,12 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
         <p style={{ ...text.heading, margin: 0 }}>Add Member</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={labelStyle}>Email</label>
+          <label style={form.label}>Email</label>
           <Input value={email} onChange={setEmail} placeholder='member@example.com' variant='email' />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={labelStyle}>
+          <label style={form.label}>
             Password{' '}
             {passwordRequired
               ? <span style={{ color: T.red }}>*</span>
@@ -76,8 +60,8 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={labelStyle}>Role</label>
-          <select value={role} onChange={(e) => setRole(e.target.value as 'admin' | 'standard')} style={selectStyle}>
+          <label style={form.label}>Role</label>
+          <select value={role} onChange={(e) => setRole(e.target.value as 'admin' | 'standard')} style={form.select}>
             <option value='standard'>Standard</option>
             <option value='admin'>Admin</option>
           </select>

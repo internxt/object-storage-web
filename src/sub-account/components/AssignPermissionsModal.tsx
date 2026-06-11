@@ -2,35 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { T } from '../tokens';
-
-const selectStyle: React.CSSProperties = {
-  height: 40, width: '100%', padding: '0 12px',
-  border: `1px solid ${T.gray20}`, borderRadius: 8,
-  fontSize: 14, color: T.gray100,
-  background: '#fff', outline: 'none',
-  fontFamily: 'inherit', appearance: 'none',
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238E8E94' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right 12px center',
-  paddingRight: 32,
-};
-
-const textareaStyle: React.CSSProperties = {
-  width: '100%', height: 96, padding: '10px 12px',
-  border: `1px solid ${T.gray20}`, borderRadius: 8,
-  fontSize: 14, color: T.gray100, lineHeight: 1.5,
-  background: '#fff', outline: 'none', resize: 'none',
-  fontFamily: 'inherit', boxSizing: 'border-box',
-};
-
-const labelStyle: React.CSSProperties = {
-  ...text.label, marginBottom: 4, display: 'block',
-};
-
-const hintStyle: React.CSSProperties = {
-  fontSize: 12, color: T.gray60, marginTop: 3,
-};
+import { T, text, form } from '../tokens';
 
 interface AssignPermissionsModalProps {
   isOpen: boolean;
@@ -71,24 +43,24 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={labelStyle}>Bucket name</label>
+          <label style={form.label}>Bucket name</label>
           <Input value={bucketName} onChange={setBucketName} placeholder='my-bucket' />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={labelStyle}>Prefixes</label>
+          <label style={form.label}>Prefixes</label>
           <textarea
             value={prefixesInput}
             onChange={(e) => setPrefixesInput(e.target.value)}
             placeholder={'folder/\nother-folder/'}
-            style={textareaStyle}
+            style={form.textarea}
           />
-          <p style={hintStyle}>One per line. Leave empty to grant access to the entire bucket.</p>
+          <p style={form.hint}>One per line. Leave empty to grant access to the entire bucket.</p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={labelStyle}>Permission</label>
-          <select value={permission} onChange={(e) => setPermission(e.target.value as 'read' | 'write' | 'full')} style={selectStyle}>
+          <label style={form.label}>Permission</label>
+          <select value={permission} onChange={(e) => setPermission(e.target.value as 'read' | 'write' | 'full')} style={form.select}>
             <option value='read'>Read</option>
             <option value='write'>Write</option>
             <option value='full'>Full</option>

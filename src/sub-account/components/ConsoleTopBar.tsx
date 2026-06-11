@@ -62,7 +62,7 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
           background: T.primaryBg, color: T.primary,
           border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
+          fontSize: 13, fontWeight: 600,
           flexShrink: 0,
         }}
         title="Account menu"
@@ -139,7 +139,7 @@ const MenuItem = ({ icon, label, onClick, danger }: MenuItemProps) => {
         width: '100%', height: 40, padding: '0 12px',
         background: hovered ? T.gray5 : 'transparent',
         border: 'none', borderRadius: 8, cursor: 'pointer',
-        fontSize: 14, fontWeight: 500, fontFamily: 'inherit',
+        fontSize: 14, fontWeight: 500,
         color: danger ? T.red : T.gray100,
         textAlign: 'left',
       }}
@@ -199,7 +199,7 @@ export const ConsoleTopBar = ({
                 height: '100%', padding: '0 14px',
                 background: 'none', border: 'none',
                 borderBottom: isActive ? `2px solid ${T.primary}` : '2px solid transparent',
-                cursor: 'pointer', fontFamily: 'inherit',
+                cursor: 'pointer',
                 fontSize: 14, fontWeight: 500,
                 color: isActive ? T.gray100 : T.gray60,
                 transition: 'color 120ms, border-color 120ms',
@@ -223,7 +223,7 @@ export const ConsoleTopBar = ({
         display: 'flex', alignItems: 'center', gap: 6,
         height: 36, padding: '0 12px',
         background: 'none', border: `1px solid ${T.gray20}`,
-        borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
+        borderRadius: 8, cursor: 'pointer',
         fontSize: 13, fontWeight: 500, color: T.gray60,
       }}>
         <GlobeIcon size={15} aria-label="Language" />

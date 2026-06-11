@@ -270,7 +270,6 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
                   fontSize: 14,
                   color: '#E50B00',
                   textAlign: 'left',
-                  fontFamily: 'inherit',
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#fff5f5'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
@@ -366,7 +365,6 @@ const BucketsTable = ({
               fontSize: 14,
               fontWeight: 500,
               whiteSpace: 'nowrap',
-              fontFamily: 'inherit',
             }}
           >
             <PlusIcon size={18} weight="bold" />
@@ -486,7 +484,6 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
     fontSize: 14,
     color: T.gray100,
     outline: 'none',
-    fontFamily: 'inherit',
     background: T.gray10,
     width: '100%',
     boxSizing: 'border-box',
