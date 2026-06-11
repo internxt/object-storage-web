@@ -28,7 +28,7 @@ import Dialog from '../../components/Dialog';
 import Input from '../../components/Input';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { useSubAccount } from '../context/SubAccountContext';
-import { T } from '../tokens';
+import { T, shadow, text } from '../tokens';
 import { S3Client } from '@aws-sdk/client-s3';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -256,7 +256,7 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
           <div ref={menuRef} style={{
             position: 'absolute', right: 0, top: 36, zIndex: 50,
             background: '#fff', border: `1px solid ${T.gray20}`,
-            borderRadius: 8, boxShadow: '0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -1px rgba(0,0,0,.04)',
+            borderRadius: 8, boxShadow: shadow.md,
             minWidth: 168, overflow: 'hidden',
           }}>
             {!obj.isFolder && (
@@ -531,7 +531,7 @@ export const SubAccountBucketDetailPage = () => {
         background: '#fff',
         border: `1px solid ${T.gray20}`,
         borderRadius: 12,
-        boxShadow: '0 1px 2px 0 rgba(0,0,0,.05)',
+        boxShadow: shadow.sm,
         overflow: 'hidden',
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
@@ -755,11 +755,11 @@ export const SubAccountBucketDetailPage = () => {
 
       <Modal isOpen={isCreateFolderOpen} onClose={() => !isCreatingFolder && setIsCreateFolderOpen(false)}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 400 }}>
-          <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100, margin: 0 }}>
+          <p style={{ ...text.heading, margin: 0 }}>
             Create folder
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label htmlFor="folder-name" style={{ fontSize: 13, fontWeight: 500, color: T.gray80 }}>
+            <label htmlFor="folder-name" style={{ ...text.label }}>
               Folder name
             </label>
             <input

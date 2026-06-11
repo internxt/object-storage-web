@@ -9,7 +9,7 @@ import {
 import dayjs from 'dayjs';
 import subAccountAxios from '../core/sub-account-axios';
 import { useSubAccount } from '../context/SubAccountContext';
-import { T } from '../tokens';
+import { T, shadow, text } from '../tokens';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,7 +68,7 @@ const StatStrip = ({ stats }: { stats: StatItem[] }) => (
     background: '#fff',
     border: `1px solid ${T.gray20}`,
     borderRadius: 12,
-    boxShadow: '0 1px 2px 0 rgba(0,0,0,.05)',
+    boxShadow: shadow.sm,
     display: 'flex',
   }}>
     {stats.map((s, i) => (
@@ -230,7 +230,7 @@ export const UsageView = () => {
         background: '#fff',
         border: `1px solid ${T.gray20}`,
         borderRadius: 12,
-        boxShadow: '0 1px 2px 0 rgba(0,0,0,.05)',
+        boxShadow: shadow.sm,
         overflow: 'hidden',
       }}>
         {/* Card header */}
@@ -240,7 +240,7 @@ export const UsageView = () => {
           borderBottom: `1px solid ${T.gray15}`,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 18, fontWeight: 600, color: T.gray100 }}>
+            <span style={{ ...text.heading }}>
               Account Usage
             </span>
             <InfoIcon size={16} color=T.gray50 aria-label="Usage information" title="This shows the entire account's usage aggregated per day" />
@@ -267,7 +267,7 @@ export const UsageView = () => {
                 <div style={{
                   position: 'absolute', right: 0, top: 44, zIndex: 40,
                   background: '#fff', border: `1px solid ${T.gray20}`,
-                  borderRadius: 10, boxShadow: '0 4px 6px -1px rgba(0,0,0,.08)',
+                  borderRadius: 10, boxShadow: shadow.md,
                   padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10,
                 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

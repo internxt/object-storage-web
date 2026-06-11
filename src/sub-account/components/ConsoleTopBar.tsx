@@ -5,7 +5,7 @@ import {
   GearSixIcon,
   SignOutIcon,
 } from '@phosphor-icons/react';
-import { T } from '../tokens';
+import { T, shadow, text } from '../tokens';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -80,7 +80,7 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
             background: T.white,
             border: `1px solid ${T.gray20}`,
             borderRadius: 12,
-            boxShadow: '0 10px 15px -3px rgba(0,0,0,.1), 0 4px 6px -4px rgba(0,0,0,.07)',
+            boxShadow: shadow.lg,
             padding: 6,
           }}
         >

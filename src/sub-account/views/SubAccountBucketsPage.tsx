@@ -16,7 +16,7 @@ import Modal from '../../components/Modal';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
 import { useSubAccount } from '../context/SubAccountContext';
-import { T } from '../tokens';
+import { T, shadow, text } from '../tokens';
 import subAccountAxios from '../core/sub-account-axios';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ const StatStrip = ({ stats }: { stats: StatItem[] }) => (
       background: '#fff',
       border: `1px solid ${T.gray20}`,
       borderRadius: 12,
-      boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
+      boxShadow: shadow.sm,
       display: 'flex',
     }}
   >
@@ -251,7 +251,7 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
               background: '#fff',
               border: `1px solid ${T.gray20}`,
               borderRadius: 8,
-              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04)',
+              boxShadow: shadow.md,
               minWidth: 160,
               overflow: 'hidden',
             }}
@@ -319,7 +319,7 @@ const BucketsTable = ({
       background: '#fff',
       border: `1px solid ${T.gray20}`,
       borderRadius: 12,
-      boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
+      boxShadow: shadow.sm,
       overflow: 'hidden',
     }}
   >
@@ -495,10 +495,10 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
   return (
     <Modal isOpen={isOpen} onClose={() => !isCreating && onClose()}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 400 }}>
-        <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100 }}>Create Bucket</p>
+        <p style={{ ...text.heading }}>Create Bucket</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label htmlFor="new-bucket-name" style={{ fontSize: 13, fontWeight: 500, color: T.gray80 }}>
+          <label htmlFor="new-bucket-name" style={{ ...text.label }}>
             Bucket name
           </label>
           <input
@@ -514,7 +514,7 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label htmlFor="new-bucket-region" style={{ fontSize: 13, fontWeight: 500, color: T.gray80 }}>
+          <label htmlFor="new-bucket-region" style={{ ...text.label }}>
             Region
           </label>
           <select

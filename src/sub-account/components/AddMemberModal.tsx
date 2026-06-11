@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { T } from '../tokens';
+import { T, shadow, text } from '../tokens';
 
 const selectStyle: React.CSSProperties = {
   height: 40, width: '100%', padding: '0 12px',
@@ -17,7 +17,7 @@ const selectStyle: React.CSSProperties = {
 };
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 13, fontWeight: 500, color: T.gray80, marginBottom: 4, display: 'block',
+  ...text.label, marginBottom: 4, display: 'block',
 };
 
 interface AddMemberModalProps {
@@ -53,7 +53,7 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
-        <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100, margin: 0 }}>Add Member</p>
+        <p style={{ ...text.heading, margin: 0 }}>Add Member</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <label style={labelStyle}>Email</label>

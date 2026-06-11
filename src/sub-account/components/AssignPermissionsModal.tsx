@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { T } from '../tokens';
+import { T, shadow, text } from '../tokens';
 
 const selectStyle: React.CSSProperties = {
   height: 40, width: '100%', padding: '0 12px',
@@ -25,7 +25,7 @@ const textareaStyle: React.CSSProperties = {
 };
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 13, fontWeight: 500, color: T.gray80, marginBottom: 4, display: 'block',
+  ...text.label, marginBottom: 4, display: 'block',
 };
 
 const hintStyle: React.CSSProperties = {
@@ -66,7 +66,7 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
     <Modal isOpen={isOpen} onClose={onClose}>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
         <div>
-          <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100, margin: '0 0 2px' }}>Assign Permissions</p>
+          <p style={{ ...text.heading, margin: '0 0 2px' }}>Assign Permissions</p>
           <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>{memberEmail}</p>
         </div>
 
