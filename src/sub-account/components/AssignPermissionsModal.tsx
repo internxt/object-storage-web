@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { T, shadow, text } from '../tokens';
+import { T } from '../tokens';
 
 const selectStyle: React.CSSProperties = {
   height: 40, width: '100%', padding: '0 12px',

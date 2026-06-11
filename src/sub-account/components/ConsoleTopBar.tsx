@@ -5,7 +5,7 @@ import {
   GearSixIcon,
   SignOutIcon,
 } from '@phosphor-icons/react';
-import { T, shadow, text } from '../tokens';
+import { T, shadow } from '../tokens';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
