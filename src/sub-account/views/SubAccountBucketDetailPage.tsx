@@ -1,18 +1,346 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { CaretRight, ArrowLeft, Trash, UploadSimple, FolderPlus } from '@phosphor-icons/react';
+import {
+  ArrowLeftIcon,
+  CaretRightIcon,
+  DatabaseIcon,
+  FileIcon,
+  FileImageIcon,
+  FileTextIcon,
+  FileVideoIcon,
+  FileZipIcon,
+  FolderIcon,
+  FolderPlusIcon,
+  TrashIcon,
+  UploadSimpleIcon,
+  DotsThreeVerticalIcon,
+  DownloadSimpleIcon,
+  CopyIcon,
+} from '@phosphor-icons/react';
+import prettyBytes from 'pretty-bytes';
 import { S3Object, s3Service } from '../../services/s3.service';
 import notificationsService from '../../services/notifications.service';
-import { ObjectsTable } from '../../components/objects/ObjectsTable';
 import { UploadModal } from '../../components/objects/UploadModal';
 import { FileDetailsPanel } from '../../components/objects/FileDetailsPanel';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import Dialog from '../../components/Dialog';
-import { BucketPropertiesTab } from '../../components/buckets/BucketPropertiesTab';
+import Input from '../../components/Input';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { useSubAccount } from '../context/SubAccountContext';
 import { S3Client } from '@aws-sdk/client-s3';
+
+// ─── Mock data ────────────────────────────────────────────────────────────────
+
+const d = (s: string) => new Date(s);
+
+export const OBJECT_TREE: Record<string, S3Object[]> = {
+  '': [
+    { key: 'raw/', isFolder: true, size: 0, lastModified: d('2025-01-15') },
+    { key: 'processed/', isFolder: true, size: 0, lastModified: d('2025-04-01') },
+    { key: 'README.md', isFolder: false, size: 2_048, lastModified: d('2025-01-10') },
+    { key: 'config.json', isFolder: false, size: 512, lastModified: d('2025-02-20') },
+  ],
+  'raw/': [
+    { key: 'raw/2025/', isFolder: true, size: 0, lastModified: d('2025-01-01') },
+    { key: 'raw/video.mp4', isFolder: false, size: 1_280_000_000, lastModified: d('2025-03-15') },
+    { key: 'raw/photo.jpg', isFolder: false, size: 4_500_000, lastModified: d('2025-03-20') },
+  ],
+  'raw/2025/': [
+    { key: 'raw/2025/archive.zip', isFolder: false, size: 148_000_000, lastModified: d('2025-05-20') },
+    { key: 'raw/2025/report.pdf', isFolder: false, size: 920_000, lastModified: d('2025-06-01') },
+  ],
+  'processed/': [
+    { key: 'processed/output.csv', isFolder: false, size: 28_000, lastModified: d('2025-04-20') },
+    { key: 'processed/summary.txt', isFolder: false, size: 4_200, lastModified: d('2025-04-22') },
+  ],
+};
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function displayName(key: string): string {
+  return key.replace(/\/$/, '').split('/').filter(Boolean).pop() ?? key;
+}
+
+function fmtDate(d: Date): string {
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function getFileIcon(name: string) {
+  const ext = name.split('.').pop()?.toLowerCase() ?? '';
+  if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext))
+    return <FileVideoIcon size={18} color="var(--gray-50,#8E8E94)" />;
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'].includes(ext))
+    return <FileImageIcon size={18} color="var(--gray-50,#8E8E94)" />;
+  if (['zip', 'tar', 'gz', 'rar', '7z'].includes(ext))
+    return <FileZipIcon size={18} color="var(--gray-50,#8E8E94)" />;
+  if (['txt', 'md', 'csv', 'log', 'json', 'yaml', 'yml', 'xml', 'pdf'].includes(ext))
+    return <FileTextIcon size={18} color="var(--gray-50,#8E8E94)" />;
+  return <FileIcon size={18} color="var(--gray-50,#8E8E94)" />;
+}
+
+// ─── Design primitives ────────────────────────────────────────────────────────
+
+const Pill = ({ type }: { type: 'public' | 'private' }) => {
+  const pub = type === 'public';
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 500,
+      background: pub ? 'rgba(0,102,255,0.08)' : 'var(--gray-10,#F3F3F8)',
+      color: pub ? 'var(--primary,#0066FF)' : 'var(--gray-80,#3A3A3B)',
+    }}>
+      <span style={{
+        width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+        background: pub ? 'var(--primary,#0066FF)' : 'var(--gray-50,#8E8E94)',
+      }} />
+      {pub ? 'Public' : 'Private'}
+    </span>
+  );
+};
+
+const ReadField = ({ label, value, mono = false, fullWidth = false }:
+  { label: string; value: string; mono?: boolean; fullWidth?: boolean }) => (
+  <div style={{ gridColumn: fullWidth ? '1 / -1' : undefined, display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <span style={{
+      fontSize: 12, fontWeight: 500, color: 'var(--gray-60,#636367)',
+      letterSpacing: '0.04em', textTransform: 'uppercase',
+    }}>{label}</span>
+    <span style={{
+      fontSize: 14, color: 'var(--gray-100,#18181B)', lineHeight: 1.5,
+      fontFamily: mono ? 'var(--font-mono,monospace)' : 'inherit',
+      wordBreak: 'break-all',
+    }}>
+      {value || '—'}
+    </span>
+  </div>
+);
+
+// ─── Breadcrumb ───────────────────────────────────────────────────────────────
+
+const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
+  bucketName: string; prefix: string;
+  onBuckets: () => void; onBucket: () => void; onSegment: (p: string) => void;
+}) => {
+  const parts = prefix ? prefix.split('/').filter(Boolean) : [];
+
+  const crumb = (label: string, active: boolean, onClick?: () => void) => (
+    <button
+      key={label}
+      onClick={active ? undefined : onClick}
+      style={{
+        fontSize: 13, fontWeight: 500, cursor: active ? 'default' : 'pointer',
+        color: active ? 'var(--gray-100,#18181B)' : 'var(--gray-50,#8E8E94)',
+        background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
+      }}
+      onMouseEnter={e => !active && (e.currentTarget.style.color = 'var(--gray-80,#3A3A3B)')}
+      onMouseLeave={e => !active && (e.currentTarget.style.color = 'var(--gray-50,#8E8E94)')}
+    >
+      {label}
+    </button>
+  );
+
+  const sep = <CaretRightIcon size={12} color="var(--gray-50,#8E8E94)" style={{ flexShrink: 0 }} />;
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+      {crumb('Buckets', false, onBuckets)}
+      {sep}
+      {crumb(bucketName, parts.length === 0, parts.length ? onBucket : undefined)}
+      {parts.map((seg, i) => {
+        const segPrefix = parts.slice(0, i + 1).join('/') + '/';
+        const isLast = i === parts.length - 1;
+        return (
+          <span key={segPrefix} style={{ display: 'contents' }}>
+            {sep}
+            {crumb(seg, isLast, () => onSegment(segPrefix))}
+          </span>
+        );
+      })}
+    </div>
+  );
+};
+
+// ─── ObjectRow ────────────────────────────────────────────────────────────────
+
+const GRID_COLS = '24px 2.6fr 1fr 1.4fr 40px';
+
+const ActionItem = ({ icon, label, danger = false, onClick }:
+  { icon: React.ReactNode; label: string; danger?: boolean; onClick: () => void }) => (
+  <button
+    style={{
+      display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+      padding: '9px 14px', background: 'none', border: 'none',
+      cursor: 'pointer', fontSize: 13,
+      color: danger ? '#E50B00' : 'var(--gray-80,#3A3A3B)',
+      textAlign: 'left', fontFamily: 'inherit',
+    }}
+    onMouseEnter={e => { e.currentTarget.style.background = danger ? '#fff5f5' : 'var(--gray-5,#F9F9FC)'; }}
+    onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
+    onClick={onClick}
+  >
+    {icon}{label}
+  </button>
+);
+
+interface ObjectRowProps {
+  obj: S3Object;
+  selected: boolean;
+  onSelect: (v: boolean) => void;
+  onFolderClick: (prefix: string) => void;
+  onFileClick: (obj: S3Object) => void;
+  onDownload: (obj: S3Object) => void;
+  onDelete: (obj: S3Object) => void;
+  onCopyPath: (obj: S3Object) => void;
+}
+
+const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath }: ObjectRowProps) => {
+  const [hovered, setHovered] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const name = displayName(obj.key);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [menuOpen]);
+
+  return (
+    <div
+      role="row"
+      style={{
+        display: 'grid', gridTemplateColumns: GRID_COLS, alignItems: 'center',
+        padding: '0 16px', height: 52,
+        borderBottom: '1px solid var(--gray-15,#ECECEC)',
+        background: selected ? 'rgba(0,102,255,0.04)' : hovered ? 'var(--gray-5,#F9F9FC)' : '#fff',
+        transition: 'background 100ms', cursor: 'pointer', position: 'relative',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => obj.isFolder ? onFolderClick(obj.key) : onFileClick(obj)}
+    >
+      {/* Checkbox */}
+      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center' }}>
+        <input
+          type="checkbox" checked={selected}
+          onChange={e => onSelect(e.target.checked)}
+          style={{ cursor: 'pointer', width: 16, height: 16 }}
+          aria-label={`Select ${name}`}
+        />
+      </div>
+
+      {/* Name */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+        {obj.isFolder
+          ? <FolderIcon size={18} color="var(--primary,#0066FF)" weight="fill" />
+          : getFileIcon(name)
+        }
+        <span style={{
+          fontSize: 14, fontWeight: obj.isFolder ? 500 : 400,
+          color: obj.isFolder ? 'var(--primary,#0066FF)' : 'var(--gray-80,#3A3A3B)',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          textDecoration: hovered && obj.isFolder ? 'underline' : 'none',
+        }}>
+          {name}
+        </span>
+      </div>
+
+      {/* Size */}
+      <span style={{ fontSize: 13, color: 'var(--gray-60,#636367)', fontVariantNumeric: 'tabular-nums' }}>
+        {obj.isFolder ? '—' : prettyBytes(obj.size)}
+      </span>
+
+      {/* Last modified */}
+      <span style={{ fontSize: 13, color: 'var(--gray-60,#636367)' }}>
+        {obj.isFolder ? '—' : fmtDate(obj.lastModified)}
+      </span>
+
+      {/* Actions */}
+      <div
+        style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {(hovered || menuOpen) && (
+          <button
+            aria-label="Object actions" title="Object actions"
+            style={{
+              width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: menuOpen ? 'var(--gray-10,#F3F3F8)' : 'transparent',
+              border: 'none', borderRadius: 6, cursor: 'pointer', color: 'var(--gray-60,#636367)',
+            }}
+            onClick={() => setMenuOpen(o => !o)}
+          >
+            <DotsThreeVerticalIcon size={18} weight="bold" />
+          </button>
+        )}
+        {menuOpen && (
+          <div ref={menuRef} style={{
+            position: 'absolute', right: 0, top: 36, zIndex: 50,
+            background: '#fff', border: '1px solid var(--gray-20,#E5E5EB)',
+            borderRadius: 8, boxShadow: '0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -1px rgba(0,0,0,.04)',
+            minWidth: 168, overflow: 'hidden',
+          }}>
+            {!obj.isFolder && (
+              <ActionItem icon={<DownloadSimpleIcon size={15} />} label="Download"
+                onClick={() => { setMenuOpen(false); onDownload(obj); }} />
+            )}
+            <ActionItem icon={<CopyIcon size={15} />} label="Copy path"
+              onClick={() => { setMenuOpen(false); onCopyPath(obj); }} />
+            <ActionItem icon={<TrashIcon size={15} />} label="Delete" danger
+              onClick={() => { setMenuOpen(false); onDelete(obj); }} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── EmptyState ───────────────────────────────────────────────────────────────
+
+const EmptyState = ({ searchQuery, onCreateFolder, onUpload }:
+  { searchQuery: string; onCreateFolder: () => void; onUpload: () => void }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '56px 24px', gap: 12 }}>
+    <div style={{
+      width: 56, height: 56, borderRadius: '50%', background: 'var(--gray-10,#F3F3F8)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4,
+    }}>
+      <FolderIcon size={28} color="var(--gray-50,#8E8E94)" />
+    </div>
+    <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--gray-100,#18181B)', margin: 0 }}>
+      {searchQuery ? 'No matching objects' : 'This folder is empty'}
+    </p>
+    <p style={{ fontSize: 13, color: 'var(--gray-50,#8E8E94)', margin: 0, textAlign: 'center', maxWidth: 300 }}>
+      {searchQuery
+        ? `No objects matching "${searchQuery}". Try a different search term.`
+        : 'Upload files or create a folder to get started.'}
+    </p>
+    {!searchQuery && (
+      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+        <button onClick={onCreateFolder} style={{
+          display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
+          border: '1px solid var(--gray-20,#E5E5EB)', borderRadius: 8, background: '#fff',
+          color: 'var(--gray-80,#3A3A3B)', fontSize: 13, fontWeight: 500,
+          cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          <FolderPlusIcon size={15} /> Create folder
+        </button>
+        <button onClick={onUpload} style={{
+          display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
+          border: 'none', borderRadius: 8, background: 'var(--primary,#0066FF)',
+          color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          <UploadSimpleIcon size={15} weight="bold" /> Upload files
+        </button>
+      </div>
+    )}
+  </div>
+);
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 
 export const SubAccountBucketDetailPage = () => {
   const { bucketName } = useParams<{ bucketName: string }>();
@@ -22,23 +350,29 @@ export const SubAccountBucketDetailPage = () => {
 
   const { entityId, memberId } = useSubAccount();
   const { credentials } = useSubAccountS3Client(entityId, memberId);
+
   const endpointRef = useRef(searchParams.get('endpoint'));
   const regionRef = useRef(searchParams.get('region'));
-  const endpointParam = endpointRef.current;
-  const regionParam = regionRef.current;
+
   const client = useMemo(() => {
-    if (!credentials || !endpointParam) return null;
+    if (!credentials) return null;
+    const endpoint = endpointRef.current ?? new URL(credentials.endpoint).host;
     return new S3Client({
-      endpoint: `https://${endpointParam}`,
-      region: regionParam ?? 'us-east-1',
+      endpoint: `https://${endpoint}`,
+      region: regionRef.current ?? credentials.region ?? 'us-east-1',
       credentials: { accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey },
       forcePathStyle: true,
     });
-  }, [credentials?.accessKeyId, endpointParam, regionParam]);
+  }, [credentials?.accessKeyId]);
+
   const [activeTab, setActiveTab] = useState<'objects' | 'properties'>('objects');
   const [objects, setObjects] = useState<S3Object[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [visibility, setVisibility] = useState<'public' | 'private'>('private');
+  const [versioningEnabled, setVersioningEnabled] = useState(false);
+
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
@@ -50,19 +384,32 @@ export const SubAccountBucketDetailPage = () => {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
   useEffect(() => {
-    if (client && bucketName) loadObjects();
+    if (client && bucketName) {
+      loadObjects(client);
+      s3Service.getBucketVisibility(client, bucketName).then(setVisibility).catch(() => {});
+    }
   }, [client, bucketName, prefix]);
 
-  const loadObjects = async () => {
-    if (!client || !bucketName) return;
+  useEffect(() => {
+    if (client && bucketName && activeTab === 'properties') {
+      s3Service.getBucketVersioning(client, bucketName)
+        .then(v => setVersioningEnabled(v.enabled))
+        .catch(() => {});
+    }
+  }, [client, bucketName, activeTab]);
+
+  const loadObjects = async (s3: S3Client) => {
+    if (!bucketName) return;
+    setIsLoading(true);
+    setSelectedKeys(new Set());
     try {
-      setIsLoading(true);
-      setSelectedKeys(new Set());
-      const result = await s3Service.listObjects(client, bucketName, prefix);
+      const result = await s3Service.listObjects(s3, bucketName, prefix);
       setObjects(result.objects);
     } catch (err) {
-      const message = (err as any)?.name === 'AccessDenied' ? 'Insufficient permissions to list this location.' : (err as Error).message;
-      notificationsService.error({ text: message });
+      const msg = (err as any)?.name === 'AccessDenied'
+        ? 'Insufficient permissions to list this location.'
+        : (err as Error).message;
+      notificationsService.error({ text: msg });
     } finally {
       setIsLoading(false);
     }
@@ -76,44 +423,26 @@ export const SubAccountBucketDetailPage = () => {
     setSearchParams(next);
   };
 
-  const onSelectKey = (key: string, selected: boolean) => {
-    setSelectedKeys((prev) => {
-      const next = new Set(prev);
-      if (selected) next.add(key);
-      else next.delete(key);
-      return next;
-    });
-  };
+  const displayObjects = useMemo(() => {
+    if (!searchQuery) return objects;
+    return objects.filter(o => displayName(o.key).toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [objects, searchQuery]);
 
-  const onSelectAll = (selected: boolean) => {
-    setSelectedKeys(selected ? new Set(objects.map((o) => o.key)) : new Set());
-  };
+  const allSelected = displayObjects.length > 0 && displayObjects.every(o => selectedKeys.has(o.key));
+
+  const onSelectAll = (v: boolean) =>
+    setSelectedKeys(v ? new Set(displayObjects.map(o => o.key)) : new Set());
+
+  const onSelectKey = (key: string, v: boolean) =>
+    setSelectedKeys(prev => { const s = new Set(prev); v ? s.add(key) : s.delete(key); return s; });
 
   const onDownload = async (obj: S3Object) => {
     if (!client || !bucketName) return;
     try {
       const url = await s3Service.getDownloadUrl(client, bucketName, obj.key);
       window.location.href = url;
-    } catch (err) {
-      const message = (err as any)?.name === 'AccessDenied' ? 'Insufficient permissions to download this object.' : (err as Error).message;
-      notificationsService.error({ text: message });
-    }
-  };
-
-  const onCreateFolder = async () => {
-    if (!client || !bucketName || !folderName.trim()) return;
-    setIsCreatingFolder(true);
-    try {
-      const key = `${prefix}${folderName.trim()}/`;
-      await s3Service.uploadObject(client, bucketName, key, new File([''], ''));
-      notificationsService.success({ text: 'Folder created' });
-      setIsCreateFolderOpen(false);
-      setFolderName('');
-      await loadObjects();
-    } catch (err) {
-      notificationsService.error({ text: (err as Error).message });
-    } finally {
-      setIsCreatingFolder(false);
+    } catch {
+      notificationsService.error({ text: 'Could not generate download link.' });
     }
   };
 
@@ -122,9 +451,7 @@ export const SubAccountBucketDetailPage = () => {
     notificationsService.success({ text: 'Path copied to clipboard' });
   };
 
-  const onDeleteSingle = (obj: S3Object) => {
-    setFileToDelete(obj);
-  };
+  const onDeleteSingle = (obj: S3Object) => setFileToDelete(obj);
 
   const onConfirmDeleteSingle = async () => {
     if (!client || !bucketName || !fileToDelete) return;
@@ -134,10 +461,9 @@ export const SubAccountBucketDetailPage = () => {
       notificationsService.success({ text: 'Object deleted' });
       setFileToDelete(null);
       if (selectedFile?.key === fileToDelete.key) setSelectedFile(null);
-      await loadObjects();
-    } catch (err) {
-      const message = (err as any)?.name === 'AccessDenied' ? 'Insufficient permissions to delete this object.' : (err as Error).message;
-      notificationsService.error({ text: message });
+      await loadObjects(client);
+    } catch {
+      notificationsService.error({ text: 'Delete failed.' });
     } finally {
       setIsDeletingSingle(false);
     }
@@ -150,163 +476,280 @@ export const SubAccountBucketDetailPage = () => {
       await s3Service.deleteObjects(client, bucketName, Array.from(selectedKeys));
       notificationsService.success({ text: `${selectedKeys.size} object(s) deleted` });
       setIsDeleteDialogOpen(false);
-      await loadObjects();
-    } catch (err) {
-      const message = (err as any)?.name === 'AccessDenied' ? 'Insufficient permissions to delete objects.' : (err as Error).message;
-      notificationsService.error({ text: message });
+      await loadObjects(client);
+    } catch {
+      notificationsService.error({ text: 'Delete failed.' });
     } finally {
       setIsDeletingSelected(false);
     }
   };
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const onCreateFolder = async () => {
+    if (!client || !bucketName || !folderName.trim()) return;
+    setIsCreatingFolder(true);
+    try {
+      await s3Service.uploadObject(client, bucketName, `${prefix}${folderName.trim()}/`, new File([''], ''));
+      notificationsService.success({ text: 'Folder created' });
+      setIsCreateFolderOpen(false);
+      setFolderName('');
+      await loadObjects(client);
+    } catch {
+      notificationsService.error({ text: 'Could not create folder.' });
+    } finally {
+      setIsCreatingFolder(false);
+    }
+  };
 
-  const hasSelectedFolder = objects.some((o) => o.isFolder && selectedKeys.has(o.key));
-  const breadcrumbParts = prefix ? prefix.split('/').filter(Boolean) : [];
-  const filteredObjects = searchQuery
-    ? objects.filter((o) => {
-        const name = o.key.split('/').filter(Boolean).pop() ?? o.key;
-        return name.toLowerCase().includes(searchQuery.toLowerCase());
-      })
-    : objects;
+  const region = regionRef.current ?? '—';
+  const endpoint = endpointRef.current ?? '';
+  const fileObjects = displayObjects.filter(o => !o.isFolder);
+
+  const inputShared: React.CSSProperties = {
+    height: 40, padding: '0 12px',
+    border: '1px solid var(--gray-20,#E5E5EB)', borderRadius: 8,
+    fontSize: 14, color: 'var(--gray-100,#18181B)', outline: 'none',
+    fontFamily: 'inherit', background: 'var(--gray-10,#F3F3F8)',
+    width: '100%', boxSizing: 'border-box',
+  };
 
   return (
-    <section className='flex flex-col p-7 w-full gap-4'>
-      {/* Back nav */}
-      <button
-        onClick={() => navigate('/subaccount/buckets')}
-        className='flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 w-fit'
-      >
-        <ArrowLeft size={14} />
-        <span className='font-medium'>{bucketName}</span>
-      </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1200,
+      margin: '0 auto', width: '100%', padding: '8px 0 32px' }}>
 
-      {/* Main card */}
-      <div className='flex w-full bg-white rounded-md overflow-hidden' style={{ border: '1px solid #e5e7eb' }}>
-        <div className='flex flex-col flex-1 min-w-0'>
+      {/* ── Bucket header ──────────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button
+          onClick={() => navigate('/subaccount/buckets')}
+          aria-label="Back to buckets" title="Back to buckets"
+          style={{
+            width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '1px solid var(--gray-20,#E5E5EB)', borderRadius: 8,
+            background: '#fff', cursor: 'pointer', color: 'var(--gray-80,#3A3A3B)', flexShrink: 0,
+          }}
+        >
+          <ArrowLeftIcon size={18} />
+        </button>
+
+        <div style={{
+          width: 40, height: 40, borderRadius: 8, flexShrink: 0,
+          background: 'rgba(0,102,255,0.08)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <DatabaseIcon size={20} color="var(--primary,#0066FF)" weight="duotone" />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--gray-100,#18181B)', margin: 0, lineHeight: 1.2 }}>
+            {bucketName}
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 13, color: 'var(--gray-50,#8E8E94)' }}>{region}</span>
+            <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--gray-50,#8E8E94)', flexShrink: 0 }} />
+            <Pill type={visibility} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main card ──────────────────────────────────────────────────────── */}
+      <div style={{
+        display: 'flex',
+        background: '#fff',
+        border: '1px solid var(--gray-20,#E5E5EB)',
+        borderRadius: 12,
+        boxShadow: '0 1px 2px 0 rgba(0,0,0,.05)',
+        overflow: 'hidden',
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
 
           {/* Tabs */}
-          <div className='flex gap-1 px-6 border-b border-gray-100'>
-            {(['objects', 'properties'] as const).map((tab) => (
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-15,#ECECEC)', padding: '0 20px' }}>
+            {(['objects', 'properties'] as const).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-3 text-sm font-medium border-b-2 -mb-px capitalize transition-colors ${
-                  activeTab === tab
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                style={{
+                  padding: '14px 16px', fontSize: 14, fontWeight: 500, cursor: 'pointer',
+                  background: 'none', border: 'none', borderBottom: '2px solid', marginBottom: -1,
+                  fontFamily: 'inherit',
+                  borderBottomColor: activeTab === tab ? 'var(--primary,#0066FF)' : 'transparent',
+                  color: activeTab === tab ? 'var(--primary,#0066FF)' : 'var(--gray-50,#8E8E94)',
+                  transition: 'color 120ms, border-color 120ms',
+                }}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
           </div>
 
+          {/* ── Objects tab ──────────────────────────────────────────────── */}
           {activeTab === 'objects' && (
-            <div className='flex flex-col gap-4 p-6'>
-              {/* Breadcrumb + actions */}
-              <div className='flex items-center justify-between'>
-                <div className='flex items-center gap-2 text-sm text-gray-500'>
-                  <button onClick={() => navigate('/subaccount/buckets')} className='hover:underline'>Buckets</button>
-                  <CaretRight size={12} />
-                  <button onClick={() => navigateToPrefix('')} className='hover:underline text-gray-700'>{bucketName}</button>
-                  {breadcrumbParts.map((part, i) => {
-                    const partPrefix = breadcrumbParts.slice(0, i + 1).join('/') + '/';
-                    return (
-                      <span key={partPrefix} className='flex items-center gap-2'>
-                        <CaretRight size={12} />
-                        <button onClick={() => navigateToPrefix(partPrefix)} className='hover:underline text-blue-600'>{part}</button>
-                      </span>
-                    );
-                  })}
-                </div>
-                <div className='flex items-center gap-2'>
-                  {selectedKeys.size > 0 && (
-                    <Button
-                      variant='secondary'
-                      className='rounded-md flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50'
-                      disabled={hasSelectedFolder}
-                      onClick={() => setIsDeleteDialogOpen(true)}
-                        >
-                      <Trash size={16} />
-                      Delete ({selectedKeys.size})
-                    </Button>
-                  )}
-                  <Button className='rounded-md flex items-center gap-2' onClick={() => setIsUploadOpen(true)}>
-                    <UploadSimple size={16} />
-                    Upload Files
-                  </Button>
-                  <Button variant='secondary' className='rounded-md flex items-center gap-2' onClick={() => { setFolderName(''); setIsCreateFolderOpen(true); }}>
-                    <FolderPlus size={16} />
-                    Create Folder
-                  </Button>
-                </div>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-              {/* Search */}
-              <div className='flex items-center gap-2'>
-                <div className='relative flex items-center'>
-                  <input
-                    type='text'
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder='Search Objects by Prefix'
-                    className='border border-gray-200 rounded-md pl-3 pr-8 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300 w-60'
-                  />
-                  {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} className='absolute right-2 text-gray-400 hover:text-gray-600'>
-                      ✕
+              {/* Toolbar */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '14px 20px', gap: 12, borderBottom: '1px solid var(--gray-15,#ECECEC)',
+                flexWrap: 'wrap',
+              }}>
+                <Breadcrumb
+                  bucketName={bucketName!}
+                  prefix={prefix}
+                  onBuckets={() => navigate('/subaccount/buckets')}
+                  onBucket={() => navigateToPrefix('')}
+                  onSegment={navigateToPrefix}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  {selectedKeys.size > 0 && (
+                    <button
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
+                        border: '1px solid #fca5a5', borderRadius: 8, background: '#fff5f5',
+                        color: '#E50B00', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+                      }}
+                    >
+                      <TrashIcon size={15} /> Delete ({selectedKeys.size})
                     </button>
                   )}
+                  <button
+                    onClick={() => { setFolderName(''); setIsCreateFolderOpen(true); }}
+                    title="Create folder"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
+                      border: '1px solid var(--gray-20,#E5E5EB)', borderRadius: 8, background: '#fff',
+                      color: 'var(--gray-80,#3A3A3B)', fontSize: 13, fontWeight: 500,
+                      cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <FolderPlusIcon size={16} /> Create folder
+                  </button>
+                  <button
+                    onClick={() => setIsUploadOpen(true)}
+                    title="Upload files"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
+                      border: 'none', borderRadius: 8, background: 'var(--primary,#0066FF)',
+                      color: '#fff', fontSize: 13, fontWeight: 500,
+                      cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <UploadSimpleIcon size={16} weight="bold" /> Upload files
+                  </button>
                 </div>
               </div>
 
-              {/* Table */}
-              <div className='overflow-x-auto'>
-                <ObjectsTable
-                  objects={filteredObjects}
-                  selectedKeys={selectedKeys}
-                  onSelectKey={onSelectKey}
-                  onSelectAll={onSelectAll}
-                  onFolderClick={navigateToPrefix}
-                  onFileClick={setSelectedFile}
-                  onDownload={onDownload}
-                  onDelete={onDeleteSingle}
-                  isLoading={isLoading}
-                />
+              {/* Search + count */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '12px 20px', gap: 12, borderBottom: '1px solid var(--gray-15,#ECECEC)',
+              }}>
+                <div style={{ width: 340 }}>
+                  <Input
+                    variant="search"
+                    placeholder="Search objects by prefix…"
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    onClear={() => setSearchQuery('')}
+                  />
+                </div>
+                <span style={{
+                  fontSize: 13, color: 'var(--gray-50,#8E8E94)',
+                  whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
+                }}>
+                  {displayObjects.length} {displayObjects.length === 1 ? 'object' : 'objects'}
+                </span>
               </div>
+
+              {/* Table header */}
+              <div role="row" style={{
+                display: 'grid', gridTemplateColumns: GRID_COLS,
+                padding: '10px 16px',
+                background: 'var(--gray-5,#F9F9FC)',
+                borderBottom: '1px solid var(--gray-15,#ECECEC)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="checkbox" checked={allSelected}
+                    onChange={e => onSelectAll(e.target.checked)}
+                    style={{ cursor: 'pointer', width: 16, height: 16 }}
+                    aria-label="Select all"
+                  />
+                </div>
+                {['Name', 'Size', 'Last modified', ''].map((h, i) => (
+                  <span key={i} style={{
+                    fontSize: 12, fontWeight: 500, color: 'var(--gray-60,#636367)',
+                    textTransform: 'uppercase', letterSpacing: '0.04em',
+                  }}>{h}</span>
+                ))}
+              </div>
+
+              {/* Rows / states */}
+              {isLoading ? (
+                <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--gray-50,#8E8E94)', fontSize: 14 }}>
+                  Loading objects…
+                </div>
+              ) : displayObjects.length === 0 ? (
+                <EmptyState
+                  searchQuery={searchQuery}
+                  onCreateFolder={() => { setFolderName(''); setIsCreateFolderOpen(true); }}
+                  onUpload={() => setIsUploadOpen(true)}
+                />
+              ) : (
+                displayObjects.map(obj => (
+                  <ObjectRow
+                    key={obj.key}
+                    obj={obj}
+                    selected={selectedKeys.has(obj.key)}
+                    onSelect={v => onSelectKey(obj.key, v)}
+                    onFolderClick={navigateToPrefix}
+                    onFileClick={setSelectedFile}
+                    onDownload={onDownload}
+                    onDelete={onDeleteSingle}
+                    onCopyPath={onCopyPath}
+                  />
+                ))
+              )}
             </div>
           )}
 
-          {activeTab === 'properties' && client && (
-            <div className='p-6'>
-              <BucketPropertiesTab
-                client={client}
-                bucketName={bucketName!}
-                onDeleted={() => navigate('/subaccount/buckets')}
-              />
+          {/* ── Properties tab ──────────────────────────────────────────── */}
+          {activeTab === 'properties' && (
+            <div style={{ padding: '24px 24px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 32px' }}>
+                <ReadField label="Bucket name" value={bucketName!} mono />
+                <ReadField label="Region" value={region} />
+                <ReadField label="Visibility" value={visibility === 'public' ? 'Public' : 'Private'} />
+                <ReadField label="Objects" value={fileObjects.length ? String(fileObjects.length) : '—'} />
+                <ReadField label="Endpoint" value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 48, gridColumn: '1 / -1' }}>
+                  <ReadField label="Versioning" value={versioningEnabled ? 'Enabled' : 'Disabled'} />
+                  <ReadField label="Encryption" value="AES-256 · Zero-knowledge" />
+                </div>
+              </div>
             </div>
           )}
         </div>
 
+        {/* Side panel */}
         {selectedFile && (
           <FileDetailsPanel
             obj={selectedFile}
             onClose={() => setSelectedFile(null)}
-            onDownload={(obj) => { onDownload(obj); }}
+            onDownload={onDownload}
             onCopyPath={onCopyPath}
-            onDelete={(obj) => { setSelectedFile(null); onDeleteSingle(obj); }}
+            onDelete={obj => { setSelectedFile(null); onDeleteSingle(obj); }}
           />
         )}
       </div>
 
+      {/* ── Modals ─────────────────────────────────────────────────────────── */}
       <UploadModal
         isOpen={isUploadOpen}
         bucket={bucketName!}
         prefix={prefix}
         client={client}
         onClose={() => setIsUploadOpen(false)}
-        onUploaded={loadObjects}
+        onUploaded={() => client && loadObjects(client)}
       />
 
       <Dialog
@@ -315,10 +758,10 @@ export const SubAccountBucketDetailPage = () => {
         onPrimaryAction={onDeleteSelected}
         onSecondaryAction={() => setIsDeleteDialogOpen(false)}
         isLoading={isDeletingSelected}
-        primaryAction='Delete'
-        secondaryAction='Cancel'
-        primaryActionColor='danger'
-        title='Delete objects'
+        primaryAction="Delete"
+        secondaryAction="Cancel"
+        primaryActionColor="danger"
+        title="Delete objects"
         subtitle={`This will permanently delete ${selectedKeys.size} object(s). This action cannot be undone.`}
       />
 
@@ -328,43 +771,41 @@ export const SubAccountBucketDetailPage = () => {
         onPrimaryAction={onConfirmDeleteSingle}
         onSecondaryAction={() => setFileToDelete(null)}
         isLoading={isDeletingSingle}
-        primaryAction='Delete'
-        secondaryAction='Cancel'
-        primaryActionColor='danger'
-        title='Delete object'
-        subtitle={`This will permanently delete "${fileToDelete?.key.split('/').filter(Boolean).pop()}". This action cannot be undone.`}
+        primaryAction="Delete"
+        secondaryAction="Cancel"
+        primaryActionColor="danger"
+        title="Delete object"
+        subtitle={`Permanently delete "${fileToDelete ? displayName(fileToDelete.key) : ''}"? This cannot be undone.`}
       />
 
       <Modal isOpen={isCreateFolderOpen} onClose={() => !isCreatingFolder && setIsCreateFolderOpen(false)}>
-        <div className='flex flex-col gap-5 w-full min-w-[400px]'>
-          <p className='text-black text-xl font-semibold'>Create Folder</p>
-          <div className='flex flex-col gap-1'>
-            <label className='text-sm text-gray-700'>Folder Name</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 400 }}>
+          <p style={{ fontSize: 18, fontWeight: 600, color: 'var(--gray-100,#18181B)', margin: 0 }}>
+            Create folder
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label htmlFor="folder-name" style={{ fontSize: 13, fontWeight: 500, color: 'var(--gray-80,#3A3A3B)' }}>
+              Folder name
+            </label>
             <input
-              type='text'
-              placeholder='my-folder'
+              id="folder-name" type="text" placeholder="my-folder"
               value={folderName}
-              onChange={(e) => setFolderName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && onCreateFolder()}
-              className='w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400'
+              onChange={e => setFolderName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && onCreateFolder()}
               autoFocus
+              style={inputShared}
             />
           </div>
-          <div className='flex gap-3 justify-end'>
-            <Button variant='secondary' className='rounded-md' onClick={() => setIsCreateFolderOpen(false)} disabled={isCreatingFolder}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <Button variant="secondary" type="button" onClick={() => setIsCreateFolderOpen(false)} disabled={isCreatingFolder}>
               Cancel
             </Button>
-            <Button
-              className='rounded-md'
-              disabled={!folderName.trim() || isCreatingFolder}
-              loading={isCreatingFolder}
-              onClick={onCreateFolder}
-            >
+            <Button type="button" disabled={!folderName.trim() || isCreatingFolder} loading={isCreatingFolder} onClick={onCreateFolder}>
               Create
             </Button>
           </div>
         </div>
       </Modal>
-    </section>
+    </div>
   );
 };

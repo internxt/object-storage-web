@@ -8,7 +8,7 @@ import {
 } from '@phosphor-icons/react';
 import { s3Service } from '../../services/s3.service';
 import notificationsService from '../../services/notifications.service';
-import { bucketsService, SubAccountRegion } from '../../services/buckets.service';
+import { SubAccountRegion } from '../../services/buckets.service';
 import { isValidBucketName } from '../../utils/isBucketNameValid';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
@@ -16,6 +16,7 @@ import Modal from '../../components/Modal';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
 import { useSubAccount } from '../context/SubAccountContext';
+import subAccountAxios from '../core/sub-account-axios';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -446,12 +447,13 @@ interface CreateBucketModalProps {
 
 const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }: CreateBucketModalProps) => {
   const [bucketName, setBucketName] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState<SubAccountRegion | null>(regions[0] ?? null);
+  const [selectedSlug, setSelectedSlug] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
-  useEffect(() => {
-    if (regions.length > 0 && !selectedRegion) setSelectedRegion(regions[0]);
-  }, [regions]);
+  const selectedRegion = useMemo(
+    () => regions.find((r) => r.slug === selectedSlug) ?? regions[0] ?? null,
+    [regions, selectedSlug],
+  );
 
   const handleCreate = async () => {
     if (!selectedRegion || !isValidBucketName(bucketName) || !credentials) return;
@@ -517,7 +519,7 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
           <select
             id="new-bucket-region"
             value={selectedRegion?.slug ?? ''}
-            onChange={(e) => setSelectedRegion(regions.find((r) => r.slug === e.target.value) ?? null)}
+            onChange={(e) => setSelectedSlug(e.target.value)}
             style={{ ...inputStyle, cursor: 'pointer' }}
           >
             {regions.map((r) => (
@@ -559,9 +561,17 @@ export const SubAccountBucketsPage = () => {
   const [regions, setRegions] = useState<SubAccountRegion[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  useEffect(() => {
-    bucketsService.getSubAccountRegions().then((r) => setRegions(r)).catch(() => {});
-  }, []);
+  const fetchRegions = () =>
+    subAccountAxios.get<SubAccountRegion[]>('/subaccount/regions')
+      .then((r) => setRegions(r.data))
+      .catch(() => {});
+
+  useEffect(() => { fetchRegions(); }, []);
+
+  const openCreateModal = () => {
+    setIsCreateOpen(true);
+    fetchRegions();
+  };
 
   useEffect(() => {
     if (client) loadBuckets(client);
@@ -644,7 +654,7 @@ export const SubAccountBucketsPage = () => {
         onSearchChange={setSearch}
         onOpen={handleOpen}
         onDelete={handleDelete}
-        onCreateOpen={() => setIsCreateOpen(true)}
+        onCreateOpen={openCreateModal}
         isAdmin={isAdmin}
       />
       <CreateBucketModal
