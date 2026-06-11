@@ -13,6 +13,7 @@ import {
   DeleteBucketCommand,
   CreateBucketCommand,
   GetBucketLocationCommand,
+  GetBucketAclCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -220,5 +221,17 @@ export const s3Service = {
 
   deleteBucket: async (client: S3Client, bucket: string): Promise<void> => {
     await client.send(new DeleteBucketCommand({ Bucket: bucket }));
+  },
+
+  getBucketVisibility: async (client: S3Client, bucket: string): Promise<'public' | 'private'> => {
+    try {
+      const { Grants = [] } = await client.send(new GetBucketAclCommand({ Bucket: bucket }));
+      const isPublic = Grants.some((g) =>
+        g.Grantee?.URI?.includes('AllUsers') || g.Grantee?.URI?.includes('AuthenticatedUsers'),
+      );
+      return isPublic ? 'public' : 'private';
+    } catch {
+      return 'private';
+    }
   },
 };
