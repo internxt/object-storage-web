@@ -22,7 +22,7 @@ const T = {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface TopBarTab {
+interface TopBarTab {
   label: string;
   key: string;
 }
@@ -34,7 +34,7 @@ export interface ConsoleTopBarProps {
   consoleLabel: string;
   onSettings: () => void;
   onLogout: () => void;
-  user: { name?: string; email?: string; initials: string };
+  user: { email?: string; initials: string };
 }
 
 // ─── AvatarMenu ───────────────────────────────────────────────────────────────
@@ -98,19 +98,12 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
           }}
         >
           {/* Account info header */}
-          {(user.name || user.email) && (
+          {user.email && (
             <>
               <div style={{ padding: '8px 12px 10px' }}>
-                {user.name && (
-                  <p style={{ fontSize: 14, fontWeight: 600, color: T.gray100, margin: 0 }}>
-                    {user.name}
-                  </p>
-                )}
-                {user.email && (
-                  <p style={{ fontSize: 13, color: T.gray60, margin: '2px 0 0', wordBreak: 'break-all' }}>
-                    {user.email}
-                  </p>
-                )}
+                <p style={{ fontSize: 13, color: T.gray60, margin: 0, wordBreak: 'break-all' }}>
+                  {user.email}
+                </p>
               </div>
               <div style={{ height: 1, background: T.gray20, margin: '0 0 4px' }} />
             </>

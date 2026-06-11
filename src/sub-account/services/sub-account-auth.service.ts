@@ -36,10 +36,6 @@ function logOut(): void {
   localStorage.removeItem(EMAIL_KEY);
 }
 
-function getAuthHeaders() {
-  const token = getToken();
-  return { Authorization: `Bearer ${token}` };
-}
 
 function getRole(): 'admin' | 'standard' | null {
   const token = getToken();
@@ -89,8 +85,6 @@ export const subAccountAuthService = {
   logIn,
   logOut,
   getToken,
-  setToken,
-  getAuthHeaders,
   getRole,
   getMemberId,
   getEntityId,

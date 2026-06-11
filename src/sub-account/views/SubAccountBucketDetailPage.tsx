@@ -30,32 +30,6 @@ import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { useSubAccount } from '../context/SubAccountContext';
 import { S3Client } from '@aws-sdk/client-s3';
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const d = (s: string) => new Date(s);
-
-export const OBJECT_TREE: Record<string, S3Object[]> = {
-  '': [
-    { key: 'raw/', isFolder: true, size: 0, lastModified: d('2025-01-15') },
-    { key: 'processed/', isFolder: true, size: 0, lastModified: d('2025-04-01') },
-    { key: 'README.md', isFolder: false, size: 2_048, lastModified: d('2025-01-10') },
-    { key: 'config.json', isFolder: false, size: 512, lastModified: d('2025-02-20') },
-  ],
-  'raw/': [
-    { key: 'raw/2025/', isFolder: true, size: 0, lastModified: d('2025-01-01') },
-    { key: 'raw/video.mp4', isFolder: false, size: 1_280_000_000, lastModified: d('2025-03-15') },
-    { key: 'raw/photo.jpg', isFolder: false, size: 4_500_000, lastModified: d('2025-03-20') },
-  ],
-  'raw/2025/': [
-    { key: 'raw/2025/archive.zip', isFolder: false, size: 148_000_000, lastModified: d('2025-05-20') },
-    { key: 'raw/2025/report.pdf', isFolder: false, size: 920_000, lastModified: d('2025-06-01') },
-  ],
-  'processed/': [
-    { key: 'processed/output.csv', isFolder: false, size: 28_000, lastModified: d('2025-04-20') },
-    { key: 'processed/summary.txt', isFolder: false, size: 4_200, lastModified: d('2025-04-22') },
-  ],
-};
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function displayName(key: string): string {
