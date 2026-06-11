@@ -7,6 +7,7 @@ interface SubAccountContextType {
   ssoEnabled: boolean;
   memberId: string | null;
   entityId: string | null;
+  email: string | null;
   logIn: (email: string, password: string) => Promise<void>;
   logOut: () => void;
 }
@@ -29,6 +30,9 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
   const [entityId, setEntityId] = useState(
     () => subAccountAuthService.getEntityId(),
   );
+  const [email, setEmail] = useState(
+    () => subAccountAuthService.getEmail(),
+  );
 
   const logIn = async (email: string, password: string) => {
     await subAccountAuthService.logIn(email, password);
@@ -38,6 +42,7 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     setSsoEnabled(subAccountAuthService.getSsoEnabled());
     setMemberId(subAccountAuthService.getMemberId());
     setEntityId(subAccountAuthService.getEntityId());
+    setEmail(subAccountAuthService.getEmail());
   };
 
   const logOut = () => {
@@ -47,11 +52,12 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     setSsoEnabled(false);
     setMemberId(null);
     setEntityId(null);
+    setEmail(null);
   };
 
   const value = useMemo(
-    () => ({ isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, logIn, logOut }),
-    [isAuthenticated, isAdmin, ssoEnabled, memberId, entityId],
+    () => ({ isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, email, logIn, logOut }),
+    [isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, email],
   );
 
   return <SubAccountContext.Provider value={value}>{children}</SubAccountContext.Provider>;

@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const TOKEN_KEY = 'subAccountToken';
+const EMAIL_KEY = 'subAccountEmail';
 
 function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -22,11 +23,17 @@ async function logIn(email: string, password: string): Promise<void> {
   );
   console.log('[sub-account] logIn response', { status: response.status, hasToken: !!response.data.token });
   setToken(response.data.token);
+  localStorage.setItem(EMAIL_KEY, email);
   console.log('[sub-account] token saved', { role: getRole(), memberId: getMemberId(), entityId: getEntityId() });
+}
+
+function getEmail(): string | null {
+  return localStorage.getItem(EMAIL_KEY);
 }
 
 function logOut(): void {
   removeToken();
+  localStorage.removeItem(EMAIL_KEY);
 }
 
 function getAuthHeaders() {
@@ -88,4 +95,5 @@ export const subAccountAuthService = {
   getMemberId,
   getEntityId,
   getSsoEnabled,
+  getEmail,
 };

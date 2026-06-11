@@ -242,7 +242,7 @@ export const UsageView = () => {
             <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--gray-100,#18181B)' }}>
               Account Usage
             </span>
-            <InfoIcon size={16} color="var(--gray-50,#8E8E94)" aria-label="Usage information" title="Daily usage snapshots for your sub-account" />
+            <InfoIcon size={16} color="var(--gray-50,#8E8E94)" aria-label="Usage information" title="This shows the entire account's usage aggregated per day" />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
