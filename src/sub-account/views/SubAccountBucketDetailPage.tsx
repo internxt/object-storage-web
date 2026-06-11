@@ -44,14 +44,14 @@ function fmtDate(d: Date): string {
 function getFileIcon(name: string) {
   const ext = name.split('.').pop()?.toLowerCase() ?? '';
   if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext))
-    return <FileVideoIcon size={18} color=T.gray50 />;
+    return <FileVideoIcon size={18} color={T.gray50} />;
   if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'].includes(ext))
-    return <FileImageIcon size={18} color=T.gray50 />;
+    return <FileImageIcon size={18} color={T.gray50} />;
   if (['zip', 'tar', 'gz', 'rar', '7z'].includes(ext))
-    return <FileZipIcon size={18} color=T.gray50 />;
+    return <FileZipIcon size={18} color={T.gray50} />;
   if (['txt', 'md', 'csv', 'log', 'json', 'yaml', 'yml', 'xml', 'pdf'].includes(ext))
-    return <FileTextIcon size={18} color=T.gray50 />;
-  return <FileIcon size={18} color=T.gray50 />;
+    return <FileTextIcon size={18} color={T.gray50} />;
+  return <FileIcon size={18} color={T.gray50} />;
 }
 
 // ─── Design primitives ────────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
     </button>
   );
 
-  const sep = <CaretRightIcon size={12} color=T.gray50 style={{ flexShrink: 0 }} />;
+  const sep = <CaretRightIcon size={12} color={T.gray50} style={{ flexShrink: 0 }} />;
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -211,7 +211,7 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
       {/* Name */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
         {obj.isFolder
-          ? <FolderIcon size={18} color=T.primary weight="fill" />
+          ? <FolderIcon size={18} color={T.primary} weight="fill" />
           : getFileIcon(name)
         }
         <span style={{
@@ -283,7 +283,7 @@ const EmptyState = ({ searchQuery, onCreateFolder, onUpload }:
       width: 56, height: 56, borderRadius: '50%', background: T.gray10,
       display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4,
     }}>
-      <FolderIcon size={28} color=T.gray50 />
+      <FolderIcon size={28} color={T.gray50} />
     </div>
     <p style={{ fontSize: 15, fontWeight: 600, color: T.gray100, margin: 0 }}>
       {searchQuery ? 'No matching objects' : 'This folder is empty'}
@@ -509,7 +509,7 @@ export const SubAccountBucketDetailPage = () => {
           background: 'rgba(0,102,255,0.08)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <DatabaseIcon size={20} color=T.primary weight="duotone" />
+          <DatabaseIcon size={20} color={T.primary} weight="duotone" />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

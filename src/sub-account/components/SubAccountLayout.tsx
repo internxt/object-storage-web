@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSubAccount } from '../context/SubAccountContext';
 import { ConsoleTopBar } from './ConsoleTopBar';
+import { T } from '../tokens';
 
 const TABS_ADMIN = [
   { key: '/subaccount/buckets', label: 'Buckets' },

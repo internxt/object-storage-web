@@ -180,16 +180,16 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
             background: 'linear-gradient(135deg, rgba(0,102,255,0.14) 0%, rgba(0,102,255,0.06) 100%)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center`,
+            justifyContent: 'center',
           }}
         >
-          <HardDrivesIcon size={16} color="${T.primary}" weight="duotone` />
+          <HardDrivesIcon size={16} color={T.primary} weight="duotone" />
         </div>
         <span
           style={{
             fontSize: 14,
             fontWeight: 500,
-            color: `${T.primary}',
+            color: `${T.primary}`,
             textDecoration: hovered ? 'underline' : 'none',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -221,7 +221,7 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
       >
         {(hovered || menuOpen) && (
           <button
-            aria-label=`Bucket actions"
+            aria-label="Bucket actions"
             title="Bucket actions"
             style={{
               width: 32,
