@@ -28,6 +28,7 @@ import Dialog from '../../components/Dialog';
 import Input from '../../components/Input';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { useSubAccount } from '../context/SubAccountContext';
+import { T } from '../tokens';
 import { S3Client } from '@aws-sdk/client-s3';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -43,14 +44,14 @@ function fmtDate(d: Date): string {
 function getFileIcon(name: string) {
   const ext = name.split('.').pop()?.toLowerCase() ?? '';
   if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext))
-    return <FileVideoIcon size={18} color="var(--gray-50,#8E8E94)" />;
+    return <FileVideoIcon size={18} color=T.gray50 />;
   if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'].includes(ext))
-    return <FileImageIcon size={18} color="var(--gray-50,#8E8E94)" />;
+    return <FileImageIcon size={18} color=T.gray50 />;
   if (['zip', 'tar', 'gz', 'rar', '7z'].includes(ext))
-    return <FileZipIcon size={18} color="var(--gray-50,#8E8E94)" />;
+    return <FileZipIcon size={18} color=T.gray50 />;
   if (['txt', 'md', 'csv', 'log', 'json', 'yaml', 'yml', 'xml', 'pdf'].includes(ext))
-    return <FileTextIcon size={18} color="var(--gray-50,#8E8E94)" />;
-  return <FileIcon size={18} color="var(--gray-50,#8E8E94)" />;
+    return <FileTextIcon size={18} color=T.gray50 />;
+  return <FileIcon size={18} color=T.gray50 />;
 }
 
 // ─── Design primitives ────────────────────────────────────────────────────────
@@ -61,12 +62,12 @@ const Pill = ({ type }: { type: 'public' | 'private' }) => {
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
       padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 500,
-      background: pub ? 'rgba(0,102,255,0.08)' : 'var(--gray-10,#F3F3F8)',
-      color: pub ? 'var(--primary,#0066FF)' : 'var(--gray-80,#3A3A3B)',
+      background: pub ? 'rgba(0,102,255,0.08)' : T.gray10,
+      color: pub ? T.primary : T.gray80,
     }}>
       <span style={{
         width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-        background: pub ? 'var(--primary,#0066FF)' : 'var(--gray-50,#8E8E94)',
+        background: pub ? T.primary : T.gray50,
       }} />
       {pub ? 'Public' : 'Private'}
     </span>
@@ -77,11 +78,11 @@ const ReadField = ({ label, value, mono = false, fullWidth = false }:
   { label: string; value: string; mono?: boolean; fullWidth?: boolean }) => (
   <div style={{ gridColumn: fullWidth ? '1 / -1' : undefined, display: 'flex', flexDirection: 'column', gap: 4 }}>
     <span style={{
-      fontSize: 12, fontWeight: 500, color: 'var(--gray-60,#636367)',
+      fontSize: 12, fontWeight: 500, color: T.gray60,
       letterSpacing: '0.04em', textTransform: 'uppercase',
     }}>{label}</span>
     <span style={{
-      fontSize: 14, color: 'var(--gray-100,#18181B)', lineHeight: 1.5,
+      fontSize: 14, color: T.gray100, lineHeight: 1.5,
       fontFamily: mono ? 'var(--font-mono,monospace)' : 'inherit',
       wordBreak: 'break-all',
     }}>
@@ -104,17 +105,17 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
       onClick={active ? undefined : onClick}
       style={{
         fontSize: 13, fontWeight: 500, cursor: active ? 'default' : 'pointer',
-        color: active ? 'var(--gray-100,#18181B)' : 'var(--gray-50,#8E8E94)',
+        color: active ? T.gray100 : T.gray50,
         background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
       }}
-      onMouseEnter={e => !active && (e.currentTarget.style.color = 'var(--gray-80,#3A3A3B)')}
-      onMouseLeave={e => !active && (e.currentTarget.style.color = 'var(--gray-50,#8E8E94)')}
+      onMouseEnter={e => !active && (e.currentTarget.style.color = T.gray80)}
+      onMouseLeave={e => !active && (e.currentTarget.style.color = T.gray50)}
     >
       {label}
     </button>
   );
 
-  const sep = <CaretRightIcon size={12} color="var(--gray-50,#8E8E94)" style={{ flexShrink: 0 }} />;
+  const sep = <CaretRightIcon size={12} color=T.gray50 style={{ flexShrink: 0 }} />;
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -146,10 +147,10 @@ const ActionItem = ({ icon, label, danger = false, onClick }:
       display: 'flex', alignItems: 'center', gap: 8, width: '100%',
       padding: '9px 14px', background: 'none', border: 'none',
       cursor: 'pointer', fontSize: 13,
-      color: danger ? '#E50B00' : 'var(--gray-80,#3A3A3B)',
+      color: danger ? '#E50B00' : T.gray80,
       textAlign: 'left', fontFamily: 'inherit',
     }}
-    onMouseEnter={e => { e.currentTarget.style.background = danger ? '#fff5f5' : 'var(--gray-5,#F9F9FC)'; }}
+    onMouseEnter={e => { e.currentTarget.style.background = danger ? '#fff5f5' : T.gray5; }}
     onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
     onClick={onClick}
   >
@@ -189,8 +190,8 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
       style={{
         display: 'grid', gridTemplateColumns: GRID_COLS, alignItems: 'center',
         padding: '0 16px', height: 52,
-        borderBottom: '1px solid var(--gray-15,#ECECEC)',
-        background: selected ? 'rgba(0,102,255,0.04)' : hovered ? 'var(--gray-5,#F9F9FC)' : '#fff',
+        borderBottom: `1px solid ${T.gray15}`,
+        background: selected ? 'rgba(0,102,255,0.04)' : hovered ? T.gray5 : '#fff',
         transition: 'background 100ms', cursor: 'pointer', position: 'relative',
       }}
       onMouseEnter={() => setHovered(true)}
@@ -210,12 +211,12 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
       {/* Name */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
         {obj.isFolder
-          ? <FolderIcon size={18} color="var(--primary,#0066FF)" weight="fill" />
+          ? <FolderIcon size={18} color=T.primary weight="fill" />
           : getFileIcon(name)
         }
         <span style={{
           fontSize: 14, fontWeight: obj.isFolder ? 500 : 400,
-          color: obj.isFolder ? 'var(--primary,#0066FF)' : 'var(--gray-80,#3A3A3B)',
+          color: obj.isFolder ? T.primary : T.gray80,
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           textDecoration: hovered && obj.isFolder ? 'underline' : 'none',
         }}>
@@ -224,12 +225,12 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
       </div>
 
       {/* Size */}
-      <span style={{ fontSize: 13, color: 'var(--gray-60,#636367)', fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: 13, color: T.gray60, fontVariantNumeric: 'tabular-nums' }}>
         {obj.isFolder ? '—' : prettyBytes(obj.size)}
       </span>
 
       {/* Last modified */}
-      <span style={{ fontSize: 13, color: 'var(--gray-60,#636367)' }}>
+      <span style={{ fontSize: 13, color: T.gray60 }}>
         {obj.isFolder ? '—' : fmtDate(obj.lastModified)}
       </span>
 
@@ -243,8 +244,8 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
             aria-label="Object actions" title="Object actions"
             style={{
               width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: menuOpen ? 'var(--gray-10,#F3F3F8)' : 'transparent',
-              border: 'none', borderRadius: 6, cursor: 'pointer', color: 'var(--gray-60,#636367)',
+              background: menuOpen ? T.gray10 : 'transparent',
+              border: 'none', borderRadius: 6, cursor: 'pointer', color: T.gray60,
             }}
             onClick={() => setMenuOpen(o => !o)}
           >
@@ -254,7 +255,7 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
         {menuOpen && (
           <div ref={menuRef} style={{
             position: 'absolute', right: 0, top: 36, zIndex: 50,
-            background: '#fff', border: '1px solid var(--gray-20,#E5E5EB)',
+            background: '#fff', border: `1px solid ${T.gray20}`,
             borderRadius: 8, boxShadow: '0 4px 6px -1px rgba(0,0,0,.08),0 2px 4px -1px rgba(0,0,0,.04)',
             minWidth: 168, overflow: 'hidden',
           }}>
@@ -279,15 +280,15 @@ const EmptyState = ({ searchQuery, onCreateFolder, onUpload }:
   { searchQuery: string; onCreateFolder: () => void; onUpload: () => void }) => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '56px 24px', gap: 12 }}>
     <div style={{
-      width: 56, height: 56, borderRadius: '50%', background: 'var(--gray-10,#F3F3F8)',
+      width: 56, height: 56, borderRadius: '50%', background: T.gray10,
       display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4,
     }}>
-      <FolderIcon size={28} color="var(--gray-50,#8E8E94)" />
+      <FolderIcon size={28} color=T.gray50 />
     </div>
-    <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--gray-100,#18181B)', margin: 0 }}>
+    <p style={{ fontSize: 15, fontWeight: 600, color: T.gray100, margin: 0 }}>
       {searchQuery ? 'No matching objects' : 'This folder is empty'}
     </p>
-    <p style={{ fontSize: 13, color: 'var(--gray-50,#8E8E94)', margin: 0, textAlign: 'center', maxWidth: 300 }}>
+    <p style={{ fontSize: 13, color: T.gray50, margin: 0, textAlign: 'center', maxWidth: 300 }}>
       {searchQuery
         ? `No objects matching "${searchQuery}". Try a different search term.`
         : 'Upload files or create a folder to get started.'}
@@ -296,15 +297,15 @@ const EmptyState = ({ searchQuery, onCreateFolder, onUpload }:
       <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
         <button onClick={onCreateFolder} style={{
           display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-          border: '1px solid var(--gray-20,#E5E5EB)', borderRadius: 8, background: '#fff',
-          color: 'var(--gray-80,#3A3A3B)', fontSize: 13, fontWeight: 500,
+          border: `1px solid ${T.gray20}`, borderRadius: 8, background: '#fff',
+          color: T.gray80, fontSize: 13, fontWeight: 500,
           cursor: 'pointer', fontFamily: 'inherit',
         }}>
           <FolderPlusIcon size={15} /> Create folder
         </button>
         <button onClick={onUpload} style={{
           display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-          border: 'none', borderRadius: 8, background: 'var(--primary,#0066FF)',
+          border: 'none', borderRadius: 8, background: T.primary,
           color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
         }}>
           <UploadSimpleIcon size={15} weight="bold" /> Upload files
@@ -480,9 +481,9 @@ export const SubAccountBucketDetailPage = () => {
 
   const inputShared: React.CSSProperties = {
     height: 40, padding: '0 12px',
-    border: '1px solid var(--gray-20,#E5E5EB)', borderRadius: 8,
-    fontSize: 14, color: 'var(--gray-100,#18181B)', outline: 'none',
-    fontFamily: 'inherit', background: 'var(--gray-10,#F3F3F8)',
+    border: `1px solid ${T.gray20}`, borderRadius: 8,
+    fontSize: 14, color: T.gray100, outline: 'none',
+    fontFamily: 'inherit', background: T.gray10,
     width: '100%', boxSizing: 'border-box',
   };
 
@@ -497,8 +498,8 @@ export const SubAccountBucketDetailPage = () => {
           aria-label="Back to buckets" title="Back to buckets"
           style={{
             width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: '1px solid var(--gray-20,#E5E5EB)', borderRadius: 8,
-            background: '#fff', cursor: 'pointer', color: 'var(--gray-80,#3A3A3B)', flexShrink: 0,
+            border: `1px solid ${T.gray20}`, borderRadius: 8,
+            background: '#fff', cursor: 'pointer', color: T.gray80, flexShrink: 0,
           }}
         >
           <ArrowLeftIcon size={18} />
@@ -509,16 +510,16 @@ export const SubAccountBucketDetailPage = () => {
           background: 'rgba(0,102,255,0.08)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <DatabaseIcon size={20} color="var(--primary,#0066FF)" weight="duotone" />
+          <DatabaseIcon size={20} color=T.primary weight="duotone" />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 600, color: 'var(--gray-100,#18181B)', margin: 0, lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 600, color: T.gray100, margin: 0, lineHeight: 1.2 }}>
             {bucketName}
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 13, color: 'var(--gray-50,#8E8E94)' }}>{region}</span>
-            <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--gray-50,#8E8E94)', flexShrink: 0 }} />
+            <span style={{ fontSize: 13, color: T.gray50 }}>{region}</span>
+            <span style={{ width: 3, height: 3, borderRadius: '50%', background: T.gray50, flexShrink: 0 }} />
             <Pill type={visibility} />
           </div>
         </div>
@@ -528,7 +529,7 @@ export const SubAccountBucketDetailPage = () => {
       <div style={{
         display: 'flex',
         background: '#fff',
-        border: '1px solid var(--gray-20,#E5E5EB)',
+        border: `1px solid ${T.gray20}`,
         borderRadius: 12,
         boxShadow: '0 1px 2px 0 rgba(0,0,0,.05)',
         overflow: 'hidden',
@@ -536,7 +537,7 @@ export const SubAccountBucketDetailPage = () => {
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--gray-15,#ECECEC)', padding: '0 20px' }}>
+          <div style={{ display: 'flex', borderBottom: `1px solid ${T.gray15}`, padding: '0 20px' }}>
             {(['objects', 'properties'] as const).map(tab => (
               <button
                 key={tab}
@@ -545,8 +546,8 @@ export const SubAccountBucketDetailPage = () => {
                   padding: '14px 16px', fontSize: 14, fontWeight: 500, cursor: 'pointer',
                   background: 'none', border: 'none', borderBottom: '2px solid', marginBottom: -1,
                   fontFamily: 'inherit',
-                  borderBottomColor: activeTab === tab ? 'var(--primary,#0066FF)' : 'transparent',
-                  color: activeTab === tab ? 'var(--primary,#0066FF)' : 'var(--gray-50,#8E8E94)',
+                  borderBottomColor: activeTab === tab ? T.primary : 'transparent',
+                  color: activeTab === tab ? T.primary : T.gray50,
                   transition: 'color 120ms, border-color 120ms',
                 }}
               >
@@ -562,7 +563,7 @@ export const SubAccountBucketDetailPage = () => {
               {/* Toolbar */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '14px 20px', gap: 12, borderBottom: '1px solid var(--gray-15,#ECECEC)',
+                padding: '14px 20px', gap: 12, borderBottom: `1px solid ${T.gray15}`,
                 flexWrap: 'wrap',
               }}>
                 <Breadcrumb
@@ -590,8 +591,8 @@ export const SubAccountBucketDetailPage = () => {
                     title="Create folder"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-                      border: '1px solid var(--gray-20,#E5E5EB)', borderRadius: 8, background: '#fff',
-                      color: 'var(--gray-80,#3A3A3B)', fontSize: 13, fontWeight: 500,
+                      border: `1px solid ${T.gray20}`, borderRadius: 8, background: '#fff',
+                      color: T.gray80, fontSize: 13, fontWeight: 500,
                       cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
                     }}
                   >
@@ -602,7 +603,7 @@ export const SubAccountBucketDetailPage = () => {
                     title="Upload files"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-                      border: 'none', borderRadius: 8, background: 'var(--primary,#0066FF)',
+                      border: 'none', borderRadius: 8, background: T.primary,
                       color: '#fff', fontSize: 13, fontWeight: 500,
                       cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
                     }}
@@ -615,7 +616,7 @@ export const SubAccountBucketDetailPage = () => {
               {/* Search + count */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '12px 20px', gap: 12, borderBottom: '1px solid var(--gray-15,#ECECEC)',
+                padding: '12px 20px', gap: 12, borderBottom: `1px solid ${T.gray15}`,
               }}>
                 <div style={{ width: 340 }}>
                   <Input
@@ -627,7 +628,7 @@ export const SubAccountBucketDetailPage = () => {
                   />
                 </div>
                 <span style={{
-                  fontSize: 13, color: 'var(--gray-50,#8E8E94)',
+                  fontSize: 13, color: T.gray50,
                   whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
                 }}>
                   {displayObjects.length} {displayObjects.length === 1 ? 'object' : 'objects'}
@@ -638,8 +639,8 @@ export const SubAccountBucketDetailPage = () => {
               <div role="row" style={{
                 display: 'grid', gridTemplateColumns: GRID_COLS,
                 padding: '10px 16px',
-                background: 'var(--gray-5,#F9F9FC)',
-                borderBottom: '1px solid var(--gray-15,#ECECEC)',
+                background: T.gray5,
+                borderBottom: `1px solid ${T.gray15}`,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <input
@@ -651,7 +652,7 @@ export const SubAccountBucketDetailPage = () => {
                 </div>
                 {['Name', 'Size', 'Last modified', ''].map((h, i) => (
                   <span key={i} style={{
-                    fontSize: 12, fontWeight: 500, color: 'var(--gray-60,#636367)',
+                    fontSize: 12, fontWeight: 500, color: T.gray60,
                     textTransform: 'uppercase', letterSpacing: '0.04em',
                   }}>{h}</span>
                 ))}
@@ -659,7 +660,7 @@ export const SubAccountBucketDetailPage = () => {
 
               {/* Rows / states */}
               {isLoading ? (
-                <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--gray-50,#8E8E94)', fontSize: 14 }}>
+                <div style={{ padding: '40px 20px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
                   Loading objects…
                 </div>
               ) : displayObjects.length === 0 ? (
@@ -754,11 +755,11 @@ export const SubAccountBucketDetailPage = () => {
 
       <Modal isOpen={isCreateFolderOpen} onClose={() => !isCreatingFolder && setIsCreateFolderOpen(false)}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 400 }}>
-          <p style={{ fontSize: 18, fontWeight: 600, color: 'var(--gray-100,#18181B)', margin: 0 }}>
+          <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100, margin: 0 }}>
             Create folder
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label htmlFor="folder-name" style={{ fontSize: 13, fontWeight: 500, color: 'var(--gray-80,#3A3A3B)' }}>
+            <label htmlFor="folder-name" style={{ fontSize: 13, fontWeight: 500, color: T.gray80 }}>
               Folder name
             </label>
             <input

@@ -5,20 +5,7 @@ import {
   GearSixIcon,
   SignOutIcon,
 } from '@phosphor-icons/react';
-
-// ─── Design tokens ────────────────────────────────────────────────────────────
-
-const T = {
-  primary:    'var(--primary,#0066FF)',
-  primaryBg:  'var(--primary-10,#E6F0FF)',
-  gray20:     'var(--gray-20,#E5E5EB)',
-  gray50:     'var(--gray-50,#8E8E94)',
-  gray60:     'var(--gray-60,#636367)',
-  gray100:    'var(--gray-100,#18181B)',
-  danger:     'var(--red,#E03131)',
-  surfaceAlt: 'var(--gray-5,#F9F9FC)',
-  white:      '#fff',
-};
+import { T } from '../tokens';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -150,10 +137,10 @@ const MenuItem = ({ icon, label, onClick, danger }: MenuItemProps) => {
       style={{
         display: 'flex', alignItems: 'center', gap: 10,
         width: '100%', height: 40, padding: '0 12px',
-        background: hovered ? T.surfaceAlt : 'transparent',
+        background: hovered ? T.gray5 : 'transparent',
         border: 'none', borderRadius: 8, cursor: 'pointer',
         fontSize: 14, fontWeight: 500, fontFamily: 'inherit',
-        color: danger ? T.danger : T.gray100,
+        color: danger ? T.red : T.gray100,
         textAlign: 'left',
       }}
     >

@@ -35,7 +35,7 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--gray-5,#F9F9FC)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: T.gray5 }}>
       <ConsoleTopBar
         tabs={tabs}
         activeTab={activeTab}

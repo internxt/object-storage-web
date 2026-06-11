@@ -16,6 +16,7 @@ import Modal from '../../components/Modal';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
 import { useSubAccount } from '../context/SubAccountContext';
+import { T } from '../tokens';
 import subAccountAxios from '../core/sub-account-axios';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -46,7 +47,7 @@ const StatStrip = ({ stats }: { stats: StatItem[] }) => (
   <div
     style={{
       background: '#fff',
-      border: '1px solid var(--gray-20, #E5E5EB)',
+      border: `1px solid ${T.gray20}`,
       borderRadius: 12,
       boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
       display: 'flex',
@@ -58,14 +59,14 @@ const StatStrip = ({ stats }: { stats: StatItem[] }) => (
         style={{
           flex: 1,
           padding: '20px 24px',
-          borderLeft: i > 0 ? '1px solid var(--gray-20, #E5E5EB)' : 'none',
+          borderLeft: i > 0 ? `1px solid ${T.gray20}` : 'none',
         }}
       >
         <p
           style={{
             fontSize: 12,
             fontWeight: 500,
-            color: 'var(--gray-60, #636367)',
+            color: T.gray60,
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
             marginBottom: 6,
@@ -77,7 +78,7 @@ const StatStrip = ({ stats }: { stats: StatItem[] }) => (
           style={{
             fontSize: 30,
             fontWeight: 700,
-            color: 'var(--gray-100, #18181B)',
+            color: T.gray100,
             lineHeight: 1.2,
             marginBottom: 4,
             fontVariantNumeric: 'tabular-nums',
@@ -85,7 +86,7 @@ const StatStrip = ({ stats }: { stats: StatItem[] }) => (
         >
           {s.value}
         </p>
-        <p style={{ fontSize: 13, color: 'var(--gray-50, #8E8E94)' }}>{s.hint}</p>
+        <p style={{ fontSize: 13, color: T.gray50 }}>{s.hint}</p>
       </div>
     ))}
   </div>
@@ -105,8 +106,8 @@ const Pill = ({ type }: { type: 'public' | 'private' }) => {
         borderRadius: 999,
         fontSize: 12,
         fontWeight: 500,
-        background: isPublic ? 'rgba(0,102,255,0.08)' : 'var(--gray-10, #F3F3F8)',
-        color: isPublic ? 'var(--primary, #0066FF)' : 'var(--gray-80, #3A3A3B)',
+        background: isPublic ? 'rgba(0,102,255,0.08)' : T.gray10,
+        color: isPublic ? T.primary : T.gray80,
       }}
     >
       <span
@@ -114,7 +115,7 @@ const Pill = ({ type }: { type: 'public' | 'private' }) => {
           width: 6,
           height: 6,
           borderRadius: '50%',
-          background: isPublic ? 'var(--primary, #0066FF)' : 'var(--gray-50, #8E8E94)',
+          background: isPublic ? T.primary : T.gray50,
           flexShrink: 0,
         }}
       />
@@ -158,8 +159,8 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
         alignItems: 'center',
         padding: '0 24px',
         height: 56,
-        borderBottom: '1px solid var(--gray-15, #ECECEC)',
-        background: hovered ? 'var(--gray-5, #F9F9FC)' : '#fff',
+        borderBottom: `1px solid ${T.gray15}`,
+        background: hovered ? T.gray5 : '#fff',
         cursor: 'pointer',
         transition: 'background 120ms',
         position: 'relative',
@@ -179,16 +180,16 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
             background: 'linear-gradient(135deg, rgba(0,102,255,0.14) 0%, rgba(0,102,255,0.06) 100%)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'center`,
           }}
         >
-          <HardDrivesIcon size={16} color="var(--primary, #0066FF)" weight="duotone" />
+          <HardDrivesIcon size={16} color="${T.primary}" weight="duotone` />
         </div>
         <span
           style={{
             fontSize: 14,
             fontWeight: 500,
-            color: 'var(--primary, #0066FF)',
+            color: `${T.primary}',
             textDecoration: hovered ? 'underline' : 'none',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -200,7 +201,7 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
       </div>
 
       {/* Region */}
-      <span style={{ fontSize: 14, color: 'var(--gray-80, #3A3A3B)' }}>{regionName}</span>
+      <span style={{ fontSize: 14, color: T.gray80 }}>{regionName}</span>
 
       {/* Visibility */}
       <div>
@@ -208,7 +209,7 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
       </div>
 
       {/* Created */}
-      <span style={{ fontSize: 14, color: 'var(--gray-60, #636367)' }}>{fmtDate(bucket.creationDate)}</span>
+      <span style={{ fontSize: 14, color: T.gray60 }}>{fmtDate(bucket.creationDate)}</span>
 
       {/* Empty col for alignment (was objects/size — hidden until usage API available) */}
       <span />
@@ -220,7 +221,7 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
       >
         {(hovered || menuOpen) && (
           <button
-            aria-label="Bucket actions"
+            aria-label=`Bucket actions"
             title="Bucket actions"
             style={{
               width: 32,
@@ -228,11 +229,11 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: menuOpen ? 'var(--gray-10, #F3F3F8)' : 'transparent',
+              background: menuOpen ? T.gray10 : 'transparent',
               border: 'none',
               borderRadius: 6,
               cursor: 'pointer',
-              color: 'var(--gray-60, #636367)',
+              color: T.gray60,
             }}
             onClick={() => setMenuOpen((o) => !o)}
           >
@@ -248,7 +249,7 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
               top: 36,
               zIndex: 50,
               background: '#fff',
-              border: '1px solid var(--gray-20, #E5E5EB)',
+              border: `1px solid ${T.gray20}`,
               borderRadius: 8,
               boxShadow: '0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04)',
               minWidth: 160,
@@ -316,7 +317,7 @@ const BucketsTable = ({
   <div
     style={{
       background: '#fff',
-      border: '1px solid var(--gray-20, #E5E5EB)',
+      border: `1px solid ${T.gray20}`,
       borderRadius: 12,
       boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
       overflow: 'hidden',
@@ -333,8 +334,8 @@ const BucketsTable = ({
       }}
     >
       <div>
-        <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--gray-100, #18181B)' }}>Buckets</p>
-        <p style={{ fontSize: 13, color: 'var(--gray-50, #8E8E94)', marginTop: 2 }}>
+        <p style={{ fontSize: 16, fontWeight: 600, color: T.gray100 }}>Buckets</p>
+        <p style={{ fontSize: 13, color: T.gray50, marginTop: 2 }}>
           {buckets.length} {buckets.length === 1 ? 'bucket' : 'buckets'} total
         </p>
       </div>
@@ -357,7 +358,7 @@ const BucketsTable = ({
               gap: 8,
               height: 40,
               padding: '0 18px',
-              background: 'var(--primary, #0066FF)',
+              background: T.primary,
               color: '#fff',
               border: 'none',
               borderRadius: 8,
@@ -382,9 +383,9 @@ const BucketsTable = ({
         display: 'grid',
         gridTemplateColumns: GRID,
         padding: '10px 24px',
-        background: 'var(--gray-5, #F9F9FC)',
-        borderTop: '1px solid var(--gray-15, #ECECEC)',
-        borderBottom: '1px solid var(--gray-15, #ECECEC)',
+        background: T.gray5,
+        borderTop: `1px solid ${T.gray15}`,
+        borderBottom: `1px solid ${T.gray15}`,
       }}
     >
       {TABLE_HEADERS.map((h, i) => (
@@ -393,7 +394,7 @@ const BucketsTable = ({
           style={{
             fontSize: 12,
             fontWeight: 500,
-            color: 'var(--gray-60, #636367)',
+            color: T.gray60,
             textTransform: 'uppercase',
             letterSpacing: '0.04em',
           }}
@@ -405,14 +406,14 @@ const BucketsTable = ({
 
     {/* Body */}
     {isLoading ? (
-      <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--gray-50, #8E8E94)', fontSize: 14 }}>
+      <div style={{ padding: '40px 24px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
         Loading buckets…
       </div>
     ) : buckets.length === 0 ? (
       <div style={{ padding: '56px 24px', textAlign: 'center' }}>
-        <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--gray-80, #3A3A3B)' }}>No buckets found</p>
+        <p style={{ fontSize: 14, fontWeight: 500, color: T.gray80 }}>No buckets found</p>
         {search && (
-          <p style={{ fontSize: 13, color: 'var(--gray-50, #8E8E94)', marginTop: 4 }}>
+          <p style={{ fontSize: 13, color: T.gray50, marginTop: 4 }}>
             Try a different search term
           </p>
         )}
@@ -480,13 +481,13 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
   const inputStyle: React.CSSProperties = {
     height: 40,
     padding: '0 12px',
-    border: '1px solid var(--gray-20, #E5E5EB)',
+    border: `1px solid ${T.gray20}`,
     borderRadius: 8,
     fontSize: 14,
-    color: 'var(--gray-100, #18181B)',
+    color: T.gray100,
     outline: 'none',
     fontFamily: 'inherit',
-    background: 'var(--gray-10, #F3F3F8)',
+    background: T.gray10,
     width: '100%',
     boxSizing: 'border-box',
   };
@@ -494,10 +495,10 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
   return (
     <Modal isOpen={isOpen} onClose={() => !isCreating && onClose()}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 400 }}>
-        <p style={{ fontSize: 18, fontWeight: 600, color: 'var(--gray-100, #18181B)' }}>Create Bucket</p>
+        <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100 }}>Create Bucket</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label htmlFor="new-bucket-name" style={{ fontSize: 13, fontWeight: 500, color: 'var(--gray-80, #3A3A3B)' }}>
+          <label htmlFor="new-bucket-name" style={{ fontSize: 13, fontWeight: 500, color: T.gray80 }}>
             Bucket name
           </label>
           <input
@@ -513,7 +514,7 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label htmlFor="new-bucket-region" style={{ fontSize: 13, fontWeight: 500, color: 'var(--gray-80, #3A3A3B)' }}>
+          <label htmlFor="new-bucket-region" style={{ fontSize: 13, fontWeight: 500, color: T.gray80 }}>
             Region
           </label>
           <select

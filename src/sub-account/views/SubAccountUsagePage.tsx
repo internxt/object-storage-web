@@ -9,6 +9,7 @@ import {
 import dayjs from 'dayjs';
 import subAccountAxios from '../core/sub-account-axios';
 import { useSubAccount } from '../context/SubAccountContext';
+import { T } from '../tokens';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ interface StatItem { label: string; value: string; unit?: string; hint: string; 
 const StatStrip = ({ stats }: { stats: StatItem[] }) => (
   <div style={{
     background: '#fff',
-    border: '1px solid var(--gray-20,#E5E5EB)',
+    border: `1px solid ${T.gray20}`,
     borderRadius: 12,
     boxShadow: '0 1px 2px 0 rgba(0,0,0,.05)',
     display: 'flex',
@@ -73,20 +74,20 @@ const StatStrip = ({ stats }: { stats: StatItem[] }) => (
     {stats.map((s, i) => (
       <div key={s.label} style={{
         flex: 1, padding: '20px 24px',
-        borderLeft: i > 0 ? '1px solid var(--gray-20,#E5E5EB)' : 'none',
+        borderLeft: i > 0 ? `1px solid ${T.gray20}` : 'none',
       }}>
         <p style={{
-          fontSize: 12, fontWeight: 500, color: 'var(--gray-60,#636367)',
+          fontSize: 12, fontWeight: 500, color: T.gray60,
           letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 6,
         }}>{s.label}</p>
         <p style={{
           display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 4,
         }}>
-          <span style={{ fontSize: 32, fontWeight: 600, color: 'var(--gray-100,#18181B)',
+          <span style={{ fontSize: 32, fontWeight: 600, color: T.gray100,
             lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{s.value}</span>
-          {s.unit && <span style={{ fontSize: 14, color: 'var(--gray-60,#636367)' }}>{s.unit}</span>}
+          {s.unit && <span style={{ fontSize: 14, color: T.gray60 }}>{s.unit}</span>}
         </p>
-        <p style={{ fontSize: 13, color: 'var(--gray-60,#636367)' }}>{s.hint}</p>
+        <p style={{ fontSize: 13, color: T.gray60 }}>{s.hint}</p>
       </div>
     ))}
   </div>
@@ -106,8 +107,8 @@ const UsageRow = ({ record }: UsageRowProps) => {
       style={{
         display: 'grid', gridTemplateColumns: GRID,
         padding: '0 24px', height: 52, alignItems: 'center',
-        borderBottom: '1px solid var(--gray-15,#ECECEC)',
-        background: hovered ? 'var(--gray-5,#F9F9FC)' : '#fff',
+        borderBottom: `1px solid ${T.gray15}`,
+        background: hovered ? T.gray5 : '#fff',
         transition: 'background 100ms',
       }}
       onMouseEnter={() => setHovered(true)}
@@ -115,19 +116,19 @@ const UsageRow = ({ record }: UsageRowProps) => {
     >
       <span style={{
         fontSize: 14, fontWeight: 500,
-        color: 'var(--primary,#0066FF)',
+        color: T.primary,
         textDecoration: hovered ? 'underline' : 'none',
         cursor: 'default',
       }}>
         {fmtDate(record.date)}
       </span>
-      <span style={{ fontSize: 14, color: 'var(--gray-80,#3A3A3B)', fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
         {fmtTB(record.active)}
       </span>
-      <span style={{ fontSize: 14, color: 'var(--gray-80,#3A3A3B)', fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
         {fmtTB(record.deleted)}
       </span>
-      <span style={{ fontSize: 14, color: 'var(--gray-80,#3A3A3B)', fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
         {record.objects.toLocaleString('en-US')}
       </span>
     </div>
@@ -227,7 +228,7 @@ export const UsageView = () => {
       {/* Account Usage card */}
       <div style={{
         background: '#fff',
-        border: '1px solid var(--gray-20,#E5E5EB)',
+        border: `1px solid ${T.gray20}`,
         borderRadius: 12,
         boxShadow: '0 1px 2px 0 rgba(0,0,0,.05)',
         overflow: 'hidden',
@@ -236,13 +237,13 @@ export const UsageView = () => {
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '18px 24px', gap: 16,
-          borderBottom: '1px solid var(--gray-15,#ECECEC)',
+          borderBottom: `1px solid ${T.gray15}`,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--gray-100,#18181B)' }}>
+            <span style={{ fontSize: 18, fontWeight: 600, color: T.gray100 }}>
               Account Usage
             </span>
-            <InfoIcon size={16} color="var(--gray-50,#8E8E94)" aria-label="Usage information" title="This shows the entire account's usage aggregated per day" />
+            <InfoIcon size={16} color=T.gray50 aria-label="Usage information" title="This shows the entire account's usage aggregated per day" />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -253,50 +254,50 @@ export const UsageView = () => {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   height: 40, padding: '0 14px',
-                  border: '1px solid var(--gray-20,#E5E5EB)', borderRadius: 8,
+                  border: `1px solid ${T.gray20}`, borderRadius: 8,
                   background: '#fff', cursor: 'pointer', fontSize: 13,
-                  color: 'var(--gray-80,#3A3A3B)', fontFamily: 'inherit',
+                  color: T.gray80, fontFamily: 'inherit',
                   fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
                 }}
               >
-                <CalendarBlankIcon size={16} color="var(--gray-50,#8E8E94)" />
+                <CalendarBlankIcon size={16} color=T.gray50 />
                 {dateRangeLabel}
               </button>
               {showDatePicker && (
                 <div style={{
                   position: 'absolute', right: 0, top: 44, zIndex: 40,
-                  background: '#fff', border: '1px solid var(--gray-20,#E5E5EB)',
+                  background: '#fff', border: `1px solid ${T.gray20}`,
                   borderRadius: 10, boxShadow: '0 4px 6px -1px rgba(0,0,0,.08)',
                   padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10,
                 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--gray-60,#636367)' }}>From</label>
+                    <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>From</label>
                     <input
                       ref={fromRef} type="date" value={fromDate}
                       onChange={e => { setFromDate(e.target.value); }}
                       style={{
                         height: 36, padding: '0 10px', borderRadius: 8, fontSize: 13,
-                        border: '1px solid var(--gray-20,#E5E5EB)', fontFamily: 'inherit',
-                        color: 'var(--gray-100,#18181B)', outline: 'none',
+                        border: `1px solid ${T.gray20}`, fontFamily: 'inherit',
+                        color: T.gray100, outline: 'none',
                       }}
                     />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--gray-60,#636367)' }}>To</label>
+                    <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>To</label>
                     <input
                       ref={toRef} type="date" value={toDate}
                       onChange={e => { setToDate(e.target.value); }}
                       style={{
                         height: 36, padding: '0 10px', borderRadius: 8, fontSize: 13,
-                        border: '1px solid var(--gray-20,#E5E5EB)', fontFamily: 'inherit',
-                        color: 'var(--gray-100,#18181B)', outline: 'none',
+                        border: `1px solid ${T.gray20}`, fontFamily: 'inherit',
+                        color: T.gray100, outline: 'none',
                       }}
                     />
                   </div>
                   <button
                     onClick={() => setShowDatePicker(false)}
                     style={{
-                      height: 34, borderRadius: 8, background: 'var(--primary,#0066FF)',
+                      height: 34, borderRadius: 8, background: T.primary,
                       color: '#fff', border: 'none', fontSize: 13, fontWeight: 500,
                       cursor: 'pointer', fontFamily: 'inherit',
                     }}
@@ -314,9 +315,9 @@ export const UsageView = () => {
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 height: 40, padding: '0 14px',
-                border: '1px solid var(--gray-20,#E5E5EB)', borderRadius: 8,
+                border: `1px solid ${T.gray20}`, borderRadius: 8,
                 background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 500,
-                color: 'var(--gray-80,#3A3A3B)', fontFamily: 'inherit',
+                color: T.gray80, fontFamily: 'inherit',
               }}
             >
               <DownloadSimpleIcon size={16} />
@@ -329,8 +330,8 @@ export const UsageView = () => {
         <div role="row" style={{
           display: 'grid', gridTemplateColumns: GRID,
           padding: '10px 24px',
-          background: 'var(--gray-5,#F9F9FC)',
-          borderBottom: '1px solid var(--gray-15,#ECECEC)',
+          background: T.gray5,
+          borderBottom: `1px solid ${T.gray15}`,
         }}>
           {HEADERS.map((h) => (
             <button
@@ -338,7 +339,7 @@ export const UsageView = () => {
               onClick={h.sortable ? () => setSortDir(d => d === 'desc' ? 'asc' : 'desc') : undefined}
               style={{
                 display: 'flex', alignItems: 'center', gap: 5,
-                fontSize: 12, fontWeight: 500, color: 'var(--gray-60,#636367)',
+                fontSize: 12, fontWeight: 500, color: T.gray60,
                 textTransform: 'uppercase', letterSpacing: '0.04em',
                 background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
                 cursor: h.sortable ? 'pointer' : 'default', textAlign: 'left',
@@ -356,13 +357,13 @@ export const UsageView = () => {
 
         {/* Rows */}
         {isLoading ? (
-          <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--gray-50,#8E8E94)', fontSize: 14 }}>
+          <div style={{ padding: '40px 24px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
             Loading usage data…
           </div>
         ) : sorted.length === 0 ? (
           <div style={{ padding: '56px 24px', textAlign: 'center' }}>
-            <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--gray-80,#3A3A3B)', margin: 0 }}>No usage data for this period</p>
-            <p style={{ fontSize: 13, color: 'var(--gray-50,#8E8E94)', marginTop: 4 }}>Try expanding the date range.</p>
+            <p style={{ fontSize: 14, fontWeight: 500, color: T.gray80, margin: 0 }}>No usage data for this period</p>
+            <p style={{ fontSize: 13, color: T.gray50, marginTop: 4 }}>Try expanding the date range.</p>
           </div>
         ) : (
           sorted.map(r => <UsageRow key={r.date} record={r} />)

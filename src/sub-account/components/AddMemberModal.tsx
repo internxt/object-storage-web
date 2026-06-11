@@ -1,7 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
+import { T } from '../tokens';
+
+const selectStyle: React.CSSProperties = {
+  height: 40, width: '100%', padding: '0 12px',
+  border: `1px solid ${T.gray20}`, borderRadius: 8,
+  fontSize: 14, color: T.gray100,
+  background: '#fff', outline: 'none',
+  fontFamily: 'inherit', appearance: 'none',
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238E8E94' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'right 12px center',
+  paddingRight: 32,
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: 13, fontWeight: 500, color: T.gray80, marginBottom: 4, display: 'block',
+};
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -16,6 +33,14 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'admin' | 'standard'>('standard');
 
+  useEffect(() => {
+    if (!isOpen) {
+      setEmail('');
+      setPassword('');
+      setRole('standard');
+    }
+  }, [isOpen]);
+
   const passwordRequired = !ssoEnabled;
   const canSubmit = !!email && (!passwordRequired || password.length >= 8);
 
@@ -23,22 +48,24 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
     e.preventDefault();
     if (!canSubmit) return;
     await onAdd(email, password || undefined, role);
-    setEmail('');
-    setPassword('');
-    setRole('standard');
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <form onSubmit={handleSubmit} className='flex flex-col gap-4 pt-2'>
-        <p className='font-semibold text-lg'>Add Member</p>
-        <div className='flex flex-col gap-1'>
-          <label className='text-sm font-medium text-gray-700'>Email</label>
-          <Input value={email} onChange={setEmail} placeholder='member@example.com' />
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
+        <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100, margin: 0 }}>Add Member</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <label style={labelStyle}>Email</label>
+          <Input value={email} onChange={setEmail} placeholder='member@example.com' variant='email' />
         </div>
-        <div className='flex flex-col gap-1'>
-          <label className='text-sm font-medium text-gray-700'>
-            Password {passwordRequired ? <span className='text-red-500'>*</span> : <span className='text-gray-400'>(optional)</span>}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <label style={labelStyle}>
+            Password{' '}
+            {passwordRequired
+              ? <span style={{ color: T.red }}>*</span>
+              : <span style={{ color: T.gray60 }}>(optional)</span>}
           </label>
           <Input
             value={password}
@@ -47,18 +74,16 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
             variant='password'
           />
         </div>
-        <div className='flex flex-col gap-1'>
-          <label className='text-sm font-medium text-gray-700'>Role</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value as 'admin' | 'standard')}
-            className='border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-          >
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <label style={labelStyle}>Role</label>
+          <select value={role} onChange={(e) => setRole(e.target.value as 'admin' | 'standard')} style={selectStyle}>
             <option value='standard'>Standard</option>
             <option value='admin'>Admin</option>
           </select>
         </div>
-        <div className='flex justify-end gap-2 pt-2'>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
           <Button variant='secondary' type='button' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
