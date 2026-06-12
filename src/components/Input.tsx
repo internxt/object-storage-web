@@ -205,6 +205,7 @@ const Input = ({
           tabIndex={0}
           onMouseDown={(e) => {
             e.preventDefault();
+            e.stopPropagation();
             setShowPassword(!showPassword);
           }}
           className='absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer bg-transparent py-2 pl-2 text-gray-80'
