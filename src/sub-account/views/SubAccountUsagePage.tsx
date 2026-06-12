@@ -243,7 +243,7 @@ export const UsageView = () => {
             <span style={{ ...text.heading }}>
               Account Usage
             </span>
-            <InfoIcon size={16} color={T.gray50} aria-label="Usage information" title="This shows the entire account's usage aggregated per day" />
+            <InfoIcon size={16} color={T.gray50} aria-label="This shows the entire account's usage aggregated per day" />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
