@@ -97,8 +97,8 @@ const COUNTRIES: { value: string; label: string }[] = [
 const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  if (!password || password.length < 6) {
-    errors.push('At least 6 characters');
+  if (!password || password.length < 8) {
+    errors.push('At least 8 characters');
   }
   if (!/[a-z]/.test(password)) {
     errors.push('At least one lowercase letter');
@@ -132,7 +132,7 @@ export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit }: Props) => {
     handleSubmit,
     watch,
     reset,
-    formState: { errors, isValid },
+    formState: { errors, isValid, touchedFields },
   } = useForm<FormValues>({ mode: 'onChange' });
 
   const password = watch('password');
@@ -277,7 +277,7 @@ export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit }: Props) => {
               <input
                 {...register('password', {
                   required: 'Password is required',
-                  validate: (value) => validatePassword(value).isValid || false,
+                  validate: (value) => validatePassword(value).isValid || 'Password does not meet the requirements',
                 })}
                 type={showPassword ? 'text' : 'password'}
                 placeholder='Password'
@@ -298,7 +298,7 @@ export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit }: Props) => {
                 )}
               </button>
             </div>
-            {passwordErrors.length > 0 && (
+            {passwordErrors.length > 0 && touchedFields.password && (
               <div className='p-2 bg-red/10 border border-red rounded-md mt-2'>
                 <div className='flex items-start gap-2'>
                   <AlertCircle className='w-4 h-4 text-red flex-shrink-0 mt-0.5' />
