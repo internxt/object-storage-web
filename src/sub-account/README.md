@@ -3,7 +3,6 @@
 ## Feature: Authentication 
 
 ### Login 
-
 #### Scenario: Successful login with valid credentials
   Given the user is on the login page
   When the user enters a valid email and password
@@ -31,7 +30,6 @@
   And the submit button is disabled
 
 ### Session
-
 #### Scenario: Redirect to Buckets with active session
   Given the user has an active session
   When the user opens the app
@@ -43,47 +41,95 @@
   Then the user is redirected to the login page
 
 
-## Buckets
+## Feature: Buckets section
 
 ### Viewing the bucket list
-- When the user navigates to the Buckets page,
-  then they see a list of all buckets with their name, region, visibility (Public/Private), and creation date.
-- When the page is loading,
-  then a loading state is shown in place of the table.
-- When there are no buckets,
-  then an empty state is shown.
+#### Scenario: View list of buckets
+  Given the user is on the Buckets page
+  Then they see a list of buckets with name, region, visibility (Public/Private) and creation date
+
+#### Scenario: Buckets page is loading
+  Given the Buckets page is loading
+  When the user views the page
+  Then a loading state is shown in place of the table
+
+#### Scenario: No buckets exist
+  Given there are no buckets
+  When the user is on the Buckets page
+  Then an empty state is shown
 
 ### Searching buckets
-- When the user types in the search field,
-  then the list filters in real time to show only buckets whose name contains the search term.
-- When no buckets match the search term,
-  then an empty state is shown.
+#### Scenario: Filter buckets by search term
+  Given the user is on the Buckets page
+  When the user types in the search field
+  Then the list filters in real time to show only buckets whose name matches the search term
+
+#### Scenario: No buckets match the search term
+  Given the user is on the Buckets page
+  When the user types a search term that matches no buckets
+  Then an empty state is shown
 
 ### Opening a bucket
-- When the user clicks on a bucket row,
-  then they are navigated to that bucket's detail page.
+#### Scenario: Navigate to bucket detail
+  Given the user is on the Buckets page
+  When the user clicks on a bucket row
+  Then they are navigated to that bucket's detail page
 
 ### Creating a bucket (admin only)
-- When the user is an admin, then the Create Bucket button is visible.
-- When the user clicks Create Bucket and fills in a valid name and region and submits,
-  then the bucket is created and appears in the list.
-- When the bucket name does not follow S3 naming rules
-  (3–63 characters, lowercase letters, numbers and hyphens only,
-  must start and end with a letter or number, no consecutive hyphens),
-  then an error is shown and the form cannot be submitted.
-- When the create request is in progress,
-  then the submit button shows a loading indicator and is disabled.
-- When the user is not an admin, then the Create Bucket button is not visible.
+#### Scenario: Create Bucket button is visible for admins
+  Given the user is an admin
+  When the user is on the Buckets page
+  Then the Create Bucket button is visible
+
+#### Scenario: Create Bucket button is not visible for non-admins
+  Given the user is not an admin
+  When the user is on the Buckets page
+  Then the Create Bucket button is not visible
+
+#### Scenario: Successfully create a bucket
+  Given the user is an admin and on the Buckets page
+  When the user clicks Create Bucket and fills in a valid name and region
+  And the user submits the form
+  Then the bucket is created and appears in the list
+
+#### Scenario: Create bucket with invalid name
+  Given the user is on the Create Bucket form
+  When the user enters a name that does not follow S3 naming rules (3–63 characters, lowercase letters, numbers and hyphens only,
+  must start and end with a letter or number, no consecutive hyphens)
+  Then an error is shown
+  And the form cannot be submitted
+
+#### Scenario: Create bucket request in progress 
+  Given the create bucket request is in progress
+  When the user views the submit button
+  Then the submit button shows a loading indicator
+  And the submit button is disabled
 
 ### Deleting a bucket (admin only)
-- When the user is an admin, then a context menu with a Delete option is visible on each bucket row.
-- When the user selects Delete from the context menu,
-  then a confirmation dialog is shown before the bucket is deleted.
-- When the user confirms deletion,
-  then the bucket is removed from the list.
-- When the user cancels the confirmation dialog,
-  then nothing happens and the bucket remains in the list.
-- When the user is not an admin, then the context menu is not visible.
+#### Scenario: Context menu is visible for admins
+  Given the user is an admin
+  When the user is on the Buckets page
+  Then a context menu with a Delete option is visible on each bucket row
+
+#### Scenario: Context menu is not visible for non-admins
+  Given the user is not an admin
+  When the user is on the Buckets page
+  Then the context menu is not visible
+
+#### Scenario: Delete option shows confirmation dialog
+  Given the user is an admin and on the Buckets page
+  When the user selects Delete from the context menu
+  Then a confirmation dialog is shown
+
+#### Scenario: Confirm bucket deletion
+  Given the confirmation dialog is shown
+  When the user confirms deletion
+  Then the bucket is removed from the list
+  
+#### Scenario: Cancel bucket deletion
+  Given the confirmation dialog is shown
+  When the user cancels
+  Then the bucket remains in the list
 
 ## Usage
 
