@@ -1,30 +1,47 @@
 # Sub-Account Console — Acceptance Criteria
 
-## Login
+## Feature: Authentication 
 
-### Successful login
-- When the user enters a valid email and password and submits the form,
-  then they are redirected to the Buckets page.
+### Login 
 
-### Invalid credentials
-- When the user submits with credentials that do not match any account,
-  then an error message is shown and the user stays on the login page.
+#### Scenario: Successful login with valid credentials
+  Given the user is on the login page
+  When the user enters a valid email and password
+  And the user submits the form
+  Then the user is redirected to the Buckets page
 
-### Empty fields
-- When the email or password field is empty,
-  then the submit button is disabled and the form cannot be submitted.
+#### Scenario: Login with invalid credentials
+  Given the user is on the login page
+  When the user enters credentials that do not match any account
+  And the user submits the form
+  Then an error message is shown
+  And the user stays on the login page
 
-### Loading state
-- When the login request is in progress,
-  then the submit button shows a loading indicator and is disabled.
+### Scenario: Login with empty fields
+  Given the user is on the login page
+  When the email or password field is empty
+  Then the submit button is disabled
+  And the form cannot be submitted
 
-### Persistent session
-- When the user returns to the app with an active session,
-  then they are redirected to the Buckets page without having to log in again.
+### Scenario: Login request in progress
+  Given the user is on the login page
+  And the login request is in progress
+  When the user views the submit button
+  Then the submit button shows a loading indicator
+  And the submit button is disabled
 
-### Expired or missing session
-- When the session has expired or does not exist,
-  then the user is redirected to the login page.
+### Session
+
+#### Scenario: Redirect to Buckets with active session
+  Given the user has an active session
+  When the user opens the app
+  Then the user is redirected to the Buckets page
+
+#### Scenario: Redirect to login with expired or missing session
+  Given the session has expired or does not exist
+  When the user opens the app
+  Then the user is redirected to the login page
+
 
 ## Buckets
 
