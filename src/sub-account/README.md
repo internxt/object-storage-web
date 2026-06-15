@@ -108,35 +108,74 @@
   When the user clicks on a bucket name
   Then they are navigated to that bucket's detail page
 
-### Creating a bucket (admin only)
-#### Scenario: Create Bucket button is visible for admins
-  Given the user is an admin
+### Creating a bucket
+#### Scenario: Create Bucket button is visible for users with write permissions
+  Given the user has write permissions
   When the user is on the Buckets page
   Then the Create Bucket button is visible
 
-#### Scenario: Create Bucket button is not visible for non-admins
-  Given the user is not an admin
+#### Scenario: Create Bucket button is not visible for users without write permissions
+  Given the user does not have write permissions
   When the user is on the Buckets page
   Then the Create Bucket button is not visible
 
+#### Scenario: Open Create Bucket dialog
+  Given the user has write permissions
+  When the user clicks Create Bucket
+  Then a dialog is shown with Bucket Name, Select Region, Bucket Versioning, Bucket Logging and Object Locking fields
+
 #### Scenario: Successfully create a bucket
-  Given the user is an admin and on the Buckets page
-  When the user clicks Create Bucket and fills in a valid name and region
-  And the user submits the form
-  Then the bucket is created and appears in the list
+  Given the Create Bucket dialog is open
+  When the user fills in a valid name and region and clicks Create
+  Then the dialog is closed
+  And the bucket is created and appears in the list
+
+#### Scenario: Create button is disabled when required fields are empty
+  Given the Create Bucket dialog is open
+  When the Bucket Name or Select Region field is empty
+  Then the Create button is disabled
 
 #### Scenario: Create bucket with invalid name
-  Given the user is on the Create Bucket form
-  When the user enters a name that does not follow S3 naming rules (3–63 characters, lowercase letters, numbers and hyphens only,
+  Given the Create Bucket dialog is open
+  When the user enters a name that does not follow S3 naming rules
+  (3–63 characters, lowercase letters, numbers and hyphens only,
   must start and end with a letter or number, no consecutive hyphens)
   Then an error is shown
-  And the form cannot be submitted
+  And the Create button is disabled
 
-#### Scenario: Create bucket request in progress 
-  Given the create bucket request is in progress
-  When the user views the submit button
-  Then the submit button shows a loading indicator
-  And the submit button is disabled
+#### Scenario: Enable Bucket Versioning on creation
+  Given the Create Bucket dialog is open
+  When the user enables the Bucket Versioning toggle
+  Then versioning will be enabled for the bucket on creation
+
+#### Scenario: Enable Bucket Logging on creation
+  Given the Create Bucket dialog is open
+  When the user enables the Bucket Logging toggle
+  Then logging will be enabled for the bucket on creation
+
+#### Scenario: Object Locking requires Versioning
+  Given the Create Bucket dialog is open
+  And the Bucket Versioning toggle is disabled
+  When the user views the Object Locking toggle
+  Then the Object Locking toggle is disabled
+
+#### Scenario: Enable Object Locking on creation
+  Given the Create Bucket dialog is open
+  And the Bucket Versioning toggle is enabled
+  When the user enables the Object Locking toggle
+  Then object locking will be permanently enabled for the bucket on creation
+
+#### Scenario: Cancel bucket creation
+  Given the Create Bucket dialog is open
+  When the user clicks Cancel or the X button
+  Then the dialog is closed and no bucket is created
+
+#### Scenario: Create bucket request in progress
+  Given the Create Bucket dialog is open
+  And the create bucket request is in progress
+  When the user views the Create button
+  Then the Create button shows a loading indicator
+  And the Create button is disabled
 
 ### Deleting a bucket (admin only)
 #### Scenario: Context menu is visible for admins
