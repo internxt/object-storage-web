@@ -177,31 +177,48 @@
   Then the Create button shows a loading indicator
   And the Create button is disabled
 
-### Deleting a bucket (admin only)
-#### Scenario: Context menu is visible for admins
-  Given the user is an admin
-  When the user is on the Buckets page
-  Then a context menu with a Delete option is visible on each bucket row
+### Deleting a bucket
 
-#### Scenario: Context menu is not visible for non-admins
-  Given the user is not an admin
+#### Scenario: Context menu is visible for users with write permissions
+  Given the user has write permissions
   When the user is on the Buckets page
-  Then the context menu is not visible
+  Then a context menu icon is visible on each bucket row
 
-#### Scenario: Delete option shows confirmation dialog
-  Given the user is an admin and on the Buckets page
-  When the user selects Delete from the context menu
-  Then a confirmation dialog is shown
+#### Scenario: Context menu is not visible for users without write permissions
+  Given the user does not have write permissions
+  When the user is on the Buckets page
+  Then the context menu icon is not visible
+
+#### Scenario: Context menu shows View and Delete options
+  Given the user has write permissions
+  When the user clicks the context menu icon on a bucket row
+  Then a menu is shown with View and Delete options
+
+#### Scenario: Delete from context menu shows confirmation dialog
+  Given the context menu is open
+  When the user clicks Delete
+  Then a confirmation dialog is shown requiring the user to type the bucket name to proceed
+
+#### Scenario: Delete button in Properties shows confirmation dialog
+  Given the user is on the bucket Properties tab
+  When the user clicks Delete
+  Then a confirmation dialog is shown requiring the user to type the bucket name to proceed
+
+#### Scenario: Delete button is disabled until bucket name is typed
+  Given the confirmation dialog is shown
+  When the user has not typed the bucket name correctly
+  Then the Delete button is disabled
 
 #### Scenario: Confirm bucket deletion
   Given the confirmation dialog is shown
-  When the user confirms deletion
-  Then the bucket is removed from the list
-  
+  When the user types the bucket name correctly and clicks Delete
+  Then the bucket is deleted
+  And the user is redirected to the Buckets page
+
 #### Scenario: Cancel bucket deletion
   Given the confirmation dialog is shown
-  When the user cancels
-  Then the bucket remains in the list
+  When the user clicks the X button
+  Then the dialog is closed and the bucket is not deleted
 
 ## Feature: Bucket detail - Objects
 
