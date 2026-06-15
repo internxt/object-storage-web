@@ -96,10 +96,16 @@
   When the user types a search term that matches no buckets
   Then an empty state is shown
 
+#### Scenario: Clear search term
+  Given the user has typed a search term
+  When the user clicks the clear button
+  Then the search field is cleared
+  And the full bucket list is restored
+
 ### Opening a bucket
 #### Scenario: Navigate to bucket detail
   Given the user is on the Buckets page
-  When the user clicks on a bucket row
+  When the user clicks on a bucket name
   Then they are navigated to that bucket's detail page
 
 ### Creating a bucket (admin only)
@@ -157,6 +163,189 @@
   Given the confirmation dialog is shown
   When the user cancels
   Then the bucket remains in the list
+
+## Feature: Bucket detail - Objects
+
+### Viewing objects
+
+#### Scenario: View list of objects
+  Given the user is on the bucket detail page
+  Then they see a list of objects with name, size and last modified date
+
+#### Scenario: Objects page is loading
+  Given the objects list is loading
+  When the user views the page
+  Then a loading state is shown in place of the table
+
+#### Scenario: No objects exist
+  Given there are no objects in the bucket
+  When the user is on the bucket detail page
+  Then an empty state is shown
+
+#### Scenario: Breadcrumb navigation is shown
+  Given the user is on the bucket detail page
+  When the user views the page
+  Then a breadcrumb showing Buckets > bucket name is displayed
+
+#### Scenario: Navigate back to Buckets via breadcrumb
+  Given the user is on the bucket detail page
+  When the user clicks Buckets in the breadcrumb
+  Then they are navigated back to the Buckets page
+
+### Searching objects
+
+#### Scenario: Filter objects by prefix
+  Given the user is on the bucket detail page
+  When the user types a prefix in the search field
+  Then the list filters to show only objects whose name starts with that prefix
+
+#### Scenario: No objects match the prefix
+  Given the user is on the bucket detail page
+  When the user types a prefix that matches no objects
+  Then an empty state is shown
+
+#### Scenario: Clear prefix search
+  Given the user has typed a prefix in the search field
+  When the user clicks the clear button
+  Then the search field is cleared
+  And the full object list is restored
+
+### Show Versions
+
+#### Scenario: Show Versions toggle is visible when versioning is enabled
+  Given the bucket has versioning enabled
+  When the user is on the bucket detail page
+  Then the Show Versions toggle is visible
+
+#### Scenario: Show Version ID column
+  Given the bucket has versioning enabled
+  When the user enables the Show Versions toggle
+  Then a Version ID column is shown for each object
+  And folders show N/A as their Version ID
+
+#### Scenario: Hide Version ID column
+  Given the Show Versions toggle is enabled
+  When the user disables the toggle
+  Then the Version ID column is hidden
+
+### Selecting objects
+
+#### Scenario: Select individual objects
+  Given the user is on the bucket detail page
+  When the user checks one or more object checkboxes
+  Then those objects are marked as selected
+  And the Delete Selected button becomes active
+
+#### Scenario: Select all objects
+  Given the user is on the bucket detail page
+  When the user checks the header checkbox
+  Then all _visible_ objects in the list are selected
+
+#### Scenario: Delete Selected is disabled when a folder is selected
+  Given the user has selected a folder
+  When the user views the Delete Selected button
+  Then the Delete Selected button is disabled
+
+### Deleting selected objects
+
+#### Scenario: Delete selected objects
+  Given the user has one or more objects selected
+  When the user clicks Delete Selected
+  Then a confirmation dialog is shown
+
+#### Scenario: Confirm deletion of selected objects
+  Given the confirmation dialog is shown
+  When the user confirms deletion
+  Then the selected objects are removed from the list
+
+#### Scenario: Cancel deletion of selected objects
+  Given the confirmation dialog is shown
+  When the user cancels
+  Then the objects remain in the list
+
+### Upload Files
+
+#### Scenario: Upload Files button is visible for users with write permissions
+  Given the user has write permissions on the bucket
+  When the user is on the bucket detail page
+  Then the Upload Files button is visible
+
+#### Scenario: Upload Files button is not visible for users without write permissions
+  Given the user does not have write permissions on the bucket
+  When the user is on the bucket detail page
+  Then the Upload Files button is not visible
+
+#### Scenario: Open Upload Files dialog
+  Given the user has write permissions on the bucket
+  When the user clicks Upload Files
+  Then a dialog is shown with a drag and drop area and a Browse Files button
+
+#### Scenario: Upload files via Browse Files
+  Given the Upload Files dialog is open
+  When the user clicks Browse Files and selects one or more files
+  Then the files are uploaded to the bucket
+  And they appear in the object list
+
+#### Scenario: Upload files via drag and drop
+  Given the Upload Files dialog is open
+  When the user drags and drops files or folders into the drop area
+  Then the files are uploaded to the bucket
+  And they appear in the object list
+
+#### Scenario: Close Upload Files dialog
+  Given the Upload Files dialog is open
+  When the user clicks the X button
+  Then the dialog is closed
+
+### Create Folder
+
+#### Scenario: Create Folder button is visible for users with write permissions
+  Given the user has write permissions on the bucket
+  When the user is on the bucket detail page
+  Then the Create Folder button is visible
+
+#### Scenario: Create Folder button is not visible for users without write permissions
+  Given the user does not have write permissions on the bucket
+  When the user is on the bucket detail page
+  Then the Create Folder button is not visible
+
+#### Scenario: Open Create Folder dialog
+  Given the user has write permissions on the bucket
+  When the user clicks Create Folder
+  Then a dialog is shown with a Folder Name field and Cancel and Create buttons
+
+#### Scenario: Successfully create a folder
+  Given the Create Folder dialog is open
+  When the user enters a valid folder name and clicks Create
+  Then the folder is created and appears in the object list
+
+#### Scenario: Create button is disabled when folder name is empty
+  Given the Create Folder dialog is open
+  When the folder name field is empty
+  Then the Create button is disabled
+
+#### Scenario: Cancel folder creation
+  Given the Create Folder dialog is open
+  When the user clicks Cancel or the X button
+  Then the dialog is closed and no folder is created
+
+### Pagination
+
+#### Scenario: Paginate object list
+  Given there are more objects than fit on one page
+  When the user navigates to a different page
+  Then the list updates to show the objects for that page
+
+#### Scenario: First page pagination arrow is disabled
+  Given the user is on the first page
+  When the user views the pagination controls
+  Then the previous page arrow is disabled
+
+#### Scenario: Last page pagination arrow is disabled
+  Given the user is on the last page
+  When the user views the pagination controls
+  Then the next page arrow is disabled
+  
 
 ## Usage
 
