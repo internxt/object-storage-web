@@ -401,7 +401,143 @@
   Given the user is on the last page
   When the user views the pagination controls
   Then the next page arrow is disabled
-  
+
+## Feature: Bucket detail - Properties
+
+### Bucket Versioning
+
+#### Scenario: View versioning status - Unversioned
+  Given the bucket has never had versioning enabled
+  When the user is on the Properties tab
+  Then the Bucket Versioning section shows Unversioned as the current state
+
+#### Scenario: View versioning status - Enabled
+  Given the bucket has versioning enabled
+  When the user is on the Properties tab
+  Then the Bucket Versioning section shows Enabled as the current state
+
+#### Scenario: View versioning status - Suspended
+  Given the bucket has versioning suspended
+  When the user is on the Properties tab
+  Then the Bucket Versioning section shows Suspended as the current state
+
+#### Scenario: Enable versioning shows confirmation dialog
+  Given the bucket is in Unversioned state
+  When the user selects Enable Versioning
+  Then a confirmation dialog is shown
+
+#### Scenario: Confirm enable versioning
+  Given the Enable Versioning confirmation dialog is shown
+  When the user clicks Confirm
+  Then versioning is enabled for the bucket
+  And the Bucket Versioning section shows Enabled as the current state
+
+#### Scenario: Cancel enable versioning
+  Given the Enable Versioning confirmation dialog is shown
+  When the user clicks Cancel or the X button
+  Then the dialog is closed and versioning remains unchanged
+
+#### Scenario: Suspend versioning shows confirmation dialog
+  Given the bucket has versioning enabled
+  When the user selects Suspend Versioning on the Properties tab
+  Then a confirmation dialog is shown
+
+#### Scenario: Confirm suspend versioning
+  Given the Suspend Versioning confirmation dialog is shown
+  When the user clicks Confirm
+  Then versioning is suspended for the bucket
+  And the Bucket Versioning section shows Suspended as the current state
+
+#### Scenario: Cancel suspend versioning
+  Given the Suspend Versioning confirmation dialog is shown
+  When the user clicks Cancel or the X button
+  Then the dialog is closed and versioning remains unchanged
+
+### Bucket Logging
+
+#### Scenario: Enable Bucket Logging shows additional fields
+  Given the user is on the Properties tab
+  When the user enables the Enable Bucket Logging toggle
+  Then the Logging Prefix field and Bucket to store logs dropdown become active
+
+#### Scenario: Bucket to store logs dropdown shows available buckets
+  Given the Enable Bucket Logging toggle is enabled
+  When the user opens the Bucket to store logs dropdown
+  Then a list of available buckets is shown
+
+#### Scenario: Successfully update bucket logging
+  Given the Enable Bucket Logging toggle is enabled
+  And the user has selected a bucket to store logs
+  When the user clicks Update
+  Then the logging configuration is saved
+
+#### Scenario: Disable Bucket Logging
+  Given the Enable Bucket Logging toggle is enabled
+  When the user disables the toggle
+  And clicks Update
+  Then logging is disabled for the bucket
+
+### Object Locking
+
+#### Scenario: Object Locking section shows informational message when not enabled at creation
+  Given the bucket was created without Object Locking enabled
+  When the user is on the Properties tab
+  Then the Object Locking section shows an informational message explaining it must be enabled at creation time
+
+#### Scenario: Object Locking section shows retention settings when enabled at creation
+  Given the bucket was created with Object Locking enabled
+  When the user is on the Properties tab
+  Then the Enable Bucket-Level Object Retention toggle is visible
+
+#### Scenario: Enable Bucket-Level Object Retention shows retention mode options
+  Given the bucket was created with Object Locking enabled
+  When the user enables the Enable Bucket-Level Object Retention toggle
+  Then Governance Mode and Compliance Mode options are shown
+  And Time Scale and Retention Time fields are shown
+
+#### Scenario: Select Governance Mode
+  Given the Enable Bucket-Level Object Retention toggle is enabled
+  When the user selects Enable Governance Mode
+  Then the Time Scale and Retention Time fields are required
+
+#### Scenario: Select Compliance Mode
+  Given the Enable Bucket-Level Object Retention toggle is enabled
+  When the user selects Enable Compliance Mode
+  Then the Time Scale and Retention Time fields are required
+
+#### Scenario: Time Scale dropdown shows available options
+  Given a retention mode is selected
+  When the user opens the Time Scale dropdown
+  Then Day(s) and Year(s) options are shown
+
+#### Scenario: Update button is disabled when required fields are empty
+  Given a retention mode is selected
+  When the Time Scale or Retention Time field is empty
+  Then the Update button is disabled
+
+#### Scenario: Successfully configure bucket-level object retention
+  Given a retention mode is selected
+  And the user has filled in Time Scale and Retention Time
+  When the user clicks Update
+  Then the retention configuration is saved
+
+### Delete Bucket
+
+#### Scenario: Delete button is visible for users with write permissions
+  Given the user has write permissions
+  When the user is on the Properties tab
+  Then the Delete button is visible
+
+#### Scenario: Delete button is not visible for users without write permissions
+  Given the user does not have write permissions
+  When the user is on the Properties tab
+  Then the Delete button is not visible
+
+#### Scenario: Delete bucket from Properties shows confirmation dialog
+  Given the user has write permissions
+  When the user clicks Delete on the Properties tab
+  Then a confirmation dialog is shown requiring the user to type the bucket name to proceed
+
 
 ## Usage
 
