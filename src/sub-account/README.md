@@ -354,13 +354,3 @@
 ### Account tab
 - When the user opens the Account tab,
   then they see read-only account information: email, account ID, and creation date.
-
-## Logout
-
-### Successful logout
-- When the user clicks Logout in the top bar,
-  then their session is cleared and they are redirected to the login page.
-
-### Session cleared
-- When the user has logged out and tries to navigate back to any page,
-  then they are redirected to the login page.
