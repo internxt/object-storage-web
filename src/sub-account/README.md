@@ -16,18 +16,23 @@
   Then an error message is shown
   And the user stays on the login page
 
-### Scenario: Login with empty fields
+#### Scenario: Login with empty fields
   Given the user is on the login page
   When the email or password field is empty
   Then the submit button is disabled
   And the form cannot be submitted
 
-### Scenario: Login request in progress
+#### Scenario: Login request in progress
   Given the user is on the login page
   And the login request is in progress
   When the user views the submit button
   Then the submit button shows a loading indicator
   And the submit button is disabled
+
+#### Scenario: Toggle password visibility
+  Given the user is on the login page
+  When the user clicks the password visibility toggle
+  Then the password field switches between hidden and visible text
 
 ### Session
 #### Scenario: Redirect to Buckets with active session
@@ -40,6 +45,13 @@
   When the user opens the app
   Then the user is redirected to the login page
 
+#### Scenario: Logout
+  Given the user has an active session
+  When the user opens the user menu
+  And the user clicks Log out
+  Then the session is destroyed
+  And the user is redirected to the login page
+
 
 ## Feature: Buckets section
 
@@ -47,6 +59,21 @@
 #### Scenario: View list of buckets
   Given the user is on the Buckets page
   Then they see a list of buckets with name, region, visibility (Public/Private) and creation date
+
+#### Scenario: Paginate bucket list
+  Given there are more buckets than fit on one page
+  When the user navigates to a different page
+  Then the list updates to show the buckets for that page
+
+#### Scenario: First page pagination arrow is disabled
+  Given the user is on the first page
+  When the user views the pagination controls
+  Then the previous page arrow is disabled
+
+#### Scenario: Last page pagination arrow is disabled
+  Given the user is on the last page
+  When the user views the pagination controls
+  Then the next page arrow is disabled
 
 #### Scenario: Buckets page is loading
   Given the Buckets page is loading
