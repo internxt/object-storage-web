@@ -44,16 +44,14 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
             <NavLink to='/partners/sub-accounts' className={navLinkClass}>
               Sub-Accounts
             </NavLink>
-            {!isViewer && (
-              <button
-                onClick={openBilling}
-                disabled={billingLoading}
-                className='flex items-center gap-1.5 px-4 py-4 text-sm font-medium border-b-2 border-transparent text-blue-200 hover:text-white transition-colors disabled:opacity-50'
-              >
-                Billing
-                <ArrowSquareOut size={14} />
-              </button>
-            )}
+            <button
+              onClick={openBilling}
+              disabled={billingLoading}
+              className='flex items-center gap-1.5 px-4 py-4 text-sm font-medium border-b-2 border-transparent text-blue-200 hover:text-white transition-colors disabled:opacity-50'
+            >
+              Billing
+              <ArrowSquareOut size={14} />
+            </button>
           </nav>
         </div>
 
