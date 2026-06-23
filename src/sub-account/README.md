@@ -211,6 +211,7 @@
 - When the user opens the Members tab,
   then they see a list of all members with their email, role, and date added.
 - When the user is not an admin, then the Members tab is not visible.
+- When the user opens the Members tab, then they should not see themselves in the list.
 
 ### Members tab — adding a member
 - When the admin clicks Add Member and fills in a valid email, password (if SSO is disabled), and role, and submits,
