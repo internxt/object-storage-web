@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   DotsThreeVerticalIcon,
@@ -13,6 +13,7 @@ import { isValidBucketName } from '../../utils/isBucketNameValid';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Modal from '../../components/Modal';
+import { Dropdown } from '../../components/Dropdown';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
 import { useSubAccount } from '../context/SubAccountContext';
@@ -137,18 +138,8 @@ interface BucketRowProps {
 }
 
 const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowProps) => {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const close = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, [menuOpen]);
+  const [triggerHovered, setTriggerHovered] = useState(false);
 
   return (
     <div
@@ -216,70 +207,39 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
 
       {/* Actions */}
       <div
-        style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}
+        style={{ display: 'flex', justifyContent: 'center' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {(hovered || menuOpen) && (
-          <button
-            aria-label="Bucket actions"
-            title="Bucket actions"
-            style={{
-              width: 32,
-              height: 32,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: menuOpen ? T.gray10 : 'transparent',
-              border: 'none',
-              borderRadius: 6,
-              cursor: 'pointer',
-              color: T.gray60,
-            }}
-            onClick={() => setMenuOpen((o) => !o)}
-          >
-            <DotsThreeVerticalIcon size={18} weight="bold" />
-          </button>
-        )}
-        {menuOpen && (
-          <div
-            ref={menuRef}
-            style={{
-              position: 'absolute',
-              right: 0,
-              top: 36,
-              zIndex: 50,
-              background: '#fff',
-              border: `1px solid ${T.gray20}`,
-              borderRadius: 8,
-              boxShadow: shadow.md,
-              minWidth: 160,
-              overflow: 'hidden',
-            }}
-          >
-            {isAdmin && (
-              <button
+        {hovered && isAdmin && (
+          <Dropdown
+            button={
+              <span
+                aria-label="Bucket actions"
+                title="Bucket actions"
+                onMouseEnter={() => setTriggerHovered(true)}
+                onMouseLeave={() => setTriggerHovered(false)}
                 style={{
+                  width: 32,
+                  height: 32,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
-                  width: '100%',
-                  padding: '10px 14px',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                  color: '#E50B00',
-                  textAlign: 'left',
+                  justifyContent: 'center',
+                  background: triggerHovered ? T.gray10 : 'transparent',
+                  borderRadius: 6,
+                  color: T.gray60,
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#fff5f5'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
-                onClick={() => { setMenuOpen(false); onDelete(); }}
               >
-                <TrashIcon size={16} />
-                Delete bucket
-              </button>
-            )}
-          </div>
+                <DotsThreeVerticalIcon size={18} weight="bold" />
+              </span>
+            }
+            items={[
+              {
+                label: 'Delete bucket',
+                icon: <TrashIcon size={16} color="#E50B00" />,
+                onClick: onDelete,
+              },
+            ]}
+          />
         )}
       </div>
     </div>
