@@ -14,9 +14,10 @@ interface FileDetailsPanelProps {
   onDownload: (obj: S3Object) => void;
   onCopyPath: (obj: S3Object) => void;
   onDelete: (obj: S3Object) => void;
+  onShowAllVersions: (obj: S3Object) => void;
 }
 
-export const FileDetailsPanel = ({ obj, onClose, onDownload, onCopyPath, onDelete }: FileDetailsPanelProps) => {
+export const FileDetailsPanel = ({ obj, onClose, onDownload, onCopyPath, onDelete, onShowAllVersions }: FileDetailsPanelProps) => {
   const filename = obj.key.split('/').filter(Boolean).pop() ?? obj.key;
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const tzAbbr = new Intl.DateTimeFormat('en', { timeZoneName: 'shortOffset', timeZone: tz })
@@ -53,6 +54,23 @@ export const FileDetailsPanel = ({ obj, onClose, onDownload, onCopyPath, onDelet
         <div className='flex flex-col gap-1'>
           <p className='text-xs text-gray-500 font-medium uppercase tracking-wide'>Path</p>
           <p className='text-sm text-gray-500 break-all'>{obj.key}</p>
+        </div>
+
+        <div className='flex flex-col gap-1'>
+          <div className='flex items-center justify-between'>
+            <p className='text-xs text-gray-500 font-medium uppercase tracking-wide'>Version ID</p>
+            {!obj.isFolder && (
+              <button
+                onClick={() => onShowAllVersions(obj)}
+                className='text-xs text-blue-600 hover:underline'
+              >
+                Show all versions
+              </button>
+            )}
+          </div>
+          <p className='text-sm text-gray-900 break-all'>
+            {!obj.isFolder && obj.versionId && obj.versionId !== 'null' ? obj.versionId : '—'}
+          </p>
         </div>
       </div>
 

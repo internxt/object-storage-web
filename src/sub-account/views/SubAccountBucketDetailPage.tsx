@@ -28,6 +28,8 @@ import Dialog from '../../components/Dialog';
 import Input from '../../components/Input';
 import { Dropdown } from '../../components/Dropdown';
 import { VersioningControl } from '../../components/buckets/VersioningControl';
+import { Switch } from '../../components/Switch';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { useSubAccount } from '../context/SubAccountContext';
 import { T, shadow, text } from '../tokens';
@@ -146,11 +148,13 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
 
 // ─── ObjectRow ────────────────────────────────────────────────────────────────
 
-const GRID_COLS = '24px 2.2fr 1.2fr 1fr 1.2fr 40px';
+const GRID_COLS = '24px 2.2fr 1.2fr 1fr 40px';
+const GRID_COLS_VERSIONS = '24px 2.2fr 1.2fr 1fr 1.2fr 40px';
 
 interface ObjectRowProps {
   obj: S3Object;
   selected: boolean;
+  showVersions: boolean;
   onSelect: (v: boolean) => void;
   onFolderClick: (prefix: string) => void;
   onFileClick: (obj: S3Object) => void;
@@ -159,7 +163,7 @@ interface ObjectRowProps {
   onCopyPath: (obj: S3Object) => void;
 }
 
-const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath }: ObjectRowProps) => {
+const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath }: ObjectRowProps) => {
   const [hovered, setHovered] = useState(false);
   const [triggerHovered, setTriggerHovered] = useState(false);
   const name = displayName(obj.key);
@@ -168,7 +172,7 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
     <div
       role="row"
       style={{
-        display: 'grid', gridTemplateColumns: GRID_COLS, alignItems: 'center',
+        display: 'grid', gridTemplateColumns: showVersions ? GRID_COLS_VERSIONS : GRID_COLS, alignItems: 'center',
         padding: '0 16px', height: 52,
         borderBottom: `1px solid ${T.gray15}`,
         background: selected ? 'rgba(0,102,255,0.04)' : hovered ? T.gray5 : '#fff',
@@ -215,12 +219,14 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
       </span>
 
       {/* Version ID */}
-      <span style={{
-        fontSize: 12, color: T.gray60, fontFamily: 'var(--font-mono,monospace)',
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-      }}>
-        {!obj.isFolder && obj.versionId && obj.versionId !== 'null' ? obj.versionId : '—'}
-      </span>
+      {showVersions && (
+        <span style={{
+          fontSize: 12, color: T.gray60, fontFamily: 'var(--font-mono,monospace)',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {!obj.isFolder && obj.versionId && obj.versionId !== 'null' ? obj.versionId : '—'}
+        </span>
+      )}
 
       {/* Actions */}
       <div
@@ -338,6 +344,7 @@ export const SubAccountBucketDetailPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedVersions, setSelectedVersions] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const [showVersions, setShowVersions] = useLocalStorage('showVersions', false);
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [versioningEnabled, setVersioningEnabled] = useState(false);
   const [isTogglingVersioning, setIsTogglingVersioning] = useState(false);
@@ -362,7 +369,7 @@ export const SubAccountBucketDetailPage = () => {
     if (!client || !bucketName) return;
     const handle = setTimeout(() => loadObjects(client), searchQuery ? 300 : 0);
     return () => clearTimeout(handle);
-  }, [client, bucketName, prefix, searchQuery]);
+  }, [client, bucketName, prefix, searchQuery, showVersions]);
 
   useEffect(() => {
     if (client && bucketName && activeTab === 'properties') {
@@ -391,7 +398,9 @@ export const SubAccountBucketDetailPage = () => {
     setIsLoading(true);
     setSelectedVersions(new Set());
     try {
-      const result = await s3Service.listObjectVersions(s3, bucketName, prefix + searchQuery);
+      const result = showVersions
+        ? await s3Service.listObjectVersions(s3, bucketName, prefix + searchQuery)
+        : await s3Service.listObjects(s3, bucketName, prefix + searchQuery);
       setObjects(result.objects);
     } catch (err) {
       const msg = (err as any)?.name === 'AccessDenied'
@@ -439,6 +448,11 @@ export const SubAccountBucketDetailPage = () => {
   const onCopyPath = (obj: S3Object) => {
     navigator.clipboard.writeText(obj.key);
     notificationsService.success({ text: 'Path copied to clipboard' });
+  };
+
+  const onShowAllVersions = (obj: S3Object) => {
+    setShowVersions(true);
+    setSearchQuery(displayName(obj.key));
   };
 
   const onDeleteSingle = (obj: S3Object) => setFileToDelete(obj);
@@ -644,17 +658,20 @@ export const SubAccountBucketDetailPage = () => {
                     onClear={() => setSearchQuery('')}
                   />
                 </div>
-                <span style={{
-                  fontSize: 13, color: T.gray50,
-                  whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
-                }}>
-                  {displayObjects.length} {displayObjects.length === 1 ? 'object' : 'objects'}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <span style={{
+                    fontSize: 13, color: T.gray50,
+                    whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
+                  }}>
+                    {displayObjects.length} {displayObjects.length === 1 ? 'object' : 'objects'}
+                  </span>
+                  <Switch label="Show Versions" checked={showVersions} onChange={setShowVersions} />
+                </div>
               </div>
 
               {/* Table header */}
               <div role="row" style={{
-                display: 'grid', gridTemplateColumns: GRID_COLS,
+                display: 'grid', gridTemplateColumns: showVersions ? GRID_COLS_VERSIONS : GRID_COLS,
                 padding: '10px 16px',
                 background: T.gray5,
                 borderBottom: `1px solid ${T.gray15}`,
@@ -667,7 +684,10 @@ export const SubAccountBucketDetailPage = () => {
                     aria-label="Select all"
                   />
                 </div>
-                {['Name', 'Size', 'Last modified', 'Version ID', ''].map((h, i) => (
+                {(showVersions
+                  ? ['Name', 'Size', 'Last modified', 'Version ID', '']
+                  : ['Name', 'Size', 'Last modified', '']
+                ).map((h, i) => (
                   <span key={i} style={{
                     fontSize: 12, fontWeight: 500, color: T.gray60,
                     textTransform: 'uppercase', letterSpacing: '0.04em',
@@ -689,9 +709,10 @@ export const SubAccountBucketDetailPage = () => {
               ) : (
                 displayObjects.map(obj => (
                   <ObjectRow
-                    key={obj.key}
+                    key={versionRowId(obj)}
                     obj={obj}
                     selected={selectedVersions.has(versionRowId(obj))}
+                    showVersions={showVersions}
                     onSelect={v => onSelectKey(versionRowId(obj), v)}
                     onFolderClick={navigateToPrefix}
                     onFileClick={setSelectedFile}
@@ -734,6 +755,7 @@ export const SubAccountBucketDetailPage = () => {
             onDownload={onDownload}
             onCopyPath={onCopyPath}
             onDelete={obj => { setSelectedFile(null); onDeleteSingle(obj); }}
+            onShowAllVersions={onShowAllVersions}
           />
         )}
       </div>
