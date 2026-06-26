@@ -26,6 +26,8 @@ import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import Dialog from '../../components/Dialog';
 import Input from '../../components/Input';
+import { Dropdown } from '../../components/Dropdown';
+import { VersioningControl } from '../../components/buckets/VersioningControl';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { useSubAccount } from '../context/SubAccountContext';
 import { T, shadow, text } from '../tokens';
@@ -37,8 +39,14 @@ function displayName(key: string): string {
   return key.replace(/\/$/, '').split('/').filter(Boolean).pop() ?? key;
 }
 
+function versionRowId(obj: S3Object): string {
+  return `${obj.key}::${obj.versionId ?? ''}`;
+}
+
 function fmtDate(d: Date): string {
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const date = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return `${date}, ${time}`;
 }
 
 function getFileIcon(name: string) {
@@ -138,25 +146,7 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
 
 // ─── ObjectRow ────────────────────────────────────────────────────────────────
 
-const GRID_COLS = '24px 2.6fr 1fr 1.4fr 40px';
-
-const ActionItem = ({ icon, label, danger = false, onClick }:
-  { icon: React.ReactNode; label: string; danger?: boolean; onClick: () => void }) => (
-  <button
-    style={{
-      display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-      padding: '9px 14px', background: 'none', border: 'none',
-      cursor: 'pointer', fontSize: 13,
-      color: danger ? '#E50B00' : T.gray80,
-      textAlign: 'left',
-    }}
-    onMouseEnter={e => { e.currentTarget.style.background = danger ? '#fff5f5' : T.gray5; }}
-    onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
-    onClick={onClick}
-  >
-    {icon}{label}
-  </button>
-);
+const GRID_COLS = '24px 2.2fr 1.2fr 1fr 1.2fr 40px';
 
 interface ObjectRowProps {
   obj: S3Object;
@@ -171,18 +161,8 @@ interface ObjectRowProps {
 
 const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath }: ObjectRowProps) => {
   const [hovered, setHovered] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [triggerHovered, setTriggerHovered] = useState(false);
   const name = displayName(obj.key);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const close = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, [menuOpen]);
 
   return (
     <div
@@ -234,40 +214,53 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
         {obj.isFolder ? '—' : fmtDate(obj.lastModified)}
       </span>
 
+      {/* Version ID */}
+      <span style={{
+        fontSize: 12, color: T.gray60, fontFamily: 'var(--font-mono,monospace)',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {!obj.isFolder && obj.versionId && obj.versionId !== 'null' ? obj.versionId : '—'}
+      </span>
+
       {/* Actions */}
       <div
-        style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}
+        style={{ display: 'flex', justifyContent: 'center' }}
         onClick={e => e.stopPropagation()}
       >
-        {(hovered || menuOpen) && (
-          <button
-            aria-label="Object actions" title="Object actions"
-            style={{
-              width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: menuOpen ? T.gray10 : 'transparent',
-              border: 'none', borderRadius: 6, cursor: 'pointer', color: T.gray60,
-            }}
-            onClick={() => setMenuOpen(o => !o)}
-          >
-            <DotsThreeVerticalIcon size={18} weight="bold" />
-          </button>
-        )}
-        {menuOpen && (
-          <div ref={menuRef} style={{
-            position: 'absolute', right: 0, top: 36, zIndex: 50,
-            background: '#fff', border: `1px solid ${T.gray20}`,
-            borderRadius: 8, boxShadow: shadow.md,
-            minWidth: 168, overflow: 'hidden',
-          }}>
-            {!obj.isFolder && (
-              <ActionItem icon={<DownloadSimpleIcon size={15} />} label="Download"
-                onClick={() => { setMenuOpen(false); onDownload(obj); }} />
-            )}
-            <ActionItem icon={<CopyIcon size={15} />} label="Copy path"
-              onClick={() => { setMenuOpen(false); onCopyPath(obj); }} />
-            <ActionItem icon={<TrashIcon size={15} />} label="Delete" danger
-              onClick={() => { setMenuOpen(false); onDelete(obj); }} />
-          </div>
+        {hovered && (
+          <Dropdown
+            button={
+              <span
+                aria-label="Object actions" title="Object actions"
+                onMouseEnter={() => setTriggerHovered(true)}
+                onMouseLeave={() => setTriggerHovered(false)}
+                style={{
+                  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: triggerHovered ? T.gray10 : 'transparent',
+                  borderRadius: 6, color: T.gray60,
+                }}
+              >
+                <DotsThreeVerticalIcon size={18} weight="bold" />
+              </span>
+            }
+            items={[
+              ...(!obj.isFolder ? [{
+                label: 'Download',
+                icon: <DownloadSimpleIcon size={15} />,
+                onClick: () => onDownload(obj),
+              }] : []),
+              {
+                label: 'Copy path',
+                icon: <CopyIcon size={15} />,
+                onClick: () => onCopyPath(obj),
+              },
+              {
+                label: 'Delete',
+                icon: <TrashIcon size={15} color="#E50B00" />,
+                onClick: () => onDelete(obj),
+              },
+            ]}
+          />
         )}
       </div>
     </div>
@@ -343,10 +336,11 @@ export const SubAccountBucketDetailPage = () => {
   const [activeTab, setActiveTab] = useState<'objects' | 'properties'>('objects');
   const [objects, setObjects] = useState<S3Object[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [selectedVersions, setSelectedVersions] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [versioningEnabled, setVersioningEnabled] = useState(false);
+  const [isTogglingVersioning, setIsTogglingVersioning] = useState(false);
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -360,10 +354,15 @@ export const SubAccountBucketDetailPage = () => {
 
   useEffect(() => {
     if (client && bucketName) {
-      loadObjects(client);
       s3Service.getBucketVisibility(client, bucketName).then(setVisibility).catch(() => {});
     }
-  }, [client, bucketName, prefix]);
+  }, [client, bucketName]);
+
+  useEffect(() => {
+    if (!client || !bucketName) return;
+    const handle = setTimeout(() => loadObjects(client), searchQuery ? 300 : 0);
+    return () => clearTimeout(handle);
+  }, [client, bucketName, prefix, searchQuery]);
 
   useEffect(() => {
     if (client && bucketName && activeTab === 'properties') {
@@ -373,12 +372,26 @@ export const SubAccountBucketDetailPage = () => {
     }
   }, [client, bucketName, activeTab]);
 
+  const onToggleVersioning = async (next: boolean) => {
+    if (!client || !bucketName || isTogglingVersioning || next === versioningEnabled) return;
+    setIsTogglingVersioning(true);
+    try {
+      await s3Service.setBucketVersioning(client, bucketName, next);
+      setVersioningEnabled(next);
+      notificationsService.success({ text: `Versioning ${next ? 'enabled' : 'disabled'}` });
+    } catch {
+      notificationsService.error({ text: 'Failed to update versioning' });
+    } finally {
+      setIsTogglingVersioning(false);
+    }
+  };
+
   const loadObjects = async (s3: S3Client) => {
     if (!bucketName) return;
     setIsLoading(true);
-    setSelectedKeys(new Set());
+    setSelectedVersions(new Set());
     try {
-      const result = await s3Service.listObjects(s3, bucketName, prefix);
+      const result = await s3Service.listObjectVersions(s3, bucketName, prefix + searchQuery);
       setObjects(result.objects);
     } catch (err) {
       const msg = (err as any)?.name === 'AccessDenied'
@@ -396,25 +409,27 @@ export const SubAccountBucketDetailPage = () => {
     if (regionRef.current) next.region = regionRef.current;
     if (newPrefix) next.prefix = newPrefix;
     setSearchParams(next);
+    setSearchQuery('');
   };
 
-  const displayObjects = useMemo(() => {
-    if (!searchQuery) return objects;
-    return objects.filter(o => displayName(o.key).toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [objects, searchQuery]);
+  const displayObjects = objects;
 
-  const allSelected = displayObjects.length > 0 && displayObjects.every(o => selectedKeys.has(o.key));
+  const allSelected = displayObjects.length > 0 && displayObjects.every(o => selectedVersions.has(versionRowId(o)));
 
   const onSelectAll = (v: boolean) =>
-    setSelectedKeys(v ? new Set(displayObjects.map(o => o.key)) : new Set());
+    setSelectedVersions(v ? new Set(displayObjects.map(versionRowId)) : new Set());
 
-  const onSelectKey = (key: string, v: boolean) =>
-    setSelectedKeys(prev => { const s = new Set(prev); v ? s.add(key) : s.delete(key); return s; });
+  const onSelectKey = (rowId: string, v: boolean) =>
+    setSelectedVersions(prev => {
+      const s = new Set(prev);
+      if (v) s.add(rowId); else s.delete(rowId);
+      return s;
+    });
 
   const onDownload = async (obj: S3Object) => {
     if (!client || !bucketName) return;
     try {
-      const url = await s3Service.getDownloadUrl(client, bucketName, obj.key);
+      const url = await s3Service.getDownloadUrl(client, bucketName, obj.key, obj.versionId);
       window.location.href = url;
     } catch {
       notificationsService.error({ text: 'Could not generate download link.' });
@@ -432,7 +447,7 @@ export const SubAccountBucketDetailPage = () => {
     if (!client || !bucketName || !fileToDelete) return;
     setIsDeletingSingle(true);
     try {
-      await s3Service.deleteObject(client, bucketName, fileToDelete.key);
+      await s3Service.deleteObject(client, bucketName, fileToDelete.key, fileToDelete.versionId);
       notificationsService.success({ text: 'Object deleted' });
       setFileToDelete(null);
       if (selectedFile?.key === fileToDelete.key) setSelectedFile(null);
@@ -445,11 +460,14 @@ export const SubAccountBucketDetailPage = () => {
   };
 
   const onDeleteSelected = async () => {
-    if (!client || !bucketName || selectedKeys.size === 0) return;
+    if (!client || !bucketName || selectedVersions.size === 0) return;
     setIsDeletingSelected(true);
     try {
-      await s3Service.deleteObjects(client, bucketName, Array.from(selectedKeys));
-      notificationsService.success({ text: `${selectedKeys.size} object(s) deleted` });
+      const items = displayObjects
+        .filter(o => selectedVersions.has(versionRowId(o)))
+        .map(o => ({ key: o.key, versionId: o.versionId }));
+      await s3Service.deleteObjects(client, bucketName, items);
+      notificationsService.success({ text: `${selectedVersions.size} object(s) deleted` });
       setIsDeleteDialogOpen(false);
       await loadObjects(client);
     } catch {
@@ -478,6 +496,7 @@ export const SubAccountBucketDetailPage = () => {
   const region = regionRef.current ?? '—';
   const endpoint = endpointRef.current ?? '';
   const fileObjects = displayObjects.filter(o => !o.isFolder);
+  const uniqueFileCount = new Set(fileObjects.map(o => o.key)).size;
 
   const inputShared: React.CSSProperties = {
     height: 40, padding: '0 12px',
@@ -572,7 +591,7 @@ export const SubAccountBucketDetailPage = () => {
                   onSegment={navigateToPrefix}
                 />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  {selectedKeys.size > 0 && (
+                  {selectedVersions.size > 0 && (
                     <button
                       onClick={() => setIsDeleteDialogOpen(true)}
                       style={{
@@ -581,7 +600,7 @@ export const SubAccountBucketDetailPage = () => {
                         color: '#E50B00', fontSize: 13, fontWeight: 500, cursor: 'pointer',
                       }}
                     >
-                      <TrashIcon size={15} /> Delete ({selectedKeys.size})
+                      <TrashIcon size={15} /> Delete ({selectedVersions.size})
                     </button>
                   )}
                   <button
@@ -648,7 +667,7 @@ export const SubAccountBucketDetailPage = () => {
                     aria-label="Select all"
                   />
                 </div>
-                {['Name', 'Size', 'Last modified', ''].map((h, i) => (
+                {['Name', 'Size', 'Last modified', 'Version ID', ''].map((h, i) => (
                   <span key={i} style={{
                     fontSize: 12, fontWeight: 500, color: T.gray60,
                     textTransform: 'uppercase', letterSpacing: '0.04em',
@@ -672,8 +691,8 @@ export const SubAccountBucketDetailPage = () => {
                   <ObjectRow
                     key={obj.key}
                     obj={obj}
-                    selected={selectedKeys.has(obj.key)}
-                    onSelect={v => onSelectKey(obj.key, v)}
+                    selected={selectedVersions.has(versionRowId(obj))}
+                    onSelect={v => onSelectKey(versionRowId(obj), v)}
                     onFolderClick={navigateToPrefix}
                     onFileClick={setSelectedFile}
                     onDownload={onDownload}
@@ -692,10 +711,14 @@ export const SubAccountBucketDetailPage = () => {
                 <ReadField label="Bucket name" value={bucketName!} mono />
                 <ReadField label="Region" value={region} />
                 <ReadField label="Visibility" value={visibility === 'public' ? 'Public' : 'Private'} />
-                <ReadField label="Objects" value={fileObjects.length ? String(fileObjects.length) : '—'} />
+                <ReadField label="Objects" value={uniqueFileCount ? String(uniqueFileCount) : '—'} />
                 <ReadField label="Endpoint" value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 48, gridColumn: '1 / -1' }}>
-                  <ReadField label="Versioning" value={versioningEnabled ? 'Enabled' : 'Disabled'} />
+                  <VersioningControl
+                    enabled={versioningEnabled}
+                    disabled={isTogglingVersioning}
+                    onChange={onToggleVersioning}
+                  />
                   <ReadField label="Encryption" value="AES-256 · Zero-knowledge" />
                 </div>
               </div>
@@ -735,7 +758,7 @@ export const SubAccountBucketDetailPage = () => {
         secondaryAction="Cancel"
         primaryActionColor="danger"
         title="Delete objects"
-        subtitle={`This will permanently delete ${selectedKeys.size} object(s). This action cannot be undone.`}
+        subtitle={`This will permanently delete ${selectedVersions.size} object(s). This action cannot be undone.`}
       />
 
       <Dialog

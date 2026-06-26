@@ -14,6 +14,7 @@ import {
   CreateBucketCommand,
   GetBucketLocationCommand,
   GetBucketAclCommand,
+  ListObjectVersionsCommand,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -30,11 +31,20 @@ export interface S3Object {
   size: number;
   lastModified: Date;
   isFolder: boolean;
+  versionId?: string;
+  isLatest?: boolean;
 }
 
 export interface ListObjectsResult {
   objects: S3Object[];
   continuationToken?: string;
+  isTruncated: boolean;
+}
+
+export interface ListObjectVersionsResult {
+  objects: S3Object[];
+  keyMarker?: string;
+  versionIdMarker?: string;
   isTruncated: boolean;
 }
 
@@ -104,6 +114,51 @@ export const s3Service = {
     };
   },
 
+  listObjectVersions: async (
+    client: S3Client,
+    bucket: string,
+    prefix = '',
+    keyMarker?: string,
+    versionIdMarker?: string,
+    maxKeys = 100,
+  ): Promise<ListObjectVersionsResult> => {
+    const { Versions = [], CommonPrefixes = [], NextKeyMarker, NextVersionIdMarker, IsTruncated } =
+      await client.send(new ListObjectVersionsCommand({
+        Bucket: bucket,
+        Prefix: prefix,
+        Delimiter: '/',
+        KeyMarker: keyMarker,
+        VersionIdMarker: versionIdMarker,
+        MaxKeys: maxKeys,
+      }));
+
+    const folders: S3Object[] = CommonPrefixes.map((p) => ({
+      key: p.Prefix!,
+      size: 0,
+      lastModified: new Date(0),
+      isFolder: true,
+    }));
+
+    const files: S3Object[] = Versions
+      .filter((v) => v.Key !== prefix)
+      .map((v) => ({
+        key: v.Key!,
+        size: v.Size ?? 0,
+        lastModified: v.LastModified ?? new Date(0),
+        isFolder: false,
+        versionId: v.VersionId,
+        isLatest: v.IsLatest,
+      }))
+      .sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
+
+    return {
+      objects: [...folders, ...files],
+      keyMarker: NextKeyMarker,
+      versionIdMarker: NextVersionIdMarker,
+      isTruncated: IsTruncated ?? false,
+    };
+  },
+
   uploadObject: async (
     client: S3Client,
     bucket: string,
@@ -127,23 +182,28 @@ export const s3Service = {
     await upload.done();
   },
 
-  getDownloadUrl: async (client: S3Client, bucket: string, key: string): Promise<string> => {
+  getDownloadUrl: async (client: S3Client, bucket: string, key: string, versionId?: string): Promise<string> => {
     const filename = key.split('/').pop() ?? key;
     return getSignedUrl(client, new GetObjectCommand({
       Bucket: bucket,
       Key: key,
+      VersionId: versionId,
       ResponseContentDisposition: `attachment; filename="${filename}"`,
     }), { expiresIn: 900 });
   },
 
-  deleteObject: async (client: S3Client, bucket: string, key: string): Promise<void> => {
-    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+  deleteObject: async (client: S3Client, bucket: string, key: string, versionId?: string): Promise<void> => {
+    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key, VersionId: versionId }));
   },
 
-  deleteObjects: async (client: S3Client, bucket: string, keys: string[]): Promise<void> => {
+  deleteObjects: async (
+    client: S3Client,
+    bucket: string,
+    items: { key: string; versionId?: string }[],
+  ): Promise<void> => {
     await client.send(new DeleteObjectsCommand({
       Bucket: bucket,
-      Delete: { Objects: keys.map((Key) => ({ Key })) },
+      Delete: { Objects: items.map(({ key, versionId }) => ({ Key: key, VersionId: versionId })) },
     }));
   },
 
