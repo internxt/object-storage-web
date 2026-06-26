@@ -99,7 +99,7 @@ export const s3Service = {
     }));
 
     const files: S3Object[] = Contents
-      .filter((c) => c.Key !== prefix)
+      .filter((c) => !(c.Key === prefix && prefix.endsWith('/')))
       .map((c) => ({
         key: c.Key!,
         size: c.Size ?? 0,
@@ -140,7 +140,7 @@ export const s3Service = {
     }));
 
     const files: S3Object[] = Versions
-      .filter((v) => v.Key !== prefix)
+      .filter((v) => !(v.Key === prefix && prefix.endsWith('/')))
       .map((v) => ({
         key: v.Key!,
         size: v.Size ?? 0,
