@@ -39,8 +39,14 @@ function displayName(key: string): string {
   return key.replace(/\/$/, '').split('/').filter(Boolean).pop() ?? key;
 }
 
+function versionRowId(obj: S3Object): string {
+  return `${obj.key}::${obj.versionId ?? ''}`;
+}
+
 function fmtDate(d: Date): string {
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const date = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return `${date}, ${time}`;
 }
 
 function getFileIcon(name: string) {
@@ -140,7 +146,7 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
 
 // ─── ObjectRow ────────────────────────────────────────────────────────────────
 
-const GRID_COLS = '24px 2.6fr 1fr 1.4fr 40px';
+const GRID_COLS = '24px 2.2fr 1.2fr 1fr 1.2fr 40px';
 
 interface ObjectRowProps {
   obj: S3Object;
@@ -206,6 +212,14 @@ const ObjectRow = ({ obj, selected, onSelect, onFolderClick, onFileClick, onDown
       {/* Last modified */}
       <span style={{ fontSize: 13, color: T.gray60 }}>
         {obj.isFolder ? '—' : fmtDate(obj.lastModified)}
+      </span>
+
+      {/* Version ID */}
+      <span style={{
+        fontSize: 12, color: T.gray60, fontFamily: 'var(--font-mono,monospace)',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {!obj.isFolder && obj.versionId && obj.versionId !== 'null' ? obj.versionId : '—'}
       </span>
 
       {/* Actions */}
@@ -322,7 +336,7 @@ export const SubAccountBucketDetailPage = () => {
   const [activeTab, setActiveTab] = useState<'objects' | 'properties'>('objects');
   const [objects, setObjects] = useState<S3Object[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [selectedVersions, setSelectedVersions] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [versioningEnabled, setVersioningEnabled] = useState(false);
@@ -340,10 +354,15 @@ export const SubAccountBucketDetailPage = () => {
 
   useEffect(() => {
     if (client && bucketName) {
-      loadObjects(client);
       s3Service.getBucketVisibility(client, bucketName).then(setVisibility).catch(() => {});
     }
-  }, [client, bucketName, prefix]);
+  }, [client, bucketName]);
+
+  useEffect(() => {
+    if (!client || !bucketName) return;
+    const handle = setTimeout(() => loadObjects(client), searchQuery ? 300 : 0);
+    return () => clearTimeout(handle);
+  }, [client, bucketName, prefix, searchQuery]);
 
   useEffect(() => {
     if (client && bucketName && activeTab === 'properties') {
@@ -370,9 +389,9 @@ export const SubAccountBucketDetailPage = () => {
   const loadObjects = async (s3: S3Client) => {
     if (!bucketName) return;
     setIsLoading(true);
-    setSelectedKeys(new Set());
+    setSelectedVersions(new Set());
     try {
-      const result = await s3Service.listObjects(s3, bucketName, prefix);
+      const result = await s3Service.listObjectVersions(s3, bucketName, prefix + searchQuery);
       setObjects(result.objects);
     } catch (err) {
       const msg = (err as any)?.name === 'AccessDenied'
@@ -390,25 +409,27 @@ export const SubAccountBucketDetailPage = () => {
     if (regionRef.current) next.region = regionRef.current;
     if (newPrefix) next.prefix = newPrefix;
     setSearchParams(next);
+    setSearchQuery('');
   };
 
-  const displayObjects = useMemo(() => {
-    if (!searchQuery) return objects;
-    return objects.filter(o => displayName(o.key).toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [objects, searchQuery]);
+  const displayObjects = objects;
 
-  const allSelected = displayObjects.length > 0 && displayObjects.every(o => selectedKeys.has(o.key));
+  const allSelected = displayObjects.length > 0 && displayObjects.every(o => selectedVersions.has(versionRowId(o)));
 
   const onSelectAll = (v: boolean) =>
-    setSelectedKeys(v ? new Set(displayObjects.map(o => o.key)) : new Set());
+    setSelectedVersions(v ? new Set(displayObjects.map(versionRowId)) : new Set());
 
-  const onSelectKey = (key: string, v: boolean) =>
-    setSelectedKeys(prev => { const s = new Set(prev); v ? s.add(key) : s.delete(key); return s; });
+  const onSelectKey = (rowId: string, v: boolean) =>
+    setSelectedVersions(prev => {
+      const s = new Set(prev);
+      if (v) s.add(rowId); else s.delete(rowId);
+      return s;
+    });
 
   const onDownload = async (obj: S3Object) => {
     if (!client || !bucketName) return;
     try {
-      const url = await s3Service.getDownloadUrl(client, bucketName, obj.key);
+      const url = await s3Service.getDownloadUrl(client, bucketName, obj.key, obj.versionId);
       window.location.href = url;
     } catch {
       notificationsService.error({ text: 'Could not generate download link.' });
@@ -426,7 +447,7 @@ export const SubAccountBucketDetailPage = () => {
     if (!client || !bucketName || !fileToDelete) return;
     setIsDeletingSingle(true);
     try {
-      await s3Service.deleteObject(client, bucketName, fileToDelete.key);
+      await s3Service.deleteObject(client, bucketName, fileToDelete.key, fileToDelete.versionId);
       notificationsService.success({ text: 'Object deleted' });
       setFileToDelete(null);
       if (selectedFile?.key === fileToDelete.key) setSelectedFile(null);
@@ -439,11 +460,14 @@ export const SubAccountBucketDetailPage = () => {
   };
 
   const onDeleteSelected = async () => {
-    if (!client || !bucketName || selectedKeys.size === 0) return;
+    if (!client || !bucketName || selectedVersions.size === 0) return;
     setIsDeletingSelected(true);
     try {
-      await s3Service.deleteObjects(client, bucketName, Array.from(selectedKeys));
-      notificationsService.success({ text: `${selectedKeys.size} object(s) deleted` });
+      const items = displayObjects
+        .filter(o => selectedVersions.has(versionRowId(o)))
+        .map(o => ({ key: o.key, versionId: o.versionId }));
+      await s3Service.deleteObjects(client, bucketName, items);
+      notificationsService.success({ text: `${selectedVersions.size} object(s) deleted` });
       setIsDeleteDialogOpen(false);
       await loadObjects(client);
     } catch {
@@ -472,6 +496,7 @@ export const SubAccountBucketDetailPage = () => {
   const region = regionRef.current ?? '—';
   const endpoint = endpointRef.current ?? '';
   const fileObjects = displayObjects.filter(o => !o.isFolder);
+  const uniqueFileCount = new Set(fileObjects.map(o => o.key)).size;
 
   const inputShared: React.CSSProperties = {
     height: 40, padding: '0 12px',
@@ -566,7 +591,7 @@ export const SubAccountBucketDetailPage = () => {
                   onSegment={navigateToPrefix}
                 />
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  {selectedKeys.size > 0 && (
+                  {selectedVersions.size > 0 && (
                     <button
                       onClick={() => setIsDeleteDialogOpen(true)}
                       style={{
@@ -575,7 +600,7 @@ export const SubAccountBucketDetailPage = () => {
                         color: '#E50B00', fontSize: 13, fontWeight: 500, cursor: 'pointer',
                       }}
                     >
-                      <TrashIcon size={15} /> Delete ({selectedKeys.size})
+                      <TrashIcon size={15} /> Delete ({selectedVersions.size})
                     </button>
                   )}
                   <button
@@ -642,7 +667,7 @@ export const SubAccountBucketDetailPage = () => {
                     aria-label="Select all"
                   />
                 </div>
-                {['Name', 'Size', 'Last modified', ''].map((h, i) => (
+                {['Name', 'Size', 'Last modified', 'Version ID', ''].map((h, i) => (
                   <span key={i} style={{
                     fontSize: 12, fontWeight: 500, color: T.gray60,
                     textTransform: 'uppercase', letterSpacing: '0.04em',
@@ -666,8 +691,8 @@ export const SubAccountBucketDetailPage = () => {
                   <ObjectRow
                     key={obj.key}
                     obj={obj}
-                    selected={selectedKeys.has(obj.key)}
-                    onSelect={v => onSelectKey(obj.key, v)}
+                    selected={selectedVersions.has(versionRowId(obj))}
+                    onSelect={v => onSelectKey(versionRowId(obj), v)}
                     onFolderClick={navigateToPrefix}
                     onFileClick={setSelectedFile}
                     onDownload={onDownload}
@@ -686,7 +711,7 @@ export const SubAccountBucketDetailPage = () => {
                 <ReadField label="Bucket name" value={bucketName!} mono />
                 <ReadField label="Region" value={region} />
                 <ReadField label="Visibility" value={visibility === 'public' ? 'Public' : 'Private'} />
-                <ReadField label="Objects" value={fileObjects.length ? String(fileObjects.length) : '—'} />
+                <ReadField label="Objects" value={uniqueFileCount ? String(uniqueFileCount) : '—'} />
                 <ReadField label="Endpoint" value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 48, gridColumn: '1 / -1' }}>
                   <VersioningControl
@@ -733,7 +758,7 @@ export const SubAccountBucketDetailPage = () => {
         secondaryAction="Cancel"
         primaryActionColor="danger"
         title="Delete objects"
-        subtitle={`This will permanently delete ${selectedKeys.size} object(s). This action cannot be undone.`}
+        subtitle={`This will permanently delete ${selectedVersions.size} object(s). This action cannot be undone.`}
       />
 
       <Dialog
