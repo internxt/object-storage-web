@@ -27,10 +27,12 @@ import Button from '../../components/Button';
 import Dialog from '../../components/Dialog';
 import Input from '../../components/Input';
 import { Dropdown } from '../../components/Dropdown';
+import { Pagination } from '../../components/Pagination';
 import { VersioningControl } from '../../components/buckets/VersioningControl';
 import { Switch } from '../../components/Switch';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
+import { useObjectPagination } from '../hooks/useObjectPagination';
 import { useSubAccount } from '../context/SubAccountContext';
 import { T, shadow, text } from '../tokens';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -345,6 +347,9 @@ export const SubAccountBucketDetailPage = () => {
   const [selectedVersions, setSelectedVersions] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [showVersions, setShowVersions] = useLocalStorage('showVersions', false);
+  const {
+    state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage,
+  } = useObjectPagination([prefix, searchQuery, showVersions]);
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [versioningEnabled, setVersioningEnabled] = useState(false);
   const [isTogglingVersioning, setIsTogglingVersioning] = useState(false);
@@ -369,7 +374,7 @@ export const SubAccountBucketDetailPage = () => {
     if (!client || !bucketName) return;
     const handle = setTimeout(() => loadObjects(client), searchQuery ? 300 : 0);
     return () => clearTimeout(handle);
-  }, [client, bucketName, prefix, searchQuery, showVersions]);
+  }, [client, bucketName, prefix, searchQuery, showVersions, pagination.pageSize, pagination.pageNumber]);
 
   useEffect(() => {
     if (client && bucketName && activeTab === 'properties') {
@@ -398,10 +403,20 @@ export const SubAccountBucketDetailPage = () => {
     setIsLoading(true);
     setSelectedVersions(new Set());
     try {
-      const result = showVersions
-        ? await s3Service.listObjectVersions(s3, bucketName, prefix + searchQuery)
-        : await s3Service.listObjects(s3, bucketName, prefix + searchQuery);
-      setObjects(result.objects);
+      if (showVersions) {
+        const result = await s3Service.listObjectVersions(
+          s3, bucketName, prefix + searchQuery,
+          pagination.pageMarker?.keyMarker, pagination.pageMarker?.versionIdMarker, pagination.pageSize,
+        );
+        setObjects(result.objects);
+        recordPage(result);
+      } else {
+        const result = await s3Service.listObjects(
+          s3, bucketName, prefix + searchQuery, pagination.pageMarker?.continuationToken, pagination.pageSize,
+        );
+        setObjects(result.objects);
+        recordPage(result);
+      }
     } catch (err) {
       const msg = (err as any)?.name === 'AccessDenied'
         ? 'Insufficient permissions to list this location.'
@@ -668,6 +683,18 @@ export const SubAccountBucketDetailPage = () => {
                   <Switch label="Show Versions" checked={showVersions} onChange={setShowVersions} />
                 </div>
               </div>
+
+              {/* Pagination */}
+              <Pagination
+                pageSize={pagination.pageSize}
+                pageSizeOptions={[25, 50, 100]}
+                onPageSizeChange={setPageSize}
+                pageNumber={pagination.pageNumber}
+                hasPrevPage={pagination.hasPrevPage}
+                hasNextPage={pagination.hasNextPage}
+                onPrev={goToPrevPage}
+                onNext={goToNextPage}
+              />
 
               {/* Table header */}
               <div role="row" style={{

@@ -17,8 +17,9 @@ subAccountAxios.interceptors.response.use(
   (response) => response,
   (error) => {
     console.log('[sub-account] axios error', { status: error.response?.status, url: error.config?.url });
-    if (error.response?.status === 401) {
-      console.log('[sub-account] 401 → redirecting to login');
+    if (error.response?.status === 401 && !window.location.pathname.endsWith('/login')) {
+      subAccountAuthService.logOut();
+      window.location.href = '/subaccount/login';
     }
     return Promise.reject(error);
   },

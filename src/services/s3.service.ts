@@ -82,13 +82,14 @@ export const s3Service = {
     continuationToken?: string,
     maxKeys = 100,
   ): Promise<ListObjectsResult> => {
+    const folderMarkerOffset = !continuationToken && prefix.endsWith('/') ? 1 : 0;
     const { Contents = [], CommonPrefixes = [], NextContinuationToken, IsTruncated } =
       await client.send(new ListObjectsV2Command({
         Bucket: bucket,
         Prefix: prefix,
         Delimiter: '/',
         ContinuationToken: continuationToken,
-        MaxKeys: maxKeys,
+        MaxKeys: maxKeys + folderMarkerOffset,
       }));
 
     const folders: S3Object[] = CommonPrefixes.map((p) => ({
@@ -97,7 +98,7 @@ export const s3Service = {
       lastModified: new Date(0),
       isFolder: true,
     }));
-
+    
     const files: S3Object[] = Contents
       .filter((c) => !(c.Key === prefix && prefix.endsWith('/')))
       .map((c) => ({
@@ -122,6 +123,7 @@ export const s3Service = {
     versionIdMarker?: string,
     maxKeys = 100,
   ): Promise<ListObjectVersionsResult> => {
+    const folderMarkerOffset = !keyMarker && prefix.endsWith('/') ? 1 : 0;
     const { Versions = [], CommonPrefixes = [], NextKeyMarker, NextVersionIdMarker, IsTruncated } =
       await client.send(new ListObjectVersionsCommand({
         Bucket: bucket,
@@ -129,7 +131,7 @@ export const s3Service = {
         Delimiter: '/',
         KeyMarker: keyMarker,
         VersionIdMarker: versionIdMarker,
-        MaxKeys: maxKeys,
+        MaxKeys: maxKeys + folderMarkerOffset,
       }));
 
     const folders: S3Object[] = CommonPrefixes.map((p) => ({
