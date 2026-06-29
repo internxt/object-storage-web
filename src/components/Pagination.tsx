@@ -15,6 +15,7 @@ interface PaginationProps {
     hasNextPage: boolean;
     onPrev: () => void;
     onNext: () => void;
+    isLoading?: boolean;
 }
 
 export const Pagination = ({
@@ -26,9 +27,10 @@ export const Pagination = ({
     hasNextPage,
     onPrev,
     onNext,
+    isLoading,
 }: PaginationProps) => {
-    const isPrevDisabled = !hasPrevPage;
-    const isNextDisabled = !hasNextPage;
+    const isPrevDisabled = !hasPrevPage || isLoading;
+    const isNextDisabled = !hasNextPage || isLoading;
 
     return (
         <div

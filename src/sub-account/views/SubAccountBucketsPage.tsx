@@ -19,6 +19,8 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { useSubAccount } from '../context/SubAccountContext';
 import { T, shadow, text } from '../tokens';
 import subAccountAxios from '../core/sub-account-axios';
+import { useObjectPagination } from '../hooks/useObjectPagination';
+import { Pagination } from '../../components/Pagination';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -518,6 +520,9 @@ export const SubAccountBucketsPage = () => {
   const [search, setSearch] = useState('');
   const [regions, setRegions] = useState<SubAccountRegion[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const {
+    state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage,
+  } = useObjectPagination([]);
 
   const fetchRegions = () =>
     subAccountAxios.get<SubAccountRegion[]>('/subaccount/regions')
@@ -533,14 +538,22 @@ export const SubAccountBucketsPage = () => {
 
   useEffect(() => {
     if (client) loadBuckets(client);
-  }, [client]);
+  }, [client, pagination.pageSize, pagination.pageNumber]);
 
   const loadBuckets = async (s3: S3Client) => {
     setIsLoading(true);
     try {
-      const list = await s3Service.listBuckets(s3);
+      const result = await s3Service.listBuckets(
+        s3, pagination.pageMarker?.continuationToken, pagination.pageSize,
+      );
+      if (result.buckets.length === 0 && pagination.pageNumber > 1) {
+        recordPage({ ...result, isTruncated: false });
+        goToPrevPage();
+        return;
+      }
+      recordPage(result);
       const enriched = await Promise.all(
-        list.map(async (b) => {
+        result.buckets.map(async (b) => {
           const [regionSlug, visibility] = await Promise.all([
             s3Service.getBucketLocation(s3, b.name).catch(() => ''),
             s3Service.getBucketVisibility(s3, b.name),
@@ -614,6 +627,17 @@ export const SubAccountBucketsPage = () => {
         onDelete={handleDelete}
         onCreateOpen={openCreateModal}
         isAdmin={isAdmin}
+      />
+      <Pagination
+        pageSize={pagination.pageSize}
+        pageSizeOptions={[25, 50, 100]}
+        onPageSizeChange={setPageSize}
+        pageNumber={pagination.pageNumber}
+        hasPrevPage={pagination.hasPrevPage}
+        hasNextPage={pagination.hasNextPage}
+        onPrev={goToPrevPage}
+        onNext={goToNextPage}
+        isLoading={isLoading}
       />
       <CreateBucketModal
         isOpen={isCreateOpen}

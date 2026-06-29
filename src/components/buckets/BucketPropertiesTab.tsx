@@ -45,7 +45,7 @@ export const BucketPropertiesTab = ({ client, bucketName, onDeleted }: BucketPro
   const [buckets, setBuckets] = useState<S3Bucket[]>([]);
 
   useEffect(() => {
-    s3Service.listBuckets(client).then(setBuckets).catch(() => {});
+    s3Service.listBuckets(client).then((result) => setBuckets(result.buckets)).catch(() => {});
 
     s3Service.getBucketVersioning(client, bucketName)
       .then((v) => { setVersioningEnabled(v.enabled); setVersioningLoaded(true); })
