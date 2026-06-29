@@ -41,6 +41,12 @@ export interface ListObjectsResult {
   isTruncated: boolean;
 }
 
+export interface ListBucketsResult {
+  buckets: S3Bucket[];
+  continuationToken?: string;
+  isTruncated: boolean;
+}
+
 export interface ListObjectVersionsResult {
   objects: S3Object[];
   keyMarker?: string;
@@ -49,12 +55,19 @@ export interface ListObjectVersionsResult {
 }
 
 export const s3Service = {
-  listBuckets: async (client: S3Client): Promise<S3Bucket[]> => {
-    const { Buckets = [] } = await client.send(new ListBucketsCommand({}));
-    return Buckets.map((b) => ({
-      name: b.Name!,
-      creationDate: b.CreationDate!,
-    }));
+  listBuckets: async (
+    client: S3Client,
+    continuationToken?: string,
+    maxBuckets?: number,
+  ): Promise<ListBucketsResult> => {
+    const { Buckets = [], ContinuationToken } = await client.send(
+      new ListBucketsCommand({ ContinuationToken: continuationToken, MaxBuckets: maxBuckets }),
+    );
+    return {
+      buckets: Buckets.map((b) => ({ name: b.Name!, creationDate: b.CreationDate! })),
+      continuationToken: ContinuationToken,
+      isTruncated: Buckets.length > 0 && ContinuationToken !== undefined && ContinuationToken !== continuationToken,
+    };
   },
 
   getBucketLocation: async (client: S3Client, bucket: string): Promise<string> => {
