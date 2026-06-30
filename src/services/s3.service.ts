@@ -10,6 +10,8 @@ import {
   PutBucketLoggingCommand,
   GetObjectLockConfigurationCommand,
   PutObjectLockConfigurationCommand,
+  GetObjectRetentionCommand,
+  PutObjectRetentionCommand,
   DeleteBucketCommand,
   CreateBucketCommand,
   GetBucketLocationCommand,
@@ -77,15 +79,21 @@ export const s3Service = {
     return LocationConstraint ?? 'us-east-1';
   },
 
-  createBucket: async (client: S3Client, name: string, region: string): Promise<void> => {
-    if (import.meta.env.DEV) console.log('[s3] createBucket', { name, region });
+  createBucket: async (
+    client: S3Client,
+    name: string,
+    region: string,
+    objectLockEnabled?: boolean,
+  ): Promise<void> => {
+    if (import.meta.env.DEV) console.log('[s3] createBucket', { name, region, objectLockEnabled });
     await client.send(new CreateBucketCommand({
       Bucket: name,
       ...(region !== 'us-east-1' && {
         CreateBucketConfiguration: { LocationConstraint: region as never },
       }),
+      ...(objectLockEnabled && { ObjectLockEnabledForBucket: true }),
     }));
-    if (import.meta.env.DEV) console.log('[s3] createBucket success', { name, region });
+    if (import.meta.env.DEV) console.log('[s3] createBucket success', { name, region, objectLockEnabled });
   },
 
   listObjects: async (
@@ -268,13 +276,14 @@ export const s3Service = {
         new GetObjectLockConfigurationCommand({ Bucket: bucket }),
       );
       return {
-        enabled: ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled',
+        lockEnabledAtCreation: ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled',
+        enabled: !!ObjectLockConfiguration?.Rule?.DefaultRetention,
         mode: ObjectLockConfiguration?.Rule?.DefaultRetention?.Mode,
         days: ObjectLockConfiguration?.Rule?.DefaultRetention?.Days,
         years: ObjectLockConfiguration?.Rule?.DefaultRetention?.Years,
       };
     } catch {
-      return { enabled: false };
+      return { lockEnabledAtCreation: false, enabled: false };
     }
   },
 
@@ -291,6 +300,42 @@ export const s3Service = {
         ObjectLockEnabled: 'Enabled',
         Rule: { DefaultRetention: { Mode: mode, Days: days, Years: years } },
       },
+    }));
+  },
+
+  clearObjectLockConfig: async (client: S3Client, bucket: string): Promise<void> => {
+    await client.send(new PutObjectLockConfigurationCommand({
+      Bucket: bucket,
+      ObjectLockConfiguration: { ObjectLockEnabled: 'Enabled' },
+    }));
+  },
+
+  getObjectRetention: async (client: S3Client, bucket: string, key: string, versionId?: string) => {
+    try {
+      const { Retention } = await client.send(
+        new GetObjectRetentionCommand({ Bucket: bucket, Key: key, VersionId: versionId }),
+      );
+      return Retention
+        ? { mode: Retention.Mode, retainUntilDate: Retention.RetainUntilDate }
+        : null;
+    } catch {
+      return null;
+    }
+  },
+
+  setObjectRetention: async (
+    client: S3Client,
+    bucket: string,
+    key: string,
+    mode: 'GOVERNANCE' | 'COMPLIANCE',
+    retainUntilDate: Date,
+    versionId?: string,
+  ): Promise<void> => {
+    await client.send(new PutObjectRetentionCommand({
+      Bucket: bucket,
+      Key: key,
+      VersionId: versionId,
+      Retention: { Mode: mode, RetainUntilDate: retainUntilDate },
     }));
   },
 

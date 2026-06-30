@@ -14,6 +14,7 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Modal from '../../components/Modal';
 import { Dropdown } from '../../components/Dropdown';
+import { Switch } from '../../components/Switch';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
 import { useSubAccount } from '../context/SubAccountContext';
@@ -409,7 +410,14 @@ interface CreateBucketModalProps {
 const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }: CreateBucketModalProps) => {
   const [bucketName, setBucketName] = useState('');
   const [selectedSlug, setSelectedSlug] = useState('');
+  const [versioningEnabled, setVersioningEnabled] = useState(false);
+  const [objectLockEnabled, setObjectLockEnabled] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  const onToggleVersioning = (next: boolean) => {
+    setVersioningEnabled(next);
+    if (!next) setObjectLockEnabled(false);
+  };
 
   const selectedRegion = useMemo(
     () => regions.find((r) => r.slug === selectedSlug) ?? regions[0] ?? null,
@@ -426,8 +434,17 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
       forcePathStyle: true,
     });
     try {
-      await s3Service.createBucket(regionClient, bucketName, selectedRegion.slug);
+      await s3Service.createBucket(regionClient, bucketName, selectedRegion.slug, objectLockEnabled);
+      if (versioningEnabled) {
+        try {
+          await s3Service.setBucketVersioning(regionClient, bucketName, true);
+        } catch (err) {
+          notificationsService.error({ text: (err as Error).message });
+        }
+      }
       setBucketName('');
+      setVersioningEnabled(false);
+      setObjectLockEnabled(false);
       onCreated();
       onClose();
     } catch (err) {
@@ -488,6 +505,36 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
               </option>
             ))}
           </select>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ ...text.label }}>Bucket Versioning</span>
+            <Switch checked={versioningEnabled} onChange={onToggleVersioning} disabled={isCreating} />
+          </div>
+          <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
+            When versioning is enabled, you can then retrieve and restore any previous version of an object in the
+            bucket. Note: versions of objects are added to your total data storage costs.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ ...text.label }}>Object Locking</span>
+            <Switch
+              checked={objectLockEnabled}
+              onChange={setObjectLockEnabled}
+              disabled={isCreating || !versioningEnabled}
+            />
+          </div>
+          <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
+            {!versioningEnabled
+              ? '(Versioning must be enabled) '
+              : ''}
+            Enabling Object lock will allow you to prevent objects from being overwritten or deleted for a fixed
+            amount of time. Toggling this box will permanently enable Object lock functionality for the duration of
+            the bucket's existence.
+          </p>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>

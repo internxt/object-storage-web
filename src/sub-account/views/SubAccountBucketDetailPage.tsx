@@ -29,10 +29,12 @@ import Input from '../../components/Input';
 import { Dropdown } from '../../components/Dropdown';
 import { Pagination } from '../../components/Pagination';
 import { VersioningControl } from '../../components/buckets/VersioningControl';
+import { ObjectLockingControl } from '../../components/buckets/ObjectLockingControl';
 import { Switch } from '../../components/Switch';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { useObjectPagination } from '../hooks/useObjectPagination';
+import { useFileRetention } from '../hooks/useFileRetention';
 import { useSubAccount } from '../context/SubAccountContext';
 import { T, shadow, text } from '../tokens';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -353,11 +355,16 @@ export const SubAccountBucketDetailPage = () => {
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [versioningEnabled, setVersioningEnabled] = useState(false);
   const [isTogglingVersioning, setIsTogglingVersioning] = useState(false);
+  const [objectLockConfig, setObjectLockConfig] = useState<{
+    lockEnabledAtCreation: boolean; enabled: boolean; mode?: 'GOVERNANCE' | 'COMPLIANCE'; days?: number; years?: number;
+  }>({ lockEnabledAtCreation: false, enabled: false });
+  const [isSavingBucketRetention, setIsSavingBucketRetention] = useState(false);
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeletingSelected, setIsDeletingSelected] = useState(false);
   const [selectedFile, setSelectedFile] = useState<S3Object | null>(null);
+  const fileRetention = useFileRetention();
   const [fileToDelete, setFileToDelete] = useState<S3Object | null>(null);
   const [isDeletingSingle, setIsDeletingSingle] = useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
@@ -381,8 +388,72 @@ export const SubAccountBucketDetailPage = () => {
       s3Service.getBucketVersioning(client, bucketName)
         .then(v => setVersioningEnabled(v.enabled))
         .catch(() => {});
+      s3Service.getObjectLockConfig(client, bucketName)
+        .then(setObjectLockConfig)
+        .catch(() => {});
     }
   }, [client, bucketName, activeTab]);
+
+  const onSaveRetention = async (mode: 'GOVERNANCE' | 'COMPLIANCE', scale: 'days' | 'years', value: number) => {
+    if (!client || !bucketName) return;
+    setIsSavingBucketRetention(true);
+    try {
+      await s3Service.setObjectLockConfig(
+        client, bucketName, mode, scale === 'days' ? value : undefined, scale === 'years' ? value : undefined,
+      );
+      setObjectLockConfig(prev => ({ ...prev, enabled: true, mode, days: scale === 'days' ? value : undefined, years: scale === 'years' ? value : undefined }));
+      notificationsService.success({ text: 'Object retention updated' });
+    } catch {
+      notificationsService.error({ text: 'Failed to update object retention' });
+    } finally {
+      setIsSavingBucketRetention(false);
+    }
+  };
+
+  const onDisableRetention = async () => {
+    if (!client || !bucketName) return;
+    setIsSavingBucketRetention(true);
+    try {
+      await s3Service.clearObjectLockConfig(client, bucketName);
+      setObjectLockConfig(prev => ({ ...prev, enabled: false }));
+      notificationsService.success({ text: 'Object retention disabled' });
+    } catch {
+      notificationsService.error({ text: 'Failed to disable object retention' });
+    } finally {
+      setIsSavingBucketRetention(false);
+    }
+  };
+
+  const onFileClick = async (obj: S3Object) => {
+    setSelectedFile(obj);
+    fileRetention.setRetention(null);
+    if (!client || !bucketName || obj.isFolder) return;
+    const result = await s3Service.getObjectRetention(
+      client, bucketName, obj.key, obj.versionId !== 'null' ? obj.versionId : undefined,
+    );
+    fileRetention.setRetention(
+      result?.mode && result.retainUntilDate
+        ? { mode: result.mode as 'GOVERNANCE' | 'COMPLIANCE', retainUntilDate: result.retainUntilDate }
+        : null,
+    );
+  };
+
+  const onSaveFileRetention = async (mode: 'GOVERNANCE' | 'COMPLIANCE', retainUntilDate: Date) => {
+    if (!client || !bucketName || !selectedFile) return;
+    fileRetention.setIsSaving(true);
+    try {
+      await s3Service.setObjectRetention(
+        client, bucketName, selectedFile.key, mode, retainUntilDate,
+        selectedFile.versionId !== 'null' ? selectedFile.versionId : undefined,
+      );
+      fileRetention.setRetention({ mode, retainUntilDate });
+      notificationsService.success({ text: 'Object retention updated' });
+    } catch {
+      notificationsService.error({ text: 'Failed to update object retention' });
+    } finally {
+      fileRetention.setIsSaving(false);
+    }
+  };
 
   const onToggleVersioning = async (next: boolean) => {
     if (!client || !bucketName || isTogglingVersioning || next === versioningEnabled) return;
@@ -580,8 +651,9 @@ export const SubAccountBucketDetailPage = () => {
         borderRadius: 12,
         boxShadow: shadow.sm,
         overflow: 'hidden',
+        height: 'calc(100vh - 220px)',
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, overflowY: 'auto' }}>
 
           {/* Tabs */}
           <div style={{ display: 'flex', borderBottom: `1px solid ${T.gray15}`, padding: '0 20px' }}>
@@ -742,7 +814,7 @@ export const SubAccountBucketDetailPage = () => {
                     showVersions={showVersions}
                     onSelect={v => onSelectKey(versionRowId(obj), v)}
                     onFolderClick={navigateToPrefix}
-                    onFileClick={setSelectedFile}
+                    onFileClick={onFileClick}
                     onDownload={onDownload}
                     onDelete={onDeleteSingle}
                     onCopyPath={onCopyPath}
@@ -761,11 +833,18 @@ export const SubAccountBucketDetailPage = () => {
                 <ReadField label="Visibility" value={visibility === 'public' ? 'Public' : 'Private'} />
                 <ReadField label="Objects" value={uniqueFileCount ? String(uniqueFileCount) : '—'} />
                 <ReadField label="Endpoint" value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 48, gridColumn: '1 / -1' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 48, gridColumn: '1 / -1', flexWrap: 'wrap' }}>
                   <VersioningControl
                     enabled={versioningEnabled}
                     disabled={isTogglingVersioning}
                     onChange={onToggleVersioning}
+                  />
+                  <ObjectLockingControl
+                    lockEnabledAtCreation={objectLockConfig.lockEnabledAtCreation}
+                    retentionConfig={objectLockConfig}
+                    isSaving={isSavingBucketRetention}
+                    onSave={onSaveRetention}
+                    onDisable={onDisableRetention}
                   />
                   <ReadField label="Encryption" value="AES-256 · Zero-knowledge" />
                 </div>
@@ -777,12 +856,16 @@ export const SubAccountBucketDetailPage = () => {
         {/* Side panel */}
         {selectedFile && (
           <FileDetailsPanel
+            key={selectedFile.key + selectedFile.versionId}
             obj={selectedFile}
+            retention={fileRetention.retention}
+            isSavingRetention={fileRetention.isSaving}
             onClose={() => setSelectedFile(null)}
             onDownload={onDownload}
             onCopyPath={onCopyPath}
             onDelete={obj => { setSelectedFile(null); onDeleteSingle(obj); }}
             onShowAllVersions={onShowAllVersions}
+            onSaveRetention={onSaveFileRetention}
           />
         )}
       </div>
