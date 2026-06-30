@@ -18,7 +18,7 @@ import {
   CopyIcon,
 } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
-import { S3Object, s3Service } from '../../services/s3.service';
+import { S3Object, s3Service, RetentionMode } from '../../services/s3.service';
 import notificationsService from '../../services/notifications.service';
 import { UploadModal } from '../../components/objects/UploadModal';
 import { FileDetailsPanel } from '../../components/objects/FileDetailsPanel';
@@ -356,7 +356,7 @@ export const SubAccountBucketDetailPage = () => {
   const [versioningEnabled, setVersioningEnabled] = useState(false);
   const [isTogglingVersioning, setIsTogglingVersioning] = useState(false);
   const [objectLockConfig, setObjectLockConfig] = useState<{
-    lockEnabledAtCreation: boolean; enabled: boolean; mode?: 'GOVERNANCE' | 'COMPLIANCE'; days?: number; years?: number;
+    lockEnabledAtCreation: boolean; enabled: boolean; mode?: RetentionMode; days?: number; years?: number;
   }>({ lockEnabledAtCreation: false, enabled: false });
   const [isSavingBucketRetention, setIsSavingBucketRetention] = useState(false);
 
@@ -394,7 +394,7 @@ export const SubAccountBucketDetailPage = () => {
     }
   }, [client, bucketName, activeTab]);
 
-  const onSaveRetention = async (mode: 'GOVERNANCE' | 'COMPLIANCE', scale: 'days' | 'years', value: number) => {
+  const onSaveRetention = async (mode: RetentionMode, scale: 'days' | 'years', value: number) => {
     if (!client || !bucketName) return;
     setIsSavingBucketRetention(true);
     try {
@@ -433,12 +433,12 @@ export const SubAccountBucketDetailPage = () => {
     );
     fileRetention.setRetention(
       result?.mode && result.retainUntilDate
-        ? { mode: result.mode as 'GOVERNANCE' | 'COMPLIANCE', retainUntilDate: result.retainUntilDate }
+        ? { mode: result.mode as RetentionMode, retainUntilDate: result.retainUntilDate }
         : null,
     );
   };
 
-  const onSaveFileRetention = async (mode: 'GOVERNANCE' | 'COMPLIANCE', retainUntilDate: Date) => {
+  const onSaveFileRetention = async (mode: RetentionMode, retainUntilDate: Date) => {
     if (!client || !bucketName || !selectedFile) return;
     fileRetention.setIsSaving(true);
     try {

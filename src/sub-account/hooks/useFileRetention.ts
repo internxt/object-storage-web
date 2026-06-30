@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-type RetentionMode = 'GOVERNANCE' | 'COMPLIANCE';
+import { RetentionMode } from '../../services/s3.service';
 
 interface ObjectRetention {
   mode?: RetentionMode;

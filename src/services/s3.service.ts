@@ -22,6 +22,13 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 
+export const RetentionMode = {
+  GOVERNANCE: 'GOVERNANCE',
+  COMPLIANCE: 'COMPLIANCE',
+} as const;
+
+export type RetentionMode = typeof RetentionMode[keyof typeof RetentionMode];
+
 export interface S3Bucket {
   name: string;
   creationDate: Date;
@@ -290,7 +297,7 @@ export const s3Service = {
   setObjectLockConfig: async (
     client: S3Client,
     bucket: string,
-    mode: 'GOVERNANCE' | 'COMPLIANCE',
+    mode: RetentionMode,
     days?: number,
     years?: number,
   ): Promise<void> => {
@@ -327,7 +334,7 @@ export const s3Service = {
     client: S3Client,
     bucket: string,
     key: string,
-    mode: 'GOVERNANCE' | 'COMPLIANCE',
+    mode: RetentionMode,
     retainUntilDate: Date,
     versionId?: string,
   ): Promise<void> => {

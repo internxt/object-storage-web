@@ -4,12 +4,11 @@ import prettyBytes from 'pretty-bytes';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { S3Object } from '../../services/s3.service';
+import { S3Object, RetentionMode } from '../../services/s3.service';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-type RetentionMode = 'GOVERNANCE' | 'COMPLIANCE';
 type RetentionChoice = RetentionMode | 'NONE';
 
 interface ObjectRetention {
@@ -88,7 +87,7 @@ export const FileDetailsPanel = ({
   const originalDate = retention?.retainUntilDate ? dayjs(retention.retainUntilDate).format('YYYY-MM-DD') : '';
   const hasChanged = editChoice !== (retention?.mode ?? 'NONE') || editDate !== originalDate;
   const canApply = editChoice !== 'NONE' && !!editDate && hasChanged;
-  const isLockedCompliance = retention?.mode === 'COMPLIANCE';
+  const isLockedCompliance = retention?.mode === RetentionMode.COMPLIANCE;
 
   return (
     <div className='flex flex-col h-full w-80 border-l border-gray-20 bg-white'>
@@ -171,17 +170,17 @@ export const FileDetailsPanel = ({
 
             <RetentionOption
               title='Enable Governance Mode'
-              badge={retention?.mode === 'GOVERNANCE' ? 'Enabled' : undefined}
+              badge={retention?.mode === RetentionMode.GOVERNANCE ? 'Enabled' : undefined}
               description='Objects placed in Governance Mode remain immutable until after they have reached the retain until date, unless a user has specific IAM permissions to alter the settings.'
-              selected={editChoice === 'GOVERNANCE'}
-              onSelect={() => setEditChoice('GOVERNANCE')}
+              selected={editChoice === RetentionMode.GOVERNANCE}
+              onSelect={() => setEditChoice(RetentionMode.GOVERNANCE)}
             />
             <RetentionOption
               title='Compliance Mode'
-              badge={retention?.mode === 'COMPLIANCE' ? 'Enabled' : undefined}
+              badge={retention?.mode === RetentionMode.COMPLIANCE ? 'Enabled' : undefined}
               description='Objects placed in Compliance Mode remain immutable until after they have reached the retain until date. This cannot be reversed for any reason, by any user, regardless of user permissions.'
-              selected={editChoice === 'COMPLIANCE'}
-              onSelect={() => setEditChoice('COMPLIANCE')}
+              selected={editChoice === RetentionMode.COMPLIANCE}
+              onSelect={() => setEditChoice(RetentionMode.COMPLIANCE)}
             />
             <RetentionOption
               title='None'

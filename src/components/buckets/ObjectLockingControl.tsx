@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { T } from '../../sub-account/tokens';
 import { Switch } from '../Switch';
 import Button from '../Button';
+import { RetentionMode } from '../../services/s3.service';
 
-type RetentionMode = 'GOVERNANCE' | 'COMPLIANCE';
 type TimeScale = 'days' | 'years';
 
 interface ObjectLockRetentionConfig {
@@ -55,13 +55,13 @@ export const ObjectLockingControl = ({
   lockEnabledAtCreation, retentionConfig, disabled = false, isSaving = false, onSave, onDisable,
 }: ObjectLockingControlProps) => {
   const [retentionOpen, setRetentionOpen] = useState(retentionConfig.enabled);
-  const [mode, setMode] = useState<RetentionMode>(retentionConfig.mode ?? 'COMPLIANCE');
+  const [mode, setMode] = useState<RetentionMode>(retentionConfig.mode ?? RetentionMode.COMPLIANCE);
   const [scale, setScale] = useState<TimeScale>(retentionConfig.years ? 'years' : 'days');
   const [value, setValue] = useState<string>(String(retentionConfig.days ?? retentionConfig.years ?? ''));
 
   useEffect(() => {
     setRetentionOpen(retentionConfig.enabled);
-    setMode(retentionConfig.mode ?? 'COMPLIANCE');
+    setMode(retentionConfig.mode ?? RetentionMode.COMPLIANCE);
     setScale(retentionConfig.years ? 'years' : 'days');
     setValue(String(retentionConfig.days ?? retentionConfig.years ?? ''));
   }, [retentionConfig.enabled, retentionConfig.mode, retentionConfig.days, retentionConfig.years]);
@@ -123,19 +123,19 @@ export const ObjectLockingControl = ({
 
           <Option
             title="Enable Governance Mode"
-            badge={retentionConfig.enabled && retentionConfig.mode === 'GOVERNANCE' ? 'Enabled' : undefined}
+            badge={retentionConfig.enabled && retentionConfig.mode === RetentionMode.GOVERNANCE ? 'Enabled' : undefined}
             description="Objects placed in Governance Mode remain immutable until after they have reached the retain until date, unless a user has specific IAM permissions to alter the settings."
-            selected={mode === 'GOVERNANCE'}
+            selected={mode === RetentionMode.GOVERNANCE}
             disabled={disabled}
-            onSelect={() => setMode('GOVERNANCE')}
+            onSelect={() => setMode(RetentionMode.GOVERNANCE)}
           />
           <Option
             title="Compliance Mode"
-            badge={retentionConfig.enabled && retentionConfig.mode === 'COMPLIANCE' ? 'Enabled' : undefined}
+            badge={retentionConfig.enabled && retentionConfig.mode === RetentionMode.COMPLIANCE ? 'Enabled' : undefined}
             description="Objects placed in Compliance Mode remain immutable until after they have reached the retain until date. This cannot be reversed for any reason, by any user, regardless of user permissions."
-            selected={mode === 'COMPLIANCE'}
+            selected={mode === RetentionMode.COMPLIANCE}
             disabled={disabled}
-            onSelect={() => setMode('COMPLIANCE')}
+            onSelect={() => setMode(RetentionMode.COMPLIANCE)}
           />
 
           <div style={{ display: 'flex', gap: 12 }}>
