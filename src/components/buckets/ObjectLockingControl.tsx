@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { T } from '../../sub-account/tokens';
 import { Switch } from '../Switch';
 import Button from '../Button';
 import { RetentionMode } from '../../services/s3.service';
@@ -25,28 +24,24 @@ interface ObjectLockingControlProps {
 const Option = ({ title, description, badge, selected, disabled, onSelect }: {
   title: string; description: string; badge?: string; selected: boolean; disabled?: boolean; onSelect: () => void;
 }) => (
-  <label style={{
-    display: 'flex', alignItems: 'flex-start', gap: 10,
-    cursor: disabled ? 'default' : 'pointer',
-  }}>
+  <label className={`flex items-start gap-2.5 ${disabled ? 'cursor-default' : 'cursor-pointer'}`}>
     <input
       type="radio"
       checked={selected}
       disabled={disabled}
       onChange={onSelect}
-      style={{ marginTop: 3, cursor: disabled ? 'default' : 'pointer' }}
+      className={`mt-[3px] ${disabled ? 'cursor-default' : 'cursor-pointer'}`}
     />
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 14, fontWeight: 500, color: T.gray100 }}>{title}</span>
+    <div className="flex flex-col gap-0.5">
+      <span className="flex items-center gap-2">
+        <span className="text-sm font-medium text-gray-100">{title}</span>
         {badge && (
-          <span style={{
-            fontSize: 11, fontWeight: 600, color: '#15803d', background: '#dcfce7',
-            padding: '2px 8px', borderRadius: 999,
-          }}>{badge}</span>
+          <span className="rounded-full bg-[#dcfce7] px-2 py-0.5 text-[11px] font-semibold text-[#15803d]">
+            {badge}
+          </span>
         )}
       </span>
-      <span style={{ fontSize: 13, color: T.gray60, lineHeight: 1.5 }}>{description}</span>
+      <span className="text-[13px] leading-normal text-gray-60">{description}</span>
     </div>
   </label>
 );
@@ -66,21 +61,14 @@ export const ObjectLockingControl = ({
     setValue(String(retentionConfig.days ?? retentionConfig.years ?? ''));
   }, [retentionConfig.enabled, retentionConfig.mode, retentionConfig.days, retentionConfig.years]);
 
-  const inputStyle: React.CSSProperties = {
-    height: 40, padding: '0 12px',
-    border: `1px solid ${T.gray20}`, borderRadius: 8,
-    fontSize: 14, color: T.gray100, outline: 'none', background: T.gray10,
-    width: '100%', boxSizing: 'border-box',
-  };
+  const inputClass =
+    'box-border w-full h-10 px-3 rounded-lg border border-gray-20 bg-gray-10 text-sm text-gray-100 outline-none';
 
   if (!lockEnabledAtCreation) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 480 }}>
-        <span style={{
-          fontSize: 12, fontWeight: 500, color: T.gray60,
-          letterSpacing: '0.04em', textTransform: 'uppercase',
-        }}>Object Locking</span>
-        <p style={{ fontSize: 13, color: T.gray60, lineHeight: 1.5, margin: 0 }}>
+      <div className="flex max-w-[480px] flex-col gap-2">
+        <span className="text-xs font-medium uppercase tracking-[0.04em] text-gray-60">Object Locking</span>
+        <p className="m-0 text-[13px] leading-normal text-gray-60">
           Object Lock must be enabled at the time a bucket is created. Buckets using Object Lock must also have
           Versioning enabled.
         </p>
@@ -92,18 +80,15 @@ export const ObjectLockingControl = ({
   const canSave = !!value && numericValue > 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 480 }}>
-      <span style={{
-        fontSize: 12, fontWeight: 500, color: T.gray60,
-        letterSpacing: '0.04em', textTransform: 'uppercase',
-      }}>Object Locking</span>
+    <div className="flex max-w-[480px] flex-col gap-3.5">
+      <span className="text-xs font-medium uppercase tracking-[0.04em] text-gray-60">Object Locking</span>
 
-      <p style={{ fontSize: 13, color: T.gray60, lineHeight: 1.5, margin: 0 }}>
+      <p className="m-0 text-[13px] leading-normal text-gray-60">
         Objects placed in this bucket are subject to retention modes set at the bucket or object level.
       </p>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 14, color: T.gray100 }}>Enable Bucket-Level Object Retention</span>
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-100">Enable Bucket-Level Object Retention</span>
         <Switch
           checked={retentionOpen}
           disabled={disabled}
@@ -116,7 +101,7 @@ export const ObjectLockingControl = ({
 
       {retentionOpen && (
         <>
-          <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
+          <p className="m-0 text-[13px] text-gray-60">
             These settings will automatically apply to all new objects placed into the bucket after you confirm the
             settings.
           </p>
@@ -138,22 +123,22 @@ export const ObjectLockingControl = ({
             onSelect={() => setMode(RetentionMode.COMPLIANCE)}
           />
 
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
-              <label htmlFor="lock-time-scale" style={{ fontSize: 12, color: T.gray60 }}>Time Scale*</label>
+          <div className="flex gap-3">
+            <div className="flex flex-1 flex-col gap-1.5">
+              <label htmlFor="lock-time-scale" className="text-xs text-gray-60">Time Scale*</label>
               <select
                 id="lock-time-scale"
                 value={scale}
                 disabled={disabled}
                 onChange={(e) => setScale(e.target.value as TimeScale)}
-                style={{ ...inputStyle, cursor: 'pointer' }}
+                className={`${inputClass} cursor-pointer`}
               >
                 <option value="days">Day(s)</option>
                 <option value="years">Year(s)</option>
               </select>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flex: 1 }}>
-              <label htmlFor="lock-retention-time" style={{ fontSize: 12, color: T.gray60 }}>Retention Time*</label>
+            <div className="flex flex-1 flex-col gap-1.5">
+              <label htmlFor="lock-retention-time" className="text-xs text-gray-60">Retention Time*</label>
               <input
                 id="lock-retention-time"
                 type="number"
@@ -161,12 +146,12 @@ export const ObjectLockingControl = ({
                 value={value}
                 disabled={disabled}
                 onChange={(e) => setValue(e.target.value)}
-                style={inputStyle}
+                className={inputClass}
               />
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div className="flex justify-end">
             <Button
               type="button"
               disabled={disabled || !canSave}
