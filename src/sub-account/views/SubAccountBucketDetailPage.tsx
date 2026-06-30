@@ -388,11 +388,16 @@ export const SubAccountBucketDetailPage = () => {
       s3Service.getBucketVersioning(client, bucketName)
         .then(v => setVersioningEnabled(v.enabled))
         .catch(() => {});
+    }
+  }, [client, bucketName, activeTab]);
+
+  useEffect(() => {
+    if (client && bucketName) {
       s3Service.getObjectLockConfig(client, bucketName)
         .then(setObjectLockConfig)
         .catch(() => {});
     }
-  }, [client, bucketName, activeTab]);
+  }, [client, bucketName]);
 
   const onSaveRetention = async (mode: RetentionMode, scale: 'days' | 'years', value: number) => {
     if (!client || !bucketName) return;
@@ -865,7 +870,7 @@ export const SubAccountBucketDetailPage = () => {
             onCopyPath={onCopyPath}
             onDelete={obj => { setSelectedFile(null); onDeleteSingle(obj); }}
             onShowAllVersions={onShowAllVersions}
-            onSaveRetention={onSaveFileRetention}
+            onSaveRetention={objectLockConfig.enabled ? onSaveFileRetention : undefined}
           />
         )}
       </div>
