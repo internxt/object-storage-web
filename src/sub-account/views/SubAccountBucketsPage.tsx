@@ -641,10 +641,17 @@ export const SubAccountBucketsPage = () => {
   };
 
   const handleDelete = async (bucket: BucketRecord) => {
-    if (!client) return;
+    if (!credentials) return;
     if (!window.confirm(`Delete bucket "${bucket.name}"? This action cannot be undone.`)) return;
+    const region = regions.find((r) => r.slug === bucket.regionSlug);
+    const regionClient = new S3Client({
+      endpoint: `https://${region?.endpoint ?? credentials.endpoint}`,
+      region: bucket.regionSlug,
+      credentials: { accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey },
+      forcePathStyle: true,
+    });
     try {
-      await s3Service.deleteBucket(client, bucket.name);
+      await s3Service.deleteBucket(regionClient, bucket.name);
       setBuckets((prev) => prev.filter((b) => b.name !== bucket.name));
     } catch (err) {
       notificationsService.error({ text: (err as Error).message });
