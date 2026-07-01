@@ -307,6 +307,7 @@ const BucketsTable = ({
             variant="search"
             placeholder="Search buckets..."
             value={search}
+            maxLength={63}
             onChange={onSearchChange}
             onClear={() => onSearchChange('')}
           />
