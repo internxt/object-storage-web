@@ -1,8 +1,9 @@
 import { createPortal } from 'react-dom';
+import { T, shadow, text } from '../../sub-account/tokens';
 
 const variantStyles = {
-  danger:  { background: '#ef4444', color: '#fff' },
-  success: { background: '#059669', color: '#fff' },
+  danger:  { background: T.red, color: T.white },
+  success: { background: '#059669', color: T.white },
 };
 
 interface Props {
@@ -28,22 +29,37 @@ export const ConfirmActionModal = ({
 
   return createPortal(
     <>
-      <div className='fixed inset-0 z-50 bg-black/30' onClick={onCancel} />
-      <div className='fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4'>
+      <div
+        style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.3)' }}
+        onClick={onCancel}
+      />
+      <div
+        style={{
+          position: 'fixed', zIndex: 50,
+          left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+          background: T.white, borderRadius: 16, boxShadow: shadow.lg,
+          width: '100%', maxWidth: 384, padding: 24,
+          display: 'flex', flexDirection: 'column', gap: 16,
+        }}
+      >
         <div>
-          <h3 className='text-base font-semibold text-gray-900'>{title}</h3>
-          <p className='mt-1 text-sm text-gray-500'>{description}</p>
+          <h3 style={{ ...text.heading, margin: 0 }}>{title}</h3>
+          <p style={{ ...text.hint, margin: '4px 0 0' }}>{description}</p>
         </div>
-        <div className='flex justify-end gap-2'>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button
             onClick={onCancel}
-            className='px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors'
+            style={{
+              padding: '8px 16px', fontSize: 14, fontWeight: 500,
+              color: T.gray60, background: T.white,
+              border: `1px solid ${T.gray20}`, borderRadius: 8, cursor: 'pointer',
+            }}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            style={{ ...variantStyles[variant], borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 500, border: 'none', cursor: 'pointer' }}
+            style={{ ...variantStyles[variant], borderRadius: 8, padding: '8px 16px', fontSize: 14, fontWeight: 500, border: 'none', cursor: 'pointer' }}
           >
             {confirmLabel}
           </button>
