@@ -106,6 +106,7 @@ export const LoginPageView = ({
               label='email'
               type='email'
               register={register}
+              required={true}
               minLength={{ value: 1, message: 'Email must not be empty' }}
               error={errors.email}
               className={inputClass}
