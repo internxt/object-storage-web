@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { usePartners } from '../context/partnersContext';
-import { SignOut, User, ArrowSquareOut, GearSix } from '@phosphor-icons/react';
+import { SignOut, User, ArrowSquareOut, GearSix, Question } from '@phosphor-icons/react';
 import { partnersService } from '../services/partners.service';
 import notificationsService from '../../services/notifications.service';
 
@@ -55,42 +55,52 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
           </nav>
         </div>
 
-        <div className='relative'>
+        <div className='flex items-center gap-4'>
           <button
-            onClick={() => setUserMenuOpen((o) => !o)}
-            className='flex items-center gap-2 text-sm text-gray-300 hover:text-white py-4'
+            onClick={() => window.open('https://help.internxt.com/en/collections/10286865-internxt-s3', '_blank')}
+            className='flex items-center text-gray-300 hover:text-white'
+            aria-label='Help'
           >
-            <User size={18} />
+            <Question size={18} />
           </button>
-          {userMenuOpen && (
-            <div className='absolute right-0 top-full mt-1 bg-white rounded shadow-md w-44 z-50' style={{ color: '#374151' }}>
-              {[
-                ...(!isViewer ? [{
-                  label: 'Settings',
-                  icon: <GearSix size={16} />,
-                  onClick: () => { setUserMenuOpen(false); navigate('/partners/settings'); },
-                  extraClass: 'rounded-t',
-                }] : []),
-                {
-                  label: 'Sign out',
-                  icon: <SignOut size={16} />,
-                  onClick: handleLogOut,
-                  extraClass: isViewer ? 'rounded' : 'border-t border-gray-200 rounded-b',
-                },
-              ].map(({ label, icon, onClick, extraClass }) => (
-                <button
-                  key={label}
-                  onClick={onClick}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#1f2937'; e.currentTarget.style.color = 'white'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = ''; }}
-                  className={`flex items-center gap-2 w-full px-4 py-2 text-sm transition-colors ${extraClass}`}
-                >
-                  {icon}
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
+
+          <div className='relative'>
+            <button
+              onClick={() => setUserMenuOpen((o) => !o)}
+              className='flex items-center gap-2 text-sm text-gray-300 hover:text-white py-4'
+            >
+              <User size={18} />
+            </button>
+            {userMenuOpen && (
+              <div className='absolute right-0 top-full mt-1 bg-white rounded shadow-md w-44 z-50' style={{ color: '#374151' }}>
+                {[
+                  ...(!isViewer ? [{
+                    label: 'Settings',
+                    icon: <GearSix size={16} />,
+                    onClick: () => { setUserMenuOpen(false); navigate('/partners/settings'); },
+                    extraClass: 'rounded-t',
+                  }] : []),
+                  {
+                    label: 'Sign out',
+                    icon: <SignOut size={16} />,
+                    onClick: handleLogOut,
+                    extraClass: isViewer ? 'rounded' : 'border-t border-gray-200 rounded-b',
+                  },
+                ].map(({ label, icon, onClick, extraClass }) => (
+                  <button
+                    key={label}
+                    onClick={onClick}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#1f2937'; e.currentTarget.style.color = 'white'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = ''; }}
+                    className={`flex items-center gap-2 w-full px-4 py-2 text-sm transition-colors ${extraClass}`}
+                  >
+                    {icon}
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
