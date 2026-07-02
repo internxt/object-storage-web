@@ -49,11 +49,17 @@ export const Dropdown = ({
   }, []);
 
   const getDropdownPosition = () => {
-    if (!buttonRef.current) return { top: 0, right: 0, width: 0 };
+    if (!buttonRef.current) return { top: 0, bottom: undefined, right: 0, width: 0 };
 
     const rect = buttonRef.current.getBoundingClientRect();
+    const estimatedHeight = items.length * 36 + 8;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const shouldOpenUpward =
+      spaceBelow < estimatedHeight && rect.top > estimatedHeight;
+
     return {
-      top: rect.bottom + 4,
+      top: shouldOpenUpward ? undefined : rect.bottom + 4,
+      bottom: shouldOpenUpward ? window.innerHeight - rect.top + 4 : undefined,
       right: window.innerWidth - rect.right,
       width: rect.width,
     };
@@ -93,9 +99,13 @@ export const Dropdown = ({
             ref={dropdownRef}
             className={`fixed bg-white rounded shadow-lg ${otherClasses}`}
             style={{
-              top: `${position.top}px`,
+              top: position.top !== undefined ? `${position.top}px` : undefined,
+              bottom:
+                position.bottom !== undefined ? `${position.bottom}px` : undefined,
               right: `${position.right}px`,
               zIndex: 9999,
+              maxHeight: '60vh',
+              overflowY: 'auto',
               width:
                 widthClass === 'w-full' ? `${position.width}px` : undefined,
               minWidth:
