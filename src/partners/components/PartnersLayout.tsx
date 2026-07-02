@@ -60,8 +60,9 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
             onClick={() => window.open('https://help.internxt.com/en/collections/10286865-internxt-s3', '_blank')}
             className='flex items-center text-gray-300 hover:text-white'
             aria-label='Help'
+            title='Help'
           >
-            <Question size={18} />
+            <Question size={20} />
           </button>
 
           <div className='relative'>
