@@ -18,7 +18,7 @@ import { Switch } from '../../components/Switch';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
 import { useSubAccount } from '../context/SubAccountContext';
-import { T, shadow, text } from '../tokens';
+import { T, shadow, text, form } from '../tokens';
 import subAccountAxios from '../core/sub-account-axios';
 import { useObjectPagination } from '../hooks/useObjectPagination';
 import { Pagination } from '../../components/Pagination';
@@ -488,6 +488,9 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
             autoFocus
             style={inputStyle}
           />
+          <p style={{ ...form.hint, marginTop: 0, color: bucketName && !isValidBucketName(bucketName) ? T.red : form.hint.color }}>
+            3-63 characters, lowercase letters, numbers, dots and hyphens. Must start and end with a letter or number.
+          </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
