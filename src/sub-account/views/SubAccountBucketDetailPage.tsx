@@ -36,6 +36,7 @@ import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
 import { useObjectPagination } from '../hooks/useObjectPagination';
 import { useFileRetention } from '../hooks/useFileRetention';
 import { useSubAccount } from '../context/SubAccountContext';
+import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal';
 import { T, shadow, text } from '../tokens';
 import { S3Client } from '@aws-sdk/client-s3';
 
@@ -326,7 +327,7 @@ export const SubAccountBucketDetailPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const prefix = searchParams.get('prefix') ?? '';
 
-  const { entityId, memberId } = useSubAccount();
+  const { entityId, memberId, isAdmin } = useSubAccount();
   const { credentials } = useSubAccountS3Client(entityId, memberId);
 
   const endpointRef = useRef(searchParams.get('endpoint'));
@@ -367,6 +368,8 @@ export const SubAccountBucketDetailPage = () => {
   const fileRetention = useFileRetention();
   const [fileToDelete, setFileToDelete] = useState<S3Object | null>(null);
   const [isDeletingSingle, setIsDeletingSingle] = useState(false);
+  const [isDeleteBucketOpen, setIsDeleteBucketOpen] = useState(false);
+  const [isDeletingBucket, setIsDeletingBucket] = useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [folderName, setFolderName] = useState('');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -561,6 +564,19 @@ export const SubAccountBucketDetailPage = () => {
       notificationsService.error({ text: 'Delete failed.' });
     } finally {
       setIsDeletingSingle(false);
+    }
+  };
+
+  const onConfirmDeleteBucket = async () => {
+    if (!client || !bucketName) return;
+    setIsDeletingBucket(true);
+    try {
+      await s3Service.deleteBucket(client, bucketName);
+      navigate('/subaccount/buckets');
+    } catch (err) {
+      notificationsService.error({ text: (err as Error).message });
+    } finally {
+      setIsDeletingBucket(false);
     }
   };
 
@@ -854,6 +870,33 @@ export const SubAccountBucketDetailPage = () => {
                   <ReadField label="Encryption" value="AES-256 · Zero-knowledge" />
                 </div>
               </div>
+
+              {isAdmin && (
+                <div
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    gap: 16, padding: 20,
+                    border: '1px solid #fecaca', borderRadius: 12, background: '#fef2f2',
+                  }}
+                >
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: T.gray100, margin: 0 }}>Delete this bucket</p>
+                    <p style={{ fontSize: 13, color: T.gray60, margin: '2px 0 0' }}>
+                      Permanently delete this bucket and all of its contents. This action cannot be undone.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsDeleteBucketOpen(true)}
+                    style={{
+                      height: 40, padding: '0 16px', fontSize: 14, fontWeight: 500,
+                      color: T.white, background: T.red, border: 'none',
+                      borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Delete bucket
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -909,6 +952,14 @@ export const SubAccountBucketDetailPage = () => {
         primaryActionColor="danger"
         title="Delete object"
         subtitle={`Permanently delete "${fileToDelete ? displayName(fileToDelete.key) : ''}"? This cannot be undone.`}
+      />
+
+      <DeleteBucketConfirmModal
+        isOpen={isDeleteBucketOpen}
+        bucketName={bucketName ?? ''}
+        isDeleting={isDeletingBucket}
+        onConfirm={onConfirmDeleteBucket}
+        onClose={() => !isDeletingBucket && setIsDeleteBucketOpen(false)}
       />
 
       <Modal isOpen={isCreateFolderOpen} onClose={() => !isCreatingFolder && setIsCreateFolderOpen(false)}>

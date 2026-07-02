@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   DotsThreeVerticalIcon,
+  EyeIcon,
   HardDrivesIcon,
   PlusIcon,
   TrashIcon,
@@ -22,6 +23,7 @@ import { T, shadow, text, form } from '../tokens';
 import subAccountAxios from '../core/sub-account-axios';
 import { useObjectPagination } from '../hooks/useObjectPagination';
 import { Pagination } from '../../components/Pagination';
+import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -236,6 +238,11 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
               </span>
             }
             items={[
+              {
+                label: 'View',
+                icon: <EyeIcon size={16} color={T.gray60} />,
+                onClick: onOpen,
+              },
               {
                 label: 'Delete bucket',
                 icon: <TrashIcon size={16} color="#E50B00" />,
@@ -571,6 +578,8 @@ export const SubAccountBucketsPage = () => {
   const [search, setSearch] = useState('');
   const [regions, setRegions] = useState<SubAccountRegion[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [bucketToDelete, setBucketToDelete] = useState<BucketRecord | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const {
     state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage,
   } = useObjectPagination([]);
@@ -644,21 +653,26 @@ export const SubAccountBucketsPage = () => {
     navigate(`/subaccount/buckets/${bucket.name}${query}`);
   };
 
-  const handleDelete = async (bucket: BucketRecord) => {
-    if (!credentials) return;
-    if (!window.confirm(`Delete bucket "${bucket.name}"? This action cannot be undone.`)) return;
-    const region = regions.find((r) => r.slug === bucket.regionSlug);
+  const handleDelete = (bucket: BucketRecord) => setBucketToDelete(bucket);
+
+  const confirmDelete = async () => {
+    if (!credentials || !bucketToDelete) return;
+    const region = regions.find((r) => r.slug === bucketToDelete.regionSlug);
     const regionClient = new S3Client({
       endpoint: `https://${region?.endpoint ?? credentials.endpoint}`,
-      region: bucket.regionSlug,
+      region: bucketToDelete.regionSlug,
       credentials: { accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey },
       forcePathStyle: true,
     });
+    setIsDeleting(true);
     try {
-      await s3Service.deleteBucket(regionClient, bucket.name);
-      setBuckets((prev) => prev.filter((b) => b.name !== bucket.name));
+      await s3Service.deleteBucket(regionClient, bucketToDelete.name);
+      setBuckets((prev) => prev.filter((b) => b.name !== bucketToDelete.name));
+      setBucketToDelete(null);
     } catch (err) {
       notificationsService.error({ text: (err as Error).message });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -703,6 +717,13 @@ export const SubAccountBucketsPage = () => {
         regions={regions}
         credentials={credentials}
         onCreated={() => client && loadBuckets(client)}
+      />
+      <DeleteBucketConfirmModal
+        isOpen={!!bucketToDelete}
+        bucketName={bucketToDelete?.name ?? ''}
+        isDeleting={isDeleting}
+        onConfirm={confirmDelete}
+        onClose={() => !isDeleting && setBucketToDelete(null)}
       />
     </div>
   );
