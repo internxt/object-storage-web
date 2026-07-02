@@ -31,6 +31,7 @@ export const LoginPageView = ({
   const {
     register,
     handleSubmit,
+    trigger,
     formState: { errors, isValid },
   } = useForm<IFormValues>({ mode: 'onChange' });
 
@@ -39,6 +40,10 @@ export const LoginPageView = ({
       navigate(redirectTo, { replace: true });
     }
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    trigger();
+  }, [trigger]);
 
   useEffect(() => {
     if (loginError) {
