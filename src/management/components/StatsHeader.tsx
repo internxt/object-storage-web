@@ -1,10 +1,26 @@
 import { useState } from 'react';
 import { UsagesSummary, SubAccount } from '../services/management.service';
+import { T, card } from '../../sub-account/tokens';
 
 interface Props {
   data: UsagesSummary | null;
   topClient: SubAccount | null;
 }
+
+const ACCENT = '#6366f1';
+const POSITIVE = '#10b981';
+const NEGATIVE = '#ef4444';
+
+const labelStyle = {
+  fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const,
+  letterSpacing: '0.14em', color: T.gray60,
+};
+
+const metricStyle = {
+  fontSize: 48, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1,
+};
+
+const unitStyle = { fontSize: 20, fontWeight: 500, color: T.gray50 };
 
 function tbDisplay(value?: number | null): string {
   if (value == null) return '—';
@@ -23,96 +39,61 @@ export const StatsHeader = ({ data, topClient: top }: Props) => {
   const used = data?.usedBillableStorageTb;
   const [showPeriod, setShowPeriod] = useState(false);
 
-
   return (
-    <div
-      className='bg-white rounded-2xl'
-      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)' }}
-    >
-      <div className='px-10 pt-9 pb-3'>
-        <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>
-          Storage Overview
-        </p>
+    <div style={{ ...card, borderRadius: 16, display: 'flex' }}>
+      {/* Total Used Space */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, padding: '28px 40px' }}>
+        <p style={labelStyle}>Total Used Space</p>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{ ...metricStyle, color: ACCENT }}>{tbDisplay(used)}</span>
+          <span style={unitStyle}>TB</span>
+        </div>
       </div>
-      <div className='px-10 pb-9 flex items-center gap-0'>
-        {/* Total Used Space */}
-        <div className='flex flex-col gap-2 flex-1'>
-          <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>
-            Total Used Space
-          </p>
-          <div className='flex items-baseline gap-2'>
-            <span
-              className='text-5xl font-semibold tracking-tight leading-none'
-              style={{ color: '#6366f1' }}
-            >
-              {tbDisplay(used)}
-            </span>
-            <span className='text-xl font-medium text-gray-400'>TB</span>
-          </div>
+
+      {/* MoM Growth */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, padding: '28px 40px', borderLeft: `1px solid ${T.gray20}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <p style={labelStyle}>MoM Growth</p>
+          <span
+            style={{ fontSize: 11, lineHeight: 1, color: T.gray20, cursor: 'default', userSelect: 'none' }}
+            onMouseEnter={() => setShowPeriod(true)}
+            onMouseLeave={() => setShowPeriod(false)}
+          >ⓘ</span>
+          <span style={{ fontSize: 11, fontStyle: 'italic', color: T.gray50, visibility: showPeriod ? 'visible' : 'hidden' }}>
+            {momPeriodLabel()}
+          </span>
         </div>
-
-        <Divider />
-
-        {/* MoM Growth */}
-        <div className='flex flex-col gap-2 flex-1'>
-          <div className='flex items-center gap-1'>
-            <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>
-              MoM Growth
-            </p>
-            <span
-              className='text-[11px] leading-none text-gray-300 cursor-default select-none'
-              onMouseEnter={() => setShowPeriod(true)}
-              onMouseLeave={() => setShowPeriod(false)}
-            >ⓘ</span>
-            <span className={`text-[11px] italic text-gray-400 ${showPeriod ? 'visible' : 'invisible'}`}>
-              {momPeriodLabel()}
-            </span>
-          </div>
-          <div className='flex items-baseline gap-2'>
-            {data?.momGrowthPercent == null ? (
-              <span className='text-5xl font-semibold tracking-tight leading-none text-gray-300'>—</span>
-            ) : (
-              <>
-                <span
-                  className='text-5xl font-semibold tracking-tight leading-none'
-                  style={{ color: data.momGrowthPercent >= 0 ? '#10b981' : '#ef4444' }}
-                >
-                  {data.momGrowthPercent > 0 ? '+' : ''}{data.momGrowthPercent.toFixed(2)}
-                </span>
-                <span className='text-xl font-medium text-gray-400'>%</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        <Divider />
-
-        {/* Top Client */}
-        <div className='flex flex-col gap-2 flex-1'>
-          <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>
-            Top Client
-          </p>
-          {top ? (
-            <>
-              <div className='flex items-baseline gap-2'>
-                <span className='text-5xl font-semibold tracking-tight leading-none' style={{ color: '#10b981' }}>
-                  {tbDisplay(top.activeStorage)}
-                </span>
-                <span className='text-xl font-medium text-gray-400'>TB</span>
-              </div>
-              <span className='text-[11px] text-gray-400 truncate max-w-[200px]'>
-                {top.email ?? top.id}
-              </span>
-            </>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          {data?.momGrowthPercent == null ? (
+            <span style={{ ...metricStyle, color: T.gray20 }}>—</span>
           ) : (
-            <span className='text-5xl font-semibold tracking-tight leading-none text-gray-300'>—</span>
+            <>
+              <span style={{ ...metricStyle, color: data.momGrowthPercent >= 0 ? POSITIVE : NEGATIVE }}>
+                {data.momGrowthPercent > 0 ? '+' : ''}{data.momGrowthPercent.toFixed(2)}
+              </span>
+              <span style={unitStyle}>%</span>
+            </>
           )}
         </div>
+      </div>
+
+      {/* Top Client */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, padding: '28px 40px', borderLeft: `1px solid ${T.gray20}` }}>
+        <p style={labelStyle}>Top Client</p>
+        {top ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ ...metricStyle, color: POSITIVE }}>{tbDisplay(top.activeStorage)}</span>
+              <span style={unitStyle}>TB</span>
+            </div>
+            <span style={{ fontSize: 11, color: T.gray50, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 }}>
+              {top.email ?? top.id}
+            </span>
+          </>
+        ) : (
+          <span style={{ ...metricStyle, color: T.gray20 }}>—</span>
+        )}
       </div>
     </div>
   );
 };
-
-const Divider = () => (
-  <div className='w-px bg-gray-100 self-stretch mx-10' />
-);
