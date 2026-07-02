@@ -5,6 +5,7 @@ import { DotsThree } from '@phosphor-icons/react';
 import { SubAccount } from '../services/management.service';
 import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable';
 import { ConfirmActionModal } from './ConfirmActionModal';
+import { T, shadow } from '../../sub-account/tokens';
 
 interface Props {
   subAccounts: SubAccount[];
@@ -21,7 +22,7 @@ const formatDate = (date?: string) =>
 
 const formatStorage = (value?: number) => {
   if (value == null) return '—';
-  if (value === 0) return <span className='text-gray-300'>0.00</span>;
+  if (value === 0) return <span style={{ color: T.gray80 }}>0.00</span>;
   return value.toFixed(4);
 };
 
@@ -31,13 +32,17 @@ const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
     PAID_ACCOUNT: { bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d', dot: '#22c55e', label: 'Paid' },
     SUSPENDED:    { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171', label: 'Suspended' },
   }[status];
-  if (!config) return <span className='text-xs text-gray-400'>{status}</span>;
+  if (!config) return <span style={{ fontSize: 12, color: T.gray50 }}>{status}</span>;
   return (
     <span
-      className='inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border tracking-wide'
-      style={{ background: config.bg, borderColor: config.border, color: config.color }}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        fontSize: 11, fontWeight: 600, letterSpacing: '0.02em',
+        padding: '4px 10px', borderRadius: 999, border: '1px solid',
+        background: config.bg, borderColor: config.border, color: config.color,
+      }}
     >
-      <span className='w-1.5 h-1.5 rounded-full flex-shrink-0' style={{ background: config.dot }} />
+      <span style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: config.dot }} />
       {config.label}
     </span>
   );
@@ -84,22 +89,41 @@ const ActionsMenu = ({
 
   return (
     <div>
-      <button ref={btnRef} onClick={handleOpen} className='p-1.5 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors'>
+      <button
+        ref={btnRef}
+        onClick={handleOpen}
+        style={{ padding: 6, borderRadius: 8, color: T.gray50, background: 'transparent', border: 'none', cursor: 'pointer' }}
+        onMouseEnter={(e) => { e.currentTarget.style.color = T.gray80; e.currentTarget.style.background = T.gray10; }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = T.gray50; e.currentTarget.style.background = 'transparent'; }}
+      >
         <DotsThree size={17} weight='bold' />
       </button>
       {open && createPortal(
         <>
-          <div className='fixed inset-0 z-40' onClick={() => setOpen(false)} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
           <div
-            className='fixed bg-white border border-gray-100 rounded-xl shadow-xl w-36 z-50 overflow-hidden py-1'
-            style={{ top: coords.top, right: coords.right, boxShadow: '0 8px 30px rgba(0,0,0,0.10)' }}
+            style={{
+              position: 'fixed', top: coords.top, right: coords.right,
+              background: T.white, border: `1px solid ${T.gray15}`, borderRadius: 12,
+              boxShadow: shadow.lg, width: 144, zIndex: 50, overflow: 'hidden', padding: '4px 0',
+            }}
           >
             {account.status !== 'SUSPENDED' ? (
-              <button onClick={() => { setConfirmAction('suspend'); setOpen(false); }} className='block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors'>
+              <button
+                onClick={() => { setConfirmAction('suspend'); setOpen(false); }}
+                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 16px', fontSize: 14, color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
                 Suspend
               </button>
             ) : (
-              <button onClick={() => { setConfirmAction('reactivate'); setOpen(false); }} className='block w-full text-left px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors'>
+              <button
+                onClick={() => { setConfirmAction('reactivate'); setOpen(false); }}
+                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 16px', fontSize: 14, color: '#059669', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#ecfdf5'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
                 Reactivate
               </button>
             )}
@@ -140,54 +164,52 @@ export const ManagementSubAccountsTable = ({
 }: Props) => {
   const navigate = useNavigate();
 
+  const linkStyle: React.CSSProperties = {
+    fontSize: 14, color: T.primary, textDecoration: 'underline', textUnderlineOffset: 2, cursor: 'pointer',
+  };
+
   const columns: ColumnDef[] = [
     {
       header: 'Name',
       cell: (acc) => (
-        <span
-          onClick={() => navigate(`/management/accounts/${acc.id}`)}
-          className='font-mono text-[11px] text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2 cursor-pointer tracking-tight'
-        >
+        <span onClick={() => navigate(`/management/accounts/${acc.id}`)} style={{ ...linkStyle, fontFamily: 'monospace', fontSize: 13, letterSpacing: '-0.01em' }}>
           {acc.id.slice(0, 8)}…{acc.id.slice(-4)}
         </span>
       ),
     },
     {
       header: 'Account Email',
-      cell: (acc) => <span className='text-gray-600 text-[13px]'>{acc.email}</span>,
+      cell: (acc) => <span style={{ color: T.gray60, fontSize: 14 }}>{acc.email}</span>,
     },
     {
       header: 'Partner Account',
       cell: (acc) =>
         acc.partnerId ? (
-          <span
-            onClick={() => navigate(`/management/partners/${acc.partnerId}`)}
-            className='text-[13px] text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2 cursor-pointer'
-          >
+          <span onClick={() => navigate(`/management/partners/${acc.partnerId}`)} style={linkStyle}>
             {acc.channelAccount || acc.partnerId}
           </span>
         ) : (
-          <span className='text-gray-300 text-[13px]'>—</span>
+          <span style={{ color: T.gray20, fontSize: 14 }}>—</span>
         ),
     },
     {
       header: 'Active Storage (TB)',
       align: 'right',
       sortKey: 'activeStorage',
-      cell: (acc) => <span className='font-mono text-[12px] text-gray-700 tabular-nums'>{formatStorage(acc.activeStorage)}</span>,
+      cell: (acc) => <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>{formatStorage(acc.activeStorage)}</span>,
     },
     {
       header: 'Deleted Storage (TB)',
       align: 'right',
-      cell: (acc) => <span className='font-mono text-[12px] text-gray-700 tabular-nums'>{formatStorage(acc.deletedStorage)}</span>,
+      cell: (acc) => <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>{formatStorage(acc.deletedStorage)}</span>,
     },
     {
       header: 'Created',
-      cell: (acc) => <span className='text-[12px] text-gray-500 whitespace-nowrap'>{formatDate(acc.creationDate)}</span>,
+      cell: (acc) => <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>{formatDate(acc.creationDate)}</span>,
     },
     {
       header: 'Deleted',
-      cell: (acc) => <span className='text-[12px] text-gray-300 whitespace-nowrap'>{formatDate(acc.deletionDate)}</span>,
+      cell: (acc) => <span style={{ fontSize: 14, color: T.gray20, whiteSpace: 'nowrap' }}>{formatDate(acc.deletionDate)}</span>,
     },
     {
       header: 'Status',
@@ -198,7 +220,10 @@ export const ManagementSubAccountsTable = ({
       align: 'right',
       cell: (acc) =>
         pendingAccountId === acc.id ? (
-          <div className='w-4 h-4 border-2 border-gray-200 border-t-indigo-400 rounded-full animate-spin inline-block' />
+          <div
+            className='animate-spin'
+            style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${T.gray20}`, borderTopColor: T.primary, display: 'inline-block' }}
+          />
         ) : (
           <ActionsMenu account={acc} onSuspend={onSuspend} onReactivate={onReactivate} />
         ),

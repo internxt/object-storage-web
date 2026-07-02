@@ -6,6 +6,7 @@ import { ManagementSubAccountsTable } from '../components/ManagementSubAccountsT
 import { SortOrder } from '../components/SubAccountsTable';
 import { CreateSubAccountModal } from '../components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
+import { T, card, shadow } from '../../sub-account/tokens';
 
 const PER_PAGE = 20;
 const STATUS_OPTIONS = [
@@ -129,50 +130,76 @@ export const AccountsPage = () => {
       <StatsHeader data={usagesData} topClient={topClient} />
 
       {/* Sub-Accounts */}
-      <div className='bg-white rounded-xl shadow-sm p-6'>
-        <div className='flex items-center justify-between mb-5'>
+      <div style={{ ...card, borderRadius: 16, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <h2 className='text-base font-semibold text-gray-900'>Sub-Accounts</h2>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>Sub-Accounts</h2>
             {totalSubAccounts > 0 && (
-              <p className='text-xs text-gray-400 mt-0.5'>{totalSubAccounts} accounts total</p>
+              <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{totalSubAccounts} accounts total</p>
             )}
           </div>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className='bg-indigo hover:bg-indigo-dark active:bg-indigo-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm'
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              height: 40, padding: '0 18px',
+              background: T.primary, color: T.white,
+              border: 'none', borderRadius: 8, cursor: 'pointer',
+              fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
+            }}
           >
             Create Sub-Account
           </button>
         </div>
 
-        <div className='flex items-center gap-2 mb-4'>
-          <div className='flex items-center border border-gray-200 rounded-lg px-3 gap-2 flex-1 max-w-sm bg-white focus-within:border-indigo transition-colors'>
-            <MagnifyingGlass size={15} className='text-gray-400 flex-shrink-0' />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              border: `1px solid ${T.gray20}`, borderRadius: 8,
+              padding: '0 12px', flex: 1, maxWidth: 384,
+              background: T.white,
+            }}
+          >
+            <MagnifyingGlass size={15} color={T.gray50} style={{ flexShrink: 0 }} />
             <input
               type='text'
               placeholder='Search accounts…'
               value={searchName}
               onChange={(e) => handleSearch(e.target.value)}
-              className='text-sm py-2 outline-none flex-1 bg-transparent text-gray-700 placeholder-gray-400'
+              style={{
+                fontSize: 14, padding: '8px 0', outline: 'none', flex: 1,
+                background: 'transparent', color: T.gray80, border: 'none',
+              }}
             />
           </div>
 
-          <div className='relative'>
+          <div style={{ position: 'relative' }}>
             <button
               onClick={() => setFilterMenuOpen((o) => !o)}
-              className={`flex items-center gap-1.5 border rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                statusFilter
-                  ? 'border-indigo bg-indigo/10 text-indigo'
-                  : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                height: 40, padding: '0 12px',
+                border: `1px solid ${statusFilter ? T.primary : T.gray20}`,
+                borderRadius: 8, cursor: 'pointer',
+                fontSize: 14, fontWeight: 500,
+                background: statusFilter ? T.primaryBg : T.white,
+                color: statusFilter ? T.primary : T.gray60,
+              }}
             >
               <FunnelSimple size={14} />
               {statusFilter ? STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label : 'Filter'}
             </button>
             {filterMenuOpen && (
               <>
-                <div className='fixed inset-0 z-10' onClick={() => setFilterMenuOpen(false)} />
-                <div className='absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg w-44 z-20 overflow-hidden'>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setFilterMenuOpen(false)} />
+                <div
+                  style={{
+                    position: 'absolute', left: 0, top: 'calc(100% + 4px)',
+                    background: T.white, border: `1px solid ${T.gray20}`, borderRadius: 8,
+                    boxShadow: shadow.lg, width: 176, zIndex: 20, overflow: 'hidden',
+                  }}
+                >
                   {STATUS_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
@@ -181,14 +208,19 @@ export const AccountsPage = () => {
                         setPage(0);
                         setFilterMenuOpen(false);
                       }}
-                      className={`flex items-center justify-between w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                        statusFilter === opt.value
-                          ? 'bg-indigo/10 text-indigo font-medium'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        width: '100%', textAlign: 'left', padding: '10px 16px',
+                        fontSize: 14, border: 'none', cursor: 'pointer',
+                        background: statusFilter === opt.value ? T.primaryBg : 'transparent',
+                        color: statusFilter === opt.value ? T.primary : T.gray80,
+                        fontWeight: statusFilter === opt.value ? 500 : 400,
+                      }}
+                      onMouseEnter={(e) => { if (statusFilter !== opt.value) e.currentTarget.style.background = T.gray5; }}
+                      onMouseLeave={(e) => { if (statusFilter !== opt.value) e.currentTarget.style.background = 'transparent'; }}
                     >
                       {opt.label}
-                      {statusFilter === opt.value && <span className='text-indigo'>✓</span>}
+                      {statusFilter === opt.value && <span style={{ color: T.primary }}>✓</span>}
                     </button>
                   ))}
                 </div>
@@ -208,26 +240,40 @@ export const AccountsPage = () => {
         />
 
         {/* Pagination */}
-        <div className='flex items-center justify-between mt-4 pt-4 border-t border-gray-50'>
-          <span className='text-xs text-gray-400'>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.gray15}` }}>
+          <span style={{ fontSize: 13, color: T.gray50 }}>
             Showing {fromItem}–{toItem} of {totalSubAccounts} accounts
           </span>
-          <div className='flex items-center gap-1'>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
-              className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                height: 32, padding: '0 12px',
+                fontSize: 13, fontWeight: 500, color: T.gray80,
+                border: `1px solid ${T.gray20}`, borderRadius: 8,
+                background: T.white, cursor: hasPrev ? 'pointer' : 'not-allowed',
+                opacity: hasPrev ? 1 : 0.4,
+              }}
             >
               <CaretLeft size={14} />
               Prev
             </button>
-            <span className='px-3 py-1.5 text-sm text-gray-500'>
+            <span style={{ padding: '0 8px', fontSize: 13, color: T.gray50 }}>
               {page + 1} / {Math.max(1, totalPages)}
             </span>
             <button
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
-              className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                height: 32, padding: '0 12px',
+                fontSize: 13, fontWeight: 500, color: T.gray80,
+                border: `1px solid ${T.gray20}`, borderRadius: 8,
+                background: T.white, cursor: hasNext ? 'pointer' : 'not-allowed',
+                opacity: hasNext ? 1 : 0.4,
+              }}
             >
               Next
               <CaretRight size={14} />

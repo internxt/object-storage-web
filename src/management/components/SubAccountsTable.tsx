@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { ArrowUp, ArrowDown } from '@phosphor-icons/react';
 import { SubAccount } from '../services/management.service';
+import { T } from '../../sub-account/tokens';
 
 export type SortOrder = 'asc' | 'desc';
 
@@ -25,13 +26,19 @@ export const SubAccountsTable = ({ subAccounts, columns, isLoading, sortOrder, o
   };
 
   return (
-    <div className='overflow-x-auto relative'>
-      <div className={`absolute top-0 left-0 right-0 h-[2px] overflow-hidden transition-opacity duration-300 ${isLoading ? 'opacity-100' : 'opacity-0'}`}>
-        <div className='h-full bg-indigo-400/30 w-full'>
-          <div className='h-full bg-indigo-400 animate-loading-bar' />
+    <div style={{ overflowX: 'auto', position: 'relative' }}>
+      <div
+        style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+          overflow: 'hidden', transition: 'opacity 300ms',
+          opacity: isLoading ? 1 : 0,
+        }}
+      >
+        <div style={{ height: '100%', background: 'rgba(0,102,255,0.3)', width: '100%' }}>
+          <div className='animate-loading-bar' style={{ height: '100%', background: T.primary }} />
         </div>
       </div>
-      <table className='w-full text-sm text-left border-separate border-spacing-0'>
+      <table style={{ width: '100%', fontSize: 14, textAlign: 'left', borderCollapse: 'separate', borderSpacing: 0 }}>
         <thead>
           <tr>
             {columns.map((col, i) => {
@@ -40,17 +47,27 @@ export const SubAccountsTable = ({ subAccounts, columns, isLoading, sortOrder, o
                 <th
                   key={i}
                   onClick={isSortable ? handleActiveStorageSort : undefined}
-                  className={`px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-400 border-b border-gray-100 bg-white whitespace-nowrap ${col.align === 'right' ? 'text-right' : ''} ${isSortable ? 'cursor-pointer hover:text-gray-600 select-none' : ''}`}
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
+                    color: T.gray50,
+                    borderBottom: `1px solid ${T.gray15}`,
+                    background: T.gray5,
+                    whiteSpace: 'nowrap',
+                    textAlign: col.align === 'right' ? 'right' : 'left',
+                    cursor: isSortable ? 'pointer' : undefined,
+                    userSelect: isSortable ? 'none' : undefined,
+                  }}
                 >
                   {isSortable ? (
-                    <span className='inline-flex items-center gap-1 justify-end w-full'>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end', width: '100%' }}>
                       {col.header}
                       {sortOrder === 'asc' ? (
-                        <ArrowUp size={11} weight='bold' className='text-indigo-400' />
+                        <ArrowUp size={11} weight='bold' color={T.primary} />
                       ) : sortOrder === 'desc' ? (
-                        <ArrowDown size={11} weight='bold' className='text-indigo-400' />
+                        <ArrowDown size={11} weight='bold' color={T.primary} />
                       ) : (
-                        <ArrowUp size={11} weight='bold' className='text-gray-200' />
+                        <ArrowUp size={11} weight='bold' color={T.gray20} />
                       )}
                     </span>
                   ) : col.header}
@@ -59,20 +76,29 @@ export const SubAccountsTable = ({ subAccounts, columns, isLoading, sortOrder, o
             })}
           </tr>
         </thead>
-        <tbody className={`transition-opacity duration-200 ${isLoading ? 'opacity-40' : 'opacity-100'}`}>
+        <tbody style={{ transition: 'opacity 200ms', opacity: isLoading ? 0.4 : 1 }}>
           {subAccounts.length === 0 && !isLoading ? (
             <tr>
-              <td colSpan={columns.length} className='text-center py-16 text-gray-300 text-sm font-medium'>
+              <td colSpan={columns.length} style={{ textAlign: 'center', padding: '64px 0', color: T.gray50, fontSize: 14, fontWeight: 500 }}>
                 No sub-accounts found
               </td>
             </tr>
           ) : (
             subAccounts.map((acc, idx) => (
-              <tr key={acc.id} className='group hover:bg-gray-50/80 transition-colors cursor-default'>
+              <tr
+                key={acc.id}
+                style={{ transition: 'background 120ms' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = T.gray5; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              >
                 {columns.map((col, i) => (
                   <td
                     key={i}
-                    className={`px-4 py-3.5 ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''} ${col.align === 'right' ? 'text-right' : ''}`}
+                    style={{
+                      padding: '14px 16px',
+                      borderBottom: idx < subAccounts.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                      textAlign: col.align === 'right' ? 'right' : 'left',
+                    }}
                   >
                     {col.cell(acc, idx === subAccounts.length - 1)}
                   </td>
