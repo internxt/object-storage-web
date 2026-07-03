@@ -30,7 +30,8 @@ const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
   if (!status) return null;
   const config = {
     PAID_ACCOUNT: { bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d', dot: '#22c55e', label: 'Paid' },
-    SUSPENDED:    { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171', label: 'Suspended' },
+    SUSPENDED:    { bg: '#f4f4f5', border: '#d4d4d8', color: '#52525b', dot: '#a1a1aa', label: 'Suspended' },
+    DELETED:      { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171', label: 'Deleted' },
   }[status];
   if (!config) return <span className='text-xs text-gray-400'>{status}</span>;
   return (

@@ -29,7 +29,7 @@ export interface SubAccount {
   deletionDate?: string;
   trialExpiration?: string;
   mfa?: boolean;
-  status: 'PAID_ACCOUNT' | 'SUSPENDED';
+  status: 'PAID_ACCOUNT' | 'SUSPENDED' | 'DELETED';
   recordDate: string;
 }
 
@@ -76,7 +76,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     id: raw.id,
     name: raw.id,
     email: raw.email ?? '',
-    status: raw.status === 'SUSPENDED' ? 'SUSPENDED' : 'PAID_ACCOUNT',
+    status: raw.status === 'SUSPENDED' || raw.status === 'DELETED' ? raw.status : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
@@ -87,7 +87,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
 async function getSubAccounts(params: {
   page?: number;
   perPage?: number;
-  status?: 'PAID_ACCOUNT' | 'SUSPENDED';
+  status?: 'PAID_ACCOUNT' | 'SUSPENDED' | 'DELETED';
   name?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
