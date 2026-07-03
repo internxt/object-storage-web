@@ -31,6 +31,7 @@ import { Dropdown } from '../../components/Dropdown';
 import { Pagination } from '../../components/Pagination';
 import { VersioningControl } from '../../components/buckets/VersioningControl';
 import { ObjectLockingControl } from '../../components/buckets/ObjectLockingControl';
+import { BucketLoggingControl } from '../../components/buckets/BucketLoggingControl';
 import { Switch } from '../../components/Switch';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
@@ -396,6 +397,9 @@ export const SubAccountBucketDetailPage = () => {
     lockEnabledAtCreation: boolean; enabled: boolean; mode?: RetentionMode; days?: number; years?: number;
   }>({ lockEnabledAtCreation: false, enabled: false });
   const [isSavingBucketRetention, setIsSavingBucketRetention] = useState(false);
+  const [loggingConfig, setLoggingConfig] = useState({ enabled: false, targetBucket: '', targetPrefix: '' });
+  const [isSavingLogging, setIsSavingLogging] = useState(false);
+  const [bucketsList, setBucketsList] = useState<string[]>([]);
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -437,6 +441,24 @@ export const SubAccountBucketDetailPage = () => {
         .catch(() => {});
     }
   }, [client, bucketName]);
+
+  useEffect(() => {
+    if (client && bucketName) {
+      s3Service.getBucketLogging(client, bucketName)
+        .then((l) => setLoggingConfig({
+          enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '',
+        }))
+        .catch(() => {});
+    }
+  }, [client, bucketName]);
+
+  useEffect(() => {
+    if (client) {
+      s3Service.listBuckets(client)
+        .then((result) => setBucketsList(result.buckets.map((b) => b.name)))
+        .catch(() => {});
+    }
+  }, [client]);
 
   const onSaveRetention = async (mode: RetentionMode, scale: 'days' | 'years', value: number) => {
     if (!client || !bucketName) return;
@@ -510,6 +532,21 @@ export const SubAccountBucketDetailPage = () => {
       notificationsService.error({ text: 'Failed to update versioning' });
     } finally {
       setIsTogglingVersioning(false);
+    }
+  };
+
+  const onSaveLogging = async () => {
+    if (!client || !bucketName) return;
+    setIsSavingLogging(true);
+    try {
+      await s3Service.setBucketLogging(
+        client, bucketName, loggingConfig.enabled, loggingConfig.targetBucket, loggingConfig.targetPrefix,
+      );
+      notificationsService.success({ text: `Logging ${loggingConfig.enabled ? 'enabled' : 'disabled'}` });
+    } catch {
+      notificationsService.error({ text: 'Failed to update logging' });
+    } finally {
+      setIsSavingLogging(false);
     }
   };
 
@@ -935,6 +972,17 @@ export const SubAccountBucketDetailPage = () => {
                     isSaving={isSavingBucketRetention}
                     onSave={onSaveRetention}
                     onDisable={onDisableRetention}
+                  />
+                  <BucketLoggingControl
+                    enabled={loggingConfig.enabled}
+                    targetBucket={loggingConfig.targetBucket}
+                    targetPrefix={loggingConfig.targetPrefix}
+                    buckets={bucketsList.filter((name) => name !== bucketName)}
+                    isSaving={isSavingLogging}
+                    onToggle={(enabled) => setLoggingConfig((prev) => ({ ...prev, enabled }))}
+                    onTargetBucketChange={(targetBucket) => setLoggingConfig((prev) => ({ ...prev, targetBucket }))}
+                    onTargetPrefixChange={(targetPrefix) => setLoggingConfig((prev) => ({ ...prev, targetPrefix }))}
+                    onSave={onSaveLogging}
                   />
                 </div>
               </div>
