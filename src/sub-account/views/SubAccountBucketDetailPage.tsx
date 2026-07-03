@@ -4,6 +4,7 @@ import {
   ArrowLeftIcon,
   CaretRightIcon,
   DatabaseIcon,
+  DotsThreeIcon,
   FileIcon,
   FileImageIcon,
   FileTextIcon,
@@ -122,6 +123,7 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
         fontSize: 13, fontWeight: 500, cursor: active ? 'default' : 'pointer',
         color: active ? T.gray100 : T.gray50,
         background: 'none', border: 'none', padding: 0,
+        whiteSpace: 'nowrap',
       }}
       onMouseEnter={e => !active && (e.currentTarget.style.color = T.gray80)}
       onMouseLeave={e => !active && (e.currentTarget.style.color = T.gray50)}
@@ -132,18 +134,52 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
 
   const sep = <CaretRightIcon size={12} color={T.gray50} style={{ flexShrink: 0 }} />;
 
+  const segPrefixAt = (i: number) => parts.slice(0, i + 1).join('/') + '/';
+
+  // Collapse middle segments into a dropdown once there's more than one to hide,
+  // keeping the first segment after the bucket and the last two (parent + active).
+  const collapse = parts.length > 3;
+  const hiddenParts = collapse
+    ? parts.slice(1, parts.length - 2).map((seg, idx) => ({ seg, i: idx + 1 }))
+    : [];
+  const visibleParts = (collapse
+    ? [parts[0], parts[parts.length - 2], parts[parts.length - 1]]
+    : parts
+  ).map((seg, idx) => ({ seg, i: collapse ? [0, parts.length - 2, parts.length - 1][idx] : idx }));
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
       {crumb('Buckets', false, onBuckets)}
       {sep}
       {crumb(bucketName, parts.length === 0, parts.length ? onBucket : undefined)}
-      {parts.map((seg, i) => {
-        const segPrefix = parts.slice(0, i + 1).join('/') + '/';
+      {visibleParts.map(({ seg, i }, idx) => {
         const isLast = i === parts.length - 1;
         return (
-          <span key={segPrefix} style={{ display: 'contents' }}>
+          <span key={i} style={{ display: 'contents' }}>
             {sep}
-            {crumb(seg, isLast, () => onSegment(segPrefix))}
+            {collapse && idx === 1 && hiddenParts.length > 0 && (
+              <>
+                <Dropdown
+                  button={
+                    <span
+                      aria-label="Show hidden folders"
+                      title="Show hidden folders"
+                      style={{
+                        display: 'flex', alignItems: 'center', color: T.gray50, cursor: 'pointer',
+                      }}
+                    >
+                      <DotsThreeIcon size={16} weight="bold" />
+                    </span>
+                  }
+                  items={hiddenParts.map(({ seg: hSeg, i: hIdx }) => ({
+                    label: hSeg,
+                    onClick: () => onSegment(segPrefixAt(hIdx)),
+                  }))}
+                />
+                {sep}
+              </>
+            )}
+            {crumb(seg, isLast, () => onSegment(segPrefixAt(i)))}
           </span>
         );
       })}
