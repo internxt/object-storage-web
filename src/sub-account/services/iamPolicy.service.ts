@@ -3,39 +3,66 @@ export interface BucketOption {
   region: string
 }
 
-export type AccessLevel = 'read' | 'write' | 'full'
-
 export const ALL_BUCKETS = '*'
 
-// A single access rule: which bucket (or '*' = all buckets) and the access
-// level granted on it. Object-prefix scoping isn't modelled here — a policy that
-// uses prefixes is treated as custom and edited as raw JSON instead.
+export const S3_ACTIONS = {
+  getObject: 's3:GetObject',
+  putObject: 's3:PutObject',
+  deleteObject: 's3:DeleteObject',
+  listBucket: 's3:ListBucket',
+  listAllMyBuckets: 's3:ListAllMyBuckets',
+  all: 's3:*'
+} as const
+
+export type AccessLevel = 'read' | 'write' | 'full'
+
+interface AccessLevelDefinition {
+  label: string
+  actions: string[]
+  // Account-level actions can't be scoped to a bucket, so they go in a '*' statement.
+  accountActions: string[]
+}
+
+export const ACCESS_LEVEL_CONFIG: Record<AccessLevel, AccessLevelDefinition> = {
+  read: {
+    label: 'Read',
+    actions: [S3_ACTIONS.getObject, S3_ACTIONS.listBucket],
+    accountActions: [S3_ACTIONS.listAllMyBuckets]
+  },
+  write: {
+    label: 'Write',
+    actions: [
+      S3_ACTIONS.getObject,
+      S3_ACTIONS.putObject,
+      S3_ACTIONS.listBucket
+    ],
+    accountActions: [S3_ACTIONS.listAllMyBuckets]
+  },
+  full: {
+    label: 'Full',
+    actions: [S3_ACTIONS.all],
+    accountActions: [S3_ACTIONS.listAllMyBuckets]
+  }
+}
+
+export const ACCESS_LEVELS = Object.keys(ACCESS_LEVEL_CONFIG) as AccessLevel[]
+
+export const accessLevelLabel = (level: AccessLevel): string =>
+  ACCESS_LEVEL_CONFIG[level].label
+
+export const accessLevelActions = (level: AccessLevel): string[] =>
+  ACCESS_LEVEL_CONFIG[level].actions
+
 export interface BucketRule {
   bucketName: string
   accessLevel: AccessLevel
 }
 
-export const ACCESS_LEVEL_LABELS: Record<AccessLevel, string> = {
-  read: 'Read',
-  write: 'Write',
-  full: 'Full'
-}
-export const ACCESS_LEVELS = Object.keys(ACCESS_LEVEL_LABELS) as AccessLevel[]
-
-// Rules the builder can't represent, so the policy must be edited as raw JSON:
-// a mix of '*' with concrete buckets. An empty set is also custom (nothing to
-// build). Callers pair this with droppedCount for statements policyToRules
-// couldn't parse at all (prefixes, Deny, unknown actions).
+// Custom = the builder can't represent it, so it must be edited as raw JSON
 export const isCustomPolicy = (rules: BucketRule[]): boolean => {
   if (rules.length === 0) return true
   const hasAllBuckets = rules.some(r => r.bucketName === ALL_BUCKETS)
   return hasAllBuckets && rules.length > 1
-}
-
-export const ACCESS_LEVEL_ACTIONS: Record<AccessLevel, string[]> = {
-  read: ['s3:GetObject', 's3:ListBucket'],
-  write: ['s3:GetObject', 's3:PutObject', 's3:ListBucket'],
-  full: ['s3:GetObject', 's3:ListBucket', 's3:PutObject', 's3:DeleteObject']
 }
 
 export interface PolicyStatement {
@@ -57,25 +84,38 @@ const isAllBucketsResource = (resource: string): boolean =>
 
 // ─── Rules → policy (the only direction we serialise) ───────────────────────
 
-export const rulesToPolicy = (rules: BucketRule[]): PolicyDocument => ({
-  Version: '2012-10-17',
-  Statement: rules.map(ruleToStatement)
-})
+export const rulesToPolicy = (rules: BucketRule[]): PolicyDocument => {
+  const bucketStatements = rules.map(ruleToStatement)
+
+  const accountActions = accountActionsFor(rules.map(rule => rule.accessLevel))
+  const statements =
+    accountActions.length > 0
+      ? [
+          { Effect: 'Allow' as const, Action: accountActions, Resource: ['*'] },
+          ...bucketStatements
+        ]
+      : bucketStatements
+
+  return { Version: '2012-10-17', Statement: statements }
+}
 
 export const rulesToJson = (rules: BucketRule[]): string =>
   JSON.stringify(rulesToPolicy(rules), null, 2)
 
-// One statement per rule. Resource carries the bucket ARN (for bucket-level
-// actions like s3:ListBucket) plus every object in it.
+// Resource carries the bucket ARN (for actions like s3:ListBucket) plus its objects.
 const ruleToStatement = (rule: BucketRule): PolicyStatement => {
   if (rule.bucketName === ALL_BUCKETS) {
-    return { Effect: 'Allow', Action: ACCESS_LEVEL_ACTIONS[rule.accessLevel], Resource: ['arn:aws:s3:::*'] }
+    return {
+      Effect: 'Allow',
+      Action: accessLevelActions(rule.accessLevel),
+      Resource: ['arn:aws:s3:::*']
+    }
   }
 
   const bucketArn = `arn:aws:s3:::${rule.bucketName}`
   return {
     Effect: 'Allow',
-    Action: ACCESS_LEVEL_ACTIONS[rule.accessLevel],
+    Action: accessLevelActions(rule.accessLevel),
     Resource: [bucketArn, `${bucketArn}/*`]
   }
 }
@@ -84,26 +124,57 @@ const ruleToStatement = (rule: BucketRule): PolicyStatement => {
 
 export interface ParsedPolicy {
   rules: BucketRule[]
-  // Statements we couldn't turn into an editable rule (Deny, unknown actions,
-  // prefixes, unparsable ARNs). Kept as a count so the UI can warn they'll be
-  // dropped if the policy is rebuilt from the builder.
+  // Statements the builder can't represent (Deny, unknown actions, prefixes,
+  // unparsable ARNs), counted so the UI can warn they'd be dropped on a rebuild.
   droppedCount: number
 }
 
-// Best-effort read of an IAM policy into editable rules. Anything that doesn't
-// map cleanly is counted in droppedCount rather than represented, so the builder
-// only ever shows rules it can round-trip.
 export const policyToRules = (statements: PolicyStatement[]): ParsedPolicy => {
   const rules: BucketRule[] = []
   let droppedCount = 0
 
   for (const stmt of statements) {
+    if (isAccountStatement(stmt)) {
+      continue
+    }
     const rule = statementToRule(stmt)
-    if (rule) rules.push(rule)
-    else droppedCount++
+    if (rule) {
+      rules.push(rule)
+    } else droppedCount++
   }
 
   return { rules, droppedCount }
+}
+
+// The '*' statement rulesToPolicy emits for account-level actions; skipped on
+// parse so it isn't mistaken for a bucket rule or an unknown statement.
+const isAccountStatement = (stmt: PolicyStatement): boolean => {
+  const knownActions = accountActionsFor(ACCESS_LEVELS)
+  return (
+    stmt.Effect === 'Allow' &&
+    stmt.Resource.length === 1 &&
+    isAllBucketsResource(stmt.Resource[0]) &&
+    stmt.Action.length > 0 &&
+    stmt.Action.every(action => knownActions.includes(action))
+  )
+}
+
+// Raw editor text → statements, or null if it isn't a policy with a Statement array.
+export const parseStatements = (raw: string): PolicyStatement[] | null => {
+  try {
+    const parsed = JSON.parse(raw)
+    if (!parsed || !Array.isArray(parsed.Statement)) return null
+    return parsed.Statement as PolicyStatement[]
+  } catch {
+    return null
+  }
+}
+
+// Whether the builder can show these statements losslessly (used to decide if
+// switching to it is safe): nothing dropped and not a custom policy.
+export const builderCanRepresent = (statements: PolicyStatement[]): boolean => {
+  const { rules, droppedCount } = policyToRules(statements)
+  return droppedCount === 0 && !isCustomPolicy(rules)
 }
 
 const statementToRule = (stmt: PolicyStatement): BucketRule | null => {
@@ -119,13 +190,11 @@ const statementToRule = (stmt: PolicyStatement): BucketRule | null => {
   const matches = stmt.Resource.map(r => S3_ARN_RE.exec(r))
   if (matches.some(m => !m)) return null
 
-  // A rule is a single bucket; a statement spanning several buckets can't be
-  // one editable row.
+  // One rule = one bucket; a statement spanning several can't be one row.
   const bucketNames = [...new Set(matches.map(m => m![1]))]
   if (bucketNames.length !== 1) return null
 
-  // The builder grants the whole bucket. Any object-prefix scoping means we
-  // can't represent this as a rule — leave it for raw-JSON (custom) editing.
+  // The builder grants the whole bucket, so any object-prefix scoping is custom.
   const hasPrefix = matches.some(m => {
     const objectPath = (m![2] ?? '').replace(/\*$/, '')
     return objectPath !== ''
@@ -135,17 +204,19 @@ const statementToRule = (stmt: PolicyStatement): BucketRule | null => {
   return { bucketName: bucketNames[0], accessLevel }
 }
 
-// A statement maps to an access level only when its actions are EXACTLY a
-// level's action set. Any extra (or missing) action makes it unrepresentable
-// by the builder, so it's rejected here and surfaces as a custom policy — that
-// way rebuilding from the builder never silently drops actions we don't model.
+// Matches only on an EXACT action set — any extra/missing action is rejected so
+// rebuilding from the builder never silently drops actions we don't model.
 const actionsToAccessLevel = (actions: string[]): AccessLevel | null => {
   const set = new Set(actions)
   const matches = (expected: string[]) =>
-    set.size === expected.length && expected.every((a) => set.has(a))
+    set.size === expected.length && expected.every(a => set.has(a))
 
   for (const accessLevel of ACCESS_LEVELS) {
-    if (matches(ACCESS_LEVEL_ACTIONS[accessLevel])) return accessLevel
+    if (matches(accessLevelActions(accessLevel))) return accessLevel
   }
   return null
 }
+
+const accountActionsFor = (levels: AccessLevel[]): string[] => [
+  ...new Set(levels.flatMap(level => ACCESS_LEVEL_CONFIG[level].accountActions))
+]

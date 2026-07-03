@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import type { S3Client } from '@aws-sdk/client-s3';
 import { XIcon, PlusIcon } from '@phosphor-icons/react';
 import { BucketPicker } from './BucketPicker';
-import { ALL_BUCKETS, BucketRule, AccessLevel, ACCESS_LEVEL_LABELS, ACCESS_LEVELS } from '../../services/iamPolicy.service';
+import { ALL_BUCKETS, BucketRule, AccessLevel, accessLevelLabel, ACCESS_LEVELS } from '../../services/iamPolicy.service';
 
 interface BucketRulesBuilderProps {
   client: S3Client | null;
@@ -21,7 +21,7 @@ const AccessLevelSelector = ({ value, onChange }: { value: AccessLevel; onChange
           value === p ? 'bg-gray-100 text-white' : 'bg-gray-10 text-gray-60'
         }`}
       >
-        {ACCESS_LEVEL_LABELS[p]}
+        {accessLevelLabel(p)}
       </button>
     ))}
   </div>

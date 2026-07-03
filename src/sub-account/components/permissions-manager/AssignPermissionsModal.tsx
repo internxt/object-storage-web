@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { WarningIcon } from '@phosphor-icons/react';
 import Modal from '../../../components/Modal';
 import Button from '../../../components/Button';
@@ -6,17 +6,10 @@ import Dialog from '../../../components/Dialog';
 import { T, text } from '../../tokens';
 import { useSubAccount } from '../../context/SubAccountContext';
 import { useSubAccountS3Client } from '../../hooks/useSubAccountS3Client';
+import { usePermissionsDraft } from '../../hooks/usePermissionsDraft';
 import { BucketRulesBuilder } from './BucketRulesBuilder';
 import { PolicyJsonEditor } from './PolicyJsonEditor';
-import {
-  BucketRule,
-  PolicyDocument,
-  PolicyStatement,
-  isCustomPolicy,
-  rulesToPolicy,
-  rulesToJson,
-  policyToRules,
-} from '../../services/iamPolicy.service';
+import { PolicyDocument, parseStatements, rulesToPolicy } from '../../services/iamPolicy.service';
 
 interface AssignPermissionsModalProps {
   isOpen: boolean;
@@ -27,96 +20,46 @@ interface AssignPermissionsModalProps {
   onFetchPermissions: () => Promise<PolicyDocument | null>;
 }
 
-const parseStatements = (raw: string): PolicyStatement[] | null => {
-  try {
-    const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.Statement)) return null;
-    return parsed.Statement as PolicyStatement[];
-  } catch {
-    return null;
-  }
+// Full class strings (not interpolated) so Tailwind's purge keeps them.
+const BANNER_STYLES = {
+  warning: { box: 'bg-yellow/10 border-yellow', icon: 'text-yellow-dark', text: 'text-yellow-dark' },
+  error: { box: 'bg-red/10 border-red', icon: 'text-red', text: 'text-red' },
+} as const;
+
+const Banner = ({ tone, children }: { tone: keyof typeof BANNER_STYLES; children: React.ReactNode }) => {
+  const s = BANNER_STYLES[tone];
+  return (
+    <div className={`shrink-0 flex items-start gap-2 border rounded-lg px-3 py-2 ${s.box}`}>
+      <WarningIcon size={16} className={`shrink-0 mt-0.5 ${s.icon}`} weight='fill' />
+      <p className={`text-xs m-0 ${s.text}`}>{children}</p>
+    </div>
+  );
 };
 
 export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose, onAssign, onFetchPermissions }: AssignPermissionsModalProps) => {
   const { entityId, memberId } = useSubAccount();
   const { client } = useSubAccountS3Client(isOpen ? entityId : null, isOpen ? memberId : null);
 
-  const [rules, setRules] = useState<BucketRule[]>([]);
-  const [isAdvanced, setIsAdvanced] = useState(false);
-  const [jsonText, setJsonText] = useState('');
+  const { draft, isFetching, fetchError, patchDraft, enterAdvanced, switchToBuilder, resetToEmptyBuilder } =
+    usePermissionsDraft({ isOpen, onFetchPermissions });
+  const { rules, isAdvanced, jsonText } = draft;
+
   const [confirmBuilderOpen, setConfirmBuilderOpen] = useState(false);
-  const [isFetching, setIsFetching] = useState(false);
 
   const parsedStatements = useMemo(() => (isAdvanced ? parseStatements(jsonText) : null), [isAdvanced, jsonText]);
   const jsonError = isAdvanced && jsonText.trim().length > 0 && parsedStatements === null;
 
-  useEffect(() => {
-    if (!isOpen) {
-      setRules([]);
-      setIsAdvanced(false);
-      setJsonText('');
-      setConfirmBuilderOpen(false);
-      return;
-    }
-
-    const fetchPermissions = async () => {
-      setIsFetching(true);
-      try {
-        const policy = await onFetchPermissions();
-        const { rules, droppedCount } = policyToRules(policy?.Statement ?? []);
-        setRules(rules);
-        // Custom = statements we couldn't parse, or rules that don't round-trip
-        // to the builder. Open in Advanced (raw JSON) so nothing is dropped.
-        const custom = droppedCount > 0 || isCustomPolicy(rules);
-        setIsAdvanced(custom);
-        setJsonText(custom && policy ? JSON.stringify(policy, null, 2) : '');
-      } catch {
-        setRules([]);
-        setIsAdvanced(false);
-        setJsonText('');
-      } finally {
-        setIsFetching(false);
-      }
-    };
-
-    fetchPermissions();
-    // Only re-fetch when the modal opens; onFetchPermissions is a fresh closure each render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
-  const enterAdvanced = () => {
-    // Seed the editor from the current builder policy so edits start where the user was.
-    setJsonText(rulesToJson(rules));
-    setIsAdvanced(true);
-  };
-
-  const goToBuilder = (rules: BucketRule[]) => {
-    setRules(rules);
-    setConfirmBuilderOpen(false);
-    setIsAdvanced(false);
-  };
-
-  // Whether switching to the builder now would drop rules: invalid JSON,
-  // statements the builder can't parse, or a rule set it can't represent.
-  const builderWouldLose = () => {
-    const statements = parseStatements(jsonText);
-    if (!statements) return true;
-    const { rules: parsed, droppedCount } = policyToRules(statements);
-    return droppedCount > 0 || isCustomPolicy(parsed);
-  };
-
   const handleUseBuilder = () => {
-    // Custom JSON can't be represented, so going to the builder resets it to
-    // empty — confirm first. Clean JSON carries its rules straight over.
-    if (builderWouldLose()) {
-      setConfirmBuilderOpen(true);
-    } else {
-      const { rules } = policyToRules(parseStatements(jsonText) ?? []);
-      goToBuilder(rules);
-    }
+    // Custom JSON can't round-trip, so the switch would reset the builder
+    if (!switchToBuilder().lossless) setConfirmBuilderOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const confirmResetToBuilder = () => {
+    resetToEmptyBuilder();
+    setConfirmBuilderOpen(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isAdvanced) {
       if (!parsedStatements) return;
@@ -126,12 +69,17 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
     await onAssign(rulesToPolicy(rules));
   };
 
-  const canSubmit = isAdvanced
-    ? !!parsedStatements && !isLoading && !isFetching
-    : rules.length > 0 && !isLoading && !isFetching;
+  const isBusy = isLoading || isFetching || fetchError;
+  const hasContent = isAdvanced ? !!parsedStatements : rules.length > 0;
+  const canSubmit = hasContent && !isBusy;
+
+  const handleClose = () => {
+    setConfirmBuilderOpen(false);
+    onClose();
+  };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth='max-w-lg'>
+    <Modal isOpen={isOpen} onClose={handleClose} maxWidth='max-w-lg'>
       <form
         onSubmit={handleSubmit}
         style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4, maxHeight: '85vh' }}
@@ -141,7 +89,7 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
             <p style={{ ...text.heading, margin: '0 0 2px' }}>Assign Permissions</p>
             <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>{memberEmail}</p>
           </div>
-          {!isFetching && (
+          {!isFetching && !fetchError && (
             <button
               type='button'
               onClick={() => (isAdvanced ? handleUseBuilder() : enterAdvanced())}
@@ -152,23 +100,22 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
           )}
         </div>
 
-        <div className='shrink-0 flex items-start gap-2 bg-yellow/10 border border-yellow rounded-lg px-3 py-2'>
-          <WarningIcon size={16} className='text-yellow-dark shrink-0 mt-0.5' weight='fill' />
-          <p className='text-xs text-yellow-dark m-0'>
-            This only edits the "member access" policy attached to this user. Other policies, if any, aren't shown here.
-          </p>
-        </div>
+        <Banner tone='warning'>
+          This only edits the "member access" policy attached to this user. Other policies, if any, aren't shown here.
+        </Banner>
 
         {isFetching ? (
           <p className='text-xs text-gray-60 m-0'>Loading current permissions...</p>
+        ) : fetchError ? (
+          <Banner tone='error'>Couldn't load this user's permissions. Close and try again.</Banner>
         ) : isAdvanced ? (
-          <PolicyJsonEditor value={jsonText} onChange={setJsonText} error={jsonError} />
+          <PolicyJsonEditor value={jsonText} onChange={(jsonText) => patchDraft({ jsonText })} error={jsonError} />
         ) : (
-          <BucketRulesBuilder client={client} rules={rules} onChange={setRules} />
+          <BucketRulesBuilder client={client} rules={rules} onChange={(rules) => patchDraft({ rules })} />
         )}
 
         <div className='shrink-0 flex justify-end gap-2 pt-1'>
-          <Button variant='secondary' type='button' onClick={onClose} disabled={isLoading}>
+          <Button variant='secondary' type='button' onClick={handleClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button type='submit' disabled={!canSubmit} loading={isLoading}>
@@ -180,7 +127,7 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
       <Dialog
         isOpen={confirmBuilderOpen}
         onClose={() => setConfirmBuilderOpen(false)}
-        onPrimaryAction={() => goToBuilder([])}
+        onPrimaryAction={confirmResetToBuilder}
         onSecondaryAction={() => setConfirmBuilderOpen(false)}
         primaryAction='Reset'
         secondaryAction='Cancel'
