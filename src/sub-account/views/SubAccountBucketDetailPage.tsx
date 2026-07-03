@@ -684,8 +684,6 @@ export const SubAccountBucketDetailPage = () => {
 
   const region = regionRef.current ?? '—';
   const endpoint = endpointRef.current ?? '';
-  const fileObjects = displayObjects.filter(o => !o.isFolder);
-  const uniqueFileCount = new Set(fileObjects.map(o => o.key)).size;
 
   const inputShared: React.CSSProperties = {
     height: 40, padding: '0 12px',
@@ -924,7 +922,6 @@ export const SubAccountBucketDetailPage = () => {
                 <ReadField label="Bucket name" value={bucketName!} mono />
                 <ReadField label="Region" value={region} />
                 <ReadField label="Visibility" value={visibility === 'public' ? 'Public' : 'Private'} />
-                <ReadField label="Objects" value={uniqueFileCount ? String(uniqueFileCount) : '—'} />
                 <ReadField label="Endpoint" value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 48, gridColumn: '1 / -1', flexWrap: 'wrap' }}>
                   <VersioningControl
@@ -939,7 +936,6 @@ export const SubAccountBucketDetailPage = () => {
                     onSave={onSaveRetention}
                     onDisable={onDisableRetention}
                   />
-                  <ReadField label="Encryption" value="AES-256 · Zero-knowledge" />
                 </div>
               </div>
 
