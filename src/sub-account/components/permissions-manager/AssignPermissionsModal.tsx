@@ -6,7 +6,7 @@ import Dialog from '../../../components/Dialog';
 import { T, text } from '../../tokens';
 import { useSubAccount } from '../../context/SubAccountContext';
 import { useSubAccountS3Client } from '../../hooks/useSubAccountS3Client';
-import { usePermissionsDraft } from '../../hooks/usePermissionsDraft';
+import { usePolicyDraft } from '../../hooks/usePolicyDraft';
 import { BucketRulesBuilder } from './BucketRulesBuilder';
 import { PolicyJsonEditor } from './PolicyJsonEditor';
 import { PolicyDocument, parseStatements, rulesToPolicy } from '../../services/iamPolicy.service';
@@ -40,8 +40,8 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
   const { entityId, memberId } = useSubAccount();
   const { client } = useSubAccountS3Client(isOpen ? entityId : null, isOpen ? memberId : null);
 
-  const { draft, isFetching, fetchError, patchDraft, enterAdvanced, switchToBuilder, resetToEmptyBuilder } =
-    usePermissionsDraft({ isOpen, onFetchPermissions });
+  const { draft, isFetching, fetchError, patchDraft, enterAdvanced, tryExitAdvanced, resetToBuilder } =
+    usePolicyDraft({ isOpen, onFetchPermissions });
   const { rules, isAdvanced, jsonText } = draft;
 
   const [confirmBuilderOpen, setConfirmBuilderOpen] = useState(false);
@@ -50,12 +50,14 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
   const jsonError = isAdvanced && jsonText.trim().length > 0 && parsedStatements === null;
 
   const handleUseBuilder = () => {
-    // Custom JSON can't round-trip, so the switch would reset the builder
-    if (!switchToBuilder().lossless) setConfirmBuilderOpen(true);
+    // Custom JSON can't round-trip, so exiting Advanced would reset the builder
+    if (!tryExitAdvanced().exited) {
+      setConfirmBuilderOpen(true);
+    }
   };
 
   const confirmResetToBuilder = () => {
-    resetToEmptyBuilder();
+    resetToBuilder();
     setConfirmBuilderOpen(false);
   };
 
