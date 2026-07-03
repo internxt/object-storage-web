@@ -518,6 +518,7 @@ export const SubAccountBucketDetailPage = () => {
   const displayObjects = objects;
 
   const allSelected = displayObjects.length > 0 && displayObjects.every(o => selectedVersions.has(versionRowId(o)));
+  const selectionHasFolder = displayObjects.some(o => o.isFolder && selectedVersions.has(versionRowId(o)));
 
   const onSelectAll = (v: boolean) =>
     setSelectedVersions(v ? new Set(displayObjects.map(versionRowId)) : new Set());
@@ -581,7 +582,7 @@ export const SubAccountBucketDetailPage = () => {
   };
 
   const onDeleteSelected = async () => {
-    if (!client || !bucketName || selectedVersions.size === 0) return;
+    if (!client || !bucketName || selectedVersions.size === 0 || selectionHasFolder) return;
     setIsDeletingSelected(true);
     try {
       const items = displayObjects
@@ -716,10 +717,14 @@ export const SubAccountBucketDetailPage = () => {
                   {selectedVersions.size > 0 && (
                     <button
                       onClick={() => setIsDeleteDialogOpen(true)}
+                      disabled={selectionHasFolder}
+                      title={selectionHasFolder ? 'Folders cannot be deleted from this view' : undefined}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                         border: '1px solid #fca5a5', borderRadius: 8, background: '#fff5f5',
-                        color: '#E50B00', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                        color: '#E50B00', fontSize: 13, fontWeight: 500,
+                        cursor: selectionHasFolder ? 'not-allowed' : 'pointer',
+                        opacity: selectionHasFolder ? 0.5 : 1,
                       }}
                     >
                       <TrashIcon size={15} /> Delete ({selectedVersions.size})
