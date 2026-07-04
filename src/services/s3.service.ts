@@ -68,20 +68,24 @@ export const s3Service = {
     client: S3Client,
     continuationToken?: string,
     maxBuckets?: number,
+    prefix?: string,
+    abortSignal?: AbortSignal,
   ): Promise<ListBucketsResult> => {
     const { Buckets = [], ContinuationToken } = await client.send(
-      new ListBucketsCommand({ ContinuationToken: continuationToken, MaxBuckets: maxBuckets }),
+      new ListBucketsCommand({ ContinuationToken: continuationToken, MaxBuckets: maxBuckets, Prefix: prefix }),
+      { abortSignal },
     );
     return {
-      buckets: Buckets.map((b) => ({ name: b.Name!, creationDate: b.CreationDate! })),
+      buckets: Buckets.map((b) => ({ name: b.Name!, creationDate: b.CreationDate!, region: b.BucketRegion })),
       continuationToken: ContinuationToken,
       isTruncated: Buckets.length > 0 && ContinuationToken !== undefined && ContinuationToken !== continuationToken,
     };
   },
 
-  getBucketLocation: async (client: S3Client, bucket: string): Promise<string> => {
+  getBucketLocation: async (client: S3Client, bucket: string, abortSignal?: AbortSignal): Promise<string> => {
     const { LocationConstraint } = await client.send(
       new GetBucketLocationCommand({ Bucket: bucket }),
+      { abortSignal },
     );
     return LocationConstraint ?? 'us-east-1';
   },
@@ -350,9 +354,13 @@ export const s3Service = {
     await client.send(new DeleteBucketCommand({ Bucket: bucket }));
   },
 
-  getBucketVisibility: async (client: S3Client, bucket: string): Promise<'public' | 'private'> => {
+  getBucketVisibility: async (
+    client: S3Client,
+    bucket: string,
+    abortSignal?: AbortSignal,
+  ): Promise<'public' | 'private'> => {
     try {
-      const { Grants = [] } = await client.send(new GetBucketAclCommand({ Bucket: bucket }));
+      const { Grants = [] } = await client.send(new GetBucketAclCommand({ Bucket: bucket }), { abortSignal });
       const isPublic = Grants.some((g) =>
         g.Grantee?.URI?.includes('AllUsers') || g.Grantee?.URI?.includes('AuthenticatedUsers'),
       );
