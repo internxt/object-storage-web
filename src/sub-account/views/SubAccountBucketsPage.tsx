@@ -584,15 +584,20 @@ export const SubAccountBucketsPage = () => {
   const [bucketStats, setBucketStats] = useState({ bucketCount: 0, regionCount: 0 });
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState('');
-  const [debouncedSearch] = useDebounce(search, 300);
+  const [debouncedSearch] = useDebounce(search, 400);
   const [regions, setRegions] = useState<SubAccountRegion[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [bucketToDelete, setBucketToDelete] = useState<BucketRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const loadBucketsAbortRef = useRef<AbortController | null>(null);
   const {
-    state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage,
-  } = useObjectPagination([debouncedSearch]);
+    state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
+  } = useObjectPagination();
+
+  const onSearchChange = (v: string) => {
+    setSearch(v);
+    resetPagination();
+  };
 
   const fetchRegions = () =>
     subAccountAxios.get<SubAccountRegion[]>('/subaccount/regions')
@@ -629,9 +634,9 @@ export const SubAccountBucketsPage = () => {
       const result = await s3Service.listBuckets(
         s3, pagination.pageMarker?.continuationToken, pagination.pageSize, debouncedSearch || undefined, controller.signal,
       );
-
+      // If the current page has no buckets, go back to the previous page
+      // This can happen if the user deletes buckets and the current page becomes empty
       if (result.buckets.length === 0 && pagination.pageNumber > 1) {
-        recordPage({ ...result, isTruncated: false });
         goToPrevPage();
         return;
       }
@@ -739,7 +744,7 @@ export const SubAccountBucketsPage = () => {
         regions={regions}
         isLoading={isLoading}
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={onSearchChange}
         onOpen={handleOpen}
         onDelete={handleDelete}
         onCreateOpen={openCreateModal}

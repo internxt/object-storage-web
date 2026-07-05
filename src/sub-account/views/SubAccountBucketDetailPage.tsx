@@ -388,8 +388,8 @@ export const SubAccountBucketDetailPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showVersions, setShowVersions] = useLocalStorage('showVersions', false);
   const {
-    state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage,
-  } = useObjectPagination([prefix, searchQuery, showVersions]);
+    state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
+  } = useObjectPagination();
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [versioningEnabled, setVersioningEnabled] = useState(false);
   const [isTogglingVersioning, setIsTogglingVersioning] = useState(false);
@@ -586,6 +586,7 @@ export const SubAccountBucketDetailPage = () => {
     if (newPrefix) next.prefix = newPrefix;
     setSearchParams(next);
     setSearchQuery('');
+    resetPagination();
   };
 
   const displayObjects = objects;
@@ -652,6 +653,17 @@ export const SubAccountBucketDetailPage = () => {
   const onShowAllVersions = (obj: S3Object) => {
     setShowVersions(true);
     setSearchQuery(displayName(obj.key));
+    resetPagination();
+  };
+
+  const onSearchQueryChange = (v: string) => {
+    setSearchQuery(v);
+    resetPagination();
+  };
+
+  const onShowVersionsChange = (v: boolean) => {
+    setShowVersions(v);
+    resetPagination();
   };
 
   const onDeleteSingle = (obj: S3Object) => setFileToDelete(obj);
@@ -869,8 +881,8 @@ export const SubAccountBucketDetailPage = () => {
                     variant="search"
                     placeholder="Search objects by prefix…"
                     value={searchQuery}
-                    onChange={setSearchQuery}
-                    onClear={() => setSearchQuery('')}
+                    onChange={onSearchQueryChange}
+                    onClear={() => onSearchQueryChange('')}
                   />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -880,7 +892,7 @@ export const SubAccountBucketDetailPage = () => {
                   }}>
                     {displayObjects.length} {displayObjects.length === 1 ? 'object' : 'objects'}
                   </span>
-                  <Switch label="Show Versions" checked={showVersions} onChange={setShowVersions} />
+                  <Switch label="Show Versions" checked={showVersions} onChange={onShowVersionsChange} />
                 </div>
               </div>
 
