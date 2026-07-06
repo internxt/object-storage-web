@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CalendarBlankIcon,
-  CaretDownIcon,
-  CaretUpIcon,
   DownloadSimpleIcon,
   InfoIcon,
 } from '@phosphor-icons/react';
@@ -168,70 +166,84 @@ const InfoTooltip = ({ text: tooltipText, children }: { text: string; children: 
 
 // ─── UsageView ────────────────────────────────────────────────────────────────
 
-type SortDir = 'asc' | 'desc';
-
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
+const MAX_RANGE_MONTHS = 3;
+
+// The usages API paginates in ascending date order internally, which doesn't match
+// the newest-first pagination this UI wants. Since the date range already bounds the
+// number of possible rows (one per day), fetch the whole range in one call and do
+// sorting/pagination on the client instead of trusting the API's own page ordering.
+function daysBetween(from: string, to: string): number {
+  return Math.min(Math.max(dayjs(to).diff(dayjs(from), 'day') + 1, 1), 100);
+}
 
 export const UsageView = () => {
   const { entityId } = useSubAccount();
   const [fromDate, setFromDate] = useState(dayjs().subtract(30, 'days').format('YYYY-MM-DD'));
   const [toDate, setToDate] = useState(dayjs().format('YYYY-MM-DD'));
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [records, setRecords] = useState<UsageRecord[]>([]);
-  const [statsRecord, setStatsRecord] = useState<UsageRecord | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
   const fromRef = useRef<HTMLInputElement>(null);
   const toRef = useRef<HTMLInputElement>(null);
 
+  const handleFromChange = (value: string) => {
+    setFromDate(value);
+    const maxTo = dayjs(value).add(MAX_RANGE_MONTHS, 'month').format('YYYY-MM-DD');
+    if (dayjs(toDate).isBefore(value)) setToDate(value);
+    else if (dayjs(toDate).isAfter(maxTo)) setToDate(maxTo);
+  };
+
+  const handleToChange = (value: string) => {
+    setToDate(value);
+    const minFrom = dayjs(value).subtract(MAX_RANGE_MONTHS, 'month').format('YYYY-MM-DD');
+    if (dayjs(fromDate).isAfter(value)) setFromDate(value);
+    else if (dayjs(fromDate).isBefore(minFrom)) setFromDate(minFrom);
+  };
+
   useEffect(() => {
     setPageNumber(1);
-  }, [fromDate, toDate, entityId]);
+  }, [fromDate, toDate, entityId, pageSize]);
 
   useEffect(() => {
-    if (entityId) fetchUsage(fromDate, toDate, pageNumber, pageSize);
-  }, [fromDate, toDate, entityId, pageNumber, pageSize]);
+    if (entityId) fetchUsage(fromDate, toDate);
+  }, [fromDate, toDate, entityId]);
 
-  const fetchUsage = async (from: string, to: string, page: number, perPage: number) => {
+  const fetchUsage = async (from: string, to: string) => {
     setIsLoading(true);
     try {
       const { data } = await subAccountAxios.get<WacmUsageItem[]>(
         `/sub-accounts/${entityId}/usages`,
-        { params: { from, to, page: page - 1, perPage } },
+        { params: { from, to, page: 0, perPage: daysBetween(from, to) } },
       );
-      const mapped = data.map(u => ({
+      setRecords(data.map(u => ({
         date: u.startTime.slice(0, 10),
         active: u.activeStorage,
         deleted: u.deletedStorage,
         objects: u.activeObjects,
-      }));
-      setRecords(mapped);
-      if (page === 1) {
-        const latest = [...mapped].sort((a, b) => b.date.localeCompare(a.date))[0] ?? null;
-        setStatsRecord(latest);
-      }
+      })));
     } catch {
       setRecords([]);
-      if (page === 1) setStatsRecord(null);
     } finally {
       setIsLoading(false);
     }
   };
 
   const sorted = useMemo(() => {
-    return [...records].sort((a, b) =>
-      sortDir === 'desc'
-        ? b.date.localeCompare(a.date)
-        : a.date.localeCompare(b.date),
-    );
-  }, [records, sortDir]);
+    return [...records].sort((a, b) => b.date.localeCompare(a.date));
+  }, [records]);
+
+  const paged = useMemo(() => {
+    const start = (pageNumber - 1) * pageSize;
+    return sorted.slice(start, start + pageSize);
+  }, [sorted, pageNumber, pageSize]);
 
   const totals = {
-    active: statsRecord?.active ?? 0,
-    deleted: statsRecord?.deleted ?? 0,
-    objects: statsRecord?.objects ?? 0,
+    active: sorted[0]?.active ?? 0,
+    deleted: sorted[0]?.deleted ?? 0,
+    objects: sorted[0]?.objects ?? 0,
   };
 
   const stats: StatItem[] = [
@@ -256,12 +268,7 @@ export const UsageView = () => {
 
   const dateRangeLabel = `${dayjs(fromDate).format('DD-MMM-YYYY')} – ${dayjs(toDate).format('DD-MMM-YYYY')}`;
 
-  const HEADERS = [
-    { label: 'Record date', sortable: true },
-    { label: 'Active storage (TB)', sortable: false },
-    { label: 'Deleted storage (TB)', sortable: false },
-    { label: 'Active objects', sortable: false },
-  ];
+  const HEADERS = ['Record date', 'Active storage (TB)', 'Deleted storage (TB)', 'Active objects'];
 
   return (
     <div style={{
@@ -325,7 +332,9 @@ export const UsageView = () => {
                     <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>From</label>
                     <input
                       ref={fromRef} type="date" value={fromDate}
-                      onChange={e => { setFromDate(e.target.value); }}
+                      max={toDate}
+                      min={dayjs(toDate).subtract(MAX_RANGE_MONTHS, 'month').format('YYYY-MM-DD')}
+                      onChange={e => handleFromChange(e.target.value)}
                       style={{
                         height: 36, padding: '0 10px', borderRadius: 8, fontSize: 13,
                         border: `1px solid ${T.gray20}`, fontFamily: 'inherit',
@@ -337,7 +346,9 @@ export const UsageView = () => {
                     <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>To</label>
                     <input
                       ref={toRef} type="date" value={toDate}
-                      onChange={e => { setToDate(e.target.value); }}
+                      min={fromDate}
+                      max={dayjs(fromDate).add(MAX_RANGE_MONTHS, 'month').format('YYYY-MM-DD')}
+                      onChange={e => handleToChange(e.target.value)}
                       style={{
                         height: 36, padding: '0 10px', borderRadius: 8, fontSize: 13,
                         border: `1px solid ${T.gray20}`, fontFamily: 'inherit',
@@ -384,25 +395,16 @@ export const UsageView = () => {
           background: T.gray5,
           borderBottom: `1px solid ${T.gray15}`,
         }}>
-          {HEADERS.map((h) => (
-            <button
-              key={h.label}
-              onClick={h.sortable ? () => setSortDir(d => d === 'desc' ? 'asc' : 'desc') : undefined}
+          {HEADERS.map((label) => (
+            <span
+              key={label}
               style={{
-                display: 'flex', alignItems: 'center', gap: 5,
                 fontSize: 12, fontWeight: 500, color: T.gray60,
                 textTransform: 'uppercase', letterSpacing: '0.04em',
-                background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
-                cursor: h.sortable ? 'pointer' : 'default', textAlign: 'left',
               }}
             >
-              {h.label}
-              {h.sortable && (
-                sortDir === 'desc'
-                  ? <CaretDownIcon size={13} weight="bold" />
-                  : <CaretUpIcon size={13} weight="bold" />
-              )}
-            </button>
+              {label}
+            </span>
           ))}
         </div>
 
@@ -417,16 +419,16 @@ export const UsageView = () => {
             <p style={{ fontSize: 13, color: T.gray50, marginTop: 4 }}>Try expanding the date range.</p>
           </div>
         ) : (
-          sorted.map(r => <UsageRow key={r.date} record={r} />)
+          paged.map(r => <UsageRow key={r.date} record={r} />)
         )}
 
         <Pagination
           pageSize={pageSize}
           pageSizeOptions={PAGE_SIZE_OPTIONS}
-          onPageSizeChange={(size) => { setPageSize(size); setPageNumber(1); }}
+          onPageSizeChange={(size) => setPageSize(size)}
           pageNumber={pageNumber}
           hasPrevPage={pageNumber > 1}
-          hasNextPage={records.length === pageSize}
+          hasNextPage={pageNumber * pageSize < sorted.length}
           onPrev={() => setPageNumber(p => Math.max(1, p - 1))}
           onNext={() => setPageNumber(p => p + 1)}
           isLoading={isLoading}

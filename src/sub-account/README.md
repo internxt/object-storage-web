@@ -581,14 +581,18 @@
 ### Filtering by date range
 - When the user sets a From date,
   then all dates before it are disabled in the To date picker.
+- The date range is capped at 3 months: when the user sets a From date,
+  then dates more than 3 months after it are disabled in the To date picker,
+  and if the currently selected To date falls outside that window, it is adjusted
+  to stay within 3 months of the new From date. The same applies symmetrically
+  when the user changes the To date.
 - When the user sets a From and To date and applies the filter,
   then the table updates to show only records within that range.
 
-### Sorting records
-- When the user clicks the date column header,
-  then the records are sorted in ascending order by date.
-- When the user clicks it again,
-  then the records are sorted in descending order.
+### Record ordering
+- When the table loads,
+  then records are always shown in descending order by date (most recent first).
+- The Record Date column header is not clickable/sortable.
 
 ### Exporting as CSV
 - When the user clicks Export CSV,
