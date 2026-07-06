@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 import subAccountAxios from '../core/sub-account-axios';
 import { useSubAccount } from '../context/SubAccountContext';
 import { T, shadow, text } from '../tokens';
+import { Pagination } from '../../components/Pagination';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -135,9 +136,41 @@ const UsageRow = ({ record }: UsageRowProps) => {
   );
 };
 
+// ─── InfoTooltip ──────────────────────────────────────────────────────────────
+
+const InfoTooltip = ({ text: tooltipText, children }: { text: string; children: React.ReactNode }) => {
+  const [visible, setVisible] = useState(false);
+  return (
+    <span
+      style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      {children}
+      {visible && (
+        <div
+          role="tooltip"
+          style={{
+            position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
+            width: 240, zIndex: 50,
+            background: T.gray100, color: T.white,
+            borderRadius: 8, boxShadow: shadow.md,
+            padding: '8px 10px',
+            fontSize: 12, lineHeight: 1.4, textAlign: 'justify',
+          }}
+        >
+          {tooltipText}
+        </div>
+      )}
+    </span>
+  );
+};
+
 // ─── UsageView ────────────────────────────────────────────────────────────────
 
 type SortDir = 'asc' | 'desc';
+
+const PAGE_SIZE_OPTIONS = [25, 50, 100];
 
 export const UsageView = () => {
   const { entityId } = useSubAccount();
@@ -146,29 +179,42 @@ export const UsageView = () => {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [records, setRecords] = useState<UsageRecord[]>([]);
+  const [statsRecord, setStatsRecord] = useState<UsageRecord | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
   const fromRef = useRef<HTMLInputElement>(null);
   const toRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (entityId) fetchUsage(fromDate, toDate);
+    setPageNumber(1);
   }, [fromDate, toDate, entityId]);
 
-  const fetchUsage = async (from: string, to: string) => {
+  useEffect(() => {
+    if (entityId) fetchUsage(fromDate, toDate, pageNumber, pageSize);
+  }, [fromDate, toDate, entityId, pageNumber, pageSize]);
+
+  const fetchUsage = async (from: string, to: string, page: number, perPage: number) => {
     setIsLoading(true);
     try {
       const { data } = await subAccountAxios.get<WacmUsageItem[]>(
         `/sub-accounts/${entityId}/usages`,
-        { params: { from, to, page: 0, perPage: 100 } },
+        { params: { from, to, page: page - 1, perPage } },
       );
-      setRecords(data.map(u => ({
+      const mapped = data.map(u => ({
         date: u.startTime.slice(0, 10),
         active: u.activeStorage,
         deleted: u.deletedStorage,
         objects: u.activeObjects,
-      })));
+      }));
+      setRecords(mapped);
+      if (page === 1) {
+        const latest = [...mapped].sort((a, b) => b.date.localeCompare(a.date))[0] ?? null;
+        setStatsRecord(latest);
+      }
     } catch {
       setRecords([]);
+      if (page === 1) setStatsRecord(null);
     } finally {
       setIsLoading(false);
     }
@@ -182,12 +228,11 @@ export const UsageView = () => {
     );
   }, [records, sortDir]);
 
-  const totals = useMemo(() => {
-    if (sorted.length === 0) return { active: 0, deleted: 0, objects: 0 };
-    // show latest day's snapshot values (not cumulative)
-    const latest = sorted[0];
-    return { active: latest.active, deleted: latest.deleted, objects: latest.objects };
-  }, [sorted]);
+  const totals = {
+    active: statsRecord?.active ?? 0,
+    deleted: statsRecord?.deleted ?? 0,
+    objects: statsRecord?.objects ?? 0,
+  };
 
   const stats: StatItem[] = [
     {
@@ -200,7 +245,7 @@ export const UsageView = () => {
       label: 'Deleted storage',
       value: fmtTB(totals.deleted),
       unit: 'TB',
-      hint: 'Pending hard-deletion',
+      hint: 'Deleted in the last 30 days',
     },
     {
       label: 'Active objects',
@@ -243,7 +288,13 @@ export const UsageView = () => {
             <span style={{ ...text.heading }}>
               Account Usage
             </span>
-            <InfoIcon size={16} color={T.gray50} aria-label="This shows the entire account's usage aggregated per day" />
+            <InfoTooltip text="Account Usage is calculated once per day. After this daily job completes, the UI will update with the latest data for the most recent day. New Accounts and new Buckets will not see data reported until the next day.">
+              <InfoIcon
+                size={16}
+                color={T.gray50}
+                aria-label="Account Usage is calculated once per day. After this daily job completes, the UI will update with the latest data for the most recent day. New Accounts and new Buckets will not see data reported until the next day."
+              />
+            </InfoTooltip>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -368,6 +419,18 @@ export const UsageView = () => {
         ) : (
           sorted.map(r => <UsageRow key={r.date} record={r} />)
         )}
+
+        <Pagination
+          pageSize={pageSize}
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
+          onPageSizeChange={(size) => { setPageSize(size); setPageNumber(1); }}
+          pageNumber={pageNumber}
+          hasPrevPage={pageNumber > 1}
+          hasNextPage={records.length === pageSize}
+          onPrev={() => setPageNumber(p => Math.max(1, p - 1))}
+          onNext={() => setPageNumber(p => p + 1)}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   );

@@ -297,10 +297,15 @@
   When the user checks the header checkbox
   Then all _visible_ objects in the list are selected
 
-#### Scenario: Delete Selected is disabled when a folder is selected
-  Given the user has selected a folder
+#### Scenario: Delete Selected is disabled when a non-empty folder is selected
+  Given the user has selected a folder that contains objects or subfolders
   When the user views the Delete Selected button
   Then the Delete Selected button is disabled
+
+#### Scenario: Delete Selected is enabled when an empty folder is selected
+  Given the user has selected a folder that has no contents
+  When the user views the Delete Selected button
+  Then the Delete Selected button is enabled
 
 ### Deleting selected objects
 
@@ -544,8 +549,16 @@
 ### Viewing usage stats
 - When the user navigates to the Usage page,
   then they see the latest day's summary: active storage, deleted storage, and active object count.
+- When the user views the Deleted Storage stat,
+  then its caption indicates it reflects data deleted within the last 30 days.
 - When the page is loading,
   then a loading state is shown in place of the stats and table.
+
+### Account Usage info tooltip
+- When the user hovers the info icon next to "Account Usage",
+  then a tooltip explains that usage is calculated once per day, that the UI updates
+  with the latest data once that daily job completes, and that new accounts and new
+  buckets will not see data reported until the next day.
 
 ### Viewing daily records
 - When the page loads,
@@ -553,6 +566,17 @@
   with columns: date, active storage, deleted storage, and active objects.
 - When there are no records for the selected range,
   then an empty state is shown.
+
+### Pagination
+- When there are more usage records than fit on one page,
+  then the user can change the page size (25/50/100) and navigate between pages,
+  same as the pagination controls used elsewhere in the app.
+- When the user is on the first page,
+  then the previous page arrow is disabled.
+- When the user navigates to a page with fewer records than the page size,
+  then the next page arrow is disabled.
+- When the user changes page size or the date range,
+  then the table resets back to the first page.
 
 ### Filtering by date range
 - When the user sets a From date,
