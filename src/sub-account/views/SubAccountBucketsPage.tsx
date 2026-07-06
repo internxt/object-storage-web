@@ -275,7 +275,7 @@ const BucketsTable = ({
           {buckets.length} {buckets.length === 1 ? 'bucket' : 'buckets'} total
         </p>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
         <div style={{ width: 280 }}>
           <Input
             variant="search"
