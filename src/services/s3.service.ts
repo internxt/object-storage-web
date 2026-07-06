@@ -71,14 +71,19 @@ export const s3Service = {
     prefix?: string,
     abortSignal?: AbortSignal,
   ): Promise<ListBucketsResult> => {
-    const { Buckets = [], ContinuationToken } = await client.send(
-      new ListBucketsCommand({ ContinuationToken: continuationToken, MaxBuckets: maxBuckets, Prefix: prefix }),
+    // Backend returns a token even when not truncated, so we work around it:
+    // overfetch by 1, use the last kept bucket's name as an exclusive token.
+    const fetchLimit = maxBuckets !== undefined ? maxBuckets + 1 : undefined;
+    const { Buckets = [] } = await client.send(
+      new ListBucketsCommand({ ContinuationToken: continuationToken, MaxBuckets: fetchLimit, Prefix: prefix }),
       { abortSignal },
     );
+    const hasMore = maxBuckets !== undefined && Buckets.length > maxBuckets;
+    const page = hasMore ? Buckets.slice(0, maxBuckets) : Buckets;
     return {
-      buckets: Buckets.map((b) => ({ name: b.Name!, creationDate: b.CreationDate!, region: b.BucketRegion })),
-      continuationToken: ContinuationToken,
-      isTruncated: Buckets.length > 0 && ContinuationToken !== undefined && ContinuationToken !== continuationToken,
+      buckets: page.map((b) => ({ name: b.Name!, creationDate: b.CreationDate!, region: b.BucketRegion })),
+      continuationToken: hasMore ? page[page.length - 1].Name : undefined,
+      isTruncated: hasMore,
     };
   },
 

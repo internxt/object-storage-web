@@ -714,8 +714,8 @@ export const SubAccountBucketsPage = () => {
     setIsDeleting(true);
     try {
       await s3Service.deleteBucket(regionClient, bucketToDelete.name);
-      setBuckets((prev) => prev.filter((b) => b.name !== bucketToDelete.name));
       if (client) {
+        loadBuckets(client);
         loadBucketsGeneralStats(client);
       }
       setBucketToDelete(null);
