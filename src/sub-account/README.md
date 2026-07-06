@@ -78,7 +78,7 @@
 ### Viewing the bucket list
 #### Scenario: View list of buckets
   Given the user is on the Buckets page
-  Then they see a list of buckets with name, region, visibility (Public/Private) and creation date
+  Then they see a list of buckets with name, region and creation date
 
 #### Scenario: Paginate bucket list
   Given there are more buckets than fit on one page

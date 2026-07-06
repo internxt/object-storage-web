@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import { useNavigate } from 'react-router-dom';
 import {
   DotsThreeVerticalIcon,
@@ -16,7 +17,7 @@ import Input from '../../components/Input';
 import Modal from '../../components/Modal';
 import { Dropdown } from '../../components/Dropdown';
 import { Switch } from '../../components/Switch';
-import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
+import { useSubAccountS3Client, useOnS3ClientReadyEffect } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
 import { useSubAccount } from '../context/SubAccountContext';
 import { T, shadow, text, form } from '../tokens';
@@ -30,15 +31,21 @@ import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal
 interface BucketRecord {
   name: string;
   regionSlug: string;
-  visibility: 'public' | 'private';
   creationDate?: Date;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function fmtDate(d?: Date): string {
-  if (!d) return '—';
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  if (!d) {
+    return '—';
+  }
+  const day = d.toLocaleDateString('en-GB', { day: '2-digit' });
+  const month = d.toLocaleDateString('en-GB', { month: 'short' });
+  const year = d.getFullYear();
+  const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+  return `${day}-${month}-${year} ${time}`;
 }
 
 // ─── StatStrip ────────────────────────────────────────────────────────────────
@@ -98,41 +105,9 @@ const StatStrip = ({ stats }: { stats: StatItem[] }) => (
   </div>
 );
 
-// ─── Pill ─────────────────────────────────────────────────────────────────────
-
-const Pill = ({ type }: { type: 'public' | 'private' }) => {
-  const isPublic = type === 'public';
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '4px 10px',
-        borderRadius: 999,
-        fontSize: 12,
-        fontWeight: 500,
-        background: isPublic ? 'rgba(0,102,255,0.08)' : T.gray10,
-        color: isPublic ? T.primary : T.gray80,
-      }}
-    >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: '50%',
-          background: isPublic ? T.primary : T.gray50,
-          flexShrink: 0,
-        }}
-      />
-      {isPublic ? 'Public' : 'Private'}
-    </span>
-  );
-};
-
 // ─── BucketRow ────────────────────────────────────────────────────────────────
 
-const GRID = '2fr 1.1fr 1fr 1fr 1fr 40px';
+const GRID = '2fr 1.1fr 1fr 40px';
 
 interface BucketRowProps {
   bucket: BucketRecord;
@@ -199,16 +174,8 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
       {/* Region */}
       <span style={{ fontSize: 14, color: T.gray80 }}>{regionName}</span>
 
-      {/* Visibility */}
-      <div>
-        <Pill type={bucket.visibility} />
-      </div>
-
       {/* Created */}
       <span style={{ fontSize: 14, color: T.gray60 }}>{fmtDate(bucket.creationDate)}</span>
-
-      {/* Empty col for alignment (was objects/size — hidden until usage API available) */}
-      <span />
 
       {/* Actions */}
       <div
@@ -270,7 +237,7 @@ interface BucketsTableProps {
   isAdmin: boolean;
 }
 
-const TABLE_HEADERS = ['Name', 'Region', 'Visibility', 'Created', '', ''];
+const TABLE_HEADERS = ['Name', 'Region', 'Created', ''];
 
 const BucketsTable = ({
   buckets,
@@ -308,7 +275,7 @@ const BucketsTable = ({
           {buckets.length} {buckets.length === 1 ? 'bucket' : 'buckets'} total
         </p>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
         <div style={{ width: 280 }}>
           <Input
             variant="search"
@@ -424,7 +391,9 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
 
   const onToggleVersioning = (next: boolean) => {
     setVersioningEnabled(next);
-    if (!next) setObjectLockEnabled(false);
+    if (!next) {
+      setObjectLockEnabled(false);
+    }
   };
 
   const selectedRegion = useMemo(
@@ -433,7 +402,9 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
   );
 
   const handleCreate = async () => {
-    if (!selectedRegion || !isValidBucketName(bucketName) || !credentials) return;
+    if (!selectedRegion || !isValidBucketName(bucketName) || !credentials) {
+      return;
+    }
     setIsCreating(true);
     const regionClient = new S3Client({
       endpoint: `https://${selectedRegion.endpoint}`,
@@ -574,15 +545,23 @@ export const SubAccountBucketsPage = () => {
   const { client, credentials } = useSubAccountS3Client(entityId, memberId);
 
   const [buckets, setBuckets] = useState<BucketRecord[]>([]);
+  const [bucketStats, setBucketStats] = useState({ bucketCount: 0, regionCount: 0 });
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 400);
   const [regions, setRegions] = useState<SubAccountRegion[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [bucketToDelete, setBucketToDelete] = useState<BucketRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const loadBucketsAbortRef = useRef<AbortController | null>(null);
   const {
-    state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage,
-  } = useObjectPagination([]);
+    state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
+  } = useObjectPagination();
+
+  const onSearchChange = (v: string) => {
+    setSearch(v);
+    resetPagination();
+  };
 
   const fetchRegions = () =>
     subAccountAxios.get<SubAccountRegion[]>('/subaccount/regions')
@@ -596,56 +575,80 @@ export const SubAccountBucketsPage = () => {
     fetchRegions();
   };
 
-  useEffect(() => {
-    if (client) loadBuckets(client);
-  }, [client, pagination.pageSize, pagination.pageNumber]);
+  useOnS3ClientReadyEffect(client, (c) => {
+    loadBuckets(c);
+  }, [pagination.pageSize, pagination.pageNumber, debouncedSearch]);
+
+  useOnS3ClientReadyEffect(client, (c) => {
+    loadBucketsGeneralStats(c);
+  }, []);
 
   const loadBuckets = async (s3: S3Client) => {
+    loadBucketsAbortRef.current?.abort();
+    const controller = new AbortController();
+    loadBucketsAbortRef.current = controller;
+
     setIsLoading(true);
     try {
       const result = await s3Service.listBuckets(
-        s3, pagination.pageMarker?.continuationToken, pagination.pageSize,
+        s3, pagination.pageMarker?.continuationToken, pagination.pageSize, debouncedSearch || undefined, controller.signal,
       );
+      // If the current page has no buckets, go back to the previous page
+      // This can happen if the user deletes buckets and the current page becomes empty
       if (result.buckets.length === 0 && pagination.pageNumber > 1) {
-        recordPage({ ...result, isTruncated: false });
         goToPrevPage();
         return;
       }
+
       recordPage(result);
-      const enriched = await Promise.all(
-        result.buckets.map(async (b) => {
-          const [regionSlug, visibility] = await Promise.all([
-            s3Service.getBucketLocation(s3, b.name).catch(() => ''),
-            s3Service.getBucketVisibility(s3, b.name),
-          ]);
-          return { name: b.name, regionSlug, visibility, creationDate: b.creationDate } as BucketRecord;
-        }),
-      );
-      setBuckets(enriched);
+      setBuckets(result.buckets.map((b) => ({
+        name: b.name,
+        regionSlug: b.region ?? '',
+        creationDate: b.creationDate,
+      })));
     } catch (err) {
-      notificationsService.error({ text: (err as Error).message });
+      if ((err as Error).name !== 'AbortError') {
+        notificationsService.error({ text: (err as Error).message });
+      }
     } finally {
-      setIsLoading(false);
+      if (loadBucketsAbortRef.current === controller) {
+        setIsLoading(false);
+      }
     }
   };
 
-  const filtered = useMemo(
-    () => buckets.filter((b) => b.name.toLowerCase().includes(search.toLowerCase())),
-    [buckets, search],
-  );
+  const loadBucketsGeneralStats = async (s3: S3Client) => {
+    try {
+      const regionSlugs = new Set<string>();
+      let bucketCount = 0;
+      let continuationToken: string | undefined;
+      let hasMore = true;
+      while (hasMore) {
+        const result = await s3Service.listBuckets(s3, continuationToken, 1000);
+        bucketCount += result.buckets.length;
+        result.buckets.forEach((b) => {
+          if (b.region) {
+            regionSlugs.add(b.region);
+          }
+        });
+        hasMore = !!result.isTruncated && !!result.continuationToken;
+        continuationToken = result.continuationToken;
+      }
+      setBucketStats({ bucketCount, regionCount: regionSlugs.size });
+    } catch (err) {
+      notificationsService.error({ text: (err as Error).message });
+    }
+  };
 
-  const stats = useMemo((): StatItem[] => {
-    const uniqueRegions = new Set(buckets.map((b) => b.regionSlug).filter(Boolean));
-    return [
-      {
-        label: 'Buckets',
-        value: String(buckets.length),
-        hint: `In ${uniqueRegions.size} ${uniqueRegions.size === 1 ? 'region' : 'regions'}`,
-      },
-      { label: 'Objects stored', value: '—', hint: 'Across all buckets' },
-      { label: 'Used storage', value: '—', hint: 'Active data' },
-    ];
-  }, [buckets]);
+  const stats: StatItem[] = [
+    {
+      label: 'Buckets',
+      value: String(bucketStats.bucketCount),
+      hint: `In ${bucketStats.regionCount} ${bucketStats.regionCount === 1 ? 'region' : 'regions'}`,
+    },
+    { label: 'Objects stored', value: '—', hint: 'Across all buckets' },
+    { label: 'Used storage', value: '—', hint: 'Active data' },
+  ];
 
   const handleOpen = (bucket: BucketRecord) => {
     const region = regions.find((r) => r.slug === bucket.regionSlug);
@@ -656,7 +659,9 @@ export const SubAccountBucketsPage = () => {
   const handleDelete = (bucket: BucketRecord) => setBucketToDelete(bucket);
 
   const confirmDelete = async () => {
-    if (!credentials || !bucketToDelete) return;
+    if (!credentials || !bucketToDelete) {
+      return;
+    }
     const region = regions.find((r) => r.slug === bucketToDelete.regionSlug);
     const regionClient = new S3Client({
       endpoint: `https://${region?.endpoint ?? credentials.endpoint}`,
@@ -667,7 +672,10 @@ export const SubAccountBucketsPage = () => {
     setIsDeleting(true);
     try {
       await s3Service.deleteBucket(regionClient, bucketToDelete.name);
-      setBuckets((prev) => prev.filter((b) => b.name !== bucketToDelete.name));
+      if (client) {
+        loadBuckets(client);
+        loadBucketsGeneralStats(client);
+      }
       setBucketToDelete(null);
     } catch (err) {
       notificationsService.error({ text: (err as Error).message });
@@ -690,11 +698,11 @@ export const SubAccountBucketsPage = () => {
     >
       <StatStrip stats={stats} />
       <BucketsTable
-        buckets={filtered}
+        buckets={buckets}
         regions={regions}
         isLoading={isLoading}
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={onSearchChange}
         onOpen={handleOpen}
         onDelete={handleDelete}
         onCreateOpen={openCreateModal}
@@ -716,7 +724,13 @@ export const SubAccountBucketsPage = () => {
         onClose={() => setIsCreateOpen(false)}
         regions={regions}
         credentials={credentials}
-        onCreated={() => client && loadBuckets(client)}
+        onCreated={() => {
+          if (!client) {
+            return;
+          }
+          loadBuckets(client);
+          loadBucketsGeneralStats(client);
+        }}
       />
       <DeleteBucketConfirmModal
         isOpen={!!bucketToDelete}

@@ -68,20 +68,29 @@ export const s3Service = {
     client: S3Client,
     continuationToken?: string,
     maxBuckets?: number,
+    prefix?: string,
+    abortSignal?: AbortSignal,
   ): Promise<ListBucketsResult> => {
-    const { Buckets = [], ContinuationToken } = await client.send(
-      new ListBucketsCommand({ ContinuationToken: continuationToken, MaxBuckets: maxBuckets }),
+    // Backend returns a token even when not truncated, so we work around it:
+    // overfetch by 1, use the last kept bucket's name as an exclusive token.
+    const fetchLimit = maxBuckets !== undefined ? maxBuckets + 1 : undefined;
+    const { Buckets = [] } = await client.send(
+      new ListBucketsCommand({ ContinuationToken: continuationToken, MaxBuckets: fetchLimit, Prefix: prefix }),
+      { abortSignal },
     );
+    const hasMore = maxBuckets !== undefined && Buckets.length > maxBuckets;
+    const page = hasMore ? Buckets.slice(0, maxBuckets) : Buckets;
     return {
-      buckets: Buckets.map((b) => ({ name: b.Name!, creationDate: b.CreationDate! })),
-      continuationToken: ContinuationToken,
-      isTruncated: Buckets.length > 0 && ContinuationToken !== undefined && ContinuationToken !== continuationToken,
+      buckets: page.map((b) => ({ name: b.Name!, creationDate: b.CreationDate!, region: b.BucketRegion })),
+      continuationToken: hasMore ? page[page.length - 1].Name : undefined,
+      isTruncated: hasMore,
     };
   },
 
-  getBucketLocation: async (client: S3Client, bucket: string): Promise<string> => {
+  getBucketLocation: async (client: S3Client, bucket: string, abortSignal?: AbortSignal): Promise<string> => {
     const { LocationConstraint } = await client.send(
       new GetBucketLocationCommand({ Bucket: bucket }),
+      { abortSignal },
     );
     return LocationConstraint ?? 'us-east-1';
   },
@@ -350,9 +359,13 @@ export const s3Service = {
     await client.send(new DeleteBucketCommand({ Bucket: bucket }));
   },
 
-  getBucketVisibility: async (client: S3Client, bucket: string): Promise<'public' | 'private'> => {
+  getBucketVisibility: async (
+    client: S3Client,
+    bucket: string,
+    abortSignal?: AbortSignal,
+  ): Promise<'public' | 'private'> => {
     try {
-      const { Grants = [] } = await client.send(new GetBucketAclCommand({ Bucket: bucket }));
+      const { Grants = [] } = await client.send(new GetBucketAclCommand({ Bucket: bucket }), { abortSignal });
       const isPublic = Grants.some((g) =>
         g.Grantee?.URI?.includes('AllUsers') || g.Grantee?.URI?.includes('AuthenticatedUsers'),
       );

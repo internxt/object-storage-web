@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface PageMarker {
     continuationToken?: string;
@@ -20,13 +20,15 @@ interface PagesState {
 
 const firstPage: PagesState = { pageIndex: 0, markers: [{}] };
 
-export function useObjectPagination(resetDeps: unknown[]) {
+export function useObjectPagination() {
     const [pages, setPages] = useState<PagesState>(firstPage);
     const [pageSize, setPageSizeState] = useState(100);
     const [isTruncated, setIsTruncated] = useState(false);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => setPages(firstPage), resetDeps);
+    const reset = () => {
+        setPages(firstPage);
+        setIsTruncated(false);
+    };
 
     const setPageSize = (size: number) => {
         setPageSizeState(size);
@@ -34,9 +36,9 @@ export function useObjectPagination(resetDeps: unknown[]) {
     };
 
     const goToPrevPage = () =>
-        setPages((prev) => ({ ...prev, pageIndex: prev.pageIndex - 1 }));
+        setPages((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: prev.pageIndex - 1 }));
     const goToNextPage = () =>
-        setPages((prev) => ({ ...prev, pageIndex: prev.pageIndex + 1 }));
+        setPages((prev) => (prev.markers[prev.pageIndex + 1] ? { ...prev, pageIndex: prev.pageIndex + 1 } : prev));
 
     const recordPage = (result: PageResult) => {
         setIsTruncated(result.isTruncated);
@@ -64,5 +66,6 @@ export function useObjectPagination(resetDeps: unknown[]) {
         goToPrevPage,
         goToNextPage,
         recordPage,
+        reset,
     };
 }
