@@ -81,6 +81,17 @@ function getSsoEnabled(): boolean {
   }
 }
 
+function getPartnerId(): string | null {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.partnerId ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export const subAccountAuthService = {
   logIn,
   logOut,
@@ -89,5 +100,6 @@ export const subAccountAuthService = {
   getMemberId,
   getEntityId,
   getSsoEnabled,
+  getPartnerId,
   getEmail,
 };

@@ -53,6 +53,26 @@
   And the user is redirected to the login page
 
 
+## Feature: Billing
+
+#### Scenario: Billing link is visible for sub-accounts without a partner
+  Given the sub-account does not belong to a partner
+  When the user views the console navbar
+  Then a "Billing" link is visible next to the other tabs
+
+#### Scenario: Billing link is not visible for sub-accounts with a partner
+  Given the sub-account belongs to a partner
+  When the user views the console navbar
+  Then the "Billing" link is not visible
+  (billing for these accounts is managed through the partner instead)
+
+#### Scenario: Open the billing portal
+  Given the "Billing" link is visible
+  When the user clicks it
+  Then a Stripe billing portal session is opened in a new tab,
+  scoped to the sub-account's own Stripe customer
+
+
 ## Feature: Buckets section
 
 ### Viewing the bucket list

@@ -4,6 +4,7 @@ import {
   CaretDownIcon,
   GearSixIcon,
   SignOutIcon,
+  ArrowSquareOutIcon,
 } from '@phosphor-icons/react';
 import { T, shadow } from '../tokens';
 
@@ -22,6 +23,7 @@ export interface ConsoleTopBarProps {
   onSettings: () => void;
   onLogout: () => void;
   user: { email?: string; initials: string };
+  billing?: { loading: boolean; onClick: () => void };
 }
 
 // ─── AvatarMenu ───────────────────────────────────────────────────────────────
@@ -160,6 +162,7 @@ export const ConsoleTopBar = ({
   onSettings,
   onLogout,
   user,
+  billing,
 }: ConsoleTopBarProps) => (
   <header style={{
     height: 56,
@@ -210,6 +213,23 @@ export const ConsoleTopBar = ({
             </button>
           );
         })}
+        {billing && (
+          <button
+            onClick={billing.onClick}
+            disabled={billing.loading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              height: '100%', padding: '0 14px',
+              background: 'none', border: 'none', borderBottom: '2px solid transparent',
+              cursor: billing.loading ? 'default' : 'pointer',
+              fontSize: 14, fontWeight: 500, color: T.gray60,
+              whiteSpace: 'nowrap', opacity: billing.loading ? 0.6 : 1,
+            }}
+          >
+            Billing
+            <ArrowSquareOutIcon size={14} />
+          </button>
+        )}
       </nav>
     </div>
 

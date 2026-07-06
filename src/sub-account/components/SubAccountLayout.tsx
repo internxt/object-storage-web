@@ -1,7 +1,9 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSubAccount } from '../context/SubAccountContext';
 import { ConsoleTopBar } from './ConsoleTopBar';
+import { subAccountBillingService } from '../services/sub-account-billing.service';
+import notificationsService from '../../services/notifications.service';
 import { T } from '../tokens';
 
 const TABS_ADMIN = [
@@ -22,9 +24,10 @@ const toInitials = (email: string | null): string => {
 };
 
 export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
-  const { logOut, isAdmin, email } = useSubAccount();
+  const { logOut, isAdmin, email, entityId, partnerId } = useSubAccount();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [billingLoading, setBillingLoading] = useState(false);
 
   const tabs = isAdmin ? TABS_ADMIN : TABS_MEMBER;
 
@@ -33,6 +36,19 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
   const handleLogOut = () => {
     logOut();
     navigate('/subaccount/login');
+  };
+
+  const openBilling = async () => {
+    if (!entityId) return;
+    setBillingLoading(true);
+    try {
+      const { url } = await subAccountBillingService.createBillingPortalSession(entityId);
+      window.open(url, '_blank');
+    } catch {
+      notificationsService.error({ text: 'Failed to open billing portal' });
+    } finally {
+      setBillingLoading(false);
+    }
   };
 
   return (
@@ -45,6 +61,7 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
         onSettings={() => navigate('/subaccount/settings')}
         onLogout={handleLogOut}
         user={{ email: email ?? undefined, initials: toInitials(email) }}
+        billing={!partnerId ? { loading: billingLoading, onClick: openBilling } : undefined}
       />
       <main style={{ flex: 1, padding: '24px 28px', overflow: 'auto' }}>
         {children}
