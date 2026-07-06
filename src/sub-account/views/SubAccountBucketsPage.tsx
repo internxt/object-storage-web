@@ -612,14 +612,16 @@ export const SubAccountBucketsPage = () => {
   };
 
   useEffect(() => {
-    if (!client) return;
-    loadBuckets(client);
+    if (client) {
+      loadBuckets(client);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, pagination.pageSize, pagination.pageNumber, debouncedSearch]);
 
   useEffect(() => {
-    if (!client) return;
-    loadBucketsGeneralStats(client);
+    if (client) {
+      loadBucketsGeneralStats(client);
+    }
   }, [client]);
 
   const loadBuckets = async (s3: S3Client) => {
