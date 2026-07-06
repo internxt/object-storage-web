@@ -415,9 +415,19 @@ export const SubAccountBucketDetailPage = () => {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
   useEffect(() => {
-    if (client && bucketName) {
-      s3Service.getBucketVisibility(client, bucketName).then(setVisibility).catch(() => {});
+    if (!client || !bucketName) {
+      return;
     }
+
+    s3Service.getBucketVisibility(client, bucketName).then(setVisibility).catch(() => {});
+    s3Service.getObjectLockConfig(client, bucketName)
+      .then(setObjectLockConfig)
+      .catch(() => {});
+    s3Service.getBucketLogging(client, bucketName)
+      .then((l) => setLoggingConfig({
+        enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '',
+      }))
+      .catch(() => {});
   }, [client, bucketName]);
 
   useEffect(() => {
@@ -427,37 +437,17 @@ export const SubAccountBucketDetailPage = () => {
   }, [client, bucketName, prefix, searchQuery, showVersions, pagination.pageSize, pagination.pageNumber]);
 
   useEffect(() => {
-    if (client && bucketName && activeTab === 'properties') {
-      s3Service.getBucketVersioning(client, bucketName)
-        .then(v => setVersioningEnabled(v.enabled))
-        .catch(() => {});
-    }
+    if (!client || !bucketName || activeTab !== 'properties') return;
+    s3Service.getBucketVersioning(client, bucketName)
+      .then(v => setVersioningEnabled(v.enabled))
+      .catch(() => {});
   }, [client, bucketName, activeTab]);
 
   useEffect(() => {
-    if (client && bucketName) {
-      s3Service.getObjectLockConfig(client, bucketName)
-        .then(setObjectLockConfig)
-        .catch(() => {});
-    }
-  }, [client, bucketName]);
-
-  useEffect(() => {
-    if (client && bucketName) {
-      s3Service.getBucketLogging(client, bucketName)
-        .then((l) => setLoggingConfig({
-          enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '',
-        }))
-        .catch(() => {});
-    }
-  }, [client, bucketName]);
-
-  useEffect(() => {
-    if (client) {
-      s3Service.listBuckets(client)
-        .then((result) => setBucketsList(result.buckets.map((b) => b.name)))
-        .catch(() => {});
-    }
+    if (!client) return;
+    s3Service.listBuckets(client)
+      .then((result) => setBucketsList(result.buckets.map((b) => b.name)))
+      .catch(() => {});
   }, [client]);
 
   const onSaveRetention = async (mode: RetentionMode, scale: 'days' | 'years', value: number) => {
