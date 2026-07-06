@@ -360,10 +360,17 @@
   And their keys preserve the folder's structure as a prefix
   And they appear in the object list under that prefix
 
-#### Scenario: Close Upload Files dialog
+#### Scenario: Close Upload Files dialog by clicking outside
   Given the Upload Files dialog is open
-  When the user clicks the X button
+  When the user clicks outside the dialog
   Then the dialog is closed
+
+#### Scenario: Remove a single pending file from the upload list
+  Given the Upload Files dialog is open
+  And one or more files are pending upload
+  When the user clicks the X icon on a file that is still pending
+  Then that file is removed from the list
+  And it is not uploaded
 
 ### Create Folder
 
