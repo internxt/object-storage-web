@@ -349,9 +349,16 @@
 
 #### Scenario: Upload files via drag and drop
   Given the Upload Files dialog is open
-  When the user drags and drops files or folders into the drop area
+  When the user drags and drops one or more files into the drop area
   Then the files are uploaded to the bucket
   And they appear in the object list
+
+#### Scenario: Upload a folder via drag and drop
+  Given the Upload Files dialog is open
+  When the user drags and drops a folder into the drop area
+  Then all files within that folder (including subfolders) are uploaded
+  And their keys preserve the folder's structure as a prefix
+  And they appear in the object list under that prefix
 
 #### Scenario: Close Upload Files dialog
   Given the Upload Files dialog is open

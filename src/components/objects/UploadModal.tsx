@@ -10,9 +10,63 @@ import notificationsService from '../../services/notifications.service';
 
 interface FileUploadState {
   file: File;
+  relativePath: string;
   progress: number;
   status: 'pending' | 'uploading' | 'done' | 'error';
   error?: string;
+}
+
+interface FileEntry {
+  file: File;
+  relativePath: string;
+}
+
+// Recursively walks a dropped file/folder entry, resolving to a flat list of
+// files with their path relative to the dropped item (so folder structure can
+// be preserved as key prefixes on upload).
+function traverseEntry(entry: FileSystemEntry, path = ''): Promise<FileEntry[]> {
+  return new Promise((resolve) => {
+    if (entry.isFile) {
+      (entry as FileSystemFileEntry).file((file) => {
+        resolve([{ file, relativePath: path + file.name }]);
+      });
+      return;
+    }
+
+    if (entry.isDirectory) {
+      const reader = (entry as FileSystemDirectoryEntry).createReader();
+      const collected: FileSystemEntry[] = [];
+
+      const readBatch = () => {
+        reader.readEntries(async (batch) => {
+          if (batch.length === 0) {
+            const nested = await Promise.all(
+              collected.map((child) => traverseEntry(child, `${path}${entry.name}/`)),
+            );
+            resolve(nested.flat());
+          } else {
+            collected.push(...batch);
+            readBatch();
+          }
+        });
+      };
+      readBatch();
+      return;
+    }
+
+    resolve([]);
+  });
+}
+
+async function readDroppedItems(items: DataTransferItemList): Promise<FileEntry[]> {
+  const entries = Array.from(items)
+    .map((item) => item.webkitGetAsEntry?.())
+    .filter((entry): entry is FileSystemEntry => entry !== null && entry !== undefined);
+
+  if (entries.length === 0) return [];
+
+  const results = await Promise.all(entries.map((entry) => traverseEntry(entry)));
+  return results.flat();
 }
 
 interface UploadModalProps {
@@ -34,8 +88,13 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
 
   const addFiles = (incoming: FileList | null) => {
     if (!incoming) return;
-    const newFiles: FileUploadState[] = Array.from(incoming).map((file) => ({
+    addFileEntries(Array.from(incoming).map((file) => ({ file, relativePath: file.name })));
+  };
+
+  const addFileEntries = (entries: FileEntry[]) => {
+    const newFiles: FileUploadState[] = entries.map(({ file, relativePath }) => ({
       file,
+      relativePath,
       progress: 0,
       status: 'pending',
     }));
@@ -46,10 +105,16 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const onDrop = (e: React.DragEvent) => {
+  const onDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    addFiles(e.dataTransfer.files);
+
+    const entries = await readDroppedItems(e.dataTransfer.items);
+    if (entries.length > 0) {
+      addFileEntries(entries);
+    } else {
+      addFiles(e.dataTransfer.files);
+    }
   };
 
   const handleClose = () => {
@@ -65,8 +130,8 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
 
     let anyError = false;
     for (let i = 0; i < files.length; i++) {
-      const { file } = files[i];
-      const key = prefix + file.name;
+      const { file, relativePath } = files[i];
+      const key = prefix + relativePath;
 
       setFiles((prev) => prev.map((f, idx) => idx === i ? { ...f, status: 'uploading' } : f));
 
@@ -110,7 +175,7 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
         >
           <UploadSimple size={32} className='mx-auto text-gray-400 mb-2' />
           <p className='text-sm text-gray-500'>
-            Drag & drop files here, or <span className='text-blue-600 font-medium'>browse</span>
+            Drag & drop files or folders here, or <span className='text-blue-600 font-medium'>browse</span>
           </p>
           <input
             ref={inputRef}
@@ -128,7 +193,7 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
               <div key={i} className='flex items-center gap-3 text-sm'>
                 <div className='flex-1 min-w-0'>
                   <div className='flex justify-between mb-1'>
-                    <span className='truncate text-gray-700'>{f.file.name}</span>
+                    <span className='truncate text-gray-700'>{f.relativePath}</span>
                     <span className='text-gray-400 ml-2 shrink-0'>{prettyBytes(f.file.size)}</span>
                   </div>
                   {f.status !== 'error' && (
