@@ -1,33 +1,49 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { CSSProperties, useState } from 'react';
 import {
   CalendarBlankIcon,
   DownloadSimpleIcon,
   InfoIcon,
 } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
-import subAccountAxios from '../core/sub-account-axios';
 import { useSubAccount } from '../context/SubAccountContext';
 import { T, shadow, text } from '../tokens';
 import { Pagination } from '../../components/Pagination';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface UsageRecord {
-  date: string;        // YYYY-MM-DD
-  active: number;      // bytes
-  deleted: number;     // bytes
-  objects: number;
-}
-
-interface WacmUsageItem {
-  startTime: string;
-  endTime: string;
-  activeStorage: number;
-  deletedStorage: number;
-  activeObjects: number;
-}
+import { useUsageData, UsageRecord, PAGE_SIZE_OPTIONS, MAX_RANGE_MONTHS } from '../hooks/useUsageData';
 
 const TB = 1e12;
+
+// ─── Shared styles ──────────────────────────────────────────────────────────────
+// Reused across multiple elements below to avoid repeating the same style object.
+
+const cardStyle: CSSProperties = {
+  background: T.white,
+  border: `1px solid ${T.gray20}`,
+  borderRadius: 12,
+  boxShadow: shadow.sm,
+};
+
+const sectionLabelStyle: CSSProperties = {
+  fontSize: 12, fontWeight: 500, color: T.gray60,
+  textTransform: 'uppercase', letterSpacing: '0.04em',
+};
+
+const tabularNumStyle: CSSProperties = {
+  fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums',
+};
+
+const dateInputStyle: CSSProperties = {
+  height: 36, padding: '0 10px', borderRadius: 8, fontSize: 13,
+  border: `1px solid ${T.gray20}`, fontFamily: 'inherit',
+  color: T.gray100, outline: 'none',
+};
+
+const toolbarButtonStyle: CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: 6,
+  height: 40, padding: '0 14px',
+  border: `1px solid ${T.gray20}`, borderRadius: 8,
+  background: T.white, cursor: 'pointer', fontSize: 13,
+  color: T.gray80, fontFamily: 'inherit',
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -63,22 +79,13 @@ function exportCsv(records: UsageRecord[]) {
 interface StatItem { label: string; value: string; unit?: string; hint: string; }
 
 const StatStrip = ({ stats }: { stats: StatItem[] }) => (
-  <div style={{
-    background: '#fff',
-    border: `1px solid ${T.gray20}`,
-    borderRadius: 12,
-    boxShadow: shadow.sm,
-    display: 'flex',
-  }}>
+  <div style={{ ...cardStyle, display: 'flex' }}>
     {stats.map((s, i) => (
       <div key={s.label} style={{
         flex: 1, padding: '20px 24px',
         borderLeft: i > 0 ? `1px solid ${T.gray20}` : 'none',
       }}>
-        <p style={{
-          fontSize: 12, fontWeight: 500, color: T.gray60,
-          letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 6,
-        }}>{s.label}</p>
+        <p style={{ ...sectionLabelStyle, marginBottom: 6 }}>{s.label}</p>
         <p style={{
           display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 4,
         }}>
@@ -113,23 +120,12 @@ const UsageRow = ({ record }: UsageRowProps) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <span style={{
-        fontSize: 14, fontWeight: 500,
-        color: T.primary,
-        textDecoration: hovered ? 'underline' : 'none',
-        cursor: 'default',
-      }}>
+      <span style={{ fontSize: 14, fontWeight: 500, color: T.gray100 }}>
         {fmtDate(record.date)}
       </span>
-      <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
-        {fmtTB(record.active)}
-      </span>
-      <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
-        {fmtTB(record.deleted)}
-      </span>
-      <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
-        {record.objects.toLocaleString('en-US')}
-      </span>
+      <span style={tabularNumStyle}>{fmtTB(record.active)}</span>
+      <span style={tabularNumStyle}>{fmtTB(record.deleted)}</span>
+      <span style={tabularNumStyle}>{record.objects.toLocaleString('en-US')}</span>
     </div>
   );
 };
@@ -166,85 +162,14 @@ const InfoTooltip = ({ text: tooltipText, children }: { text: string; children: 
 
 // ─── UsageView ────────────────────────────────────────────────────────────────
 
-const PAGE_SIZE_OPTIONS = [25, 50, 100];
-const MAX_RANGE_MONTHS = 3;
-
-// The usages API paginates in ascending date order internally, which doesn't match
-// the newest-first pagination this UI wants. Since the date range already bounds the
-// number of possible rows (one per day), fetch the whole range in one call and do
-// sorting/pagination on the client instead of trusting the API's own page ordering.
-function daysBetween(from: string, to: string): number {
-  return Math.min(Math.max(dayjs(to).diff(dayjs(from), 'day') + 1, 1), 100);
-}
-
 export const UsageView = () => {
   const { entityId } = useSubAccount();
-  const [fromDate, setFromDate] = useState(dayjs().subtract(30, 'days').format('YYYY-MM-DD'));
-  const [toDate, setToDate] = useState(dayjs().format('YYYY-MM-DD'));
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [records, setRecords] = useState<UsageRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
-  const fromRef = useRef<HTMLInputElement>(null);
-  const toRef = useRef<HTMLInputElement>(null);
-
-  const handleFromChange = (value: string) => {
-    setFromDate(value);
-    const maxTo = dayjs(value).add(MAX_RANGE_MONTHS, 'month').format('YYYY-MM-DD');
-    if (dayjs(toDate).isBefore(value)) setToDate(value);
-    else if (dayjs(toDate).isAfter(maxTo)) setToDate(maxTo);
-  };
-
-  const handleToChange = (value: string) => {
-    setToDate(value);
-    const minFrom = dayjs(value).subtract(MAX_RANGE_MONTHS, 'month').format('YYYY-MM-DD');
-    if (dayjs(fromDate).isAfter(value)) setFromDate(value);
-    else if (dayjs(fromDate).isBefore(minFrom)) setFromDate(minFrom);
-  };
-
-  useEffect(() => {
-    setPageNumber(1);
-  }, [fromDate, toDate, entityId, pageSize]);
-
-  useEffect(() => {
-    if (entityId) fetchUsage(fromDate, toDate);
-  }, [fromDate, toDate, entityId]);
-
-  const fetchUsage = async (from: string, to: string) => {
-    setIsLoading(true);
-    try {
-      const { data } = await subAccountAxios.get<WacmUsageItem[]>(
-        `/sub-accounts/${entityId}/usages`,
-        { params: { from, to, page: 0, perPage: daysBetween(from, to) } },
-      );
-      setRecords(data.map(u => ({
-        date: u.startTime.slice(0, 10),
-        active: u.activeStorage,
-        deleted: u.deletedStorage,
-        objects: u.activeObjects,
-      })));
-    } catch {
-      setRecords([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const sorted = useMemo(() => {
-    return [...records].sort((a, b) => b.date.localeCompare(a.date));
-  }, [records]);
-
-  const paged = useMemo(() => {
-    const start = (pageNumber - 1) * pageSize;
-    return sorted.slice(start, start + pageSize);
-  }, [sorted, pageNumber, pageSize]);
-
-  const totals = {
-    active: sorted[0]?.active ?? 0,
-    deleted: sorted[0]?.deleted ?? 0,
-    objects: sorted[0]?.objects ?? 0,
-  };
+  const {
+    fromDate, toDate, handleFromChange, handleToChange,
+    isLoading, sorted, paged, totals,
+    pageNumber, pageSize, setPageSize, goToPrevPage, goToNextPage,
+  } = useUsageData(entityId);
 
   const stats: StatItem[] = [
     {
@@ -278,13 +203,7 @@ export const UsageView = () => {
       <StatStrip stats={stats} />
 
       {/* Account Usage card */}
-      <div style={{
-        background: '#fff',
-        border: `1px solid ${T.gray20}`,
-        borderRadius: 12,
-        boxShadow: shadow.sm,
-        overflow: 'hidden',
-      }}>
+      <div style={{ ...cardStyle, overflow: 'hidden' }}>
         {/* Card header */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -309,14 +228,7 @@ export const UsageView = () => {
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowDatePicker(p => !p)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  height: 40, padding: '0 14px',
-                  border: `1px solid ${T.gray20}`, borderRadius: 8,
-                  background: '#fff', cursor: 'pointer', fontSize: 13,
-                  color: T.gray80, fontFamily: 'inherit',
-                  fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
-                }}
+                style={{ ...toolbarButtonStyle, gap: 8, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
               >
                 <CalendarBlankIcon size={16} color={T.gray50} />
                 {dateRangeLabel}
@@ -331,29 +243,21 @@ export const UsageView = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>From</label>
                     <input
-                      ref={fromRef} type="date" value={fromDate}
+                      type="date" value={fromDate}
                       max={toDate}
                       min={dayjs(toDate).subtract(MAX_RANGE_MONTHS, 'month').format('YYYY-MM-DD')}
                       onChange={e => handleFromChange(e.target.value)}
-                      style={{
-                        height: 36, padding: '0 10px', borderRadius: 8, fontSize: 13,
-                        border: `1px solid ${T.gray20}`, fontFamily: 'inherit',
-                        color: T.gray100, outline: 'none',
-                      }}
+                      style={dateInputStyle}
                     />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>To</label>
                     <input
-                      ref={toRef} type="date" value={toDate}
+                      type="date" value={toDate}
                       min={fromDate}
                       max={dayjs(fromDate).add(MAX_RANGE_MONTHS, 'month').format('YYYY-MM-DD')}
                       onChange={e => handleToChange(e.target.value)}
-                      style={{
-                        height: 36, padding: '0 10px', borderRadius: 8, fontSize: 13,
-                        border: `1px solid ${T.gray20}`, fontFamily: 'inherit',
-                        color: T.gray100, outline: 'none',
-                      }}
+                      style={dateInputStyle}
                     />
                   </div>
                   <button
@@ -374,13 +278,7 @@ export const UsageView = () => {
             <button
               onClick={() => exportCsv(sorted)}
               title="Export as CSV"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                height: 40, padding: '0 14px',
-                border: `1px solid ${T.gray20}`, borderRadius: 8,
-                background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 500,
-                color: T.gray80, fontFamily: 'inherit',
-              }}
+              style={{ ...toolbarButtonStyle, fontWeight: 500 }}
             >
               <DownloadSimpleIcon size={16} />
               Export
@@ -396,15 +294,7 @@ export const UsageView = () => {
           borderBottom: `1px solid ${T.gray15}`,
         }}>
           {HEADERS.map((label) => (
-            <span
-              key={label}
-              style={{
-                fontSize: 12, fontWeight: 500, color: T.gray60,
-                textTransform: 'uppercase', letterSpacing: '0.04em',
-              }}
-            >
-              {label}
-            </span>
+            <span key={label} style={sectionLabelStyle}>{label}</span>
           ))}
         </div>
 
@@ -429,8 +319,8 @@ export const UsageView = () => {
           pageNumber={pageNumber}
           hasPrevPage={pageNumber > 1}
           hasNextPage={pageNumber * pageSize < sorted.length}
-          onPrev={() => setPageNumber(p => Math.max(1, p - 1))}
-          onNext={() => setPageNumber(p => p + 1)}
+          onPrev={goToPrevPage}
+          onNext={goToNextPage}
           isLoading={isLoading}
         />
       </div>
