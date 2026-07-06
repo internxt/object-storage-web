@@ -34,7 +34,7 @@ import { ObjectLockingControl } from '../../components/buckets/ObjectLockingCont
 import { BucketLoggingControl } from '../../components/buckets/BucketLoggingControl';
 import { Switch } from '../../components/Switch';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
-import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
+import { useSubAccountS3Client, useOnS3ClientReadyEffect } from '../hooks/useSubAccountS3Client';
 import { useObjectPagination } from '../hooks/useObjectPagination';
 import { useFileRetention } from '../hooks/useFileRetention';
 import { useSubAccount } from '../context/SubAccountContext';
@@ -414,51 +414,44 @@ export const SubAccountBucketDetailPage = () => {
   const [folderName, setFolderName] = useState('');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
-  useEffect(() => {
-    if (client && bucketName) {
-      s3Service.getBucketVisibility(client, bucketName).then(setVisibility).catch(() => {});
+  useOnS3ClientReadyEffect(client, (c) => {
+    if (!bucketName) { 
+      return; 
     }
-  }, [client, bucketName]);
+    s3Service.getBucketVisibility(c, bucketName).then(setVisibility).catch(() => {});
+    s3Service.getObjectLockConfig(c, bucketName)
+      .then(setObjectLockConfig)
+      .catch(() => {});
+    s3Service.getBucketLogging(c, bucketName)
+      .then((l) => setLoggingConfig({
+        enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '',
+      }))
+      .catch(() => {});
+  }, [bucketName]);
 
-  useEffect(() => {
-    if (!client || !bucketName) return;
-    const handle = setTimeout(() => loadObjects(client), searchQuery ? 300 : 0);
+  useOnS3ClientReadyEffect(client, (c) => {
+    if (!bucketName) { 
+      return; 
+    }
+    const handle = setTimeout(() => loadObjects(c), searchQuery ? 300 : 0);
     return () => clearTimeout(handle);
-  }, [client, bucketName, prefix, searchQuery, showVersions, pagination.pageSize, pagination.pageNumber]);
+  }, [bucketName, prefix, searchQuery, showVersions, pagination.pageSize, pagination.pageNumber]);
 
-  useEffect(() => {
-    if (client && bucketName && activeTab === 'properties') {
-      s3Service.getBucketVersioning(client, bucketName)
-        .then(v => setVersioningEnabled(v.enabled))
-        .catch(() => {});
+  useOnS3ClientReadyEffect(client, (c) => {
+    if (!bucketName || activeTab !== 'properties') { 
+      return; 
     }
-  }, [client, bucketName, activeTab]);
 
-  useEffect(() => {
-    if (client && bucketName) {
-      s3Service.getObjectLockConfig(client, bucketName)
-        .then(setObjectLockConfig)
-        .catch(() => {});
-    }
-  }, [client, bucketName]);
+    s3Service.getBucketVersioning(c, bucketName)
+      .then(v => setVersioningEnabled(v.enabled))
+      .catch(() => {});
+  }, [bucketName, activeTab]);
 
-  useEffect(() => {
-    if (client && bucketName) {
-      s3Service.getBucketLogging(client, bucketName)
-        .then((l) => setLoggingConfig({
-          enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '',
-        }))
-        .catch(() => {});
-    }
-  }, [client, bucketName]);
-
-  useEffect(() => {
-    if (client) {
-      s3Service.listBuckets(client)
-        .then((result) => setBucketsList(result.buckets.map((b) => b.name)))
-        .catch(() => {});
-    }
-  }, [client]);
+  useOnS3ClientReadyEffect(client, (c) => {
+    s3Service.listBuckets(c)
+      .then((result) => setBucketsList(result.buckets.map((b) => b.name)))
+      .catch(() => {});
+  }, []);
 
   const onSaveRetention = async (mode: RetentionMode, scale: 'days' | 'years', value: number) => {
     if (!client || !bucketName) return;

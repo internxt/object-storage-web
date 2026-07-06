@@ -17,7 +17,7 @@ import Input from '../../components/Input';
 import Modal from '../../components/Modal';
 import { Dropdown } from '../../components/Dropdown';
 import { Switch } from '../../components/Switch';
-import { useSubAccountS3Client } from '../hooks/useSubAccountS3Client';
+import { useSubAccountS3Client, useOnS3ClientReadyEffect } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
 import { useSubAccount } from '../context/SubAccountContext';
 import { T, shadow, text, form } from '../tokens';
@@ -31,7 +31,6 @@ import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal
 interface BucketRecord {
   name: string;
   regionSlug: string;
-  visibility: 'public' | 'private';
   creationDate?: Date;
 }
 
@@ -41,7 +40,12 @@ function fmtDate(d?: Date): string {
   if (!d) {
     return '—';
   }
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const day = d.toLocaleDateString('en-GB', { day: '2-digit' });
+  const month = d.toLocaleDateString('en-GB', { month: 'short' });
+  const year = d.getFullYear();
+  const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+  return `${day}-${month}-${year} ${time}`;
 }
 
 // ─── StatStrip ────────────────────────────────────────────────────────────────
@@ -101,41 +105,9 @@ const StatStrip = ({ stats }: { stats: StatItem[] }) => (
   </div>
 );
 
-// ─── Pill ─────────────────────────────────────────────────────────────────────
-
-const Pill = ({ type }: { type: 'public' | 'private' }) => {
-  const isPublic = type === 'public';
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '4px 10px',
-        borderRadius: 999,
-        fontSize: 12,
-        fontWeight: 500,
-        background: isPublic ? 'rgba(0,102,255,0.08)' : T.gray10,
-        color: isPublic ? T.primary : T.gray80,
-      }}
-    >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: '50%',
-          background: isPublic ? T.primary : T.gray50,
-          flexShrink: 0,
-        }}
-      />
-      {isPublic ? 'Public' : 'Private'}
-    </span>
-  );
-};
-
 // ─── BucketRow ────────────────────────────────────────────────────────────────
 
-const GRID = '2fr 1.1fr 1fr 1fr 1fr 40px';
+const GRID = '2fr 1.1fr 1fr 40px';
 
 interface BucketRowProps {
   bucket: BucketRecord;
@@ -202,16 +174,8 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
       {/* Region */}
       <span style={{ fontSize: 14, color: T.gray80 }}>{regionName}</span>
 
-      {/* Visibility */}
-      <div>
-        <Pill type={bucket.visibility} />
-      </div>
-
       {/* Created */}
       <span style={{ fontSize: 14, color: T.gray60 }}>{fmtDate(bucket.creationDate)}</span>
-
-      {/* Empty col for alignment (was objects/size — hidden until usage API available) */}
-      <span />
 
       {/* Actions */}
       <div
@@ -273,7 +237,7 @@ interface BucketsTableProps {
   isAdmin: boolean;
 }
 
-const TABLE_HEADERS = ['Name', 'Region', 'Visibility', 'Created', '', ''];
+const TABLE_HEADERS = ['Name', 'Region', 'Created', ''];
 
 const BucketsTable = ({
   buckets,
@@ -611,18 +575,13 @@ export const SubAccountBucketsPage = () => {
     fetchRegions();
   };
 
-  useEffect(() => {
-    if (client) {
-      loadBuckets(client);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, pagination.pageSize, pagination.pageNumber, debouncedSearch]);
+  useOnS3ClientReadyEffect(client, (c) => {
+    loadBuckets(c);
+  }, [pagination.pageSize, pagination.pageNumber, debouncedSearch]);
 
-  useEffect(() => {
-    if (client) {
-      loadBucketsGeneralStats(client);
-    }
-  }, [client]);
+  useOnS3ClientReadyEffect(client, (c) => {
+    loadBucketsGeneralStats(c);
+  }, []);
 
   const loadBuckets = async (s3: S3Client) => {
     loadBucketsAbortRef.current?.abort();
@@ -642,12 +601,11 @@ export const SubAccountBucketsPage = () => {
       }
 
       recordPage(result);
-      setBuckets(await Promise.all(result.buckets.map(async (b) => ({
+      setBuckets(result.buckets.map((b) => ({
         name: b.name,
         regionSlug: b.region ?? '',
         creationDate: b.creationDate,
-        visibility: await s3Service.getBucketVisibility(s3, b.name, controller.signal),
-      }))));
+      })));
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
         notificationsService.error({ text: (err as Error).message });

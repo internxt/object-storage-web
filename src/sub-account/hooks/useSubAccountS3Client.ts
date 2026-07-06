@@ -56,3 +56,15 @@ export const useSubAccountS3Client = (entityId: string | null, memberId: string 
 
   return state;
 };
+
+export function useOnS3ClientReadyEffect(
+  client: S3Client | null,
+  effect: (client: S3Client) => void | (() => void),
+  deps: unknown[],
+) {
+  useEffect(() => {
+    if (!client) return undefined;
+    return effect(client);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client, ...deps]);
+}
