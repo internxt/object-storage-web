@@ -159,7 +159,7 @@ export const UsageView = () => {
     try {
       const { data } = await subAccountAxios.get<WacmUsageItem[]>(
         `/sub-accounts/${entityId}/usages`,
-        { params: { from, to, page: 1, perPage: 100 } },
+        { params: { from, to, page: 0, perPage: 100 } },
       );
       setRecords(data.map(u => ({
         date: u.startTime.slice(0, 10),
