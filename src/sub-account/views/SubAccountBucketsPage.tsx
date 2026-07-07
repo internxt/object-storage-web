@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -25,6 +25,7 @@ import subAccountAxios from '../core/sub-account-axios';
 import { useObjectPagination } from '../hooks/useObjectPagination';
 import { Pagination } from '../../components/Pagination';
 import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal';
+import { BucketLoggingSetup } from '../../components/buckets/BucketLoggingSetup';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -379,21 +380,55 @@ interface CreateBucketModalProps {
   onClose: () => void;
   regions: SubAccountRegion[];
   credentials: { accessKeyId: string; secretAccessKey: string } | null;
+  loadBuckets: (options?: { signal?: AbortSignal }) => Promise<string[]>;
   onCreated: () => void;
 }
 
-const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }: CreateBucketModalProps) => {
-  const [bucketName, setBucketName] = useState('');
-  const [selectedSlug, setSelectedSlug] = useState('');
-  const [versioningEnabled, setVersioningEnabled] = useState(false);
-  const [objectLockEnabled, setObjectLockEnabled] = useState(false);
+const INITIAL_FORM_STATE = {
+  bucketName: '',
+  selectedSlug: '',
+  versioningEnabled: false,
+  objectLockEnabled: false,
+  logging: { enabled: false, prefix: '', target: '' },
+};
+
+const CreateBucketModal = ({
+  isOpen, onClose, regions, credentials, loadBuckets, onCreated,
+}: CreateBucketModalProps) => {
+  const [formState, setFormState] = useState(INITIAL_FORM_STATE);
   const [isCreating, setIsCreating] = useState(false);
+  const [availableBucketNames, setAvailableBucketNames] = useState<string[]>([]);
+
+  const { bucketName, selectedSlug, versioningEnabled, objectLockEnabled, logging } = formState;
+  const updateForm = (patch: Partial<typeof INITIAL_FORM_STATE>) =>
+    setFormState((prev) => ({ ...prev, ...patch }));
+
+  const canSubmitLogging = !logging.enabled || (!!logging.target && !!logging.prefix.trim());
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    const controller = new AbortController();
+    loadBuckets({ signal: controller.signal })
+      .then(setAvailableBucketNames)
+      .catch((err) => {
+        if ((err as Error).name !== 'AbortError') {
+          notificationsService.error({ text: (err as Error).message });
+        }
+      });
+    return () => controller.abort();
+  }, [isOpen, loadBuckets]);
+
+  useEffect(() => {
+    if (isOpen) {
+      return;
+    }
+    setFormState(INITIAL_FORM_STATE);
+  }, [isOpen]);
 
   const onToggleVersioning = (next: boolean) => {
-    setVersioningEnabled(next);
-    if (!next) {
-      setObjectLockEnabled(false);
-    }
+    updateForm({ versioningEnabled: next, ...(next ? {} : { objectLockEnabled: false }) });
   };
 
   const selectedRegion = useMemo(
@@ -421,9 +456,13 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
           notificationsService.error({ text: (err as Error).message });
         }
       }
-      setBucketName('');
-      setVersioningEnabled(false);
-      setObjectLockEnabled(false);
+      if (logging.enabled && logging.target) {
+        try {
+          await s3Service.setBucketLogging(regionClient, bucketName, true, logging.target, logging.prefix);
+        } catch (err) {
+          notificationsService.error({ text: (err as Error).message });
+        }
+      }
       onCreated();
       onClose();
     } catch (err) {
@@ -461,7 +500,7 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
             type="text"
             placeholder="my-bucket"
             value={bucketName}
-            onChange={(e) => setBucketName(e.target.value)}
+            onChange={(e) => updateForm({ bucketName: e.target.value })}
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             autoFocus
             style={inputStyle}
@@ -478,7 +517,7 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
           <select
             id="new-bucket-region"
             value={selectedRegion?.slug ?? ''}
-            onChange={(e) => setSelectedSlug(e.target.value)}
+            onChange={(e) => updateForm({ selectedSlug: e.target.value })}
             style={{ ...inputStyle, cursor: 'pointer' }}
           >
             {regions.map((r) => (
@@ -505,7 +544,7 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
             <span style={{ ...text.label }}>Object Locking</span>
             <Switch
               checked={objectLockEnabled}
-              onChange={setObjectLockEnabled}
+              onChange={(objectLockEnabled) => updateForm({ objectLockEnabled })}
               disabled={isCreating || !versioningEnabled}
             />
           </div>
@@ -519,13 +558,24 @@ const CreateBucketModal = ({ isOpen, onClose, regions, credentials, onCreated }:
           </p>
         </div>
 
+        <BucketLoggingSetup
+          enabled={logging.enabled}
+          prefix={logging.prefix}
+          target={logging.target}
+          buckets={availableBucketNames}
+          disabled={isCreating}
+          onEnabledChange={(enabled) => updateForm({ logging: { ...logging, enabled } })}
+          onPrefixChange={(prefix) => updateForm({ logging: { ...logging, prefix } })}
+          onTargetChange={(target) => updateForm({ logging: { ...logging, target } })}
+        />
+
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <Button variant="secondary" type="button" onClick={onClose} disabled={isCreating}>
             Cancel
           </Button>
           <Button
             type="button"
-            disabled={!isValidBucketName(bucketName) || !selectedRegion || isCreating}
+            disabled={!isValidBucketName(bucketName) || !selectedRegion || !canSubmitLogging || isCreating}
             loading={isCreating}
             onClick={handleCreate}
           >
@@ -617,28 +667,38 @@ export const SubAccountBucketsPage = () => {
     }
   };
 
+  const fetchAllBuckets = async (s3: S3Client, signal?: AbortSignal) => {
+    const all: { name: string; region?: string }[] = [];
+    let continuationToken: string | undefined;
+    let hasMore = true;
+    while (hasMore) {
+      const result = await s3Service.listBuckets(s3, continuationToken, 1000, undefined, signal);
+      all.push(...result.buckets);
+      hasMore = !!result.isTruncated && !!result.continuationToken;
+      continuationToken = result.continuationToken;
+    }
+    return all;
+  };
+
   const loadBucketsGeneralStats = async (s3: S3Client) => {
     try {
-      const regionSlugs = new Set<string>();
-      let bucketCount = 0;
-      let continuationToken: string | undefined;
-      let hasMore = true;
-      while (hasMore) {
-        const result = await s3Service.listBuckets(s3, continuationToken, 1000);
-        bucketCount += result.buckets.length;
-        result.buckets.forEach((b) => {
-          if (b.region) {
-            regionSlugs.add(b.region);
-          }
-        });
-        hasMore = !!result.isTruncated && !!result.continuationToken;
-        continuationToken = result.continuationToken;
-      }
-      setBucketStats({ bucketCount, regionCount: regionSlugs.size });
+      const all = await fetchAllBuckets(s3);
+      const regionSlugs = new Set(all.map((b) => b.region).filter((r): r is string => !!r));
+      setBucketStats({ bucketCount: all.length, regionCount: regionSlugs.size });
     } catch (err) {
       notificationsService.error({ text: (err as Error).message });
     }
   };
+
+  // TODO: mirrors current object storage console for now. We'll move to a lazy-load combobox (react-select AsyncPaginate) later if required.
+  const loadAllBucketNames = useCallback(
+    async ({ signal }: { signal?: AbortSignal } = {}): Promise<string[]> => {
+      if (!client) return [];
+      const all = await fetchAllBuckets(client, signal);
+      return all.map((b) => b.name);
+    },
+    [client],
+  );
 
   const stats: StatItem[] = [
     {
@@ -731,6 +791,7 @@ export const SubAccountBucketsPage = () => {
           loadBuckets(client);
           loadBucketsGeneralStats(client);
         }}
+        loadBuckets={loadAllBucketNames}
       />
       <DeleteBucketConfirmModal
         isOpen={!!bucketToDelete}

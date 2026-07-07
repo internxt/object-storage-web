@@ -31,7 +31,7 @@ import { Dropdown } from '../../components/Dropdown';
 import { Pagination } from '../../components/Pagination';
 import { VersioningControl } from '../../components/buckets/VersioningControl';
 import { ObjectLockingControl } from '../../components/buckets/ObjectLockingControl';
-import { BucketLoggingControl } from '../../components/buckets/BucketLoggingControl';
+import { BucketLoggingSetup } from '../../components/buckets/BucketLoggingSetup';
 import { Switch } from '../../components/Switch';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useSubAccountS3Client, useOnS3ClientReadyEffect } from '../hooks/useSubAccountS3Client';
@@ -959,13 +959,13 @@ export const SubAccountBucketDetailPage = () => {
 
           {/* ── Properties tab ──────────────────────────────────────────── */}
           {activeTab === 'properties' && (
-            <div style={{ padding: '24px 24px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 32px' }}>
+            <div className="flex flex-col gap-6 px-6 pt-6 pb-8">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                 <ReadField label="Bucket name" value={bucketName!} mono />
                 <ReadField label="Region" value={region} />
                 <ReadField label="Visibility" value={visibility === 'public' ? 'Public' : 'Private'} />
                 <ReadField label="Endpoint" value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 48, gridColumn: '1 / -1', flexWrap: 'wrap' }}>
+                <div className="col-span-full flex flex-wrap items-start gap-12">
                   <VersioningControl
                     enabled={versioningEnabled}
                     disabled={isTogglingVersioning}
@@ -978,41 +978,44 @@ export const SubAccountBucketDetailPage = () => {
                     onSave={onSaveRetention}
                     onDisable={onDisableRetention}
                   />
-                  <BucketLoggingControl
-                    enabled={loggingConfig.enabled}
-                    targetBucket={loggingConfig.targetBucket}
-                    targetPrefix={loggingConfig.targetPrefix}
-                    buckets={bucketsList.filter((name) => name !== bucketName)}
-                    isSaving={isSavingLogging}
-                    onToggle={(enabled) => setLoggingConfig((prev) => ({ ...prev, enabled }))}
-                    onTargetBucketChange={(targetBucket) => setLoggingConfig((prev) => ({ ...prev, targetBucket }))}
-                    onTargetPrefixChange={(targetPrefix) => setLoggingConfig((prev) => ({ ...prev, targetPrefix }))}
-                    onSave={onSaveLogging}
-                  />
+                  <div className="flex max-w-[480px] flex-col gap-3.5">
+                    <span className="text-xs font-medium uppercase tracking-wider text-[var(--gray-60,#636367)]">
+                      Logging
+                    </span>
+                    <BucketLoggingSetup
+                      enabled={loggingConfig.enabled}
+                      prefix={loggingConfig.targetPrefix}
+                      target={loggingConfig.targetBucket}
+                      buckets={bucketsList.filter((name) => name !== bucketName)}
+                      onEnabledChange={(enabled) => setLoggingConfig((prev) => ({ ...prev, enabled }))}
+                      onPrefixChange={(targetPrefix) => setLoggingConfig((prev) => ({ ...prev, targetPrefix }))}
+                      onTargetChange={(targetBucket) => setLoggingConfig((prev) => ({ ...prev, targetBucket }))}
+                    />
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        disabled={loggingConfig.enabled && !loggingConfig.targetBucket}
+                        loading={isSavingLogging}
+                        onClick={onSaveLogging}
+                      >
+                        Update
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {isAdmin && (
-                <div
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    gap: 16, padding: 20,
-                    border: '1px solid #fecaca', borderRadius: 12, background: '#fef2f2',
-                  }}
-                >
+                <div className="flex items-center justify-between gap-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] p-5">
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: T.gray100, margin: 0 }}>Delete this bucket</p>
-                    <p style={{ fontSize: 13, color: T.gray60, margin: '2px 0 0' }}>
+                    <p className="m-0 text-sm font-semibold text-[var(--gray-100,#18181B)]">Delete this bucket</p>
+                    <p className="mt-0.5 text-[13px] text-[var(--gray-60,#636367)]">
                       Permanently delete this bucket and all of its contents. This action cannot be undone.
                     </p>
                   </div>
                   <button
                     onClick={() => setIsDeleteBucketOpen(true)}
-                    style={{
-                      height: 40, padding: '0 16px', fontSize: 14, fontWeight: 500,
-                      color: T.white, background: T.red, border: 'none',
-                      borderRadius: 8, cursor: 'pointer', whiteSpace: 'nowrap',
-                    }}
+                    className="h-10 cursor-pointer whitespace-nowrap rounded-lg border-none bg-[var(--red,#E03131)] px-4 text-sm font-medium text-white"
                   >
                     Delete bucket
                   </button>
