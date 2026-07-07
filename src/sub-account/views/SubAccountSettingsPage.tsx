@@ -238,7 +238,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
 
 // ─── Members Tab ──────────────────────────────────────────────────────────────
 
-const MembersTab = ({ entityId, ssoEnabled }: { entityId: string; ssoEnabled: boolean }) => {
+const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: string; ssoEnabled: boolean; currentMemberId: string }) => {
   const [members, setMembers]             = useState<MemberItem[]>([]);
   const [isLoading, setIsLoading]         = useState(false);
   const [isAddMemberOpen, setIsAddMemberOpen]   = useState(false);
@@ -354,9 +354,11 @@ const MembersTab = ({ entityId, ssoEnabled }: { entityId: string; ssoEnabled: bo
                     <button onClick={() => setPermissionMember(m)} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-gray-80 transition-colors' title='Assign permissions'>
                       <LockKeyIcon size={16} />
                     </button>
-                    <button onClick={() => setMemberToDelete(m)} disabled={deletingMemberId === m.id} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-red disabled:opacity-40 transition-colors' title='Remove member'>
-                      <TrashIcon size={16} />
-                    </button>
+                    {m.id !== currentMemberId && (
+                      <button onClick={() => setMemberToDelete(m)} disabled={deletingMemberId === m.id} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-red disabled:opacity-40 transition-colors' title='Remove member'>
+                        <TrashIcon size={16} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -544,7 +546,7 @@ export const SubAccountSettingsPage = () => {
 
       {/* Tab content */}
       {activeTab === 'profile'     && entityId && memberId && <ProfileTab    entityId={entityId} memberId={memberId} role={role} />}
-      {activeTab === 'members'     && entityId             && <MembersTab    entityId={entityId} ssoEnabled={ssoEnabled} />}
+      {activeTab === 'members'     && entityId && memberId && <MembersTab    entityId={entityId} ssoEnabled={ssoEnabled} currentMemberId={memberId} />}
       {activeTab === 'access-keys' && entityId && memberId && <AccessKeysTab entityId={entityId} memberId={memberId} />}
       {activeTab === 'account'     && entityId && memberId && <AccountTab    entityId={entityId} memberId={memberId} />}
     </div>

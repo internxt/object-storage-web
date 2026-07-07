@@ -774,6 +774,9 @@
   then nothing happens.
 - When the member shown is the currently logged-in user,
   then the Remove button is not visible, regardless of their role.
+- When a member removal is done, if the member's session is open and the browser
+  is refreshed, then the session is immediately finished and the browser
+  redirects to login.
 
 ### Members tab — assigning permissions
 - When the admin clicks Assign Permissions on a member and fills in a bucket name and permission level and submits,
