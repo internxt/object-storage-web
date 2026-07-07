@@ -5,7 +5,8 @@ import { subAccountS3CredentialsService, S3Credentials } from '../services/sub-a
 import { useSubAccount } from '../context/SubAccountContext';
 import notificationsService from '../../services/notifications.service';
 import { AddMemberModal } from '../components/AddMemberModal';
-import { AssignPermissionsModal } from '../components/AssignPermissionsModal';
+import { AssignPermissionsModal } from '../components/permissions-manager/AssignPermissionsModal';
+import { PolicyDocument } from '../services/iamPolicy.service';
 import Dialog from '../../components/Dialog';
 import { Dropdown } from '../../components/Dropdown';
 import { copyToClipboard } from '../../utils/copyToClipboard';
@@ -291,17 +292,30 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
     }
   };
 
-  const onAssignPermissions = async (bucketName: string, prefixes: string[], permission: 'read' | 'write' | 'full') => {
+  const onAssignPermissions = async (policy: PolicyDocument) => {
     if (!permissionMember) return;
     setIsAssigningPermission(true);
     try {
-      await subAccountAxios.put(`/sub-accounts/${entityId}/members/${permissionMember.id}/permissions`, { bucketName, prefixes, permission });
+      await subAccountAxios.put(`/sub-accounts/${entityId}/members/${permissionMember.id}/permissions`, { statement: policy.Statement });
       notificationsService.success({ text: 'Permissions updated' });
       setPermissionMember(null);
     } catch {
       notificationsService.error({ text: 'Failed to update permissions' });
     } finally {
       setIsAssigningPermission(false);
+    }
+  };
+
+  const onFetchPermissions = async (): Promise<PolicyDocument | null> => {
+    if (!permissionMember) return null;
+    try {
+      const { data } = await subAccountAxios.get(
+        `/sub-accounts/${entityId}/members/${permissionMember.id}/permissions`,
+      );
+      if (!data?.statement?.length) return null;
+      return { Version: '2012-10-17', Statement: data.statement };
+    } catch {
+      return null;
     }
   };
 
@@ -369,7 +383,7 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
 
       <AddMemberModal isOpen={isAddMemberOpen} isLoading={isAddingMember} ssoEnabled={ssoEnabled} onClose={() => setIsAddMemberOpen(false)} onAdd={onAddMember} />
       {permissionMember && (
-        <AssignPermissionsModal isOpen={!!permissionMember} isLoading={isAssigningPermission} memberEmail={permissionMember.email} onClose={() => setPermissionMember(null)} onAssign={onAssignPermissions} />
+        <AssignPermissionsModal isOpen={!!permissionMember} isLoading={isAssigningPermission} memberEmail={permissionMember.email} onClose={() => setPermissionMember(null)} onAssign={onAssignPermissions} onFetchPermissions={onFetchPermissions} />
       )}
       <Dialog
         isOpen={!!memberToDelete} onClose={() => setMemberToDelete(null)}

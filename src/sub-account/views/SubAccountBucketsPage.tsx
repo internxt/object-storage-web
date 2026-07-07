@@ -615,7 +615,7 @@ export const SubAccountBucketsPage = () => {
 
   const fetchRegions = () =>
     subAccountAxios.get<SubAccountRegion[]>('/subaccount/regions')
-      .then((r) => setRegions(r.data))
+      .then((r) => setRegions(Array.isArray(r.data) ? r.data : []))
       .catch(() => {});
 
   useEffect(() => { fetchRegions(); }, []);
