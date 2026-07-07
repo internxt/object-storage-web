@@ -384,18 +384,26 @@ interface CreateBucketModalProps {
   onCreated: () => void;
 }
 
+const INITIAL_FORM_STATE = {
+  bucketName: '',
+  selectedSlug: '',
+  versioningEnabled: false,
+  objectLockEnabled: false,
+  logging: { enabled: false, prefix: '', target: '' },
+};
+
 const CreateBucketModal = ({
   isOpen, onClose, regions, credentials, loadBuckets, onCreated,
 }: CreateBucketModalProps) => {
-  const [bucketName, setBucketName] = useState('');
-  const [selectedSlug, setSelectedSlug] = useState('');
-  const [versioningEnabled, setVersioningEnabled] = useState(false);
-  const [objectLockEnabled, setObjectLockEnabled] = useState(false);
-  const [logging, setLogging] = useState({ enabled: false, prefix: '', target: '' });
+  const [formState, setFormState] = useState(INITIAL_FORM_STATE);
   const [isCreating, setIsCreating] = useState(false);
   const [availableBucketNames, setAvailableBucketNames] = useState<string[]>([]);
 
-  const canSubmitLogging = !logging.enabled || !!logging.target;
+  const { bucketName, selectedSlug, versioningEnabled, objectLockEnabled, logging } = formState;
+  const updateForm = (patch: Partial<typeof INITIAL_FORM_STATE>) =>
+    setFormState((prev) => ({ ...prev, ...patch }));
+
+  const canSubmitLogging = !logging.enabled || (!!logging.target && !!logging.prefix.trim());
 
   useEffect(() => {
     if (!isOpen) {
@@ -412,11 +420,15 @@ const CreateBucketModal = ({
     return () => controller.abort();
   }, [isOpen, loadBuckets]);
 
-  const onToggleVersioning = (next: boolean) => {
-    setVersioningEnabled(next);
-    if (!next) {
-      setObjectLockEnabled(false);
+  useEffect(() => {
+    if (isOpen) {
+      return;
     }
+    setFormState(INITIAL_FORM_STATE);
+  }, [isOpen]);
+
+  const onToggleVersioning = (next: boolean) => {
+    updateForm({ versioningEnabled: next, ...(next ? {} : { objectLockEnabled: false }) });
   };
 
   const selectedRegion = useMemo(
@@ -451,10 +463,6 @@ const CreateBucketModal = ({
           notificationsService.error({ text: (err as Error).message });
         }
       }
-      setBucketName('');
-      setVersioningEnabled(false);
-      setObjectLockEnabled(false);
-      setLogging({ enabled: false, prefix: '', target: '' });
       onCreated();
       onClose();
     } catch (err) {
@@ -492,7 +500,7 @@ const CreateBucketModal = ({
             type="text"
             placeholder="my-bucket"
             value={bucketName}
-            onChange={(e) => setBucketName(e.target.value)}
+            onChange={(e) => updateForm({ bucketName: e.target.value })}
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             autoFocus
             style={inputStyle}
@@ -509,7 +517,7 @@ const CreateBucketModal = ({
           <select
             id="new-bucket-region"
             value={selectedRegion?.slug ?? ''}
-            onChange={(e) => setSelectedSlug(e.target.value)}
+            onChange={(e) => updateForm({ selectedSlug: e.target.value })}
             style={{ ...inputStyle, cursor: 'pointer' }}
           >
             {regions.map((r) => (
@@ -536,7 +544,7 @@ const CreateBucketModal = ({
             <span style={{ ...text.label }}>Object Locking</span>
             <Switch
               checked={objectLockEnabled}
-              onChange={setObjectLockEnabled}
+              onChange={(objectLockEnabled) => updateForm({ objectLockEnabled })}
               disabled={isCreating || !versioningEnabled}
             />
           </div>
@@ -556,9 +564,9 @@ const CreateBucketModal = ({
           target={logging.target}
           buckets={availableBucketNames}
           disabled={isCreating}
-          onEnabledChange={(enabled) => setLogging((prev) => ({ ...prev, enabled }))}
-          onPrefixChange={(prefix) => setLogging((prev) => ({ ...prev, prefix }))}
-          onTargetChange={(target) => setLogging((prev) => ({ ...prev, target }))}
+          onEnabledChange={(enabled) => updateForm({ logging: { ...logging, enabled } })}
+          onPrefixChange={(prefix) => updateForm({ logging: { ...logging, prefix } })}
+          onTargetChange={(target) => updateForm({ logging: { ...logging, target } })}
         />
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
