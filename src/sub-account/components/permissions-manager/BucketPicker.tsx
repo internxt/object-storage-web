@@ -5,8 +5,6 @@ import { s3Service } from '../../../services/s3.service';
 import notificationsService from '../../../services/notifications.service';
 import { ALL_BUCKETS, BucketOption } from '../../services/iamPolicy.service';
 
-const BUCKETS_PAGE_SIZE = 50;
-
 interface BucketPickerProps {
   client: S3Client | null;
   isOpen: boolean;
@@ -14,46 +12,37 @@ interface BucketPickerProps {
   onSelect: (bucketName: string) => void;
 }
 
+const fetchAllBuckets = async (client: S3Client): Promise<BucketOption[]> => {
+  const all: BucketOption[] = [];
+  let continuationToken: string | undefined;
+  let hasMore = true;
+  while (hasMore) {
+    const result = await s3Service.listBuckets(client, continuationToken, 1000);
+    all.push(...result.buckets.map((b) => ({ name: b.name, region: b.region ?? '' })));
+    hasMore = !!result.isTruncated && !!result.continuationToken;
+    continuationToken = result.continuationToken;
+  }
+  return all;
+};
+
 export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: BucketPickerProps) => {
   const [search, setSearch] = useState('');
   const [buckets, setBuckets] = useState<BucketOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [continuationToken, setContinuationToken] = useState<string | undefined>();
-  const [hasMore, setHasMore] = useState(false);
-
-  const loadPage = async (token?: string) => {
-    if (!client) return;
-    try {
-      const { buckets: listed, continuationToken: nextToken, isTruncated } = await s3Service.listBuckets(
-        client, token, BUCKETS_PAGE_SIZE,
-      );
-      const enriched = await Promise.all(
-        listed.map(async (b) => ({
-          name: b.name,
-          region: await s3Service.getBucketLocation(client, b.name).catch(() => ''),
-        })),
-      );
-      setBuckets((prev) => (token ? [...prev, ...enriched] : enriched));
-      setContinuationToken(nextToken);
-      setHasMore(isTruncated);
-    } catch (err) {
-      notificationsService.error({ text: (err as Error).message });
-    }
-  };
 
   useEffect(() => {
     if (!isOpen || !client) return;
     setIsLoading(true);
-    loadPage().finally(() => setIsLoading(false));
+    fetchAllBuckets(client)
+      .then(setBuckets)
+      .catch((err) => notificationsService.error({ text: (err as Error).message }))
+      .finally(() => setIsLoading(false));
   }, [isOpen, client]);
 
   useEffect(() => {
     if (!isOpen) {
       setSearch('');
       setBuckets([]);
-      setContinuationToken(undefined);
-      setHasMore(false);
     }
   }, [isOpen]);
 
@@ -61,12 +50,6 @@ export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: Bucket
     () => buckets.filter((b) => !excludedNames.has(b.name) && b.name.toLowerCase().includes(search.toLowerCase())),
     [buckets, search, excludedNames],
   );
-
-  const handleLoadMore = async () => {
-    setIsLoadingMore(true);
-    await loadPage(continuationToken);
-    setIsLoadingMore(false);
-  };
 
   if (!isOpen) return null;
 
@@ -101,16 +84,6 @@ export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: Bucket
           ))
         )}
       </div>
-      {hasMore && (
-        <button
-          type='button'
-          onClick={handleLoadMore}
-          disabled={isLoadingMore}
-          className='self-start bg-transparent border-none py-1 text-sm font-medium text-primary cursor-pointer'
-        >
-          {isLoadingMore ? 'Loading...' : 'Load more buckets'}
-        </button>
-      )}
     </div>
   );
 };
