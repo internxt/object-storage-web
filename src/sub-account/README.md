@@ -55,16 +55,23 @@
 
 ## Feature: Billing
 
-#### Scenario: Billing link is visible for sub-accounts without a partner
-  Given the sub-account does not belong to a partner
+#### Scenario: Billing link is visible for an admin on a sub-account without a partner
+  Given the user is an admin
+  And the sub-account does not belong to a partner
   When the user views the console navbar
   Then a "Billing" link is visible next to the other tabs
 
 #### Scenario: Billing link is not visible for sub-accounts with a partner
   Given the sub-account belongs to a partner
   When the user views the console navbar
-  Then the "Billing" link is not visible
+  Then the "Billing" link is not visible, regardless of the user's role
   (billing for these accounts is managed through the partner instead)
+
+#### Scenario: Billing link is not visible for non-admin members
+  Given the user is not an admin
+  And the sub-account does not belong to a partner
+  When the user views the console navbar
+  Then the "Billing" link is not visible
 
 #### Scenario: Open the billing portal
   Given the "Billing" link is visible

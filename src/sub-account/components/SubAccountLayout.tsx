@@ -61,7 +61,7 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
         onSettings={() => navigate('/subaccount/settings')}
         onLogout={handleLogOut}
         user={{ email: email ?? undefined, initials: toInitials(email) }}
-        billing={!partnerId ? { loading: billingLoading, onClick: openBilling } : undefined}
+        billing={isAdmin && !partnerId ? { loading: billingLoading, onClick: openBilling } : undefined}
       />
       <main style={{ flex: 1, padding: '24px 28px', overflow: 'auto' }}>
         {children}
