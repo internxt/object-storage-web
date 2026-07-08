@@ -84,6 +84,12 @@ export interface PolicyStatement {
   Resource: string[]
 }
 
+// The builder only knows how to produce these fields.
+const SUPPORTED_STATEMENT_FIELDS = new Set(['Sid', 'Effect', 'Action', 'Resource'])
+
+const hasUnsupportedFields = (statement: PolicyStatement): boolean =>
+  Object.keys(statement).some(field => !SUPPORTED_STATEMENT_FIELDS.has(field))
+
 export interface PolicyDocument {
   Version: '2012-10-17'
   Statement: PolicyStatement[]
@@ -188,7 +194,12 @@ export class PolicyToBucketRules {
 
     // Group by Resource so an Allow and its paired Deny ('full-limited') become one rule.
     const groups = new Map<string, PolicyStatement[]>()
+    let hasCustomStatement = false
     for (const statement of normalised) {
+      if (hasUnsupportedFields(statement)) {
+        hasCustomStatement = true
+        continue
+      }
       if (isAccountStatement(statement)) {
         continue
       }
@@ -199,7 +210,6 @@ export class PolicyToBucketRules {
     }
 
     const rules: BucketRule[] = []
-    let hasCustomStatement = false
     for (const group of groups.values()) {
       const rule = PolicyToBucketRules.toRule(group)
       if (rule) {
