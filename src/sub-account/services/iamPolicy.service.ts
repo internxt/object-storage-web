@@ -122,6 +122,10 @@ const ruleToStatement = (rule: BucketRule): PolicyStatement => {
 
 // ─── Policy → rules (read-only, best-effort) ────────────────────────────────
 
+// Normalise Action/Resource to arrays as IAM policies allow single strings too.
+const toStringArray = (value: unknown): string[] =>
+  Array.isArray(value) ? value : value != null ? [value as string] : []
+
 export interface ParsedPolicy {
   rules: BucketRule[]
   // Statements the builder can't represent (Deny, unknown actions, prefixes,
@@ -133,11 +137,16 @@ export const policyToRules = (statements: PolicyStatement[]): ParsedPolicy => {
   const rules: BucketRule[] = []
   let droppedCount = 0
 
-  for (const stmt of statements) {
-    if (isAccountStatement(stmt)) {
+  for (const rawStatement of statements) {
+    const statement = {
+      ...rawStatement,
+      Action: toStringArray(rawStatement.Action),
+      Resource: toStringArray(rawStatement.Resource)
+    }
+    if (isAccountStatement(statement)) {
       continue
     }
-    const rule = statementToRule(stmt)
+    const rule = statementToRule(statement)
     if (rule) {
       rules.push(rule)
     } else droppedCount++
@@ -148,14 +157,14 @@ export const policyToRules = (statements: PolicyStatement[]): ParsedPolicy => {
 
 // The '*' statement rulesToPolicy emits for account-level actions; skipped on
 // parse so it isn't mistaken for a bucket rule or an unknown statement.
-const isAccountStatement = (stmt: PolicyStatement): boolean => {
+const isAccountStatement = (statement: PolicyStatement): boolean => {
   const knownActions = accountActionsFor(ACCESS_LEVELS)
   return (
-    stmt.Effect === 'Allow' &&
-    stmt.Resource.length === 1 &&
-    isAllBucketsResource(stmt.Resource[0]) &&
-    stmt.Action.length > 0 &&
-    stmt.Action.every(action => knownActions.includes(action))
+    statement.Effect === 'Allow' &&
+    statement.Resource.length === 1 &&
+    isAllBucketsResource(statement.Resource[0]) &&
+    statement.Action.length > 0 &&
+    statement.Action.every(action => knownActions.includes(action))
   )
 }
 
@@ -164,7 +173,11 @@ export const parseStatements = (raw: string): PolicyStatement[] | null => {
   try {
     const parsed = JSON.parse(raw)
     if (!parsed || !Array.isArray(parsed.Statement)) return null
-    return parsed.Statement as PolicyStatement[]
+    return (parsed.Statement as PolicyStatement[]).map((statement) => ({
+      ...statement,
+      Action: toStringArray(statement.Action),
+      Resource: toStringArray(statement.Resource)
+    }))
   } catch {
     return null
   }
@@ -177,26 +190,26 @@ export const builderCanRepresent = (statements: PolicyStatement[]): boolean => {
   return droppedCount === 0 && !isCustomPolicy(rules)
 }
 
-const statementToRule = (stmt: PolicyStatement): BucketRule | null => {
-  if (stmt.Effect !== 'Allow') return null
+const statementToRule = (statement: PolicyStatement): BucketRule | null => {
+  if (statement.Effect !== 'Allow') return null
 
-  const accessLevel = actionsToAccessLevel(stmt.Action)
+  const accessLevel = actionsToAccessLevel(statement.Action)
   if (!accessLevel) return null
 
-  if (stmt.Resource.length === 1 && isAllBucketsResource(stmt.Resource[0])) {
+  if (statement.Resource.length === 1 && isAllBucketsResource(statement.Resource[0])) {
     return { bucketName: ALL_BUCKETS, accessLevel }
   }
 
-  const matches = stmt.Resource.map(r => S3_ARN_RE.exec(r))
-  if (matches.some(m => !m)) return null
+  const arnMatches = statement.Resource.map(resource => S3_ARN_RE.exec(resource))
+  if (arnMatches.some(match => !match)) return null
 
   // One rule = one bucket; a statement spanning several can't be one row.
-  const bucketNames = [...new Set(matches.map(m => m![1]))]
+  const bucketNames = [...new Set(arnMatches.map(match => match![1]))]
   if (bucketNames.length !== 1) return null
 
   // The builder grants the whole bucket, so any object-prefix scoping is custom.
-  const hasPrefix = matches.some(m => {
-    const objectPath = (m![2] ?? '').replace(/\*$/, '')
+  const hasPrefix = arnMatches.some(match => {
+    const objectPath = (match![2] ?? '').replace(/\*$/, '')
     return objectPath !== ''
   })
   if (hasPrefix) return null
@@ -207,9 +220,9 @@ const statementToRule = (stmt: PolicyStatement): BucketRule | null => {
 // Matches only on an EXACT action set — any extra/missing action is rejected so
 // rebuilding from the builder never silently drops actions we don't model.
 const actionsToAccessLevel = (actions: string[]): AccessLevel | null => {
-  const set = new Set(actions)
+  const actionSet = new Set(actions)
   const matches = (expected: string[]) =>
-    set.size === expected.length && expected.every(a => set.has(a))
+    actionSet.size === expected.length && expected.every(action => actionSet.has(action))
 
   for (const accessLevel of ACCESS_LEVELS) {
     if (matches(accessLevelActions(accessLevel))) return accessLevel

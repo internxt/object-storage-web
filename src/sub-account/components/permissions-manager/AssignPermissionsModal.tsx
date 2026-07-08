@@ -3,10 +3,11 @@ import { WarningIcon } from '@phosphor-icons/react';
 import Modal from '../../../components/Modal';
 import Button from '../../../components/Button';
 import Dialog from '../../../components/Dialog';
+import Loader from '../../../components/Loader';
 import { T, text } from '../../tokens';
 import { useSubAccount } from '../../context/SubAccountContext';
 import { useSubAccountS3Client } from '../../hooks/useSubAccountS3Client';
-import { usePolicyDraft } from '../../hooks/usePolicyDraft';
+import { usePolicyEditor } from '../../hooks/usePolicyEditor';
 import { BucketRulesBuilder } from './BucketRulesBuilder';
 import { PolicyJsonEditor } from './PolicyJsonEditor';
 import { PolicyDocument, parseStatements, rulesToPolicy } from '../../services/iamPolicy.service';
@@ -40,9 +41,9 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
   const { entityId, memberId } = useSubAccount();
   const { client } = useSubAccountS3Client(isOpen ? entityId : null, isOpen ? memberId : null);
 
-  const { draft, isFetching, fetchError, patchDraft, enterAdvanced, tryExitAdvanced, resetToBuilder } =
-    usePolicyDraft({ isOpen, onFetchPermissions });
-  const { rules, isAdvanced, jsonText } = draft;
+  const { editor, isFetching, fetchError, patchEditor, enterAdvanced, tryExitAdvanced, resetToBuilder } =
+    usePolicyEditor({ isOpen, onFetchPermissions });
+  const { rules, isAdvanced, jsonText } = editor;
 
   const [confirmBuilderOpen, setConfirmBuilderOpen] = useState(false);
 
@@ -103,17 +104,24 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
         </div>
 
         <Banner tone='warning'>
-          This only edits the "member access" policy attached to this user. Other policies, if any, aren't shown here.
+          This only edits the "MemberBucketAccess" policy attached to this user. Other policies, if any, aren't shown here.
         </Banner>
 
         {isFetching ? (
-          <p className='text-xs text-gray-60 m-0'>Loading current permissions...</p>
+          <Loader
+            type='spinner'
+            size={24}
+            text='Loading current permissions...'
+            classNameContainer='flex flex-col items-center justify-center gap-2 py-6 text-gray-60'
+            classNameText='text-xs text-gray-60 m-0'
+            classNameLoader='text-gray-60'
+          />
         ) : fetchError ? (
           <Banner tone='error'>Couldn't load this user's permissions. Close and try again.</Banner>
         ) : isAdvanced ? (
-          <PolicyJsonEditor value={jsonText} onChange={(jsonText) => patchDraft({ jsonText })} error={jsonError} />
+          <PolicyJsonEditor value={jsonText} onChange={(jsonText) => patchEditor({ jsonText })} error={jsonError} />
         ) : (
-          <BucketRulesBuilder client={client} rules={rules} onChange={(rules) => patchDraft({ rules })} />
+          <BucketRulesBuilder client={client} rules={rules} onChange={(rules) => patchEditor({ rules })} />
         )}
 
         <div className='shrink-0 flex justify-end gap-2 pt-1'>
