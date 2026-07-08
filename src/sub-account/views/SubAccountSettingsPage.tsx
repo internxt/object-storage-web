@@ -484,6 +484,7 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
 // ─── Account Tab ──────────────────────────────────────────────────────────────
 
 const AccountTab = ({ entityId, memberId }: { entityId: string; memberId: string }) => {
+  const { entityCreatedAt } = useSubAccount();
   const [email, setEmail] = useState('');
 
   useEffect(() => {
@@ -495,6 +496,7 @@ const AccountTab = ({ entityId, memberId }: { entityId: string; memberId: string
       .catch(() => {});
   }, [entityId, memberId]);
 
+  const createdAt = entityCreatedAt ? new Date(entityCreatedAt).toLocaleDateString() : '';
   const initials = email ? avatarInitials(email) : '—';
 
   return (
@@ -507,7 +509,7 @@ const AccountTab = ({ entityId, memberId }: { entityId: string; memberId: string
         <div className='flex-1 flex flex-col gap-4'>
           <ReadField label='Account email' value={email} />
           <ReadField label='Storage account number' value={entityId} mono />
-          <ReadField label='Creation time' value='' />
+          <ReadField label='Created at' value={createdAt} />
         </div>
       </div>
     </SectionCard>

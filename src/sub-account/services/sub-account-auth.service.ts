@@ -92,6 +92,17 @@ function getPartnerId(): string | null {
   }
 }
 
+function getEntityCreatedAt(): string | null {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.entityCreatedAt ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export const subAccountAuthService = {
   logIn,
   logOut,
@@ -101,5 +112,6 @@ export const subAccountAuthService = {
   getEntityId,
   getSsoEnabled,
   getPartnerId,
+  getEntityCreatedAt,
   getEmail,
 };

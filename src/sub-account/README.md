@@ -805,5 +805,17 @@
   then the existing key is preserved.
 
 ### Account tab
-- When the user opens the Account tab,
-  then they see read-only account information: email, account ID, and creation date.
+
+#### Scenario: View account information
+  Given the user is on the Settings page
+  When the user opens the Account tab
+  Then they see read-only account information: email, account ID,
+  and a "Created at" field showing the sub-account (storage account) creation date
+  And the "Created at" field never shows a "—" placeholder
+
+#### Scenario: Profile and Account tabs show different creation dates
+  Given the user is on the Settings page
+  When the user compares the "Created at" field on the Profile tab and the Account tab
+  Then the Profile tab shows when this member/user was added to the sub-account
+  And the Account tab shows when the sub-account itself was created
+  And both fields being present at the same time is expected, since they represent different dates

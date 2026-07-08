@@ -8,6 +8,7 @@ interface SubAccountContextType {
   memberId: string | null;
   entityId: string | null;
   partnerId: string | null;
+  entityCreatedAt: string | null;
   email: string | null;
   logIn: (email: string, password: string) => Promise<void>;
   logOut: () => void;
@@ -34,6 +35,9 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
   const [partnerId, setPartnerId] = useState(
     () => subAccountAuthService.getPartnerId(),
   );
+  const [entityCreatedAt, setEntityCreatedAt] = useState(
+    () => subAccountAuthService.getEntityCreatedAt(),
+  );
   const [email, setEmail] = useState(
     () => subAccountAuthService.getEmail(),
   );
@@ -47,6 +51,7 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     setMemberId(subAccountAuthService.getMemberId());
     setEntityId(subAccountAuthService.getEntityId());
     setPartnerId(subAccountAuthService.getPartnerId());
+    setEntityCreatedAt(subAccountAuthService.getEntityCreatedAt());
     setEmail(subAccountAuthService.getEmail());
   };
 
@@ -58,12 +63,13 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     setMemberId(null);
     setEntityId(null);
     setPartnerId(null);
+    setEntityCreatedAt(null);
     setEmail(null);
   };
 
   const value = useMemo(
-    () => ({ isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, partnerId, email, logIn, logOut }),
-    [isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, partnerId, email],
+    () => ({ isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, partnerId, entityCreatedAt, email, logIn, logOut }),
+    [isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, partnerId, entityCreatedAt, email],
   );
 
   return <SubAccountContext.Provider value={value}>{children}</SubAccountContext.Provider>;
