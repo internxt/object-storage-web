@@ -154,7 +154,7 @@
   Then a dialog is shown with Bucket Name, Select Region, Bucket Versioning, Bucket Logging and Object Locking fields
 
 #### Scenario: Successfully create a bucket
-  Given the user has full or full access limited permissions
+  Given the user has full or full access limited permissions to all the buckets
   And the Create Bucket dialog is open
   When the user fills in a valid name and region and clicks Create
   Then the dialog is closed
@@ -220,8 +220,7 @@
   Then a menu is shown with View and Delete options
 
 #### Scenario: Delete from context menu fails for users without full permissions
-  Given the user does not have full permissions
-  (full access limited is not enough; it cannot delete a bucket)
+  Given the user does not have full access
   When the user attempts to delete a bucket from the context menu
   Then the action fails
   And an error message is shown
@@ -243,7 +242,7 @@
   Then the Delete button is disabled
 
 #### Scenario: Confirm bucket deletion
-  Given the user has full permissions (not full access limited)
+  Given the user has full access to the bucket
   And the confirmation dialog is shown
   When the user types the bucket name correctly and clicks Delete
   Then the bucket is deleted
@@ -639,8 +638,7 @@
   Then the Delete button is visible, regardless of the user's permissions
 
 #### Scenario: Delete bucket fails for users without full permissions
-  Given the user does not have full permissions
-  (full access limited is not enough; it cannot delete a bucket)
+  Given the user does not have full access
   When the user attempts to delete the bucket from the Properties tab
   Then the action fails
   And an error message is shown
@@ -865,18 +863,17 @@
   - Write — Read, plus saving and deleting objects.
   - Full limited — Write, plus changing the bucket configuration (versioning, logging, object locking), but it cannot delete the bucket.
   - Full — Full limited, plus deleting the bucket.
-- When the bucket name is empty,
-  then the submit button is disabled.
 - When the admin clicks Advanced,
   then they can edit the raw IAM policy JSON directly instead of using the builder.
 - When the raw JSON is invalid,
   then an error is shown and the policy cannot be saved.
-- When the admin clicks Use builder on a policy the builder cannot represent (custom rules the builder does not model, e.g. object prefixes or unknown actions),
-  then a confirmation warns that switching resets everything to an empty builder.
 - When the request is in progress,
   then the submit button shows a loading indicator and is disabled.
 - When the request fails,
   then an error message is shown.
+- When the admin saves permissions, closes the modal, and opens it again, the modal should load the user's current permissions.
+- When the admin clicks Use builder on a policy the builder cannot represent (custom rules the builder does not model, e.g. object prefixes or unknown actions),
+  then a confirmation warns that switching resets everything to an empty builder.
 
 ### Access Keys tab
 - When the user opens the Access Keys tab,
