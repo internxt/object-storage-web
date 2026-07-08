@@ -10,7 +10,7 @@ import { useSubAccountS3Client } from '../../hooks/useSubAccountS3Client';
 import { usePolicyEditor } from '../../hooks/usePolicyEditor';
 import { BucketRulesBuilder } from './BucketRulesBuilder';
 import { PolicyJsonEditor } from './PolicyJsonEditor';
-import { PolicyDocument, parseStatements, rulesToPolicy } from '../../services/iamPolicy.service';
+import { PolicyDocument, PolicyToBucketRules, BucketRulesToPolicy } from '../../services/iamPolicy.service';
 
 interface AssignPermissionsModalProps {
   isOpen: boolean;
@@ -41,18 +41,20 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
   const { entityId, memberId } = useSubAccount();
   const { client } = useSubAccountS3Client(isOpen ? entityId : null, isOpen ? memberId : null);
 
-  const { editor, isFetching, fetchError, patchEditor, enterAdvanced, tryExitAdvanced, resetToBuilder } =
+  const { editor, isFetching, fetchError, patchEditor, enterAdvanced, switchToBuilder, resetToBuilder } =
     usePolicyEditor({ isOpen, onFetchPermissions });
   const { rules, isAdvanced, jsonText } = editor;
 
   const [confirmBuilderOpen, setConfirmBuilderOpen] = useState(false);
 
-  const parsedStatements = useMemo(() => (isAdvanced ? parseStatements(jsonText) : null), [isAdvanced, jsonText]);
+  const parsedStatements = useMemo(() => (isAdvanced ? PolicyToBucketRules.parseJson(jsonText) : null), [isAdvanced, jsonText]);
   const jsonError = isAdvanced && jsonText.trim().length > 0 && parsedStatements === null;
 
   const handleUseBuilder = () => {
-    // Custom JSON can't round-trip, so exiting Advanced would reset the builder
-    if (!tryExitAdvanced().exited) {
+    // Custom JSON can't round-trip, so switching would reset the builder: confirm first.
+    if (parsedStatements && !PolicyToBucketRules.isCustom(parsedStatements)) {
+      switchToBuilder(parsedStatements);
+    } else {
       setConfirmBuilderOpen(true);
     }
   };
@@ -65,11 +67,13 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isAdvanced) {
-      if (!parsedStatements) return;
+      if (!parsedStatements) {
+        return;
+      }
       await onAssign({ Version: '2012-10-17', Statement: parsedStatements });
       return;
     }
-    await onAssign(rulesToPolicy(rules));
+    await onAssign(BucketRulesToPolicy.toDocument(rules));
   };
 
   const isBusy = isLoading || isFetching || fetchError;
