@@ -777,6 +777,13 @@
 - When the request fails,
   then an error message is shown.
 
+#### Scenario: Adding a member with an email that is already in use
+  Given the admin is on the Members tab
+  And an active member with that email already exists for the sub-account
+  When the admin fills in that email and submits the Add Member form
+  Then an error message reading "A member with this email already exists" is shown
+  And no new member is added to the list
+
 ### Members tab — removing a member
 - When the admin clicks Remove on a member,
   then a confirmation dialog is shown.
