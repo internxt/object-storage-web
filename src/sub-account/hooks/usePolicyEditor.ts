@@ -9,7 +9,7 @@ import {
   rulesToJson,
 } from '../services/iamPolicy.service';
 
-export interface PolicyDraft {
+export interface PolicyEditorState {
   rules: BucketRule[];
   isAdvanced: boolean;
   jsonText: string;
@@ -17,22 +17,22 @@ export interface PolicyDraft {
 
 export type LoadStatus = 'idle' | 'loading' | 'error';
 
-const EMPTY_DRAFT: PolicyDraft = { rules: [], isAdvanced: false, jsonText: '' };
+const EMPTY_EDITOR: PolicyEditorState = { rules: [], isAdvanced: false, jsonText: '' };
 
 interface Params {
   isOpen: boolean;
   onFetchPermissions: () => Promise<PolicyDocument | null>;
 }
 
-export const usePolicyDraft = ({ isOpen, onFetchPermissions }: Params) => {
-  const [draft, setDraft] = useState<PolicyDraft>(EMPTY_DRAFT);
+export const usePolicyEditor = ({ isOpen, onFetchPermissions }: Params) => {
+  const [editor, setEditor] = useState<PolicyEditorState>(EMPTY_EDITOR);
   const [loadStatus, setLoadStatus] = useState<LoadStatus>('idle');
 
-  const patchDraft = (patch: Partial<PolicyDraft>) => setDraft((d) => ({ ...d, ...patch }));
+  const patchEditor = (patch: Partial<PolicyEditorState>) => setEditor((e) => ({ ...e, ...patch }));
 
   useEffect(() => {
     if (!isOpen) {
-      setDraft(EMPTY_DRAFT);
+      setEditor(EMPTY_EDITOR);
       setLoadStatus('idle');
       return;
     }
@@ -44,10 +44,10 @@ export const usePolicyDraft = ({ isOpen, onFetchPermissions }: Params) => {
         const { rules, droppedCount } = policyToRules(policy?.Statement ?? []);
         // Unparseable or non-round-trippable: open in Advanced so nothing is dropped.
         const custom = droppedCount > 0 || isCustomPolicy(rules);
-        setDraft({ rules, isAdvanced: custom, jsonText: custom && policy ? JSON.stringify(policy, null, 2) : '' });
+        setEditor({ rules, isAdvanced: custom, jsonText: custom && policy ? JSON.stringify(policy, null, 2) : '' });
         setLoadStatus('idle');
       } catch {
-        setDraft(EMPTY_DRAFT);
+        setEditor(EMPTY_EDITOR);
         setLoadStatus('error');
       }
     };
@@ -58,14 +58,14 @@ export const usePolicyDraft = ({ isOpen, onFetchPermissions }: Params) => {
   }, [isOpen]);
 
   // Seed the editor from the current builder policy so edits start where the user was.
-  const enterAdvanced = () => patchDraft({ jsonText: rulesToJson(draft.rules), isAdvanced: true });
+  const enterAdvanced = () => patchEditor({ jsonText: rulesToJson(editor.rules), isAdvanced: true });
 
-  const setBuilderRules = (rules: BucketRule[]) => patchDraft({ rules, isAdvanced: false });
+  const setBuilderRules = (rules: BucketRule[]) => patchEditor({ rules, isAdvanced: false });
 
   // exited: false means the JSON is custom (builder can't represent it), so the
   // caller must confirm a builder reset before switching.
   const tryExitAdvanced = (): { exited: boolean } => {
-    const statements = parseStatements(draft.jsonText);
+    const statements = parseStatements(editor.jsonText);
     if (statements && builderCanRepresent(statements)) {
       setBuilderRules(policyToRules(statements).rules);
       return { exited: true };
@@ -76,10 +76,10 @@ export const usePolicyDraft = ({ isOpen, onFetchPermissions }: Params) => {
   const resetToBuilder = () => setBuilderRules([]);
 
   return {
-    draft,
+    editor,
     isFetching: loadStatus === 'loading',
     fetchError: loadStatus === 'error',
-    patchDraft,
+    patchEditor,
     enterAdvanced,
     tryExitAdvanced,
     resetToBuilder,
