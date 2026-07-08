@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { TrashIcon, LockKeyIcon, EyeIcon, EyeSlashIcon, GearIcon, InfoIcon, DotsThreeVerticalIcon, CaretDownIcon, PencilSimpleIcon, PlusIcon } from '@phosphor-icons/react';
 import subAccountAxios from '../core/sub-account-axios';
 import { subAccountS3CredentialsService, S3Credentials } from '../services/sub-account-s3-credentials.service';
+import { subAccountAuthService } from '../services/sub-account-auth.service';
 import { useSubAccount } from '../context/SubAccountContext';
 import notificationsService from '../../services/notifications.service';
 import { AddMemberModal } from '../components/AddMemberModal';
@@ -157,7 +158,11 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
     if (!canUpdatePw) return;
     setIsSavingPw(true);
     try {
-      await subAccountAxios.patch(`/sub-accounts/${entityId}/members/${memberId}`, { oldPassword: oldPw, newPassword: newPw });
+      const { data } = await subAccountAxios.patch<{ token?: string }>(
+        `/sub-accounts/${entityId}/members/${memberId}`,
+        { oldPassword: oldPw, newPassword: newPw },
+      );
+      if (data?.token) subAccountAuthService.setToken(data.token);
       notificationsService.success({ text: 'Password updated' });
       setOldPw(''); setNewPw(''); setConfirmPw('');
     } catch (err: any) {

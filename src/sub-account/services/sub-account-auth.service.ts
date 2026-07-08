@@ -107,6 +107,7 @@ export const subAccountAuthService = {
   logIn,
   logOut,
   getToken,
+  setToken,
   getRole,
   getMemberId,
   getEntityId,

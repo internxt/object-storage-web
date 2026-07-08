@@ -743,6 +743,18 @@
   then the submit button is disabled.
 - When the request fails,
   then an error message is shown and the password is not changed.
+
+#### Scenario: Session survives changing your own password
+  Given the user is on the Profile tab with an active session
+  When the user successfully changes their own password
+  And the browser is refreshed afterwards
+  Then the user remains logged in, instead of being redirected to login
+
+#### Scenario: Clear error message for an incorrect old password
+  Given the user is on the Profile tab changing their password
+  When the user submits an old password that does not match their current password
+  Then an error message reading "Incorrect old password" is shown
+  And the password is not changed
 - When the user clicks the eye icon on any password field,
   then the field toggles between hidden and visible text.
 
