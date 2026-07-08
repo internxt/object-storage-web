@@ -183,7 +183,8 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete, isAdmin }: BucketRowP
         style={{ display: 'flex', justifyContent: 'center' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {hovered && isAdmin && (
+        {/* TODO: hide based on user permissions once available */}
+        {hovered && (
           <Dropdown
             button={
               <span
@@ -287,29 +288,14 @@ const BucketsTable = ({
             onClear={() => onSearchChange('')}
           />
         </div>
-        {isAdmin && (
-          <button
-            onClick={onCreateOpen}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              height: 40,
-              padding: '0 18px',
-              background: T.primary,
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <PlusIcon size={18} weight="bold" />
-            Create bucket
-          </button>
-        )}
+        {/* TODO: hide based on user permissions once available */}
+        <button
+          onClick={onCreateOpen}
+          className="flex items-center gap-2 h-10 px-[18px] bg-[var(--primary,#0066FF)] text-white border-none rounded-lg cursor-pointer text-sm font-medium whitespace-nowrap"
+        >
+          <PlusIcon size={18} weight="bold" />
+          Create bucket
+        </button>
       </div>
     </div>
 
