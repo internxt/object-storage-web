@@ -419,7 +419,9 @@ const CreateBucketModal = ({
     const regionClient = createRegionS3Client(selectedRegion.endpoint, selectedRegion.slug, credentials);
     try {
       if (await s3Service.bucketExists(regionClient, bucketName)) {
-        notificationsService.error({ text: 'A bucket with this name already exists' });
+        notificationsService.error({
+          text: 'The requested bucket name is not available. The bucket namespace is shared by all users of the system. Please select a different name and try again.',
+        });
         return;
       }
       await s3Service.createBucket(regionClient, bucketName, selectedRegion.slug, objectLockEnabled);
