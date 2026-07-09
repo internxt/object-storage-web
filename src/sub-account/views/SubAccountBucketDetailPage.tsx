@@ -516,6 +516,7 @@ export const SubAccountBucketDetailPage = () => {
 
   const onToggleVersioning = async (next: boolean) => {
     if (!client || !bucketName || isTogglingVersioning || next === versioningEnabled) return;
+    if (!next && objectLockConfig.lockEnabledAtCreation) return;
     setIsTogglingVersioning(true);
     try {
       await s3Service.setBucketVersioning(client, bucketName, next);
@@ -968,7 +969,7 @@ export const SubAccountBucketDetailPage = () => {
                 <div className="col-span-full flex flex-wrap items-start gap-12">
                   <VersioningControl
                     enabled={versioningEnabled}
-                    disabled={isTogglingVersioning}
+                    disabled={isTogglingVersioning || objectLockConfig.lockEnabledAtCreation}
                     onChange={onToggleVersioning}
                   />
                   <ObjectLockingControl
@@ -994,7 +995,7 @@ export const SubAccountBucketDetailPage = () => {
                     <div className="flex justify-end">
                       <Button
                         type="button"
-                        disabled={loggingConfig.enabled && !loggingConfig.targetBucket}
+                        disabled={loggingConfig.enabled && (!loggingConfig.targetBucket || !loggingConfig.targetPrefix)}
                         loading={isSavingLogging}
                         onClick={onSaveLogging}
                       >
