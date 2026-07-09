@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react';
 import {
   BucketRule,
   PolicyDocument,
-  builderCanRepresent,
-  isCustomPolicy,
-  parseStatements,
-  policyToRules,
-  rulesToJson,
+  PolicyStatement,
+  PolicyToBucketRules,
+  BucketRulesToPolicy,
 } from '../services/iamPolicy.service';
 
 export interface PolicyEditorState {
@@ -41,9 +39,10 @@ export const usePolicyEditor = ({ isOpen, onFetchPermissions }: Params) => {
       setLoadStatus('loading');
       try {
         const policy = await onFetchPermissions();
-        const { rules, droppedCount } = policyToRules(policy?.Statement ?? []);
-        // Unparseable or non-round-trippable: open in Advanced so nothing is dropped.
-        const custom = droppedCount > 0 || isCustomPolicy(rules);
+        const statements = policy?.Statement ?? [];
+        // Custom (builder can't represent it): open in Advanced so nothing is dropped.
+        const custom = PolicyToBucketRules.isCustom(statements);
+        const rules = PolicyToBucketRules.toRules(statements);
         setEditor({ rules, isAdvanced: custom, jsonText: custom && policy ? JSON.stringify(policy, null, 2) : '' });
         setLoadStatus('idle');
       } catch {
@@ -58,20 +57,14 @@ export const usePolicyEditor = ({ isOpen, onFetchPermissions }: Params) => {
   }, [isOpen]);
 
   // Seed the editor from the current builder policy so edits start where the user was.
-  const enterAdvanced = () => patchEditor({ jsonText: rulesToJson(editor.rules), isAdvanced: true });
+  const enterAdvanced = () => patchEditor({ jsonText: BucketRulesToPolicy.toJson(editor.rules), isAdvanced: true });
 
   const setBuilderRules = (rules: BucketRule[]) => patchEditor({ rules, isAdvanced: false });
 
-  // exited: false means the JSON is custom (builder can't represent it), so the
-  // caller must confirm a builder reset before switching.
-  const tryExitAdvanced = (): { exited: boolean } => {
-    const statements = parseStatements(editor.jsonText);
-    if (statements && builderCanRepresent(statements)) {
-      setBuilderRules(policyToRules(statements).rules);
-      return { exited: true };
-    }
-    return { exited: false };
-  };
+  // Switch from the JSON editor back to the builder, seeding it from the current
+  // JSON. Only safe when the JSON isn't custom; otherwise the caller must reset.
+  const switchToBuilder = (statements: PolicyStatement[]) =>
+    setBuilderRules(PolicyToBucketRules.toRules(statements));
 
   const resetToBuilder = () => setBuilderRules([]);
 
@@ -81,7 +74,7 @@ export const usePolicyEditor = ({ isOpen, onFetchPermissions }: Params) => {
     fetchError: loadStatus === 'error',
     patchEditor,
     enterAdvanced,
-    tryExitAdvanced,
+    switchToBuilder,
     resetToBuilder,
   };
 };

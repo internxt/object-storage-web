@@ -136,23 +136,26 @@
   Then they are navigated to that bucket's detail page
 
 ### Creating a bucket
-#### Scenario: Create Bucket button is visible for users with write permissions
-  Given the user has write permissions
-  When the user is on the Buckets page
-  Then the Create Bucket button is visible
+#### Scenario: Create Bucket button is visible to all users
+  Given the user is on the Buckets page
+  When the user views the page
+  Then the Create Bucket button is visible, regardless of the user's permissions
 
-#### Scenario: Create Bucket button is not visible for users without write permissions
-  Given the user does not have write permissions
-  When the user is on the Buckets page
-  Then the Create Bucket button is not visible
+#### Scenario: Create bucket fails for users without full or full access limited permissions
+  Given the user does not have full or full access limited permissions
+  When the user attempts to create a bucket
+  Then the action fails
+  And an error message is shown
+  And no bucket is created
 
 #### Scenario: Open Create Bucket dialog
-  Given the user has write permissions
+  Given the user is on the Buckets page
   When the user clicks Create Bucket
   Then a dialog is shown with Bucket Name, Select Region, Bucket Versioning, Bucket Logging and Object Locking fields
 
 #### Scenario: Successfully create a bucket
-  Given the Create Bucket dialog is open
+  Given the user has full or full access limited permissions to all the buckets
+  And the Create Bucket dialog is open
   When the user fills in a valid name and region and clicks Create
   Then the dialog is closed
   And the bucket is created and appears in the list
@@ -206,20 +209,22 @@
 
 ### Deleting a bucket
 
-#### Scenario: Context menu is visible for users with write permissions
-  Given the user has write permissions
-  When the user is on the Buckets page
-  Then a context menu icon is visible on each bucket row
-
-#### Scenario: Context menu is not visible for users without write permissions
-  Given the user does not have write permissions
-  When the user is on the Buckets page
-  Then the context menu icon is not visible
+#### Scenario: Context menu is visible to all users
+  Given the user is on the Buckets page
+  When the user views a bucket row
+  Then a context menu icon is visible, regardless of the user's permissions
 
 #### Scenario: Context menu shows View and Delete options
-  Given the user has write permissions
+  Given the user is on the Buckets page
   When the user clicks the context menu icon on a bucket row
   Then a menu is shown with View and Delete options
+
+#### Scenario: Delete from context menu fails for users without full permissions
+  Given the user does not have full access
+  When the user attempts to delete a bucket from the context menu
+  Then the action fails
+  And an error message is shown
+  And the bucket is not deleted
 
 #### Scenario: Delete from context menu shows confirmation dialog
   Given the context menu is open
@@ -237,7 +242,8 @@
   Then the Delete button is disabled
 
 #### Scenario: Confirm bucket deletion
-  Given the confirmation dialog is shown
+  Given the user has full access to the bucket
+  And the confirmation dialog is shown
   When the user types the bucket name correctly and clicks Delete
   Then the bucket is deleted
   And the user is redirected to the Buckets page
@@ -342,9 +348,17 @@
   Then a confirmation dialog is shown
 
 #### Scenario: Confirm deletion of selected objects
-  Given the confirmation dialog is shown
+  Given the user has write permissions on the bucket
+  And the confirmation dialog is shown
   When the user confirms deletion
   Then the selected objects are removed from the list
+
+#### Scenario: Delete selected objects fails for users without write permissions
+  Given the user does not have write permissions on the bucket
+  When the user attempts to delete the selected objects
+  Then the action fails
+  And an error message is shown
+  And the objects remain in the list
 
 #### Scenario: Cancel deletion of selected objects
   Given the confirmation dialog is shown
@@ -353,35 +367,40 @@
 
 ### Upload Files
 
-#### Scenario: Upload Files button is visible for users with write permissions
-  Given the user has write permissions on the bucket
-  When the user is on the bucket detail page
-  Then the Upload Files button is visible
+#### Scenario: Upload Files button is visible to all users
+  Given the user is on the bucket detail page
+  When the user views the page
+  Then the Upload Files button is visible, regardless of the user's permissions
 
-#### Scenario: Upload Files button is not visible for users without write permissions
+#### Scenario: Upload files fails for users without write permissions
   Given the user does not have write permissions on the bucket
-  When the user is on the bucket detail page
-  Then the Upload Files button is not visible
+  When the user attempts to upload files
+  Then the action fails
+  And an error message is shown
+  And no files are uploaded
 
 #### Scenario: Open Upload Files dialog
-  Given the user has write permissions on the bucket
+  Given the user is on the bucket detail page
   When the user clicks Upload Files
   Then a dialog is shown with a drag and drop area and a Browse Files button
 
 #### Scenario: Upload files via Browse Files
-  Given the Upload Files dialog is open
+  Given the user has write permissions on the bucket
+  And the Upload Files dialog is open
   When the user clicks Browse Files and selects one or more files
   Then the files are uploaded to the bucket
   And they appear in the object list
 
 #### Scenario: Upload files via drag and drop
-  Given the Upload Files dialog is open
+  Given the user has write permissions on the bucket
+  And the Upload Files dialog is open
   When the user drags and drops one or more files into the drop area
   Then the files are uploaded to the bucket
   And they appear in the object list
 
 #### Scenario: Upload a folder via drag and drop
-  Given the Upload Files dialog is open
+  Given the user has write permissions on the bucket
+  And the Upload Files dialog is open
   When the user drags and drops a folder into the drop area
   Then all files within that folder (including subfolders) are uploaded
   And their keys preserve the folder's structure as a prefix
@@ -401,23 +420,26 @@
 
 ### Create Folder
 
-#### Scenario: Create Folder button is visible for users with write permissions
-  Given the user has write permissions on the bucket
-  When the user is on the bucket detail page
-  Then the Create Folder button is visible
+#### Scenario: Create Folder button is visible to all users
+  Given the user is on the bucket detail page
+  When the user views the page
+  Then the Create Folder button is visible, regardless of the user's permissions
 
-#### Scenario: Create Folder button is not visible for users without write permissions
+#### Scenario: Create folder fails for users without write permissions
   Given the user does not have write permissions on the bucket
-  When the user is on the bucket detail page
-  Then the Create Folder button is not visible
+  When the user attempts to create a folder
+  Then the action fails
+  And an error message is shown
+  And no folder is created
 
 #### Scenario: Open Create Folder dialog
-  Given the user has write permissions on the bucket
+  Given the user is on the bucket detail page
   When the user clicks Create Folder
   Then a dialog is shown with a Folder Name field and Cancel and Create buttons
 
 #### Scenario: Successfully create a folder
-  Given the Create Folder dialog is open
+  Given the user has write permissions on the bucket
+  And the Create Folder dialog is open
   When the user enters a valid folder name and clicks Create
   Then the folder is created and appears in the object list
 
@@ -473,7 +495,8 @@
   Then a confirmation dialog is shown
 
 #### Scenario: Confirm enable versioning
-  Given the Enable Versioning confirmation dialog is shown
+  Given the user has full or full access limited permissions
+  And the Enable Versioning confirmation dialog is shown
   When the user clicks Confirm
   Then versioning is enabled for the bucket
   And the Bucket Versioning section shows Enabled as the current state
@@ -489,7 +512,8 @@
   Then a confirmation dialog is shown
 
 #### Scenario: Confirm suspend versioning
-  Given the Suspend Versioning confirmation dialog is shown
+  Given the user has full or full access limited permissions
+  And the Suspend Versioning confirmation dialog is shown
   When the user clicks Confirm
   Then versioning is suspended for the bucket
   And the Bucket Versioning section shows Suspended as the current state
@@ -498,6 +522,18 @@
   Given the Suspend Versioning confirmation dialog is shown
   When the user clicks Cancel or the X button
   Then the dialog is closed and versioning remains unchanged
+
+#### Scenario: Versioning controls are visible to all users
+  Given the user is on the Properties tab
+  When the user views the Bucket Versioning section
+  Then the current versioning state and its controls are visible, regardless of the user's permissions
+
+#### Scenario: Change versioning fails for users without full or full access limited permissions
+  Given the user does not have full or full access limited permissions
+  When the user attempts to enable or suspend versioning
+  Then the action fails
+  And an error message is shown
+  And the versioning state remains unchanged
 
 ### Bucket Logging
 
@@ -512,16 +548,30 @@
   Then a list of available buckets is shown
 
 #### Scenario: Successfully update bucket logging
-  Given the Enable Bucket Logging toggle is enabled
+  Given the user has full or full access limited permissions
+  And the Enable Bucket Logging toggle is enabled
   And the user has selected a bucket to store logs
   When the user clicks Update
   Then the logging configuration is saved
 
 #### Scenario: Disable Bucket Logging
-  Given the Enable Bucket Logging toggle is enabled
+  Given the user has full or full access limited permissions
+  And the Enable Bucket Logging toggle is enabled
   When the user disables the toggle
   And clicks Update
   Then logging is disabled for the bucket
+
+#### Scenario: Logging controls are visible to all users
+  Given the user is on the Properties tab
+  When the user views the Bucket Logging section
+  Then the current logging configuration and its controls are visible, regardless of the user's permissions
+
+#### Scenario: Update bucket logging fails for users without full or full access limited permissions
+  Given the user does not have full or full access limited permissions
+  When the user attempts to update the logging configuration
+  Then the action fails
+  And an error message is shown
+  And the logging configuration remains unchanged
 
 ### Object Locking
 
@@ -562,25 +612,40 @@
   Then the Update button is disabled
 
 #### Scenario: Successfully configure bucket-level object retention
-  Given a retention mode is selected
+  Given the user has full or full access limited permissions
+  And a retention mode is selected
   And the user has filled in Time Scale and Retention Time
   When the user clicks Update
   Then the retention configuration is saved
 
+#### Scenario: Object Locking controls are visible to all users
+  Given the bucket was created with Object Locking enabled
+  When the user is on the Properties tab
+  Then the current object retention configuration and its controls are visible, regardless of the user's permissions
+
+#### Scenario: Configure object retention fails for users without full or full access limited permissions
+  Given the user does not have full or full access limited permissions
+  When the user attempts to update the object retention configuration
+  Then the action fails
+  And an error message is shown
+  And the retention configuration remains unchanged
+
 ### Delete Bucket
 
-#### Scenario: Delete button is visible for users with write permissions
-  Given the user has write permissions
-  When the user is on the Properties tab
-  Then the Delete button is visible
+#### Scenario: Delete button is visible to all users
+  Given the user is on the Properties tab
+  When the user views the page
+  Then the Delete button is visible, regardless of the user's permissions
 
-#### Scenario: Delete button is not visible for users without write permissions
-  Given the user does not have write permissions
-  When the user is on the Properties tab
-  Then the Delete button is not visible
+#### Scenario: Delete bucket fails for users without full permissions
+  Given the user does not have full access
+  When the user attempts to delete the bucket from the Properties tab
+  Then the action fails
+  And an error message is shown
+  And the bucket is not deleted
 
 #### Scenario: Delete bucket from Properties shows confirmation dialog
-  Given the user has write permissions
+  Given the user is on the Properties tab
   When the user clicks Delete on the Properties tab
   Then a confirmation dialog is shown requiring the user to type the bucket name to proceed
 
@@ -798,16 +863,24 @@
   redirects to login.
 
 ### Members tab — assigning permissions
-- When the admin clicks Assign Permissions on a member and fills in a bucket name and permission level and submits,
+- When the admin clicks Assign Permissions on a member and fills in a bucket (a single bucket or all buckets) and access level and submits,
   then the permissions are saved and the modal closes.
-- When the bucket name is empty,
-  then the submit button is disabled.
-- When prefixes are left empty,
-  then access is granted to the entire bucket.
+- Each rule grants a whole bucket; there are four access levels:
+  - Read — view the bucket and its contents (read objects and versions, list, and read bucket configuration: versioning, logging, object locking, ACL and retention).
+  - Write — Read, plus saving and deleting objects.
+  - Full limited — Write, plus changing the bucket configuration (versioning, logging, object locking), but it cannot delete the bucket.
+  - Full — Full limited, plus deleting the bucket.
+- When the admin clicks Advanced,
+  then they can edit the raw IAM policy JSON directly instead of using the builder.
+- When the raw JSON is invalid,
+  then an error is shown and the policy cannot be saved.
 - When the request is in progress,
   then the submit button shows a loading indicator and is disabled.
 - When the request fails,
   then an error message is shown.
+- When the admin saves permissions, closes the modal, and opens it again, the modal should load the user's current permissions.
+- When the admin clicks Use builder on a policy the builder cannot represent (custom rules the builder does not model, e.g. object prefixes or unknown actions),
+  then a confirmation warns that switching resets everything to an empty builder.
 
 ### Access Keys tab
 - When the user opens the Access Keys tab,
