@@ -14,6 +14,7 @@ import {
   PutObjectRetentionCommand,
   DeleteBucketCommand,
   CreateBucketCommand,
+  HeadBucketCommand,
   GetBucketLocationCommand,
   GetBucketAclCommand,
   ListObjectVersionsCommand,
@@ -93,6 +94,19 @@ export const s3Service = {
       { abortSignal },
     );
     return LocationConstraint ?? 'us-east-1';
+  },
+
+  bucketExists: async (client: S3Client, name: string): Promise<boolean> => {
+    try {
+      await client.send(new HeadBucketCommand({ Bucket: name }));
+      return true;
+    } catch (err) {
+      const status = (err as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
+      if (status === 404) return false;
+      // 403: name taken by another account (S3 hides existence), so it's unavailable.
+      if (status === 403) return true;
+      throw err;
+    }
   },
 
   createBucket: async (

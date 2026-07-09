@@ -418,6 +418,10 @@ const CreateBucketModal = ({
     setIsCreating(true);
     const regionClient = createRegionS3Client(selectedRegion.endpoint, selectedRegion.slug, credentials);
     try {
+      if (await s3Service.bucketExists(regionClient, bucketName)) {
+        notificationsService.error({ text: 'A bucket with this name already exists' });
+        return;
+      }
       await s3Service.createBucket(regionClient, bucketName, selectedRegion.slug, objectLockEnabled);
       if (versioningEnabled) {
         try {
