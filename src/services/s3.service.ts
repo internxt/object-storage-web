@@ -30,6 +30,8 @@ export const RetentionMode = {
 
 export type RetentionMode = typeof RetentionMode[keyof typeof RetentionMode];
 
+export type VersioningStatus = 'Enabled' | 'Suspended' | 'Unversioned';
+
 export interface S3Bucket {
   name: string;
   creationDate: Date;
@@ -264,7 +266,9 @@ export const s3Service = {
     const { Status, MFADelete } = await client.send(
       new GetBucketVersioningCommand({ Bucket: bucket }),
     );
-    return { enabled: Status === 'Enabled', mfaDelete: MFADelete === 'Enabled' };
+    const status: VersioningStatus =
+      Status === 'Enabled' ? 'Enabled' : Status === 'Suspended' ? 'Suspended' : 'Unversioned';
+    return { enabled: Status === 'Enabled', status, mfaDelete: MFADelete === 'Enabled' };
   },
 
   setBucketVersioning: async (client: S3Client, bucket: string, enabled: boolean): Promise<void> => {

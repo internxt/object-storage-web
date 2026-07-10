@@ -19,13 +19,14 @@ import {
   CopyIcon,
 } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
-import { S3Object, s3Service, RetentionMode } from '../../services/s3.service';
+import { S3Object, s3Service, RetentionMode, VersioningStatus } from '../../services/s3.service';
 import notificationsService from '../../services/notifications.service';
 import { UploadModal } from '../../components/objects/UploadModal';
 import { FileDetailsPanel } from '../../components/objects/FileDetailsPanel';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import Dialog from '../../components/Dialog';
+import Loader from '../../components/Loader';
 import Input from '../../components/Input';
 import { Dropdown } from '../../components/Dropdown';
 import { Pagination } from '../../components/Pagination';
@@ -39,6 +40,7 @@ import { useObjectPagination } from '../hooks/useObjectPagination';
 import { useFileRetention } from '../hooks/useFileRetention';
 import { useSubAccount } from '../context/SubAccountContext';
 import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal';
+import { RetentionConfirmModal } from '../components/RetentionConfirmModal';
 import { T, shadow, text } from '../tokens';
 import { S3Client } from '@aws-sdk/client-s3';
 
@@ -105,6 +107,17 @@ const ReadField = ({ label, value, mono = false, fullWidth = false }:
     }}>
       {value || '—'}
     </span>
+  </div>
+);
+
+const ConfigError = ({ section }: { section: string }) => (
+  <div className="flex max-w-[480px] flex-col gap-2 rounded-xl border border-[#fecaca] bg-[#fef2f2] p-4">
+    <span className="text-xs font-medium uppercase tracking-wider text-[var(--red,#E03131)]">
+      {section}
+    </span>
+    <p className="m-0 text-[13px] leading-normal text-[var(--gray-60,#636367)]">
+      There was an error loading the configuration for this section. Please try again.
+    </p>
   </div>
 );
 
@@ -391,15 +404,31 @@ export const SubAccountBucketDetailPage = () => {
     state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
   } = useObjectPagination();
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
-  const [versioningEnabled, setVersioningEnabled] = useState(false);
-  const [isTogglingVersioning, setIsTogglingVersioning] = useState(false);
+  const [versioning, setVersioning] = useState<{
+    status: VersioningStatus;
+    isLoading: boolean;
+    isChanging: boolean;
+    confirmation: boolean | null;
+  }>({
+    status: 'Unversioned', isLoading: true, isChanging: false, confirmation: null,
+  });
   const [objectLockConfig, setObjectLockConfig] = useState<{
     lockEnabledAtCreation: boolean; enabled: boolean; mode?: RetentionMode; days?: number; years?: number;
   }>({ lockEnabledAtCreation: false, enabled: false });
   const [isSavingBucketRetention, setIsSavingBucketRetention] = useState(false);
+  const [pendingRetention, setPendingRetention] = useState<{
+    mode: RetentionMode; scale: 'days' | 'years'; value: number;
+  } | null>(null);
   const [loggingConfig, setLoggingConfig] = useState({ enabled: false, targetBucket: '', targetPrefix: '' });
+  const [persistedLoggingConfig, setPersistedLoggingConfig] = useState({ enabled: false, targetBucket: '', targetPrefix: '' });
   const [isSavingLogging, setIsSavingLogging] = useState(false);
   const [bucketsList, setBucketsList] = useState<string[]>([]);
+  const [configStatus, setConfigStatus] = useState<{
+    versioning: 'loading' | 'error' | 'ready';
+    objectLock: 'loading' | 'error' | 'ready';
+    logging: 'loading' | 'error' | 'ready';
+  }>({ versioning: 'loading', objectLock: 'loading', logging: 'loading' });
+  const isPropertiesLoading = Object.values(configStatus).some((s) => s === 'loading');
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -415,18 +444,10 @@ export const SubAccountBucketDetailPage = () => {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
   useOnS3ClientReadyEffect(client, (c) => {
-    if (!bucketName) { 
-      return; 
+    if (!bucketName) {
+      return;
     }
     s3Service.getBucketVisibility(c, bucketName).then(setVisibility).catch(() => {});
-    s3Service.getObjectLockConfig(c, bucketName)
-      .then(setObjectLockConfig)
-      .catch(() => {});
-    s3Service.getBucketLogging(c, bucketName)
-      .then((l) => setLoggingConfig({
-        enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '',
-      }))
-      .catch(() => {});
   }, [bucketName]);
 
   useOnS3ClientReadyEffect(client, (c) => {
@@ -438,13 +459,53 @@ export const SubAccountBucketDetailPage = () => {
   }, [bucketName, prefix, searchQuery, showVersions, pagination.pageSize, pagination.pageNumber]);
 
   useOnS3ClientReadyEffect(client, (c) => {
-    if (!bucketName || activeTab !== 'properties') { 
-      return; 
+    if (!bucketName || activeTab !== 'properties') {
+      return;
     }
 
+    let cancelled = false;
+    setConfigStatus({ versioning: 'loading', objectLock: 'loading', logging: 'loading' });
+
     s3Service.getBucketVersioning(c, bucketName)
-      .then(v => setVersioningEnabled(v.enabled))
-      .catch(() => {});
+      .then(v => {
+        if (cancelled) return;
+        setVersioning(prev => ({ ...prev, status: v.status, isLoading: false }));
+        setConfigStatus(prev => ({ ...prev, versioning: 'ready' }));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setVersioning(prev => ({ ...prev, isLoading: false }));
+        setConfigStatus(prev => ({ ...prev, versioning: 'error' }));
+        notificationsService.error({ text: 'Could not load versioning status for this bucket. Please try again.' });
+      });
+
+    s3Service.getObjectLockConfig(c, bucketName)
+      .then(cfg => {
+        if (cancelled) return;
+        setObjectLockConfig(cfg);
+        setConfigStatus(prev => ({ ...prev, objectLock: 'ready' }));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setConfigStatus(prev => ({ ...prev, objectLock: 'error' }));
+        notificationsService.error({ text: 'Could not load object locking configuration for this bucket. Please try again.' });
+      });
+
+    s3Service.getBucketLogging(c, bucketName)
+      .then((l) => {
+        if (cancelled) return;
+        const cfg = { enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '' };
+        setLoggingConfig(cfg);
+        setPersistedLoggingConfig(cfg);
+        setConfigStatus(prev => ({ ...prev, logging: 'ready' }));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setConfigStatus(prev => ({ ...prev, logging: 'error' }));
+        notificationsService.error({ text: 'Could not load logging configuration for this bucket. Please try again.' });
+      });
+
+    return () => { cancelled = true; };
   }, [bucketName, activeTab]);
 
   useOnS3ClientReadyEffect(client, (c) => {
@@ -453,8 +514,14 @@ export const SubAccountBucketDetailPage = () => {
       .catch(() => {});
   }, []);
 
-  const onSaveRetention = async (mode: RetentionMode, scale: 'days' | 'years', value: number) => {
+  const requestBucketRetention = (mode: RetentionMode, scale: 'days' | 'years', value: number) => {
     if (!client || !bucketName) return;
+    setPendingRetention({ mode, scale, value });
+  };
+
+  const applyBucketRetention = async () => {
+    if (!client || !bucketName || !pendingRetention) return;
+    const { mode, scale, value } = pendingRetention;
     setIsSavingBucketRetention(true);
     try {
       await s3Service.setObjectLockConfig(
@@ -462,6 +529,7 @@ export const SubAccountBucketDetailPage = () => {
       );
       setObjectLockConfig(prev => ({ ...prev, enabled: true, mode, days: scale === 'days' ? value : undefined, years: scale === 'years' ? value : undefined }));
       notificationsService.success({ text: 'Object retention updated' });
+      setPendingRetention(null);
     } catch {
       notificationsService.error({ text: 'Failed to update object retention' });
     } finally {
@@ -514,20 +582,27 @@ export const SubAccountBucketDetailPage = () => {
     }
   };
 
-  const onToggleVersioning = async (next: boolean) => {
-    if (!client || !bucketName || isTogglingVersioning || next === versioningEnabled) return;
+  const onToggleVersioning = (next: boolean) => {
+    if (!client || !bucketName || versioning.isLoading || versioning.isChanging || next === (versioning.status === 'Enabled')) return;
     if (!next && objectLockConfig.lockEnabledAtCreation) return;
-    setIsTogglingVersioning(true);
+    setVersioning(prev => ({ ...prev, confirmation: next }));
+  };
+
+  const confirmVersioningChange = async () => {
+    if (!client || !bucketName || versioning.confirmation === null) return;
+    const next = versioning.confirmation;
+    setVersioning(prev => ({ ...prev, isChanging: true }));
     try {
       await s3Service.setBucketVersioning(client, bucketName, next);
-      setVersioningEnabled(next);
+      setVersioning(prev => ({ ...prev, status: next ? 'Enabled' : 'Suspended', confirmation: null, isChanging: false }));
       notificationsService.success({ text: `Versioning ${next ? 'enabled' : 'disabled'}` });
     } catch {
+      setVersioning(prev => ({ ...prev, isChanging: false }));
       notificationsService.error({ text: 'Failed to update versioning' });
-    } finally {
-      setIsTogglingVersioning(false);
     }
   };
+
+  const cancelVersioningChange = () => setVersioning(prev => ({ ...prev, confirmation: null }));
 
   const onSaveLogging = async () => {
     if (!client || !bucketName) return;
@@ -536,6 +611,7 @@ export const SubAccountBucketDetailPage = () => {
       await s3Service.setBucketLogging(
         client, bucketName, loggingConfig.enabled, loggingConfig.targetBucket, loggingConfig.targetPrefix,
       );
+      setPersistedLoggingConfig(loggingConfig);
       notificationsService.success({ text: `Logging ${loggingConfig.enabled ? 'enabled' : 'disabled'}` });
     } catch {
       notificationsService.error({ text: 'Failed to update logging' });
@@ -735,6 +811,11 @@ export const SubAccountBucketDetailPage = () => {
     width: '100%', boxSizing: 'border-box',
   };
 
+  const isLoggingDirty =
+    loggingConfig.enabled !== persistedLoggingConfig.enabled ||
+    loggingConfig.targetBucket !== persistedLoggingConfig.targetBucket ||
+    loggingConfig.targetPrefix !== persistedLoggingConfig.targetPrefix;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1200,
       margin: '0 auto', width: '100%', padding: '8px 0 32px' }}>
@@ -790,7 +871,13 @@ export const SubAccountBucketDetailPage = () => {
             {(['objects', 'properties'] as const).map(tab => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  // TODO: use suspend for properties tab to avoid flicker
+                  if (tab === 'properties' && activeTab !== 'properties') {
+                    setConfigStatus({ versioning: 'loading', objectLock: 'loading', logging: 'loading' });
+                  }
+                  setActiveTab(tab);
+                }}
                 style={{
                   padding: '14px 16px', fontSize: 14, fontWeight: 500, cursor: 'pointer',
                   background: 'none', border: 'none', borderBottom: '2px solid', marginBottom: -1,
@@ -960,6 +1047,17 @@ export const SubAccountBucketDetailPage = () => {
 
           {/* ── Properties tab ──────────────────────────────────────────── */}
           {activeTab === 'properties' && (
+            isPropertiesLoading ? (
+              <div className="flex justify-center px-6 py-24">
+                <Loader
+                  type="spinner"
+                  size={32}
+                  text="Loading bucket configuration…"
+                  classNameContainer="flex flex-col items-center gap-3 text-[var(--gray-60,#636367)]"
+                  classNameText="m-0 text-sm"
+                />
+              </div>
+            ) : (
             <div className="flex flex-col gap-6 px-6 pt-6 pb-8">
               <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                 <ReadField label="Bucket name" value={bucketName!} mono />
@@ -967,44 +1065,60 @@ export const SubAccountBucketDetailPage = () => {
                 <ReadField label="Visibility" value={visibility === 'public' ? 'Public' : 'Private'} />
                 <ReadField label="Endpoint" value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
                 <div className="col-span-full flex flex-wrap items-start gap-12">
-                  <VersioningControl
-                    enabled={versioningEnabled}
-                    disabled={isTogglingVersioning || objectLockConfig.lockEnabledAtCreation}
-                    onChange={onToggleVersioning}
-                  />
-                  <ObjectLockingControl
-                    lockEnabledAtCreation={objectLockConfig.lockEnabledAtCreation}
-                    retentionConfig={objectLockConfig}
-                    isSaving={isSavingBucketRetention}
-                    onSave={onSaveRetention}
-                    onDisable={onDisableRetention}
-                  />
-                  <div className="flex max-w-[480px] flex-col gap-3.5">
-                    <span className="text-xs font-medium uppercase tracking-wider text-[var(--gray-60,#636367)]">
-                      Logging
-                    </span>
-                    <BucketLoggingSetup
-                      enabled={loggingConfig.enabled}
-                      prefix={loggingConfig.targetPrefix}
-                      target={loggingConfig.targetBucket}
-                      buckets={bucketsList.filter((name) => name !== bucketName)}
-                      onEnabledChange={(enabled) => setLoggingConfig((prev) => ({ ...prev, enabled }))}
-                      onPrefixChange={(targetPrefix) => setLoggingConfig((prev) => ({ ...prev, targetPrefix }))}
-                      onTargetChange={(targetBucket) => setLoggingConfig((prev) => ({ ...prev, targetBucket }))}
-                    />
-                    <div className="flex justify-end">
-                      <Button
-                        type="button"
-                        disabled={loggingConfig.enabled && (!loggingConfig.targetBucket || !loggingConfig.targetPrefix)}
-                        loading={isSavingLogging}
-                        onClick={onSaveLogging}
-                      >
-                        Update
-                      </Button>
-                    </div>
+                    {configStatus.versioning === 'error' ? (
+                      <ConfigError section="versioning" />
+                    ) : (
+                      <VersioningControl
+                        status={versioning.status}
+                        loading={versioning.isLoading}
+                        disabled={versioning.isLoading || versioning.isChanging || objectLockConfig.lockEnabledAtCreation}
+                        onChange={onToggleVersioning}
+                      />
+                    )}
+                    {configStatus.objectLock === 'error' ? (
+                      <ConfigError section="object locking" />
+                    ) : (
+                      <ObjectLockingControl
+                        lockEnabledAtCreation={objectLockConfig.lockEnabledAtCreation}
+                        retentionConfig={objectLockConfig}
+                        isSaving={isSavingBucketRetention}
+                        onSave={requestBucketRetention}
+                        onDisable={onDisableRetention}
+                      />
+                    )}
+                    {configStatus.logging === 'error' ? (
+                      <ConfigError section="logging" />
+                    ) : (
+                      <div className="flex max-w-[480px] flex-col gap-3.5">
+                        <span className="text-xs font-medium uppercase tracking-wider text-[var(--gray-60,#636367)]">
+                          Logging
+                        </span>
+                        <BucketLoggingSetup
+                          enabled={loggingConfig.enabled}
+                          prefix={loggingConfig.targetPrefix}
+                          target={loggingConfig.targetBucket}
+                          buckets={bucketsList.filter((name) => name !== bucketName)}
+                          onEnabledChange={(enabled) => setLoggingConfig((prev) => ({ ...prev, enabled }))}
+                          onPrefixChange={(targetPrefix) => setLoggingConfig((prev) => ({ ...prev, targetPrefix }))}
+                          onTargetChange={(targetBucket) => setLoggingConfig((prev) => ({ ...prev, targetBucket }))}
+                        />
+                        <div className="flex justify-end">
+                          <Button
+                            type="button"
+                            disabled={
+                              !isLoggingDirty ||
+                              (loggingConfig.enabled && (!loggingConfig.targetBucket || !loggingConfig.targetPrefix))
+                            }
+                            loading={isSavingLogging}
+                            onClick={onSaveLogging}
+                          >
+                            Update
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
 
               {isAdmin && (
                 <div className="flex items-center justify-between gap-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] p-5">
@@ -1023,6 +1137,7 @@ export const SubAccountBucketDetailPage = () => {
                 </div>
               )}
             </div>
+            )
           )}
         </div>
 
@@ -1051,6 +1166,31 @@ export const SubAccountBucketDetailPage = () => {
         client={client}
         onClose={() => setIsUploadOpen(false)}
         onUploaded={() => client && loadObjects(client)}
+      />
+
+      <Dialog
+        isOpen={versioning.confirmation !== null}
+        onClose={cancelVersioningChange}
+        onPrimaryAction={confirmVersioningChange}
+        onSecondaryAction={cancelVersioningChange}
+        isLoading={versioning.isChanging}
+        primaryAction="Confirm"
+        secondaryAction="Cancel"
+        primaryActionColor="primary"
+        title={versioning.confirmation ? 'Enable Versioning' : 'Suspend Versioning'}
+        subtitle={versioning.confirmation
+          ? 'Versioning-enabled buckets store all versions of your object by default.\n\nAre you sure you want to enable versioning for the selected bucket?'
+          : 'Suspending versioning will suspend the creation of object versions for all operations but keeps any existing object versions.\n\nAre you sure you want to suspend versioning for the selected bucket?'}
+      />
+
+      <RetentionConfirmModal
+        isOpen={pendingRetention !== null}
+        mode={pendingRetention?.mode ?? RetentionMode.COMPLIANCE}
+        scale={pendingRetention?.scale ?? 'days'}
+        value={pendingRetention?.value ?? 0}
+        isSaving={isSavingBucketRetention}
+        onConfirm={applyBucketRetention}
+        onClose={() => setPendingRetention(null)}
       />
 
       <Dialog
