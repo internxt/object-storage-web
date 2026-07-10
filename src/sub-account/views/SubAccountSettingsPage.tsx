@@ -10,6 +10,7 @@ import { AssignPermissionsModal } from '../components/permissions-manager/Assign
 import { PolicyDocument } from '../services/iamPolicy.service';
 import Dialog from '../../components/Dialog';
 import { Dropdown } from '../../components/Dropdown';
+import { formatDate } from '../../utils/formatDate';
 import { copyToClipboard } from '../../utils/copyToClipboard';
 
 // ─── Design tokens (from design spec)
@@ -406,6 +407,8 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
   const [credentials, setCredentials] = useState<S3Credentials | null>(null);
   const [isLoading, setIsLoading]     = useState(false);
   const [revealed, setRevealed]       = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -414,6 +417,21 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
       .catch(() => notificationsService.error({ text: 'Failed to load S3 credentials' }))
       .finally(() => setIsLoading(false));
   }, [entityId, memberId]);
+
+  const onRegenerate = async () => {
+    setIsRegenerating(true);
+    try {
+      const newCreds = await subAccountS3CredentialsService.regenerateCredentials(entityId, memberId);
+      setCredentials(newCreds);
+      setRevealed(false);
+      setConfirmOpen(false);
+      notificationsService.success({ text: 'Access keys regenerated' });
+    } catch {
+      notificationsService.error({ text: 'Failed to regenerate access keys' });
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
 
   return (
     <div className='bg-surface border border-gray-10 rounded-xl p-6' style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
@@ -431,7 +449,7 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
               <CaretDownIcon size={12} />
             </div>
           }
-          items={[{ label: 'Regenerate', onClick: () => notificationsService.error({ text: 'Not yet available' }) }]}
+          items={[{ label: 'Regenerate', onClick: () => setConfirmOpen(true) }]}
         />
       </div>
 
@@ -463,7 +481,7 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
                     </button>
                   </div>
                 </td>
-                <td className='py-3.5 text-sm text-gray-50'>—</td>
+                <td className='py-3.5 text-sm text-gray-50'>{formatDate(credentials.createdAt ? new Date(credentials.createdAt) : undefined)}</td>
                 <td className='py-3.5'>
                   <div className='flex items-center gap-2 justify-end'>
                     <Pill type='primary' />
@@ -482,6 +500,12 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
           </table>
         )}
       </div>
+      <Dialog
+        isOpen={confirmOpen} onClose={() => setConfirmOpen(false)}
+        onPrimaryAction={onRegenerate} onSecondaryAction={() => setConfirmOpen(false)}
+        isLoading={isRegenerating} primaryAction='Regenerate' secondaryAction='Cancel' primaryActionColor='danger'
+        title='Regenerate access keys' subtitle='This will invalidate the current keys immediately. Any integration using them will stop working until updated.'
+      />
     </div>
   );
 };
