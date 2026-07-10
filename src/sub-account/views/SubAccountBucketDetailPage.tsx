@@ -19,7 +19,7 @@ import {
   CopyIcon,
 } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
-import { S3Object, s3Service, RetentionMode } from '../../services/s3.service';
+import { S3Object, s3Service, RetentionMode, VersioningStatus } from '../../services/s3.service';
 import notificationsService from '../../services/notifications.service';
 import { UploadModal } from '../../components/objects/UploadModal';
 import { FileDetailsPanel } from '../../components/objects/FileDetailsPanel';
@@ -391,13 +391,16 @@ export const SubAccountBucketDetailPage = () => {
     state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
   } = useObjectPagination();
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
-  const [versioningEnabled, setVersioningEnabled] = useState(false);
+  const [versioning, setVersioning] = useState<{ status: VersioningStatus; isLoading: boolean }>({
+    status: 'Unversioned', isLoading: true,
+  });
   const [isTogglingVersioning, setIsTogglingVersioning] = useState(false);
   const [objectLockConfig, setObjectLockConfig] = useState<{
     lockEnabledAtCreation: boolean; enabled: boolean; mode?: RetentionMode; days?: number; years?: number;
   }>({ lockEnabledAtCreation: false, enabled: false });
   const [isSavingBucketRetention, setIsSavingBucketRetention] = useState(false);
   const [loggingConfig, setLoggingConfig] = useState({ enabled: false, targetBucket: '', targetPrefix: '' });
+  const [persistedLoggingConfig, setPersistedLoggingConfig] = useState({ enabled: false, targetBucket: '', targetPrefix: '' });
   const [isSavingLogging, setIsSavingLogging] = useState(false);
   const [bucketsList, setBucketsList] = useState<string[]>([]);
 
@@ -423,10 +426,14 @@ export const SubAccountBucketDetailPage = () => {
       .then(setObjectLockConfig)
       .catch(() => {});
     s3Service.getBucketLogging(c, bucketName)
-      .then((l) => setLoggingConfig({
-        enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '',
-      }))
-      .catch(() => {});
+      .then((l) => {
+        const cfg = { enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '' };
+        setLoggingConfig(cfg);
+        setPersistedLoggingConfig(cfg);
+      })
+      .catch(() => {
+        notificationsService.error({ text: 'Could not load logging configuration for this bucket. Please try again.' });
+      });
   }, [bucketName]);
 
   useOnS3ClientReadyEffect(client, (c) => {
@@ -438,13 +445,23 @@ export const SubAccountBucketDetailPage = () => {
   }, [bucketName, prefix, searchQuery, showVersions, pagination.pageSize, pagination.pageNumber]);
 
   useOnS3ClientReadyEffect(client, (c) => {
-    if (!bucketName || activeTab !== 'properties') { 
-      return; 
+    if (!bucketName || activeTab !== 'properties') {
+      return;
     }
 
+    let cancelled = false;
+    setVersioning(prev => ({ ...prev, isLoading: true }));
     s3Service.getBucketVersioning(c, bucketName)
-      .then(v => setVersioningEnabled(v.enabled))
-      .catch(() => {});
+      .then(v => {
+        if (cancelled) return;
+        setVersioning({ status: v.status, isLoading: false });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setVersioning(prev => ({ ...prev, isLoading: false }));
+        notificationsService.error({ text: 'Could not load versioning status for this bucket. Please try again.' });
+      });
+    return () => { cancelled = true; };
   }, [bucketName, activeTab]);
 
   useOnS3ClientReadyEffect(client, (c) => {
@@ -515,12 +532,12 @@ export const SubAccountBucketDetailPage = () => {
   };
 
   const onToggleVersioning = async (next: boolean) => {
-    if (!client || !bucketName || isTogglingVersioning || next === versioningEnabled) return;
+    if (!client || !bucketName || isTogglingVersioning || next === (versioning.status === 'Enabled')) return;
     if (!next && objectLockConfig.lockEnabledAtCreation) return;
     setIsTogglingVersioning(true);
     try {
       await s3Service.setBucketVersioning(client, bucketName, next);
-      setVersioningEnabled(next);
+      setVersioning(prev => ({ ...prev, status: next ? 'Enabled' : 'Suspended' }));
       notificationsService.success({ text: `Versioning ${next ? 'enabled' : 'disabled'}` });
     } catch {
       notificationsService.error({ text: 'Failed to update versioning' });
@@ -536,6 +553,7 @@ export const SubAccountBucketDetailPage = () => {
       await s3Service.setBucketLogging(
         client, bucketName, loggingConfig.enabled, loggingConfig.targetBucket, loggingConfig.targetPrefix,
       );
+      setPersistedLoggingConfig(loggingConfig);
       notificationsService.success({ text: `Logging ${loggingConfig.enabled ? 'enabled' : 'disabled'}` });
     } catch {
       notificationsService.error({ text: 'Failed to update logging' });
@@ -734,6 +752,11 @@ export const SubAccountBucketDetailPage = () => {
     fontSize: 14, color: T.gray100, outline: 'none', background: T.gray10,
     width: '100%', boxSizing: 'border-box',
   };
+
+  const isLoggingDirty =
+    loggingConfig.enabled !== persistedLoggingConfig.enabled ||
+    loggingConfig.targetBucket !== persistedLoggingConfig.targetBucket ||
+    loggingConfig.targetPrefix !== persistedLoggingConfig.targetPrefix;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1200,
@@ -968,7 +991,8 @@ export const SubAccountBucketDetailPage = () => {
                 <ReadField label="Endpoint" value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
                 <div className="col-span-full flex flex-wrap items-start gap-12">
                   <VersioningControl
-                    enabled={versioningEnabled}
+                    status={versioning.status}
+                    loading={versioning.isLoading}
                     disabled={isTogglingVersioning || objectLockConfig.lockEnabledAtCreation}
                     onChange={onToggleVersioning}
                   />
@@ -995,7 +1019,10 @@ export const SubAccountBucketDetailPage = () => {
                     <div className="flex justify-end">
                       <Button
                         type="button"
-                        disabled={loggingConfig.enabled && (!loggingConfig.targetBucket || !loggingConfig.targetPrefix)}
+                        disabled={
+                          !isLoggingDirty ||
+                          (loggingConfig.enabled && (!loggingConfig.targetBucket || !loggingConfig.targetPrefix))
+                        }
                         loading={isSavingLogging}
                         onClick={onSaveLogging}
                       >
