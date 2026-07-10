@@ -137,7 +137,7 @@ const Dialog = ({
           >
             <div className="flex flex-col space-y-2">
               <p className="text-2xl font-medium text-gray-100">{title}</p>
-              <p className="text-gray-60">{subtitle}</p>
+              <p className="whitespace-pre-line text-gray-60">{subtitle}</p>
             </div>
 
             <div className="mt-5 flex justify-end space-x-2">

@@ -51,13 +51,13 @@ export const ObjectLockingControl = ({
 }: ObjectLockingControlProps) => {
   const [retentionOpen, setRetentionOpen] = useState(retentionConfig.enabled);
   const [mode, setMode] = useState<RetentionMode>(retentionConfig.mode ?? RetentionMode.COMPLIANCE);
-  const [scale, setScale] = useState<TimeScale>(retentionConfig.years ? 'years' : 'days');
+  const [scale, setScale] = useState<TimeScale | ''>('');
   const [value, setValue] = useState<string>(String(retentionConfig.days ?? retentionConfig.years ?? ''));
 
   useEffect(() => {
     setRetentionOpen(retentionConfig.enabled);
     setMode(retentionConfig.mode ?? RetentionMode.COMPLIANCE);
-    setScale(retentionConfig.years ? 'years' : 'days');
+    setScale(retentionConfig.years ? 'years' : retentionConfig.days ? 'days' : '');
     setValue(String(retentionConfig.days ?? retentionConfig.years ?? ''));
   }, [retentionConfig.enabled, retentionConfig.mode, retentionConfig.days, retentionConfig.years]);
 
@@ -77,7 +77,7 @@ export const ObjectLockingControl = ({
   }
 
   const numericValue = Number(value);
-  const canSave = !!value && numericValue > 0;
+  const canSave = !!scale && !!value && numericValue > 0;
 
   return (
     <div className="flex max-w-[480px] flex-col gap-3.5">
@@ -107,7 +107,7 @@ export const ObjectLockingControl = ({
           </p>
 
           <Option
-            title="Enable Governance Mode"
+            title="Governance Mode"
             badge={retentionConfig.enabled && retentionConfig.mode === RetentionMode.GOVERNANCE ? 'Enabled' : undefined}
             description="Objects placed in Governance Mode remain immutable until after they have reached the retain until date, unless a user has specific IAM permissions to alter the settings."
             selected={mode === RetentionMode.GOVERNANCE}
@@ -133,6 +133,7 @@ export const ObjectLockingControl = ({
                 onChange={(e) => setScale(e.target.value as TimeScale)}
                 className={`${inputClass} cursor-pointer`}
               >
+                <option value="" disabled>Select time scale</option>
                 <option value="days">Day(s)</option>
                 <option value="years">Year(s)</option>
               </select>
@@ -156,7 +157,7 @@ export const ObjectLockingControl = ({
               type="button"
               disabled={disabled || !canSave}
               loading={isSaving}
-              onClick={() => onSave(mode, scale, numericValue)}
+              onClick={() => scale && onSave(mode, scale, numericValue)}
             >
               Update
             </Button>
