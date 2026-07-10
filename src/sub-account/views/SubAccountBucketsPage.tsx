@@ -11,6 +11,7 @@ import { s3Service } from '../../services/s3.service';
 import notificationsService from '../../services/notifications.service';
 import { SubAccountRegion } from '../../services/buckets.service';
 import { isValidBucketName } from '../../utils/isBucketNameValid';
+import { formatDate } from '../../utils/formatDate';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Modal from '../../components/Modal';
@@ -36,17 +37,6 @@ interface BucketRecord {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatDate(date?: Date): string {
-  if (!date) {
-    return '—';
-  }
-  const day = date.toLocaleDateString('en-GB', { day: '2-digit' });
-  const month = date.toLocaleDateString('en-GB', { month: 'short' });
-  const year = date.getFullYear();
-  const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-
-  return `${day}-${month}-${year} ${time}`;
-}
 
 const createRegionS3Client = (endpoint: string, region: string, credentials: S3Credentials) =>
   new S3Client({
