@@ -4,7 +4,7 @@ import prettyBytes from 'pretty-bytes';
 import { S3Client } from '@aws-sdk/client-s3';
 import Modal from '../Modal';
 import Button from '../Button';
-import { s3Service } from '../../services/s3.service';
+import { s3Service, isAccessDeniedError } from '../../services/s3.service';
 import { useS3Client } from '../../hooks/useS3Client';
 import notificationsService from '../../services/notifications.service';
 
@@ -155,9 +155,13 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
       } catch (err) {
         if (signal.aborted) break;
         anyError = true;
+        const message = isAccessDeniedError(err)
+          ? 'You do not have enough access to this bucket.'
+          : (err as Error).message;
         setFiles((prev) =>
-          prev.map((f, idx) => idx === i ? { ...f, status: 'error', error: (err as Error).message } : f),
+          prev.map((f, idx) => idx === i ? { ...f, status: 'error', error: message } : f),
         );
+        notificationsService.error({ text: message });
       }
     }
 
@@ -165,7 +169,14 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
     setIsUploading(false);
 
     if (signal.aborted) {
-      setFiles([]);
+      setFiles((prev) =>
+          prev.map((f) => ({
+              ...f,
+              status: "pending",
+              progress: 0,
+              error: undefined,
+          })),
+      );
       return;
     }
 
