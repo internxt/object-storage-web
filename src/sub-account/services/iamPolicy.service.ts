@@ -130,7 +130,7 @@ export class BucketRulesToPolicy {
   static toStatements(rule: BucketRule): PolicyStatement[] {
     const bucketAndObjectsResource =
       rule.bucketName === ALL_BUCKETS
-        ? ['arn:aws:s3:::*']
+        ? ['arn:aws:s3:::*', 'arn:aws:s3:::*/*']
         : [`arn:aws:s3:::${rule.bucketName}`, `arn:aws:s3:::${rule.bucketName}/*`]
 
     const { actions, deniedActions } = ACCESS_LEVEL_CONFIG[rule.accessLevel]
