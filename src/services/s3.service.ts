@@ -66,6 +66,10 @@ export interface ListObjectVersionsResult {
   isTruncated: boolean;
 }
 
+export const isAccessDeniedError = (err: unknown): boolean =>
+  (err as { name?: string })?.name === 'AccessDenied' ||
+  (err as { $metadata?: { httpStatusCode?: number } })?.$metadata?.httpStatusCode === 403;
+
 export const s3Service = {
   listBuckets: async (
     client: S3Client,

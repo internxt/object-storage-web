@@ -19,7 +19,7 @@ import {
   CopyIcon,
 } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
-import { S3Object, s3Service, RetentionMode, VersioningStatus } from '../../services/s3.service';
+import { S3Object, s3Service, isAccessDeniedError, RetentionMode, VersioningStatus } from '../../services/s3.service';
 import notificationsService from '../../services/notifications.service';
 import { UploadModal } from '../../components/objects/UploadModal';
 import { FileDetailsPanel } from '../../components/objects/FileDetailsPanel';
@@ -640,7 +640,7 @@ export const SubAccountBucketDetailPage = () => {
         recordPage(result);
       }
     } catch (err) {
-      const msg = (err as any)?.name === 'AccessDenied'
+      const msg = isAccessDeniedError(err)
         ? 'Insufficient permissions to list this location.'
         : (err as Error).message;
       notificationsService.error({ text: msg });
@@ -794,8 +794,10 @@ export const SubAccountBucketDetailPage = () => {
       setIsCreateFolderOpen(false);
       setFolderName('');
       await loadObjects(client);
-    } catch {
-      notificationsService.error({ text: 'Could not create folder.' });
+    } catch (err) {
+      notificationsService.error({
+        text: isAccessDeniedError(err) ? 'You do not have enough access to this bucket.' : 'Could not create folder.',
+      });
     } finally {
       setIsCreatingFolder(false);
     }
