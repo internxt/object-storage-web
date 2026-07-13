@@ -14,10 +14,13 @@ export const S3_ACTIONS = {
   deleteBucket: 's3:DeleteBucket',
   getBucketObjectLockConfiguration: 's3:GetBucketObjectLockConfiguration',
   getBucketVersioning: 's3:GetBucketVersioning',
+  getBucketLocation: 's3:GetBucketLocation',
   getBucketLogging: 's3:GetBucketLogging',
   getBucketAcl: 's3:GetBucketAcl',
   getObjectRetention: 's3:GetObjectRetention',
   getObjectVersion: 's3:GetObjectVersion',
+  getObjectVersionRetention: 's3:GetObjectVersionRetention',
+  deleteObjectVersion: 's3:DeleteObjectVersion',
   listBucketVersions: 's3:ListBucketVersions',
   all: 's3:*'
 } as const
@@ -27,10 +30,12 @@ const READ_ACTIONS: string[] = [
   S3_ACTIONS.listBucket,
   S3_ACTIONS.getBucketObjectLockConfiguration,
   S3_ACTIONS.getBucketVersioning,
+  S3_ACTIONS.getBucketLocation,
   S3_ACTIONS.getBucketLogging,
   S3_ACTIONS.getBucketAcl,
   S3_ACTIONS.getObjectRetention,
   S3_ACTIONS.getObjectVersion,
+  S3_ACTIONS.getObjectVersionRetention,
   S3_ACTIONS.listBucketVersions
 ]
 
@@ -52,7 +57,7 @@ export const ACCESS_LEVEL_CONFIG: Record<AccessLevel, AccessLevelDefinition> = {
   },
   write: {
     label: 'Write',
-    actions: [...READ_ACTIONS, S3_ACTIONS.putObject, S3_ACTIONS.deleteObject],
+    actions: [...READ_ACTIONS, S3_ACTIONS.putObject, S3_ACTIONS.deleteObject, S3_ACTIONS.deleteObjectVersion],
     accountActions: [S3_ACTIONS.listAllMyBuckets]
   },
   'full-limited': {
