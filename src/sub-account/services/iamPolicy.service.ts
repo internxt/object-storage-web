@@ -19,7 +19,6 @@ export const S3_ACTIONS = {
   getBucketAcl: 's3:GetBucketAcl',
   getObjectRetention: 's3:GetObjectRetention',
   getObjectVersion: 's3:GetObjectVersion',
-  getObjectVersionRetention: 's3:GetObjectVersionRetention',
   deleteObjectVersion: 's3:DeleteObjectVersion',
   listBucketVersions: 's3:ListBucketVersions',
   all: 's3:*'
@@ -35,7 +34,6 @@ const READ_ACTIONS: string[] = [
   S3_ACTIONS.getBucketAcl,
   S3_ACTIONS.getObjectRetention,
   S3_ACTIONS.getObjectVersion,
-  S3_ACTIONS.getObjectVersionRetention,
   S3_ACTIONS.listBucketVersions
 ]
 
