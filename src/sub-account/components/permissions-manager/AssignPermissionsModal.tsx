@@ -77,8 +77,7 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
   };
 
   const isBusy = isLoading || isFetching || fetchError;
-  const hasContent = isAdvanced ? !!parsedStatements : rules.length > 0;
-  const canSubmit = hasContent && !isBusy;
+  const canSubmit = !isBusy && (isAdvanced ? parsedStatements !== null : true);
 
   const handleClose = () => {
     setConfirmBuilderOpen(false);
