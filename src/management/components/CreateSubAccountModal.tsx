@@ -10,6 +10,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (dto: CreateSubAccountDto) => Promise<void>;
+  consoleUrl: string;
 }
 
 type FormValues = CreateSubAccountDto & { confirmPassword?: string };
@@ -18,8 +19,6 @@ interface SuccessData {
   email: string;
   password: string;
 }
-
-const CONSOLE_URL = 'https://console.internxt.com';
 
 const flag = (code: string) =>
   String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
@@ -119,7 +118,7 @@ const validatePassword = (password: string): { isValid: boolean; errors: string[
   };
 };
 
-export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit }: Props) => {
+export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit, consoleUrl }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
@@ -212,9 +211,9 @@ export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit }: Props) => {
           <div className='space-y-3'>
             <CredentialField
               label='Console URL'
-              value={CONSOLE_URL}
+              value={consoleUrl}
               isCopied={copiedField === 'url'}
-              onCopy={() => handleCopy(CONSOLE_URL, 'url')}
+              onCopy={() => handleCopy(consoleUrl, 'url')}
             />
             <CredentialField
               label='Email'

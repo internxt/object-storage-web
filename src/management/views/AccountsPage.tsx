@@ -7,6 +7,7 @@ import { SortOrder } from '../components/SubAccountsTable';
 import { CreateSubAccountModal } from '../components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
 import { T, card, shadow } from '../../sub-account/tokens';
+import { resolveConsoleUrl } from '../../utils/consoleUrl';
 
 const PER_PAGE = 20;
 const STATUS_OPTIONS = [
@@ -286,6 +287,7 @@ export const AccountsPage = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateSubAccount}
+        consoleUrl={resolveConsoleUrl(new Date())}
       />
     </div>
   );
