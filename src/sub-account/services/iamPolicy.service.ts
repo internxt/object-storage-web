@@ -175,10 +175,8 @@ export class PolicyToBucketRules {
     }
   }
 
+  // Custom = builder can't represent it
   static isCustom(statements: PolicyStatement[]): boolean {
-    if (statements.length === 0) {
-      return false
-    }
     const { rules, hasCustomStatement } = PolicyToBucketRules.parse(statements)
     if (hasCustomStatement || rules.length === 0) {
       return true
