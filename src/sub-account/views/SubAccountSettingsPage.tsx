@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TrashIcon, LockKeyIcon, EyeIcon, EyeSlashIcon, GearIcon, InfoIcon, DotsThreeVerticalIcon, CaretDownIcon, PencilSimpleIcon, PlusIcon } from '@phosphor-icons/react';
 import subAccountAxios from '../core/sub-account-axios';
 import { subAccountS3CredentialsService, S3Credentials } from '../services/sub-account-s3-credentials.service';
@@ -6,6 +6,9 @@ import { subAccountAuthService } from '../services/sub-account-auth.service';
 import { useSubAccount } from '../context/SubAccountContext';
 import notificationsService from '../../services/notifications.service';
 import { AddMemberModal } from '../components/AddMemberModal';
+import { SsoSection } from '../../components/sso/SsoSection';
+import { makeSubAccountSsoApi } from '../services/sub-account-sso.service';
+import { SectionCard, ReadField } from '../components/SettingsAtoms';
 import { AssignPermissionsModal } from '../components/permissions-manager/AssignPermissionsModal';
 import { PolicyDocument } from '../services/iamPolicy.service';
 import Dialog from '../../components/Dialog';
@@ -50,16 +53,6 @@ function avatarInitials(email: string): string {
 }
 
 // ─── Shared atoms ────────────────────────────────────────────────────────────
-
-/** Read-only field: label above a surface-muted box */
-const ReadField = ({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) => (
-  <div>
-    <p className='text-sm font-medium text-gray-100 mb-1.5'>{label}</p>
-    <div className={`min-h-[40px] bg-gray-5 border border-gray-10 rounded-lg px-3 py-2 flex items-center text-gray-80 ${mono ? 'font-mono text-sm' : 'text-sm'}`}>
-      {value || <span className='text-gray-50'>—</span>}
-    </div>
-  </div>
-);
 
 /** Password input with eye toggle */
 const PasswordInput = ({
@@ -109,19 +102,6 @@ const Pill = ({ type }: { type: 'active' | 'primary' }) =>
       Primary
     </span>
   );
-
-/** Section card */
-const SectionCard = ({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) => (
-  <div className='bg-surface border border-gray-10 rounded-xl p-6' style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
-    <div className='flex items-center justify-between'>
-      <h2 className='text-base font-semibold text-gray-100'>{title}</h2>
-      {action}
-    </div>
-    <div className='mt-4'>
-      {children}
-    </div>
-  </div>
-);
 
 // ─── Profile Tab ──────────────────────────────────────────────────────────────
 
@@ -512,9 +492,10 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
 
 // ─── Account Tab ──────────────────────────────────────────────────────────────
 
-const AccountTab = ({ entityId, memberId }: { entityId: string; memberId: string }) => {
-  const { entityCreatedAt } = useSubAccount();
+const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberId: string; isAdmin?: boolean }) => {
+  const { entityCreatedAt, refreshClaims } = useSubAccount();
   const [email, setEmail] = useState('');
+  const ssoApi = useMemo(() => makeSubAccountSsoApi(entityId, memberId), [entityId, memberId]);
 
   useEffect(() => {
     subAccountAxios.get<MemberItem[]>(`/sub-accounts/${entityId}/members`)
@@ -529,19 +510,30 @@ const AccountTab = ({ entityId, memberId }: { entityId: string; memberId: string
   const initials = email ? avatarInitials(email) : '—';
 
   return (
-    <SectionCard title='Account Information'>
-      <div className='flex gap-8'>
-        <div className='flex flex-col items-center gap-3'>
-          <AvatarSquare initials={initials} variant='tint' />
-          <Pill type='active' />
+    <div className='flex flex-col gap-6'>
+      <SectionCard title='Account Information'>
+        <div className='flex gap-8'>
+          <div className='flex flex-col items-center gap-3'>
+            <AvatarSquare initials={initials} variant='tint' />
+            <Pill type='active' />
+          </div>
+          <div className='flex-1 flex flex-col gap-4'>
+            <ReadField label='Account email' value={email} />
+            <ReadField label='Storage account number' value={entityId} mono />
+            <ReadField label='Created at' value={createdAt} />
+          </div>
         </div>
-        <div className='flex-1 flex flex-col gap-4'>
-          <ReadField label='Account email' value={email} />
-          <ReadField label='Storage account number' value={entityId} mono />
-          <ReadField label='Created at' value={createdAt} />
-        </div>
-      </div>
-    </SectionCard>
+      </SectionCard>
+      {isAdmin && (
+        <SsoSection
+          api={ssoApi}
+          onTokenReissued={(token) => {
+            subAccountAuthService.setToken(token);
+            refreshClaims();
+          }}
+        />
+      )}
+    </div>
   );
 };
 
@@ -593,7 +585,7 @@ export const SubAccountSettingsPage = () => {
       {activeTab === 'profile'     && entityId && memberId && <ProfileTab    entityId={entityId} memberId={memberId} role={role} />}
       {activeTab === 'members'     && entityId && memberId && <MembersTab    entityId={entityId} ssoEnabled={ssoEnabled} currentMemberId={memberId} />}
       {activeTab === 'access-keys' && entityId && memberId && <AccessKeysTab entityId={entityId} memberId={memberId} />}
-      {activeTab === 'account'     && entityId && memberId && <AccountTab    entityId={entityId} memberId={memberId} />}
+      {activeTab === 'account'     && entityId && memberId && <AccountTab    entityId={entityId} memberId={memberId} isAdmin={isAdmin} />}
     </div>
   );
 };
