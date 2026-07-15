@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { WarningCircleIcon } from '@phosphor-icons/react';
-import Modal from '../../../components/Modal';
-import Input from '../../../components/Input';
-import Button from '../../../components/Button';
-import { T, text, form } from '../../tokens';
+import Modal from '../Modal';
+import Input from '../Input';
+import Button from '../Button';
+import { T, text, form } from '../../sub-account/tokens';
 import {
   SSO_ERROR_CODES,
   SsoConfig,
   getSsoErrorCode,
-} from '../../services/sub-account-sso.service';
+} from '../../sub-account/services/sub-account-sso.service';
 
 const ORG_NAME_REGEX = /^[a-z0-9][a-z0-9-]{2,62}$/;
 const GUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

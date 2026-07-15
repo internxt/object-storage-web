@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { WarningCircleIcon } from '@phosphor-icons/react';
-import Modal from '../../../components/Modal';
-import Input from '../../../components/Input';
-import Button from '../../../components/Button';
-import { T, text, form } from '../../tokens';
+import Modal from '../Modal';
+import Input from '../Input';
+import Button from '../Button';
+import { T, text, form } from '../../sub-account/tokens';
 import {
   SsoCancelledError,
   SsoMemberNotFoundError,
   SsoNotConfiguredError,
   SsoPopupBlockedError,
-} from '../../services/sub-account-sso.service';
+} from '../../sub-account/services/sub-account-sso.service';
 
 const SSO_ORG_KEY = 'subAccountSsoOrg';
 

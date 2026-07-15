@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Dialog from '../../../components/Dialog';
-import notificationsService from '../../../services/notifications.service';
-import { SectionCard, ReadField } from '../SettingsAtoms';
+import Dialog from '../Dialog';
+import notificationsService from '../../services/notifications.service';
+import { SectionCard, ReadField } from '../../sub-account/components/SettingsAtoms';
 import { ConfigureSsoModal } from './ConfigureSsoModal';
 import {
   SSO_ERROR_CODES,
   SsoApi,
   SsoConfig,
   getSsoErrorCode,
-} from '../../services/sub-account-sso.service';
+} from '../../sub-account/services/sub-account-sso.service';
 
 interface SsoSectionProps {
   api: SsoApi;
