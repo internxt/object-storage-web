@@ -46,7 +46,7 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
   const clientIdValid = GUID_REGEX.test(clientId.trim());
   const canSubmit = orgNameValid && tenantIdValid && clientIdValid && acknowledged && !isLoading;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
     setOrgNameError(undefined);
@@ -89,7 +89,7 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
             message={orgNameError}
           />
           <p style={form.hint}>
-            Members will enter this name when signing in with SSO. Lowercase letters, numbers and hyphens (3–63 characters).
+            Members will enter this name when signing in with SSO. Lowercase letters, numbers and hyphens (3-63 characters).
           </p>
         </div>
 
