@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { MagnifyingGlass, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { partnersService, PartnersUsageSummary } from '../services/partners.service';
+import { resolveConsoleUrl } from '../../utils/consoleUrl';
 import { SubAccount } from '../../management/services/management.service';
 import { PartnersSubAccountsTable } from '../../management/components/PartnersSubAccountsTable';
 import { SortOrder } from '../../management/components/SubAccountsTable';
@@ -11,7 +12,7 @@ import { usePartners } from '../context/partnersContext';
 const PER_PAGE = 20;
 
 export const PartnersSubAccountsPage = () => {
-  const { isViewer } = usePartners();
+  const { isViewer, partnerInfo } = usePartners();
   const [usageSummary, setUsageSummary] = useState<PartnersUsageSummary | null>(null);
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
   const [total, setTotal] = useState(0);
@@ -46,7 +47,6 @@ export const PartnersSubAccountsPage = () => {
       notificationsService.error({ text: (err as Error).message });
     }
   };
-
   const fetchSubAccounts = async () => {
     setIsLoading(true);
     try {
@@ -99,6 +99,8 @@ export const PartnersSubAccountsPage = () => {
     fetchSubAccounts();
     fetchUsageSummary();
   };
+
+  const consoleUrl = resolveConsoleUrl(partnerInfo?.createdAt ?? null);
 
   const totalPages = Math.ceil(total / PER_PAGE);
   const fromItem = total === 0 ? 0 : page * PER_PAGE + 1;
@@ -209,6 +211,7 @@ export const PartnersSubAccountsPage = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreate}
+        consoleUrl={consoleUrl}
       />
     </div>
   );
