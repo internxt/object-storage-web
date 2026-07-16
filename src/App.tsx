@@ -31,6 +31,17 @@ import { SubAccountBucketDetailPage } from './sub-account/views/SubAccountBucket
 import { SubAccountUsagePage } from './sub-account/views/SubAccountUsagePage';
 import { SubAccountSettingsPage } from './sub-account/views/SubAccountSettingsPage';
 
+const DEFAULT_LOGIN_PATH = '/subaccount/login';
+
+const LOGIN_PATH_BY_HOSTNAME: Record<string, string> = {
+  'os.management.internxt.com': '/management/login',
+  'os.partners.internxt.com': '/partners/login',
+};
+
+function getLoginPathForHost(): string {
+  return LOGIN_PATH_BY_HOSTNAME[window.location.hostname] ?? DEFAULT_LOGIN_PATH;
+}
+
 export function App() {
   return (
     <UserProvider>
@@ -47,12 +58,7 @@ export function App() {
                 <Route path='/usage' element={<UsagePage />} />
               </Route>
 
-              <Route
-                path='/'
-                element={
-                  <Navigate to={window.location.hostname === 'os.partners.internxt.com' ? '/partners/login' : '/management/accounts'} />
-                }
-              />
+              <Route path='/' element={<Navigate to={getLoginPathForHost()} />} />
 
               {/* Management console */}
               <Route path='/management/login' element={<ManagementLoginPage />} />
