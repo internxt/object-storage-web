@@ -1,5 +1,5 @@
 export const LEGACY_CONSOLE_URL = 'https://console.internxt.com';
-export const NEW_CONSOLE_URL = 'https://cloud.internxt.com/management/login';
+export const NEW_CONSOLE_URL = 'https://cloud.internxt.com/subaccount/login';
 
 
 export function resolveConsoleUrl(date: Date | string | null): string {
