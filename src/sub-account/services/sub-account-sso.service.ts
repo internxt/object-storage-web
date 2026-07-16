@@ -173,45 +173,51 @@ async function disableSso(entityId: string): Promise<{ token?: string }> {
   return response.data ?? {};
 }
 
+async function getOtherMemberCount(entityId: string, currentMemberId: string): Promise<number> {
+  const response = await subAccountAxios.get<{ id: string }[]>(`/sub-accounts/${entityId}/members`);
+  return response.data.filter((m) => m.id !== currentMemberId).length;
+}
+
 export const subAccountSsoService = {
   getPublicConfig,
   loginWithAzure,
   getSsoConfig,
   configureSso,
   disableSso,
+  getOtherMemberCount,
 };
 
-/** Console-agnostic surface consumed by SsoSection/ConfigureSsoModal. */
-export interface SsoApi {
-  getSsoConfig(): Promise<SsoConfig>;
-  configureSso(config: { organizationName: string; tenantId: string; clientId: string }): Promise<SsoConfig>;
-  disableSso(): Promise<{ token?: string }>;
-  getOtherMemberCount(): Promise<number>;
+/** Root/users console variant — same contract under /users. */
+async function getUserSsoConfig(): Promise<SsoConfig> {
+  const response = await userAxios.get<SsoConfig>('/users/sso');
+  return response.data;
 }
 
-export const makeSubAccountSsoApi = (entityId: string, currentMemberId: string): SsoApi => ({
-  getSsoConfig: () => getSsoConfig(entityId),
-  configureSso: (config) => configureSso(entityId, config),
-  disableSso: () => disableSso(entityId),
-  getOtherMemberCount: async () => {
-    const response = await subAccountAxios.get<{ id: string }[]>(`/sub-accounts/${entityId}/members`);
-    return response.data.filter((m) => m.id !== currentMemberId).length;
-  },
-});
+async function configureUserSso(
+  config: { organizationName: string; tenantId: string; clientId: string },
+): Promise<SsoConfig> {
+  const response = await userAxios.post<SsoConfig>('/users/sso', {
+    organizationName: normalizeOrganizationName(config.organizationName),
+    provider: 'azure-ad',
+    tenantId: config.tenantId.trim(),
+    clientId: config.clientId.trim(),
+  });
+  return response.data;
+}
 
-/** Root/users console variant — same contract under /users. */
-export const makeUserSsoApi = (currentEmail: string): SsoApi => ({
-  getSsoConfig: async () => (await userAxios.get<SsoConfig>('/users/sso')).data,
-  configureSso: async (config) =>
-    (await userAxios.post<SsoConfig>('/users/sso', {
-      organizationName: normalizeOrganizationName(config.organizationName),
-      provider: 'azure-ad',
-      tenantId: config.tenantId.trim(),
-      clientId: config.clientId.trim(),
-    })).data,
-  disableSso: async () => (await userAxios.delete<{ token?: string }>('/users/sso')).data ?? {},
-  getOtherMemberCount: async () => {
-    const response = await userAxios.get<PaginatedResponse<{ email: string }>>('/users/members');
-    return response.data.items.filter((m) => m.email !== currentEmail).length;
-  },
-});
+async function disableUserSso(): Promise<{ token?: string }> {
+  const response = await userAxios.delete<{ token?: string }>('/users/sso');
+  return response.data ?? {};
+}
+
+async function getOtherUserMemberCount(currentEmail: string): Promise<number> {
+  const response = await userAxios.get<PaginatedResponse<{ email: string }>>('/users/members');
+  return response.data.items.filter((m) => m.email !== currentEmail).length;
+}
+
+export const userSsoService = {
+  getSsoConfig: getUserSsoConfig,
+  configureSso: configureUserSso,
+  disableSso: disableUserSso,
+  getOtherMemberCount: getOtherUserMemberCount,
+};

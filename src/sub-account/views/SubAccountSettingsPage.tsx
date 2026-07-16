@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TrashIcon, LockKeyIcon, EyeIcon, EyeSlashIcon, GearIcon, InfoIcon, DotsThreeVerticalIcon, CaretDownIcon, PencilSimpleIcon, PlusIcon } from '@phosphor-icons/react';
 import subAccountAxios from '../core/sub-account-axios';
 import { subAccountS3CredentialsService, S3Credentials } from '../services/sub-account-s3-credentials.service';
@@ -7,7 +7,6 @@ import { useSubAccount } from '../context/SubAccountContext';
 import notificationsService from '../../services/notifications.service';
 import { AddMemberModal } from '../components/AddMemberModal';
 import { SsoSection } from '../../components/sso/SsoSection';
-import { makeSubAccountSsoApi } from '../services/sub-account-sso.service';
 import { SectionCard, ReadField } from '../components/SettingsAtoms';
 import { AssignPermissionsModal } from '../components/permissions-manager/AssignPermissionsModal';
 import { PolicyDocument } from '../services/iamPolicy.service';
@@ -495,7 +494,6 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
 const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberId: string; isAdmin?: boolean }) => {
   const { entityCreatedAt, refreshClaims } = useSubAccount();
   const [email, setEmail] = useState('');
-  const ssoApi = useMemo(() => makeSubAccountSsoApi(entityId, memberId), [entityId, memberId]);
 
   useEffect(() => {
     subAccountAxios.get<MemberItem[]>(`/sub-accounts/${entityId}/members`)
@@ -526,7 +524,8 @@ const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberI
       </SectionCard>
       {isAdmin && (
         <SsoSection
-          api={ssoApi}
+          entityId={entityId}
+          memberId={memberId}
           onTokenReissued={(token) => {
             subAccountAuthService.setToken(token);
             refreshClaims();

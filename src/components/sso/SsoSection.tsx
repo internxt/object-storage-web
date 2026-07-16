@@ -1,21 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Dialog from '../Dialog';
 import notificationsService from '../../services/notifications.service';
 import { SectionCard, ReadField } from '../../sub-account/components/SettingsAtoms';
 import { ConfigureSsoModal } from './ConfigureSsoModal';
 import {
   SSO_ERROR_CODES,
-  SsoApi,
   SsoConfig,
   getSsoErrorCode,
+  subAccountSsoService,
 } from '../../sub-account/services/sub-account-sso.service';
 
 interface SsoSectionProps {
-  api: SsoApi;
+  entityId: string;
+  memberId: string;
   onTokenReissued?: (token: string) => void;
 }
 
-export const SsoSection = ({ api, onTokenReissued }: SsoSectionProps) => {
+export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionProps) => {
   const [config, setConfig] = useState<SsoConfig | null>(null);
   const [otherMemberCount, setOtherMemberCount] = useState<number | null>(null);
   const [isConfigureOpen, setIsConfigureOpen] = useState(false);
@@ -23,7 +24,7 @@ export const SsoSection = ({ api, onTokenReissued }: SsoSectionProps) => {
   const [isDisabling, setIsDisabling] = useState(false);
 
   const loadData = useCallback(() => {
-    api.getSsoConfig()
+    subAccountSsoService.getSsoConfig(entityId)
       .then(setConfig)
       //TODO change setConfig to handle error when backend is ready
       .catch(() => setConfig({
@@ -35,10 +36,10 @@ export const SsoSection = ({ api, onTokenReissued }: SsoSectionProps) => {
         configuredAt: 'string',
         token: 'string'
       }));
-    api.getOtherMemberCount()
+    subAccountSsoService.getOtherMemberCount(entityId, memberId)
       .then(setOtherMemberCount)
       .catch(() => setOtherMemberCount(null));
-  }, [api]);
+  }, [entityId, memberId]);
 
   useEffect(loadData, [loadData]);
 
@@ -56,7 +57,7 @@ export const SsoSection = ({ api, onTokenReissued }: SsoSectionProps) => {
   const onDisable = async () => {
     setIsDisabling(true);
     try {
-      const { token } = await api.disableSso();
+      const { token } = await subAccountSsoService.disableSso(entityId);
       applyReissuedToken(token);
       setIsDisableConfirmOpen(false);
       notificationsService.success({ text: 'SSO disabled' });
@@ -74,7 +75,11 @@ export const SsoSection = ({ api, onTokenReissued }: SsoSectionProps) => {
     }
   };
 
-  const configure = useMemo(() => api.configureSso.bind(api), [api]);
+  const configure = useCallback(
+    (config: { organizationName: string; tenantId: string; clientId: string }) =>
+      subAccountSsoService.configureSso(entityId, config),
+    [entityId],
+  );
 
   if (!config) return null;
 
