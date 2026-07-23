@@ -11,6 +11,7 @@ interface Props {
   onClose: () => void;
   onSubmit: (dto: CreateSubAccountDto) => Promise<void>;
   consoleUrl: string;
+  showNameField?: boolean;
 }
 
 type FormValues = CreateSubAccountDto & { confirmPassword?: string };
@@ -118,7 +119,7 @@ const validatePassword = (password: string): { isValid: boolean; errors: string[
   };
 };
 
-export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit, consoleUrl }: Props) => {
+export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit, consoleUrl, showNameField = true }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
   const [successData, setSuccessData] = useState<SuccessData | null>(null);
@@ -251,13 +252,15 @@ export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit, consoleUrl }:
         <h2 className='text-lg font-semibold text-gray-100'>Create Sub-Account</h2>
 
         <form onSubmit={handleSubmit(onFormSubmit)} className='flex flex-col gap-3'>
-          <Field label='Name' error={errors.name?.message}>
-            <input
-              {...register('name', { required: 'Name is required' })}
-              placeholder='Account name'
-              className={inputClass}
-            />
-          </Field>
+          {showNameField && (
+            <Field label='Name' error={errors.name?.message}>
+              <input
+                {...register('name', { required: 'Name is required' })}
+                placeholder='Account name'
+                className={inputClass}
+              />
+            </Field>
+          )}
 
           <Field label='Email' error={errors.email?.message}>
             <input
