@@ -39,7 +39,7 @@ export interface SubAccountsResponse {
 }
 
 export interface CreateSubAccountDto {
-  name: string;
+  name?: string;
   email: string;
   password: string;
   country: string;

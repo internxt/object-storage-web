@@ -212,6 +212,7 @@ export const PartnersSubAccountsPage = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreate}
         consoleUrl={consoleUrl}
+        showNameField={false}
       />
     </div>
   );

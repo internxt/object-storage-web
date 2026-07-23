@@ -80,7 +80,6 @@ async function getSubAccounts(params: {
 }
 
 async function createSubAccount(dto: {
-  name: string;
   email: string;
   password: string;
   country?: string;
