@@ -151,6 +151,8 @@ export interface SubAccountDetail {
   billingPhone: string | null;
   billingEmail: string | null;
   channelAccountName?: string | null;
+  partnerId?: string | null;
+  partnerName?: string | null;
   ftpEnabled: boolean;
 }
 

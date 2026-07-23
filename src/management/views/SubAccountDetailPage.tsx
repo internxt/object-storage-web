@@ -351,7 +351,19 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
               <DetailField label='Account ID' value={id} />
               <DetailField label='Status' value={account.status} />
               <DetailField label='Creation Date' value={account.creationDate ? dayjs(account.creationDate).format('DD-MMM-YYYY') : null} />
-              <DetailField label='Partner Account' value={account.channelAccountName} />
+              {account.partnerId ? (
+                <div className='flex flex-col gap-0.5'>
+                  <span className='text-xs text-gray-400 uppercase tracking-wide'>Partner Account</span>
+                  <span
+                    className='text-sm text-blue-600 hover:underline cursor-pointer'
+                    onClick={() => navigate(`/management/partners/${account.partnerId}`)}
+                  >
+                    {account.partnerName || account.partnerId}
+                  </span>
+                </div>
+              ) : (
+                <DetailField label='Partner Account' value={account.channelAccountName} />
+              )}
               <DetailField label='Email' value={account.contactEmail} />
             </div>
           </div>
