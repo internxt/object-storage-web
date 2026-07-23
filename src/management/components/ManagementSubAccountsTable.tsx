@@ -187,7 +187,7 @@ export const ManagementSubAccountsTable = ({
       cell: (acc) =>
         acc.partnerId ? (
           <span onClick={() => navigate(`/management/partners/${acc.partnerId}`)} style={linkStyle}>
-            {acc.channelAccount || acc.partnerId}
+            {acc.partnerName || acc.channelAccount || acc.partnerId}
           </span>
         ) : (
           <span style={{ color: T.gray20, fontSize: 14 }}>—</span>

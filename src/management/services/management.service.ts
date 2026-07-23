@@ -21,6 +21,7 @@ export interface SubAccount {
   email: string;
   channelAccount?: string;
   partnerId?: string | null;
+  partnerName?: string | null;
   activeStorage: number;
   deletedStorage: number;
   storageUtilization?: number;
@@ -64,6 +65,8 @@ interface DbSubAccount {
   storageProvider: string;
   status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
   email: string | null;
+  partnerId?: string | null;
+  partnerName?: string | null;
   activeStorageBytes: number;
   deletedStorageBytes: number;
   createdAt: string;
@@ -76,6 +79,8 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     id: raw.id,
     name: raw.id,
     email: raw.email ?? '',
+    partnerId: raw.partnerId ?? null,
+    partnerName: raw.partnerName ?? null,
     status: raw.status === 'SUSPENDED' || raw.status === 'DELETED' ? raw.status : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
