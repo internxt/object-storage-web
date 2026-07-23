@@ -63,12 +63,31 @@ export const PartnerDetailPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const partner: Partner | undefined = (location.state as any)?.partner;
+  const [partner, setPartner] = useState<Partner | undefined>(undefined);
+  const [partnerLoading, setPartnerLoading] = useState(true);
+  const [partnerNotFound, setPartnerNotFound] = useState(false);
 
   const [subAccounts, setSubAccounts] = useState<PartnerSubAccount[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    const statePartner: Partner | undefined = (location.state as any)?.partner;
+    if (statePartner && statePartner.id === id) {
+      setPartner(statePartner);
+      setPartnerLoading(false);
+      return;
+    }
+    setPartnerLoading(true);
+    setPartnerNotFound(false);
+    partnersService
+      .getPartnerById(id)
+      .then(setPartner)
+      .catch(() => setPartnerNotFound(true))
+      .finally(() => setPartnerLoading(false));
+  }, [id, location.state]);
 
   useEffect(() => {
     if (!id) return;
@@ -82,9 +101,13 @@ export const PartnerDetailPage = () => {
       .finally(() => setLoading(false));
   }, [id, page]);
 
-  if (!partner) {
+  if (partnerNotFound) {
     navigate('/management/partners');
     return null;
+  }
+
+  if (partnerLoading || !partner) {
+    return <div className='p-10 text-center text-sm text-gray-400'>Loading…</div>;
   }
 
   const totalPages = Math.ceil(total / PER_PAGE);
