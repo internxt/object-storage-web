@@ -134,31 +134,16 @@ async function getUsagesSummary(): Promise<UsagesSummary | null> {
 }
 
 export interface SubAccountDetail {
-  id: number;
-  name: string;
+  id: string;
   contactEmail: string | null;
-  status: 'PAID_ACCOUNT' | 'SUSPENDED';
+  status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
   creationDate: string;
   activeStorage: number;
   deletedStorage: number;
   trialQuota: number | null;
   trialExpiration: string | null;
-  wasabiAccountNumber: string;
-  wasabiAccountName: string;
-  country: string | null;
-  city: string | null;
-  state: string | null;
-  zip: string | null;
-  website: string | null;
-  address1: string | null;
-  address2: string | null;
-  mainPhone: string | null;
-  billingPhone: string | null;
-  billingEmail: string | null;
-  channelAccountName?: string | null;
   partnerId?: string | null;
   partnerName?: string | null;
-  ftpEnabled: boolean;
 }
 
 export interface SubAccountUsage {
