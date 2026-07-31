@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, Users, CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { ArrowLeft, Database, Users, CaretLeft, CaretRight, ArrowSquareOut } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
 import { Partner, PartnerSubAccount, partnersService } from '../services/partners.service';
 
@@ -173,7 +173,7 @@ export const PartnerDetailPage = () => {
           <table className='w-full text-sm text-left border-separate border-spacing-0'>
             <thead>
               <tr>
-                {['ID', 'Email', 'Active Storage (TB)', 'Deleted Storage (TB)', 'Status', 'Created'].map((h) => (
+                {['ID', 'Email', 'Active Storage (TB)', 'Deleted Storage (TB)', 'Status', 'Created', 'Stripe'].map((h) => (
                   <th
                     key={h}
                     className='px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-400 border-b border-gray-100 bg-white whitespace-nowrap'
@@ -186,7 +186,7 @@ export const PartnerDetailPage = () => {
             <tbody className={`transition-opacity duration-200 ${loading ? 'opacity-40' : 'opacity-100'}`}>
               {subAccounts.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan={6} className='text-center py-16 text-gray-300 text-sm font-medium'>
+                  <td colSpan={7} className='text-center py-16 text-gray-300 text-sm font-medium'>
                     No sub-accounts linked to this partner
                   </td>
                 </tr>
@@ -215,6 +215,20 @@ export const PartnerDetailPage = () => {
                     </td>
                     <td className={`px-4 py-3.5 text-[12px] text-gray-500 whitespace-nowrap ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
                       {formatDate(sa.createdAt)}
+                    </td>
+                    <td className={`px-4 py-3.5 text-[12px] whitespace-nowrap ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                      {sa.customerId ? (
+                        <a
+                          href={`https://dashboard.stripe.com/customers/${sa.customerId}`}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          className='inline-flex items-center gap-1 text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2'
+                        >
+                          View <ArrowSquareOut size={12} />
+                        </a>
+                      ) : (
+                        <span className='text-gray-300'>—</span>
+                      )}
                     </td>
                   </tr>
                 ))

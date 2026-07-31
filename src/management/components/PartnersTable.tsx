@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Partner } from '../services/partners.service';
-import { ArrowUp, ArrowDown } from '@phosphor-icons/react';
+import { ArrowUp, ArrowDown, ArrowSquareOut } from '@phosphor-icons/react';
 
 export type SortOrder = 'asc' | 'desc';
 
@@ -46,6 +46,7 @@ const COL_HEADERS = [
   { label: 'Status',              align: 'left'  },
   { label: 'Partner Created',    align: 'left'  },
   { label: 'Created',             align: 'left'  },
+  { label: 'Stripe',              align: 'left'  },
 ] as const;
 
 export const PartnersTable = ({ partners, isLoading, sortOrder, onSortActiveStorage }: Props) => {
@@ -126,6 +127,21 @@ export const PartnersTable = ({ partners, isLoading, sortOrder, onSortActiveStor
                 </td>
                 <td className={`px-4 py-3.5 text-[12px] text-gray-500 whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
                   {formatDate(p.createdAt)}
+                </td>
+                <td className={`px-4 py-3.5 text-[12px] whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                  {p.customerId ? (
+                    <a
+                      href={`https://dashboard.stripe.com/customers/${p.customerId}`}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      onClick={(e) => e.stopPropagation()}
+                      className='inline-flex items-center gap-1 text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2'
+                    >
+                      View <ArrowSquareOut size={12} />
+                    </a>
+                  ) : (
+                    <span className='text-gray-300'>—</span>
+                  )}
                 </td>
               </tr>
             ))

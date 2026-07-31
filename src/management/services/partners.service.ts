@@ -14,6 +14,7 @@ export interface Partner {
   activeStorageTb: number;
   subAccountsCount: number;
   createdAt: string;
+  customerId: string | null;
 }
 
 export interface PartnersSummary {
@@ -34,6 +35,7 @@ export interface PartnerSubAccount {
   activeStorageBytes: number;
   deletedStorageBytes: number;
   createdAt: string | null;
+  customerId: string | null;
 }
 
 async function createPartner(dto: { name: string; email: string; password: string; country: string; postalCode: string }): Promise<void> {
@@ -70,6 +72,7 @@ function mapPartner(raw: any): Partner {
     activeStorageTb: raw.activeStorageTb ?? 0,
     subAccountsCount: raw.subAccountsCount ?? 0,
     createdAt: raw.createdAt ?? '',
+    customerId: raw.customerId ?? null,
   };
 }
 

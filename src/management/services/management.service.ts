@@ -32,6 +32,7 @@ export interface SubAccount {
   mfa?: boolean;
   status: 'PAID_ACCOUNT' | 'SUSPENDED' | 'DELETED';
   recordDate: string;
+  customerId?: string | null;
 }
 
 export interface SubAccountsResponse {
@@ -70,6 +71,7 @@ interface DbSubAccount {
   activeStorageBytes: number;
   deletedStorageBytes: number;
   createdAt: string;
+  customerId?: string | null;
 }
 
 const BYTES_TO_TB = 1 / 1_000_000_000_000;
@@ -86,6 +88,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
     recordDate: '',
+    customerId: raw.customerId ?? null,
   };
 }
 
