@@ -8,6 +8,21 @@ import { SortOrder } from '../../management/components/SubAccountsTable';
 import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
 import { usePartners } from '../context/partnersContext';
+import { T, card } from '../../sub-account/tokens';
+
+const ACCENT = '#6366f1';
+const POSITIVE = '#10b981';
+
+const labelStyle = {
+  fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const,
+  letterSpacing: '0.14em', color: T.gray60,
+};
+
+const metricStyle = {
+  fontSize: 48, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1,
+};
+
+const unitStyle = { fontSize: 20, fontWeight: 500, color: T.gray50 };
 
 const PER_PAGE = 20;
 
@@ -106,66 +121,74 @@ export const PartnersSubAccountsPage = () => {
   const fromItem = total === 0 ? 0 : page * PER_PAGE + 1;
   const toItem = Math.min((page + 1) * PER_PAGE, total);
 
+  const hasPrev = page > 0;
+  const hasNext = page < totalPages - 1;
+
   return (
     <div className='flex flex-col gap-5'>
       {/* Stats */}
       {usageSummary && (
-        <div
-          className='bg-white rounded-2xl overflow-hidden'
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)' }}
-        >
-          <div className='px-10 pt-9 pb-3'>
-            <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>Storage Overview</p>
-          </div>
-          <div className='px-10 pb-9 flex items-center gap-0'>
-            <div className='flex flex-col gap-2 flex-1'>
-              <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>Active Storage</p>
-              <div className='flex items-baseline gap-2'>
-                <span className='text-5xl font-semibold tracking-tight leading-none' style={{ color: '#6366f1' }}>
-                  {usageSummary.activeStorageTb.toFixed(2)}
-                </span>
-                <span className='text-xl font-medium text-gray-400'>TB</span>
-              </div>
+        <div style={{ ...card, borderRadius: 16, display: 'flex' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, padding: '28px 40px' }}>
+            <p style={labelStyle}>Active Storage</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ ...metricStyle, color: ACCENT }}>{usageSummary.activeStorageTb.toFixed(2)}</span>
+              <span style={unitStyle}>TB</span>
             </div>
-            <div className='w-px bg-gray-100 self-stretch mx-10' />
-            <div className='flex flex-col gap-2 flex-1'>
-              <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>Sub-Accounts</p>
-              <div className='flex items-baseline gap-2'>
-                <span className='text-5xl font-semibold tracking-tight leading-none' style={{ color: '#10b981' }}>
-                  {usageSummary.totalSubAccounts}
-                </span>
-              </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, padding: '28px 40px', borderLeft: `1px solid ${T.gray20}` }}>
+            <p style={labelStyle}>Sub-Accounts</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ ...metricStyle, color: POSITIVE }}>{usageSummary.totalSubAccounts}</span>
             </div>
           </div>
         </div>
       )}
 
       {/* Table */}
-      <div className='bg-white rounded-xl shadow-sm p-6'>
-        <div className='flex items-center justify-between mb-5'>
+      <div style={{ ...card, borderRadius: 16, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <h2 className='text-base font-semibold text-gray-900'>Sub-Accounts</h2>
-            {total > 0 && <p className='text-xs text-gray-400 mt-0.5'>{total} accounts total</p>}
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>Sub-Accounts</h2>
+            {total > 0 && (
+              <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{total} accounts total</p>
+            )}
           </div>
           {!isViewer && (
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className='bg-indigo hover:bg-indigo-dark active:bg-indigo-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm'
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                height: 40, padding: '0 18px',
+                background: T.primary, color: T.white,
+                border: 'none', borderRadius: 8, cursor: 'pointer',
+                fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
+              }}
             >
               Create Sub-Account
             </button>
           )}
         </div>
 
-        <div className='flex items-center gap-2 mb-4'>
-          <div className='flex items-center border border-gray-200 rounded-lg px-3 gap-2 flex-1 max-w-sm bg-white focus-within:border-indigo transition-colors'>
-            <MagnifyingGlass size={15} className='text-gray-400 flex-shrink-0' />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              border: `1px solid ${T.gray20}`, borderRadius: 8,
+              padding: '0 12px', flex: 1, maxWidth: 384,
+              background: T.white,
+            }}
+          >
+            <MagnifyingGlass size={15} color={T.gray50} style={{ flexShrink: 0 }} />
             <input
               type='text'
               placeholder='Search by email…'
               value={searchEmail}
               onChange={(e) => setSearchEmail(e.target.value)}
-              className='text-sm py-2 outline-none flex-1 bg-transparent text-gray-700 placeholder-gray-400'
+              style={{
+                fontSize: 14, padding: '8px 0', outline: 'none', flex: 1,
+                background: 'transparent', color: T.gray80, border: 'none',
+              }}
             />
           </div>
         </div>
@@ -181,27 +204,44 @@ export const PartnersSubAccountsPage = () => {
           readOnly={isViewer}
         />
 
-        <div className='flex items-center justify-between mt-4 pt-4 border-t border-gray-50'>
-          <span className='text-xs text-gray-400'>
+        {/* Pagination */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.gray15}` }}>
+          <span style={{ fontSize: 13, color: T.gray50 }}>
             Showing {fromItem}–{toItem} of {total} accounts
           </span>
-          <div className='flex items-center gap-1'>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
-              disabled={page === 0}
+              disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
-              className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                height: 32, padding: '0 12px',
+                fontSize: 13, fontWeight: 500, color: T.gray80,
+                border: `1px solid ${T.gray20}`, borderRadius: 8,
+                background: T.white, cursor: hasPrev ? 'pointer' : 'not-allowed',
+                opacity: hasPrev ? 1 : 0.4,
+              }}
             >
-              <CaretLeft size={14} /> Prev
+              <CaretLeft size={14} />
+              Prev
             </button>
-            <span className='px-3 py-1.5 text-sm text-gray-500'>
+            <span style={{ padding: '0 8px', fontSize: 13, color: T.gray50 }}>
               {page + 1} / {Math.max(1, totalPages)}
             </span>
             <button
-              disabled={page >= totalPages - 1}
+              disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
-              className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                height: 32, padding: '0 12px',
+                fontSize: 13, fontWeight: 500, color: T.gray80,
+                border: `1px solid ${T.gray20}`, borderRadius: 8,
+                background: T.white, cursor: hasNext ? 'pointer' : 'not-allowed',
+                opacity: hasNext ? 1 : 0.4,
+              }}
             >
-              Next <CaretRight size={14} />
+              Next
+              <CaretRight size={14} />
             </button>
           </div>
         </div>
