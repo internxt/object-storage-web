@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { DotsThree } from '@phosphor-icons/react';
+import { DotsThree, ArrowSquareOut, Info } from '@phosphor-icons/react';
 import { SubAccount } from '../services/management.service';
 import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable';
 import { ConfirmActionModal } from './ConfirmActionModal';
@@ -171,7 +171,7 @@ export const ManagementSubAccountsTable = ({
 
   const columns: ColumnDef[] = [
     {
-      header: 'Name',
+      header: 'ID',
       cell: (acc) => (
         <span onClick={() => navigate(`/management/accounts/${acc.id}`)} style={{ ...linkStyle, fontFamily: 'monospace', fontSize: 13, letterSpacing: '-0.01em' }}>
           {acc.id.slice(0, 8)}…{acc.id.slice(-4)}
@@ -209,12 +209,31 @@ export const ManagementSubAccountsTable = ({
       cell: (acc) => <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>{formatDate(acc.creationDate)}</span>,
     },
     {
-      header: 'Deleted',
-      cell: (acc) => <span style={{ fontSize: 14, color: T.gray20, whiteSpace: 'nowrap' }}>{formatDate(acc.deletionDate)}</span>,
-    },
-    {
       header: 'Status',
       cell: (acc) => <StatusBadge status={acc.status} />,
+    },
+    {
+      header: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          Stripe
+          <span title="Sub-accounts belonging to a partner share the partner's own Stripe customer.">
+            <Info size={12} color={T.gray50} />
+          </span>
+        </span>
+      ),
+      cell: (acc) =>
+        acc.customerId ? (
+          <a
+            href={`https://dashboard.stripe.com/customers/${acc.customerId}`}
+            target='_blank'
+            rel='noopener noreferrer'
+            style={{ ...linkStyle, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+          >
+            View <ArrowSquareOut size={14} />
+          </a>
+        ) : (
+          <span style={{ color: T.gray20, fontSize: 14 }}>—</span>
+        ),
     },
     {
       header: '',
