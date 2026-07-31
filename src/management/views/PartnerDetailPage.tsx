@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, Users, CaretLeft, CaretRight, ArrowSquareOut } from '@phosphor-icons/react';
+import { ArrowLeft, Database, Users, CaretLeft, CaretRight, ArrowSquareOut, Info } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
 import { Partner, PartnerSubAccount, partnersService } from '../services/partners.service';
 
@@ -178,7 +178,16 @@ export const PartnerDetailPage = () => {
                     key={h}
                     className='px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-400 border-b border-gray-100 bg-white whitespace-nowrap'
                   >
-                    {h}
+                    {h === 'Stripe' ? (
+                      <span className='inline-flex items-center gap-1'>
+                        {h}
+                        <span title="Sub-accounts belonging to a partner share the partner's own Stripe customer.">
+                          <Info size={12} className='text-gray-400' />
+                        </span>
+                      </span>
+                    ) : (
+                      h
+                    )}
                   </th>
                 ))}
               </tr>

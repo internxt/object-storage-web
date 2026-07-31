@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { DotsThree, ArrowSquareOut } from '@phosphor-icons/react';
+import { DotsThree, ArrowSquareOut, Info } from '@phosphor-icons/react';
 import { SubAccount } from '../services/management.service';
 import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable';
 import { ConfirmActionModal } from './ConfirmActionModal';
@@ -213,7 +213,14 @@ export const ManagementSubAccountsTable = ({
       cell: (acc) => <StatusBadge status={acc.status} />,
     },
     {
-      header: 'Stripe',
+      header: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          Stripe
+          <span title="Sub-accounts belonging to a partner share the partner's own Stripe customer.">
+            <Info size={12} color={T.gray50} />
+          </span>
+        </span>
+      ),
       cell: (acc) =>
         acc.customerId ? (
           <a
