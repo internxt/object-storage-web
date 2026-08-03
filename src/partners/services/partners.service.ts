@@ -46,7 +46,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     id: raw.id,
     name: raw.id,
     email: raw.email ?? '',
-    status: raw.status === 'SUSPENDED' ? 'SUSPENDED' : 'PAID_ACCOUNT',
+    status: raw.status === 'SUSPENDED' || raw.status === 'DELETED' ? raw.status : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
@@ -95,6 +95,10 @@ async function suspendSubAccount(id: string): Promise<void> {
 
 async function reactivateSubAccount(id: string): Promise<void> {
   await axios.put(`${API()}/sub-accounts/${id}/reactivate`, {}, { headers: headers() });
+}
+
+async function deleteSubAccount(id: string): Promise<void> {
+  await axios.delete(`${API()}/sub-accounts/${id}`, { headers: headers() });
 }
 
 async function getUsageSummary(): Promise<PartnersUsageSummary> {
@@ -174,6 +178,7 @@ export const partnersService = {
   createSubAccount,
   suspendSubAccount,
   reactivateSubAccount,
+  deleteSubAccount,
   getUsageSummary,
   createBillingPortalSession,
   changePassword,

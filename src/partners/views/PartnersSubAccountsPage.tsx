@@ -107,6 +107,19 @@ export const PartnersSubAccountsPage = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    setPendingAccountId(id);
+    try {
+      await partnersService.deleteSubAccount(id);
+      notificationsService.success({ text: 'Account deleted' });
+      fetchSubAccounts();
+    } catch (err) {
+      notificationsService.error({ text: (err as Error).message });
+    } finally {
+      setPendingAccountId(null);
+    }
+  };
+
   const handleCreate = async (dto: Parameters<typeof partnersService.createSubAccount>[0]) => {
     await partnersService.createSubAccount(dto);
     notificationsService.success({ text: 'Sub-account created' });
@@ -197,6 +210,7 @@ export const PartnersSubAccountsPage = () => {
           subAccounts={subAccounts}
           onSuspend={handleSuspend}
           onReactivate={handleReactivate}
+          onDelete={handleDelete}
           isLoading={isLoading}
           pendingAccountId={pendingAccountId}
           sortOrder={activeStorageSortOrder}
