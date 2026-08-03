@@ -263,7 +263,7 @@ const ActionsMenu = ({
                   e.currentTarget.style.background = 'transparent'
                 }}
               >
-                Delete permanently
+                Delete
               </button>
             </div>
           </>,
