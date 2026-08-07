@@ -1,4 +1,4 @@
-import { SubAccountDetailPage } from '../../management/views/SubAccountDetailPage';
+import { SubAccountDetailPage } from '../../components/SubAccountDetailPage';
 import { partnersService } from '../services/partners.service';
 
 export const PartnersSubAccountDetailPage = () => (

@@ -13,7 +13,7 @@ import { UserProvider } from './context/userContext';
 import { ManagementProvider } from './management/context/managementContext';
 import { ManagementLoginPage } from './management/views/ManagementLoginPage';
 import { AccountsPage } from './management/views/AccountsPage';
-import { SubAccountDetailPage } from './management/views/SubAccountDetailPage';
+import { SubAccountDetailPage } from './components/SubAccountDetailPage';
 import { PartnersPage } from './management/views/PartnersPage';
 import { PartnerDetailPage } from './management/views/PartnerDetailPage';
 import { ManagementAuthRoute } from './management/components/ManagementAuthRoute';
