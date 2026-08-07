@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import Modal from '../../components/Modal'
-import Button from '../../components/Button'
-import { CreateSubAccountDto } from '../services/management.service';
+import Modal from './Modal'
+import Button from './Button'
+import { CreateSubAccountDto } from '../management/services/management.service';
 import { Copy, Check, AlertCircle } from 'lucide-react'
 import { Eye, EyeSlash } from '@phosphor-icons/react'
-import { COUNTRIES, getFlagEmoji } from '../../utils/countries'
+import { COUNTRIES, getFlagEmoji } from '../utils/countries'
 
 interface Props {
   isOpen: boolean

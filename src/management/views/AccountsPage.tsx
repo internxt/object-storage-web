@@ -3,8 +3,8 @@ import { MagnifyingGlass, CaretLeft, CaretRight, FunnelSimple } from '@phosphor-
 import { managementService, UsagesSummary } from '../services/management.service';
 import { StatsHeader } from '../components/StatsHeader';
 import { ManagementSubAccountsTable } from '../components/ManagementSubAccountsTable';
-import { SortOrder } from '../components/SubAccountsTable';
-import { CreateSubAccountModal } from '../components/CreateSubAccountModal';
+import { SortOrder } from '../../components/SubAccountsTable';
+import { CreateSubAccountModal } from '../../components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
 import { T, card, shadow } from '../../styles/tokens';
 import { resolveConsoleUrl } from '../../utils/consoleUrl';

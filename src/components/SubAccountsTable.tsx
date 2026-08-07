@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { ArrowUp, ArrowDown } from '@phosphor-icons/react';
-import { T } from '../../styles/tokens';
-import { SubAccount } from '../../types/subAccount';
+import { T } from '../styles/tokens';
+import { SubAccount } from '../types/subAccount';
 
 export type SortOrder = 'asc' | 'desc';
 
