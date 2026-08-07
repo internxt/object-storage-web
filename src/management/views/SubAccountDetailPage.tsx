@@ -216,7 +216,8 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
       setAccount((current) => (current ? { ...current, storageQuotaTb } : current));
       notificationsService.success({ text: message });
     } catch (e: any) {
-      notificationsService.error({ text: e.response?.data?.message ?? e.message });
+      const reason = e.response?.data?.message ?? e.message;
+      notificationsService.error({ text: Array.isArray(reason) ? reason.join('. ') : reason });
     }
   };
 
