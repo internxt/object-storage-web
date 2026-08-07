@@ -99,12 +99,8 @@ async function reactivateSubAccount(id: string): Promise<void> {
   await axios.put(`${API()}/sub-accounts/${id}/reactivate`, {}, { headers: headers() });
 }
 
-async function setSubAccountStorageQuota(id: string, limitTb: number): Promise<void> {
-  await axios.put(`${API()}/sub-accounts/${id}/storage-quota`, { limitTb }, { headers: headers() });
-}
-
-async function removeSubAccountStorageQuota(id: string): Promise<void> {
-  await axios.delete(`${API()}/sub-accounts/${id}/storage-quota`, { headers: headers() });
+async function updateSubAccountStorageQuota(id: string, limitTb: number | null): Promise<void> {
+  await axios.patch(`${API()}/sub-accounts/${id}/storage-quota`, { limitTb }, { headers: headers() });
 }
 
 async function getUsageSummary(): Promise<PartnersUsageSummary> {
@@ -184,8 +180,7 @@ export const partnersService = {
   createSubAccount,
   suspendSubAccount,
   reactivateSubAccount,
-  setSubAccountStorageQuota,
-  removeSubAccountStorageQuota,
+  updateSubAccountStorageQuota,
   getUsageSummary,
   createBillingPortalSession,
   changePassword,

@@ -10,8 +10,7 @@ import notificationsService from '../../services/notifications.service';
 import { exportAsCSV } from '../../utils/exportUtils';
 
 type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'> & {
-  setSubAccountStorageQuota?: (id: string, limitTb: number) => Promise<void>;
-  removeSubAccountStorageQuota?: (id: string) => Promise<void>;
+  updateSubAccountStorageQuota?: (id: string, limitTb: number | null) => Promise<void>;
 };
 
 interface SubAccountDetailPageProps {
@@ -143,7 +142,7 @@ const fmtChartDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD MMM
 export const SubAccountDetailPage = ({ backPath = '/management/accounts', service = managementService }: SubAccountDetailPageProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { setSubAccountStorageQuota: setQuota, removeSubAccountStorageQuota: removeQuota } = service;
+  const { updateSubAccountStorageQuota: updateQuota } = service;
 
   const [account, setAccount] = useState<SubAccountDetail | null>(null);
   const [usages, setUsages] = useState<SubAccountUsage[]>([]);
@@ -294,14 +293,14 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
         />
       </div>
 
-      {setQuota && removeQuota && (
+      {updateQuota && (
         <StorageQuotaCard
           quota={account.storageQuotaTb ?? null}
           used={account.activeStorage}
           onSave={(limitTb) =>
-            applyQuotaChange(() => setQuota(id!, limitTb), limitTb, `Storage quota set to ${limitTb} TB`)
+            applyQuotaChange(() => updateQuota(id!, limitTb), limitTb, `Storage quota set to ${limitTb} TB`)
           }
-          onRemove={() => applyQuotaChange(() => removeQuota(id!), null, 'Storage quota removed')}
+          onRemove={() => applyQuotaChange(() => updateQuota(id!, null), null, 'Storage quota removed')}
         />
       )}
 
