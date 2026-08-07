@@ -3,7 +3,7 @@ import { MagnifyingGlass, CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { partnersService, PartnersUsageSummary } from '../services/partners.service';
 import { resolveConsoleUrl } from '../../utils/consoleUrl';
 import { SubAccount } from '../../management/services/management.service';
-import { PartnersSubAccountsTable } from '../../management/components/PartnersSubAccountsTable';
+import { PartnersSubAccountsTable } from '../components/PartnersSubAccountsTable';
 import { SortOrder } from '../../management/components/SubAccountsTable';
 import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
