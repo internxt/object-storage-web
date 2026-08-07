@@ -29,6 +29,7 @@ import { SubAccountAuthRoute } from './sub-account/components/SubAccountAuthRout
 import { SubAccountBucketsPage } from './sub-account/views/SubAccountBucketsPage';
 import { SubAccountBucketDetailPage } from './sub-account/views/SubAccountBucketDetailPage';
 import { SubAccountUsagePage } from './sub-account/views/SubAccountUsagePage';
+import { SubAccountSharedPage } from './sub-account/views/SubAccountSharedPage';
 import { SubAccountSettingsPage } from './sub-account/views/SubAccountSettingsPage';
 import { SharePage } from './views/SharePage';
 import { SubAccountBrandingProvider } from './sub-account/context/SubAccountBrandingContext/SubAccountBrandingContext';
@@ -91,6 +92,7 @@ export function App() {
                 <Route path='/subaccount/buckets' element={<SubAccountBucketsPage />} />
                 <Route path='/subaccount/buckets/:bucketName' element={<SubAccountBucketDetailPage />} />
                 <Route path='/subaccount/usage' element={<SubAccountUsagePage />} />
+                <Route path='/subaccount/shared' element={<SubAccountSharedPage />} />
                 <Route path='/subaccount/settings' element={<SubAccountSettingsPage />} />
               </Route>
               <Route path='/subaccount' element={<Navigate to='/subaccount/buckets' />} />

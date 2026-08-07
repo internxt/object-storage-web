@@ -21,6 +21,7 @@ import {
 } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import { S3Object, s3Service, isAccessDeniedError, RetentionMode, VersioningStatus } from '../../services/s3.service';
+import { formatDateTime } from '../../utils/formatDate';
 import notificationsService from '../../services/notifications.service';
 import { UploadModal } from '../../components/objects/UploadModal';
 import { FileDetailsPanel } from '../../components/objects/FileDetailsPanel';
@@ -54,12 +55,6 @@ function displayName(key: string): string {
 
 function versionRowId(obj: S3Object): string {
   return `${obj.key}::${obj.versionId ?? ''}`;
-}
-
-function fmtDate(d: Date): string {
-  const date = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  return `${date}, ${time}`;
 }
 
 function getFileIcon(name: string) {
@@ -273,7 +268,7 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
 
       {/* Last modified */}
       <span style={{ fontSize: 13, color: T.gray60 }}>
-        {obj.isFolder ? '—' : fmtDate(obj.lastModified)}
+        {obj.isFolder ? '—' : formatDateTime(obj.lastModified)}
       </span>
 
       {/* Version ID */}

@@ -11,6 +11,7 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 const TABS_ADMIN = [
   { key: '/subaccount/buckets', label: 'Buckets' },
   { key: '/subaccount/usage',   label: 'Usage' },
+  { key: '/subaccount/shared',  label: 'Shared' },
 ];
 
 const TABS_MEMBER = [
