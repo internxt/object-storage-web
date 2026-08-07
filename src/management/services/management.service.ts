@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { SubAccount, SubAccountDetail, SubAccountUsage } from '../../types/subAccount';
+import { CreateSubAccountDto, SubAccount, SubAccountDetail, SubAccountUsage } from '../../types/subAccount';
 import { managementAuthService } from './management-auth.service';
 
 const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/management`;
@@ -19,17 +19,6 @@ axios.interceptors.response.use(
 export interface SubAccountsResponse {
   subAccounts: SubAccount[];
   total: number;
-}
-
-export interface CreateSubAccountDto {
-  name?: string;
-  email: string;
-  password: string;
-  country: string;
-  postalCode: string;
-  isTrial?: boolean;
-  trialQuotaTB?: number;
-  trialDays?: number;
 }
 
 export interface UsagesSummary {
