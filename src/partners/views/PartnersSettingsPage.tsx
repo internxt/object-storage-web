@@ -15,7 +15,7 @@ import Modal from '../../components/Modal'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
 import Dialog from '../../components/Dialog'
-import { T, text, form } from '../../sub-account/tokens'
+import { T, text, form } from '../../styles/tokens'
 
 // ─── Shared atoms (mirrors SubAccountSettingsPage design) ─────────────────────
 

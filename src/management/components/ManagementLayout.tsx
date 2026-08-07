@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useManagement } from '../context/managementContext';
 import { SignOutIcon } from '@phosphor-icons/react';
-import { T, shadow } from '../../sub-account/tokens';
+import { T, shadow } from '../../styles/tokens';
 
 const AvatarMenu = ({ onLogout }: { onLogout: () => void }) => {
   const [open, setOpen] = useState(false);

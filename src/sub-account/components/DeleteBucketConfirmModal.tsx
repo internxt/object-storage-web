@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X } from '@phosphor-icons/react';
 import Modal from '../../components/Modal';
-import { T, text } from '../tokens';
+import { T, text } from '../../styles/tokens';
 
 interface DeleteBucketConfirmModalProps {
   isOpen: boolean;

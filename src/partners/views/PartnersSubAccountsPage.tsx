@@ -8,7 +8,7 @@ import { SortOrder } from '../../management/components/SubAccountsTable';
 import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
 import { usePartners } from '../context/partnersContext';
-import { T, card } from '../../sub-account/tokens';
+import { T, card } from '../../styles/tokens';
 
 const ACCENT = '#6366f1';
 const POSITIVE = '#10b981';

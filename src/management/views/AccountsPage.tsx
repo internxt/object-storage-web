@@ -6,7 +6,7 @@ import { ManagementSubAccountsTable } from '../components/ManagementSubAccountsT
 import { SortOrder } from '../components/SubAccountsTable';
 import { CreateSubAccountModal } from '../components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
-import { T, card, shadow } from '../../sub-account/tokens';
+import { T, card, shadow } from '../../styles/tokens';
 import { resolveConsoleUrl } from '../../utils/consoleUrl';
 
 const PER_PAGE = 20;

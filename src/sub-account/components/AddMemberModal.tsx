@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { T, text, form } from '../tokens';
+import { T, text, form } from '../../styles/tokens';
 
 interface AddMemberModalProps {
   isOpen: boolean;

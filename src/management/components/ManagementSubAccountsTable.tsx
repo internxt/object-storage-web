@@ -5,7 +5,7 @@ import { DotsThree, ArrowSquareOut, Info } from '@phosphor-icons/react';
 import { SubAccount } from '../services/management.service';
 import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable';
 import { ConfirmActionModal } from './ConfirmActionModal';
-import { T, shadow } from '../../sub-account/tokens';
+import { T, shadow } from '../../styles/tokens';
 
 interface Props {
   subAccounts: SubAccount[];

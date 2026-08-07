@@ -6,7 +6,7 @@ import {
 } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
 import { useSubAccount } from '../context/SubAccountContext';
-import { T, shadow, text } from '../tokens';
+import { T, shadow, text } from '../../styles/tokens';
 import { Pagination } from '../../components/Pagination';
 import { useUsageData, UsageRecord, PAGE_SIZE_OPTIONS, MAX_RANGE_MONTHS } from '../hooks/useUsageData';
 

@@ -4,7 +4,7 @@ import { useSubAccount } from '../context/SubAccountContext';
 import { ConsoleTopBar } from './ConsoleTopBar';
 import { subAccountBillingService } from '../services/sub-account-billing.service';
 import notificationsService from '../../services/notifications.service';
-import { T } from '../tokens';
+import { T } from '../../styles/tokens';
 
 const TABS_ADMIN = [
   { key: '/subaccount/buckets', label: 'Buckets' },

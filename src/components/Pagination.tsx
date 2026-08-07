@@ -4,7 +4,7 @@ import {
     CaretRightIcon,
 } from "@phosphor-icons/react";
 import { Dropdown } from "./Dropdown";
-import { T } from "../sub-account/tokens";
+import { T } from "../styles/tokens";
 
 interface PaginationProps {
     pageSize: number;

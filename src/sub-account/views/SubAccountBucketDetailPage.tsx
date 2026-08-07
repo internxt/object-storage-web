@@ -41,7 +41,7 @@ import { useFileRetention } from '../hooks/useFileRetention';
 import { useSubAccount } from '../context/SubAccountContext';
 import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal';
 import { RetentionConfirmModal } from '../components/RetentionConfirmModal';
-import { T, shadow, text } from '../tokens';
+import { T, shadow, text } from '../../styles/tokens';
 import { S3Client } from '@aws-sdk/client-s3';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

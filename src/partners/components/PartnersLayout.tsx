@@ -4,7 +4,7 @@ import { usePartners } from '../context/partnersContext';
 import { SignOutIcon, ArrowSquareOutIcon, GearSixIcon, QuestionIcon } from '@phosphor-icons/react';
 import { partnersService } from '../services/partners.service';
 import notificationsService from '../../services/notifications.service';
-import { T, shadow } from '../../sub-account/tokens';
+import { T, shadow } from '../../styles/tokens';
 
 const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
   height: '100%', padding: '0 14px',

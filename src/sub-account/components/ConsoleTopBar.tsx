@@ -6,7 +6,7 @@ import {
   SignOutIcon,
   ArrowSquareOutIcon,
 } from '@phosphor-icons/react';
-import { T, shadow } from '../tokens';
+import { T, shadow } from '../../styles/tokens';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

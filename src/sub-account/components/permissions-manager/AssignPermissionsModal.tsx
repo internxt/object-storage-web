@@ -4,7 +4,7 @@ import Modal from '../../../components/Modal';
 import Button from '../../../components/Button';
 import Dialog from '../../../components/Dialog';
 import Loader from '../../../components/Loader';
-import { T, text } from '../../tokens';
+import { T, text } from '../../../styles/tokens';
 import { useSubAccount } from '../../context/SubAccountContext';
 import { useSubAccountS3Client } from '../../hooks/useSubAccountS3Client';
 import { usePolicyEditor } from '../../hooks/usePolicyEditor';

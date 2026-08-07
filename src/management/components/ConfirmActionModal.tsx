@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { T, shadow, text } from '../../sub-account/tokens';
+import { T, shadow, text } from '../../styles/tokens';
 
 const variantStyles = {
   danger:  { background: T.red, color: T.white },

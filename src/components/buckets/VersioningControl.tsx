@@ -1,4 +1,4 @@
-import { T } from '../../sub-account/tokens';
+import { T } from '../../styles/tokens';
 import { VersioningStatus } from '../../services/s3.service';
 
 interface VersioningControlProps {

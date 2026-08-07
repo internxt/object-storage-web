@@ -1,4 +1,4 @@
-import { form } from '../../tokens';
+import { form } from '../../../styles/tokens';
 
 interface PolicyJsonEditorProps {
   value: string;
