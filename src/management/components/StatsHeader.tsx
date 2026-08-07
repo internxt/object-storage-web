@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { UsagesSummary, SubAccount } from '../services/management.service';
+import { UsagesSummary } from '../services/management.service';
 import { T, card } from '../../styles/tokens';
+import { SubAccount } from '../../types/subAccount';
 
 interface Props {
   data: UsagesSummary | null;

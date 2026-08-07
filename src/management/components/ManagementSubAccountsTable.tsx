@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { DotsThree, ArrowSquareOut, Info } from '@phosphor-icons/react';
-import { SubAccount } from '../services/management.service';
 import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable';
 import { ConfirmActionModal } from './ConfirmActionModal';
 import { T, shadow } from '../../styles/tokens';
+import { SubAccount } from '../../types/subAccount';
 
 interface Props {
   subAccounts: SubAccount[];

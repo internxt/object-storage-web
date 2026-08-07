@@ -5,9 +5,10 @@ import { ArrowLeft, Database, Package, CaretLeft, CaretRight, DownloadSimple } f
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
-import { managementService, SubAccountDetail, SubAccountUsage } from '../services/management.service';
+import { managementService } from '../services/management.service';
 import notificationsService from '../../services/notifications.service';
 import { exportAsCSV } from '../../utils/exportUtils';
+import { SubAccountDetail, SubAccountUsage } from '../../types/subAccount';
 
 type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'> & {
   setSubAccountStorageQuota?: (id: string, limitTb: number) => Promise<void>;
@@ -209,7 +210,6 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
       setExporting(false);
     }
   };
-
 
   const applyQuotaChange = async (action: () => Promise<void>, storageQuotaTb: number | null, message: string) => {
     try {

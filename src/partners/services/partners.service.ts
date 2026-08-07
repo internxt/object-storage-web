@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { partnersAuthService } from './partners-auth.service';
-import { SubAccount } from '../../management/services/management.service';
 import notificationsService from '../../services/notifications.service';
+import { SubAccount, SubAccountDetail, SubAccountUsage } from '../../types/subAccount';
 
 const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners`;
 const headers = () => partnersAuthService.getAuthHeaders();
@@ -112,7 +112,7 @@ async function getUsageSummary(): Promise<PartnersUsageSummary> {
   return response.data;
 }
 
-async function getSubAccountById(id: string): Promise<import('../../management/services/management.service').SubAccountDetail> {
+async function getSubAccountById(id: string): Promise<SubAccountDetail> {
   const response = await axios.get(`${API()}/sub-accounts/${id}`, { headers: headers() });
   return response.data;
 }
@@ -120,7 +120,7 @@ async function getSubAccountById(id: string): Promise<import('../../management/s
 async function getSubAccountUsages(
   id: string,
   params: { from: string; to: string; page?: number; perPage?: number },
-): Promise<{ items: import('../../management/services/management.service').SubAccountUsage[]; totalItems: number }> {
+): Promise<{ items: SubAccountUsage[]; totalItems: number }> {
   const response = await axios.get(`${API()}/sub-accounts/${id}/usages`, { headers: headers(), params });
   const data = response.data;
   return { items: data.items ?? [], totalItems: data.totalItems ?? data.items?.length ?? 0 };
