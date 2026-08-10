@@ -98,7 +98,7 @@ async function acquireAzureIdToken(config: PublicSsoConfig): Promise<{ idToken: 
     },
     cache: { cacheLocation: 'sessionStorage' },
     // Default is 60s, which users completing MFA can exceed.
-    system: { windowHashTimeout: 180000 },
+    system: { popupBridgeTimeout: 180000 },
   });
   await msalInstance.initialize();
 
