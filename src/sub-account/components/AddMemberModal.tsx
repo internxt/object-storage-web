@@ -25,13 +25,20 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
     }
   }, [isOpen]);
 
-  const passwordRequired = !ssoEnabled;
-  const canSubmit = !!email && (!passwordRequired || password.length >= 8);
+  const canSubmit = !!email && (ssoEnabled || password.length >= 8);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
-    await onAdd(email, password || undefined, role);
+    let userPassword = password;
+    if (ssoEnabled) {
+      // Generates a random password if SSO is enabled
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+      userPassword = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+        .map(n => chars[n % chars.length])
+        .join('');
+    }
+    await onAdd(email, userPassword ?? undefined, role);
   };
 
   return (
@@ -44,20 +51,18 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
           <Input value={email} onChange={setEmail} placeholder='member@example.com' variant='email' />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={form.label}>
-            Password{' '}
-            {passwordRequired
-              ? <span style={{ color: T.red }}>*</span>
-              : <span style={{ color: T.gray60 }}>(optional)</span>}
-          </label>
-          <Input
-            value={password}
-            onChange={setPassword}
-            placeholder={passwordRequired ? 'At least 8 characters' : 'Leave empty for SSO-only'}
-            variant='password'
-          />
-        </div>
+        {!ssoEnabled ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <label style={form.label}>
+              Password <span style={{ color: T.red }}>*</span>
+            </label>
+            <Input value={password} onChange={setPassword} placeholder='At least 8 characters' variant='password' />
+          </div>
+        ) : (
+          <p style={form.hint}>
+            Single sign-on is enabled for this organization, so no password is needed — this member will sign in with Microsoft.
+          </p>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <label style={form.label}>Role</label>
