@@ -16,6 +16,7 @@ import Input from '../../components/Input'
 import Button from '../../components/Button'
 import Dialog from '../../components/Dialog'
 import { T, text, form } from '../../sub-account/tokens'
+import { BrandingTab } from '../components/BrandingTab'
 
 // ─── Shared atoms (mirrors SubAccountSettingsPage design) ─────────────────────
 
@@ -941,12 +942,13 @@ const MembersTab = () => {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'profile' | 'usage' | 'members'
+type Tab = 'profile' | 'usage' | 'members' | 'branding'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'profile', label: 'Profile' },
   { key: 'usage', label: 'Usage' },
   { key: 'members', label: 'Members' },
+  { key: 'branding', label: 'Branding' },
 ]
 
 export const PartnersSettingsPage = () => {
@@ -1005,6 +1007,7 @@ export const PartnersSettingsPage = () => {
       {activeTab === 'profile' && <ProfileTab />}
       {activeTab === 'usage' && <UsageTab />}
       {activeTab === 'members' && <MembersTab />}
+      {activeTab === 'branding' && <BrandingTab />}
     </div>
   )
 }
