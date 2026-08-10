@@ -7,12 +7,11 @@ import { ObjectRow } from './ObjectRow';
 interface FolderListingProps {
   objects: ShareListItem[];
   isLoading: boolean;
-  downloadingKey: string | null;
   onOpenFolder: (key: string) => void;
   onDownload: (key: string) => void;
 }
 
-export const FolderListing = ({ objects, isLoading, downloadingKey, onOpenFolder, onDownload }: FolderListingProps) => {
+export const FolderListing = ({ objects, isLoading, onOpenFolder, onDownload }: FolderListingProps) => {
   if (isLoading) {
     return (
       <div style={{ padding: '40px 20px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
@@ -37,7 +36,6 @@ export const FolderListing = ({ objects, isLoading, downloadingKey, onOpenFolder
         <ObjectRow
           key={obj.key}
           obj={obj}
-          isDownloading={downloadingKey === obj.key}
           onOpen={() => onOpenFolder(obj.key)}
           onDownload={() => onDownload(obj.key)}
         />

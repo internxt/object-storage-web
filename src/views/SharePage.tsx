@@ -14,15 +14,6 @@ import {
   ShareMetadata,
 } from '../services/public-share.service';
 import { T, card } from '../sub-account/tokens';
-import { displayName } from '../utils/displayName';
-import { saveBlob } from '../utils/saveBlob';
-import notificationsService from '../services/notifications.service';
-
-// `downloadingKey` value when downloading a single-file share, which has no object key.
-// Never collides with listing rows: file shares and folder listings are mutually exclusive.
-const ROOT_FILE_KEY = '';
-
-const DEFAULT_DOWNLOAD_NAME = 'download';
 
 const PAGE_VERTICAL_PADDING = 48;
 
@@ -35,7 +26,6 @@ export const SharePage = () => {
   const [objects, setObjects] = useState<ShareListItem[]>([]);
   const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
   const [isListLoading, setIsListLoading] = useState(false);
-  const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
   const {
     state: pagination, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
   } = useObjectPagination();
@@ -83,19 +73,11 @@ export const SharePage = () => {
     setCurrentPrefix(key);
   };
 
-  const isDownloading = downloadingKey !== null;
-
-  const onDownload = async (key?: string) => {
-    if (!token || isDownloading) return;
-    setDownloadingKey(key ?? ROOT_FILE_KEY);
-    try {
-      const blob = await publicShareService.download(token, key);
-      saveBlob(blob, key ? displayName(key) : (metadata?.name ?? DEFAULT_DOWNLOAD_NAME));
-    } catch {
-      notificationsService.error({ text: 'Could not download the file. Please try again.' });
-    } finally {
-      setDownloadingKey(null);
-    }
+  const onDownload = (key?: string) => {
+    if (!token) return;
+    const anchor = document.createElement('a');
+    anchor.href = publicShareService.downloadUrl(token, key);
+    anchor.click();
   };
 
   const sharedRoot = metadata?.prefix ?? '';
@@ -132,21 +114,10 @@ export const SharePage = () => {
     body = (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '48px 24px' }}>
         <p style={{ fontSize: 14, color: T.gray60, margin: 0 }}>You have been given access to download this file.</p>
-        {/* Label and loader share a grid cell so the button keeps its width while loading. */}
         <Button type="button" onClick={() => onDownload()}>
-          <span style={{ display: 'grid', placeItems: 'center' }}>
-            <span style={{
-              gridArea: '1 / 1', display: 'flex', alignItems: 'center', gap: 8,
-              visibility: isDownloading ? 'hidden' : 'visible',
-            }}>
-              <DownloadSimpleIcon size={16} weight="bold" />
-              Download
-            </span>
-            {isDownloading && (
-              <span style={{ gridArea: '1 / 1', display: 'flex' }}>
-                <Loader size={18} />
-              </span>
-            )}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <DownloadSimpleIcon size={16} weight="bold" />
+            Download
           </span>
         </Button>
       </div>
@@ -169,7 +140,6 @@ export const SharePage = () => {
           <FolderListing
             objects={objects}
             isLoading={isListLoading}
-            downloadingKey={downloadingKey}
             onOpenFolder={openFolder}
             onDownload={onDownload}
           />

@@ -34,11 +34,9 @@ export const publicShareService = {
     });
     return response.data;
   },
-  download: async (token: string, key?: string): Promise<Blob> => {
-    const response = await axios.get<Blob>(`${baseURL}/shares/${token}/download`, {
-      params: { key },
-      responseType: 'blob',
-    });
-    return response.data;
+  downloadUrl: (token: string, key?: string): string => {
+    const url = new URL(`${baseURL}/shares/${token}/download`);
+    if (key) url.searchParams.set('key', key);
+    return url.toString();
   },
 };
