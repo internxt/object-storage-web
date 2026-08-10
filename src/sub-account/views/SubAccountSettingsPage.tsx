@@ -7,6 +7,7 @@ import { useSubAccount } from '../context/SubAccountContext';
 import notificationsService from '../../services/notifications.service';
 import { AddMemberModal } from '../components/AddMemberModal';
 import { SsoSection } from '../../components/sso/SsoSection';
+import { subAccountSsoService } from '../services/sub-account-sso.service';
 import { SectionCard, ReadField } from '../components/SettingsAtoms';
 import { AssignPermissionsModal } from '../components/permissions-manager/AssignPermissionsModal';
 import { PolicyDocument } from '../services/iamPolicy.service';
@@ -233,8 +234,18 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
   const [memberToDelete, setMemberToDelete]     = useState<MemberItem | null>(null);
   const [permissionMember, setPermissionMember] = useState<MemberItem | null>(null);
   const [isAssigningPermission, setIsAssigningPermission] = useState(false);
+  // The session JWT's `ssoEnabled` claim is only as fresh as the token itself —
+  // it won't reflect SSO being configured/disabled in a different tab or session.
+  // Fetch the live value so "password optional when SSO is enabled" actually holds.
+  const [ssoConfigured, setSsoConfigured] = useState(ssoEnabled);
 
-  useEffect(() => { if (entityId) fetchMembers(); }, [entityId]);
+  useEffect(() => {
+    if (!entityId) return;
+    fetchMembers();
+    subAccountSsoService.getSsoConfig(entityId)
+      .then((config) => setSsoConfigured(config.configured))
+      .catch(() => {});
+  }, [entityId]);
 
   const fetchMembers = async () => {
     setIsLoading(true);
@@ -366,7 +377,7 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
         </table>
       )}
 
-      <AddMemberModal isOpen={isAddMemberOpen} isLoading={isAddingMember} ssoEnabled={ssoEnabled} onClose={() => setIsAddMemberOpen(false)} onAdd={onAddMember} />
+      <AddMemberModal isOpen={isAddMemberOpen} isLoading={isAddingMember} ssoEnabled={ssoConfigured} onClose={() => setIsAddMemberOpen(false)} onAdd={onAddMember} />
       {permissionMember && (
         <AssignPermissionsModal isOpen={!!permissionMember} isLoading={isAssigningPermission} memberEmail={permissionMember.email} onClose={() => setPermissionMember(null)} onAssign={onAssignPermissions} onFetchPermissions={onFetchPermissions} />
       )}
