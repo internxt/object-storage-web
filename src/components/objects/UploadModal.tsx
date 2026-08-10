@@ -4,7 +4,7 @@ import prettyBytes from 'pretty-bytes';
 import { S3Client } from '@aws-sdk/client-s3';
 import Modal from '../Modal';
 import Button from '../Button';
-import { s3Service } from '../../services/s3.service';
+import { s3Service, isAccessDeniedError } from '../../services/s3.service';
 import { useS3Client } from '../../hooks/useS3Client';
 import notificationsService from '../../services/notifications.service';
 
@@ -82,6 +82,7 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
   const { client: hookClient } = useS3Client();
   const client = clientProp ?? hookClient;
   const inputRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const [files, setFiles] = useState<FileUploadState[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -109,6 +110,10 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
     e.preventDefault();
     setIsDragging(false);
 
+    if (isUploading) {
+      return;
+    }
+
     const entries = await readDroppedItems(e.dataTransfer.items);
     if (entries.length > 0) {
       addFileEntries(entries);
@@ -124,12 +129,19 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
     }
   };
 
+  const cancelUpload = () => {
+    abortRef.current?.abort();
+  };
+
   const uploadAll = async () => {
     if (!client || files.length === 0) return;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const { signal } = controller;
     setIsUploading(true);
 
     let anyError = false;
-    for (let i = 0; i < files.length; i++) {
+    for (let i = 0; i < files.length && !signal.aborted; i++) {
       const { file, relativePath } = files[i];
       const key = prefix + relativePath;
 
@@ -138,17 +150,35 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
       try {
         await s3Service.uploadObject(client, bucket, key, file, (progress) => {
           setFiles((prev) => prev.map((f, idx) => idx === i ? { ...f, progress } : f));
-        });
+        }, signal);
         setFiles((prev) => prev.map((f, idx) => idx === i ? { ...f, status: 'done', progress: 100 } : f));
       } catch (err) {
+        if (signal.aborted) break;
         anyError = true;
+        const message = isAccessDeniedError(err)
+          ? 'You do not have enough access to this bucket.'
+          : (err as Error).message;
         setFiles((prev) =>
-          prev.map((f, idx) => idx === i ? { ...f, status: 'error', error: (err as Error).message } : f),
+          prev.map((f, idx) => idx === i ? { ...f, status: 'error', error: message } : f),
         );
+        notificationsService.error({ text: message });
       }
     }
 
+    abortRef.current = null;
     setIsUploading(false);
+
+    if (signal.aborted) {
+      setFiles((prev) =>
+          prev.map((f) => ({
+              ...f,
+              status: "pending",
+              progress: 0,
+              error: undefined,
+          })),
+      );
+      return;
+    }
 
     if (!anyError) {
       notificationsService.success({ text: `${files.length} file(s) uploaded` });
@@ -164,27 +194,29 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
         <p className='text-black text-xl font-semibold'>Upload Files</p>
 
         {/* Drop zone */}
-        <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={onDrop}
-          onClick={() => inputRef.current?.click()}
-        >
-          <UploadSimple size={32} className='mx-auto text-gray-400 mb-2' />
-          <p className='text-sm text-gray-500'>
-            Drag & drop files or folders here, or <span className='text-blue-600 font-medium'>browse</span>
-          </p>
-          <input
-            ref={inputRef}
-            type='file'
-            multiple
-            className='hidden'
-            onChange={(e) => addFiles(e.target.files)}
-          />
-        </div>
+        {!isUploading && (
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+              isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+            }`}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={onDrop}
+            onClick={() => inputRef.current?.click()}
+          >
+            <UploadSimple size={32} className='mx-auto text-gray-400 mb-2' />
+            <p className='text-sm text-gray-500'>
+              Drag & drop files or folders here, or <span className='text-blue-600 font-medium'>browse</span>
+            </p>
+            <input
+              ref={inputRef}
+              type='file'
+              multiple
+              className='hidden'
+              onChange={(e) => addFiles(e.target.files)}
+            />
+          </div>
+        )}
 
         {/* File list */}
         {files.length > 0 && (
@@ -224,7 +256,11 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
         )}
 
         <div className='flex gap-3 justify-end'>
-          <Button variant='secondary' className='rounded-md' onClick={handleClose} disabled={isUploading}>
+          <Button
+            variant='secondary'
+            className='rounded-md'
+            onClick={isUploading ? cancelUpload : handleClose}
+          >
             Cancel
           </Button>
           <Button

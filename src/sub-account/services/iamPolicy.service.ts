@@ -9,15 +9,20 @@ export const S3_ACTIONS = {
   getObject: 's3:GetObject',
   putObject: 's3:PutObject',
   deleteObject: 's3:DeleteObject',
+  abortMultipartUpload: 's3:AbortMultipartUpload',
+  listMultipartUploadParts: 's3:ListMultipartUploadParts',
+  listBucketMultipartUploads: 's3:ListBucketMultipartUploads',
   listBucket: 's3:ListBucket',
   listAllMyBuckets: 's3:ListAllMyBuckets',
   deleteBucket: 's3:DeleteBucket',
   getBucketObjectLockConfiguration: 's3:GetBucketObjectLockConfiguration',
   getBucketVersioning: 's3:GetBucketVersioning',
+  getBucketLocation: 's3:GetBucketLocation',
   getBucketLogging: 's3:GetBucketLogging',
   getBucketAcl: 's3:GetBucketAcl',
   getObjectRetention: 's3:GetObjectRetention',
   getObjectVersion: 's3:GetObjectVersion',
+  deleteObjectVersion: 's3:DeleteObjectVersion',
   listBucketVersions: 's3:ListBucketVersions',
   all: 's3:*'
 } as const
@@ -27,6 +32,7 @@ const READ_ACTIONS: string[] = [
   S3_ACTIONS.listBucket,
   S3_ACTIONS.getBucketObjectLockConfiguration,
   S3_ACTIONS.getBucketVersioning,
+  S3_ACTIONS.getBucketLocation,
   S3_ACTIONS.getBucketLogging,
   S3_ACTIONS.getBucketAcl,
   S3_ACTIONS.getObjectRetention,
@@ -52,7 +58,15 @@ export const ACCESS_LEVEL_CONFIG: Record<AccessLevel, AccessLevelDefinition> = {
   },
   write: {
     label: 'Write',
-    actions: [...READ_ACTIONS, S3_ACTIONS.putObject, S3_ACTIONS.deleteObject],
+    actions: [
+      ...READ_ACTIONS,
+      S3_ACTIONS.putObject,
+      S3_ACTIONS.deleteObject,
+      S3_ACTIONS.deleteObjectVersion,
+      S3_ACTIONS.abortMultipartUpload,
+      S3_ACTIONS.listMultipartUploadParts,
+      S3_ACTIONS.listBucketMultipartUploads
+    ],
     accountActions: [S3_ACTIONS.listAllMyBuckets]
   },
   'full-limited': {
@@ -99,7 +113,7 @@ const BUCKET_NAME = '[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]'
 const S3_ARN_RE = new RegExp(`^arn:aws:s3:::(${BUCKET_NAME})(?:\\/(.*))?$`)
 
 const isAllBucketsResource = (resource: string): boolean =>
-  resource === '*' || resource === 'arn:aws:s3:::*'
+  resource === '*' || resource === 'arn:aws:s3:::*' || resource === 'arn:aws:s3:::*/*'
 
 // ─── Builder rules → policy JSON ─────────────────────────────────────────────
 
@@ -127,7 +141,7 @@ export class BucketRulesToPolicy {
   static toStatements(rule: BucketRule): PolicyStatement[] {
     const bucketAndObjectsResource =
       rule.bucketName === ALL_BUCKETS
-        ? ['arn:aws:s3:::*']
+        ? ['arn:aws:s3:::*', 'arn:aws:s3:::*/*']
         : [`arn:aws:s3:::${rule.bucketName}`, `arn:aws:s3:::${rule.bucketName}/*`]
 
     const { actions, deniedActions } = ACCESS_LEVEL_CONFIG[rule.accessLevel]
@@ -227,7 +241,7 @@ export class PolicyToBucketRules {
   private static toRule(group: PolicyStatement[]): BucketRule | null {
     const resource = group[0].Resource
     let bucketName: string | null
-    if (resource.length === 1 && isAllBucketsResource(resource[0])) {
+    if (resource.length > 0 && resource.every(isAllBucketsResource)) {
       bucketName = ALL_BUCKETS
     } else {
       const arns = resource.map(r => S3_ARN_RE.exec(r))

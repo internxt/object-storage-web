@@ -14,6 +14,7 @@ export interface Partner {
   activeStorageTb: number;
   subAccountsCount: number;
   createdAt: string;
+  customerId: string | null;
 }
 
 export interface PartnersSummary {
@@ -34,6 +35,7 @@ export interface PartnerSubAccount {
   activeStorageBytes: number;
   deletedStorageBytes: number;
   createdAt: string | null;
+  customerId: string | null;
 }
 
 async function createPartner(dto: { name: string; email: string; password: string; country: string; postalCode: string }): Promise<void> {
@@ -54,19 +56,29 @@ async function getPartners(params: {
   const data = response.data;
   const rawItems: any[] = Array.isArray(data) ? data : (data.items ?? []);
   return {
-    partners: rawItems.map((raw) => ({
-      id: raw.id,
-      storageProviderId: raw.storageProviderId,
-      name: raw.name ?? null,
-      email: raw.email ?? null,
-      status: raw.status === 'DELETED' ? 'DELETED' : 'ACTIVE',
-      providerCreatedAt: raw.providerCreatedAt ?? null,
-      activeStorageTb: raw.activeStorageTb ?? 0,
-      subAccountsCount: raw.subAccountsCount ?? 0,
-      createdAt: raw.createdAt ?? '',
-    })),
+    partners: rawItems.map(mapPartner),
     total: data.total ?? rawItems.length,
   };
+}
+
+function mapPartner(raw: any): Partner {
+  return {
+    id: raw.id,
+    storageProviderId: raw.storageProviderId,
+    name: raw.name ?? null,
+    email: raw.email ?? null,
+    status: raw.status === 'DELETED' ? 'DELETED' : 'ACTIVE',
+    providerCreatedAt: raw.providerCreatedAt ?? null,
+    activeStorageTb: raw.activeStorageTb ?? 0,
+    subAccountsCount: raw.subAccountsCount ?? 0,
+    createdAt: raw.createdAt ?? '',
+    customerId: raw.customerId ?? null,
+  };
+}
+
+async function getPartnerById(id: string): Promise<Partner> {
+  const response = await axios.get(`${API()}/partners/${id}`, { headers: headers() });
+  return mapPartner(response.data);
 }
 
 async function getPartnersSummary(): Promise<PartnersSummary> {
@@ -95,6 +107,7 @@ async function getPartnerSubAccounts(
 export const partnersService = {
   createPartner,
   getPartners,
+  getPartnerById,
   getPartnersSummary,
   getPartnerSubAccounts,
 };

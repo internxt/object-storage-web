@@ -21,6 +21,7 @@ export interface SubAccount {
   email: string;
   channelAccount?: string;
   partnerId?: string | null;
+  partnerName?: string | null;
   activeStorage: number;
   deletedStorage: number;
   storageUtilization?: number;
@@ -31,6 +32,7 @@ export interface SubAccount {
   mfa?: boolean;
   status: 'PAID_ACCOUNT' | 'SUSPENDED' | 'DELETED';
   recordDate: string;
+  customerId?: string | null;
 }
 
 export interface SubAccountsResponse {
@@ -39,7 +41,7 @@ export interface SubAccountsResponse {
 }
 
 export interface CreateSubAccountDto {
-  name: string;
+  name?: string;
   email: string;
   password: string;
   country: string;
@@ -64,9 +66,12 @@ interface DbSubAccount {
   storageProvider: string;
   status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
   email: string | null;
+  partnerId?: string | null;
+  partnerName?: string | null;
   activeStorageBytes: number;
   deletedStorageBytes: number;
   createdAt: string;
+  customerId?: string | null;
 }
 
 const BYTES_TO_TB = 1 / 1_000_000_000_000;
@@ -76,11 +81,14 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     id: raw.id,
     name: raw.id,
     email: raw.email ?? '',
+    partnerId: raw.partnerId ?? null,
+    partnerName: raw.partnerName ?? null,
     status: raw.status === 'SUSPENDED' || raw.status === 'DELETED' ? raw.status : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
     recordDate: '',
+    customerId: raw.customerId ?? null,
   };
 }
 
@@ -129,29 +137,16 @@ async function getUsagesSummary(): Promise<UsagesSummary | null> {
 }
 
 export interface SubAccountDetail {
-  id: number;
-  name: string;
+  id: string;
   contactEmail: string | null;
-  status: 'PAID_ACCOUNT' | 'SUSPENDED';
+  status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
   creationDate: string;
   activeStorage: number;
   deletedStorage: number;
   trialQuota: number | null;
   trialExpiration: string | null;
-  wasabiAccountNumber: string;
-  wasabiAccountName: string;
-  country: string | null;
-  city: string | null;
-  state: string | null;
-  zip: string | null;
-  website: string | null;
-  address1: string | null;
-  address2: string | null;
-  mainPhone: string | null;
-  billingPhone: string | null;
-  billingEmail: string | null;
-  channelAccountName?: string | null;
-  ftpEnabled: boolean;
+  partnerId?: string | null;
+  partnerName?: string | null;
 }
 
 export interface SubAccountUsage {

@@ -57,7 +57,7 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
         tabs={tabs}
         activeTab={activeTab}
         onTab={(key) => navigate(key)}
-        consoleLabel="Sub-account"
+        consoleLabel="Cloud account"
         onSettings={() => navigate('/subaccount/settings')}
         onLogout={handleLogOut}
         user={{ email: email ?? undefined, initials: toInitials(email) }}

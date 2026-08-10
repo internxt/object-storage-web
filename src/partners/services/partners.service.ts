@@ -54,7 +54,14 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
   };
 }
 
-async function getMe(): Promise<{ id: string; name: string | null; email: string | null; createdAt: string }> {
+export interface PartnerInfo {
+  id: string;
+  name: string | null;
+  email: string | null;
+  createdAt: string;
+}
+
+async function getMe(): Promise<PartnerInfo> {
   const response = await axios.get(`${API()}/me`, { headers: headers() });
   return response.data;
 }
@@ -73,7 +80,6 @@ async function getSubAccounts(params: {
 }
 
 async function createSubAccount(dto: {
-  name: string;
   email: string;
   password: string;
   country?: string;

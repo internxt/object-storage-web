@@ -20,8 +20,9 @@ const PER_PAGE = 20;
 
 const StatusBadge = ({ status }: { status: SubAccountDetail['status'] }) => {
   const config = {
-    PAID_ACCOUNT: { bg: '#22c55e', border: '#16a34a', color: '#fff', dot: 'rgba(255,255,255,0.6)', label: 'Paid Account' },
-    SUSPENDED:    { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171',            label: 'Suspended' },
+    ACTIVE:    { bg: '#22c55e', border: '#16a34a', color: '#fff', dot: 'rgba(255,255,255,0.6)', label: 'Active' },
+    SUSPENDED: { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171',            label: 'Suspended' },
+    DELETED:   { bg: '#f4f4f5', border: '#d4d4d8', color: '#52525b', dot: '#a1a1aa',            label: 'Deleted' },
   }[status];
 
   return (
@@ -168,7 +169,7 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
         </button>
         <div>
           <div className='flex items-center gap-3'>
-            <h1 className='text-lg font-bold text-gray-900 font-mono'>{account.name || String(account.id)}</h1>
+            <h1 className='text-lg font-bold text-gray-900 font-mono'>{String(account.id)}</h1>
             <StatusBadge status={account.status} />
           </div>
           {account.contactEmail && (
@@ -351,7 +352,19 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
               <DetailField label='Account ID' value={id} />
               <DetailField label='Status' value={account.status} />
               <DetailField label='Creation Date' value={account.creationDate ? dayjs(account.creationDate).format('DD-MMM-YYYY') : null} />
-              <DetailField label='Partner Account' value={account.channelAccountName} />
+              {account.partnerId ? (
+                <div className='flex flex-col gap-0.5'>
+                  <span className='text-xs text-gray-400 uppercase tracking-wide'>Partner Account</span>
+                  <span
+                    className='text-sm text-blue-600 hover:underline cursor-pointer'
+                    onClick={() => navigate(`/management/partners/${account.partnerId}`)}
+                  >
+                    {account.partnerName || account.partnerId}
+                  </span>
+                </div>
+              ) : (
+                <DetailField label='Partner Account' value={null} />
+              )}
               <DetailField label='Email' value={account.contactEmail} />
             </div>
           </div>

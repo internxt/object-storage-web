@@ -6,7 +6,7 @@ import { T } from '../../sub-account/tokens';
 export type SortOrder = 'asc' | 'desc';
 
 export interface ColumnDef {
-  header: string;
+  header: ReactNode;
   align?: 'left' | 'right';
   sortKey?: 'activeStorage';
   cell: (acc: SubAccount, isLast: boolean) => ReactNode;

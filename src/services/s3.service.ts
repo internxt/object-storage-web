@@ -66,6 +66,10 @@ export interface ListObjectVersionsResult {
   isTruncated: boolean;
 }
 
+export const isAccessDeniedError = (err: unknown): boolean =>
+  (err as { name?: string })?.name === 'AccessDenied' ||
+  (err as { $metadata?: { httpStatusCode?: number } })?.$metadata?.httpStatusCode === 403;
+
 export const s3Service = {
   listBuckets: async (
     client: S3Client,
@@ -220,6 +224,7 @@ export const s3Service = {
     key: string,
     file: File,
     onProgress?: (percent: number) => void,
+    abortSignal?: AbortSignal,
   ): Promise<void> => {
     const upload = new Upload({
       client,
@@ -232,6 +237,14 @@ export const s3Service = {
           onProgress(Math.round((progress.loaded / progress.total) * 100));
         }
       });
+    }
+
+    if (abortSignal) {
+      if (abortSignal.aborted) {
+        await upload.abort();
+        throw new DOMException('Upload aborted', 'AbortError');
+      }
+      abortSignal.addEventListener('abort', () => { void upload.abort(); }, { once: true });
     }
 
     await upload.done();
@@ -374,7 +387,15 @@ export const s3Service = {
   },
 
   deleteBucket: async (client: S3Client, bucket: string): Promise<void> => {
-    await client.send(new DeleteBucketCommand({ Bucket: bucket }));
+    try {
+      await client.send(new DeleteBucketCommand({ Bucket: bucket }));
+    } catch (err) {
+      const status = (err as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
+      if (status === 403) {
+        throw new Error("You don't have permission to delete this bucket.");
+      }
+      throw err;
+    }
   },
 
   getBucketVisibility: async (
