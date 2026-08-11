@@ -42,6 +42,16 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
 
   const canSubmit = !!organizationName.trim() && !isLoading;
 
+  const handleCancel = () => {
+    // Invalidate the in-flight attempt (if any) so its eventual response is
+    // ignored, and close right away, we can't abort loginPopup() itself, but
+    // the user shouldn't have to wait for it to settle to leave the modal.
+    attemptIdRef.current += 1;
+    setIsLoading(false);
+    setError(null);
+    onClose();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
@@ -112,7 +122,7 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
         )}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
-          <Button variant='secondary' type='button' onClick={onClose} disabled={isLoading}>
+          <Button variant='secondary' type='button' onClick={handleCancel}>
             Cancel
           </Button>
           <Button type='submit' disabled={!canSubmit} loading={isLoading}>
