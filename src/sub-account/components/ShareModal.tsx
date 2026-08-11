@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
@@ -22,18 +22,18 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
   const { entityId } = useSubAccount();
   const [url, setUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const hasCreated = useRef(false);
 
   useEffect(() => {
-    if (!entityId) return;
-    let cancelled = false;
+    if (!entityId || hasCreated.current) return;
+    hasCreated.current = true;
     const createShare = async () => {
       try {
         const share = await shareService.createShare(entityId, {
           bucket, key: obj.key, isFolder: obj.isFolder, endpoint, region,
         });
-        if (!cancelled) setUrl(`${window.location.origin}/share/${share.token}`);
+        setUrl(`${window.location.origin}/share/${share.token}`);
       } catch (err) {
-        if (cancelled) return;
         const isForbidden = axios.isAxiosError(err) && err.response?.status === 403;
         setError(
           isForbidden
@@ -43,10 +43,8 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
       }
     };
     createShare();
-    return () => {
-      cancelled = true;
-    };
-  }, [entityId, bucket, obj.key, obj.isFolder, endpoint, region]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entityId]);
 
   let body: ReactNode;
   if (error) {

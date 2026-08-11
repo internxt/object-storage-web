@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FileIcon, FolderIcon } from '@phosphor-icons/react';
+import { FileIcon, FolderIcon, TrashIcon } from '@phosphor-icons/react';
+import { IconButton } from '../../../components/IconButton';
 import { formatDateTime } from '../../../utils/formatDate';
 import { displayName } from '../../../utils/displayName';
 import { T, text } from '../../tokens';
@@ -7,7 +8,13 @@ import { ShareListItem } from '../../services/share.service';
 import { LABELS, shareResourcePath, shareTypeLabel } from './constants';
 import { bodyRow, ellipsis, iconTile } from './styles';
 
-export const ShareRow = ({ share }: { share: ShareListItem }) => {
+interface ShareRowProps {
+  share: ShareListItem;
+  canRevoke: boolean;
+  onRevoke: () => void;
+}
+
+export const ShareRow = ({ share, canRevoke, onRevoke }: ShareRowProps) => {
   const [isRowHovered, setIsRowHovered] = useState(false);
   const Icon = share.isFolder ? FolderIcon : FileIcon;
   const path = shareResourcePath(share);
@@ -36,6 +43,13 @@ export const ShareRow = ({ share }: { share: ShareListItem }) => {
       <span style={text.body}>{shareTypeLabel(share)}</span>
 
       <span style={{ ...text.body, color: T.gray60 }}>{formatDateTime(new Date(share.createdAt))}</span>
+      <span style={{ display: 'flex', justifyContent: 'center' }}>
+        {isRowHovered && canRevoke && (
+          <IconButton title={LABELS.revokeTitle} onClick={onRevoke} style={{ color: T.gray60 }}>
+            <TrashIcon size={16} />
+          </IconButton>
+        )}
+      </span>
     </div>
   );
 };

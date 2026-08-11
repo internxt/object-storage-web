@@ -11,13 +11,18 @@ export const LABELS = {
   folder: 'Folder',
   file: 'File',
   noValue: '—',
+  revokeTitle: 'Revoke share link',
+  revokeConfirm: 'Revoke',
+  revokeSuccess: 'Share link revoked',
+  revokeError: 'Could not revoke the share link',
 } as const;
 
 export const COLUMNS = [
-  { label: 'Resource', width: '2.4fr' },
-  { label: 'Creator', width: '1.4fr' },
-  { label: 'Type', width: '0.8fr' },
-  { label: 'Created', width: '1fr' },
+  { key: 'resource', label: 'Resource', width: '2.4fr' },
+  { key: 'creator', label: 'Creator', width: '1.4fr' },
+  { key: 'type', label: 'Type', width: '0.8fr' },
+  { key: 'created', label: 'Created', width: '1fr' },
+  { key: 'actions', label: '', width: '48px' },
 ] as const;
 
 export const GRID_TEMPLATE = COLUMNS.map((column) => column.width).join(' ');

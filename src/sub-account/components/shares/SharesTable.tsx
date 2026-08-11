@@ -12,9 +12,21 @@ interface SharesTableProps {
   isLoading: boolean;
   search: string;
   onSearchChange: (value: string) => void;
+  currentMemberId: string | null;
+  isAdmin: boolean;
+  onRevoke: (share: ShareListItem) => void;
 }
 
-export const SharesTable = ({ shares, totalCount, isLoading, search, onSearchChange }: SharesTableProps) => {
+export const SharesTable = ({
+  shares,
+  totalCount,
+  isLoading,
+  search,
+  onSearchChange,
+  currentMemberId,
+  isAdmin,
+  onRevoke,
+}: SharesTableProps) => {
   const bodyState = toBodyState(isLoading, shares.length);
 
   return (
@@ -23,7 +35,7 @@ export const SharesTable = ({ shares, totalCount, isLoading, search, onSearchCha
 
       <div role="row" style={headerRow}>
         {COLUMNS.map((column) => (
-          <span key={column.label} style={headerCell}>
+          <span key={column.key} style={headerCell}>
             {column.label}
           </span>
         ))}
@@ -31,7 +43,12 @@ export const SharesTable = ({ shares, totalCount, isLoading, search, onSearchCha
 
       {bodyState === 'loading' && <div style={centeredMessage}>{LABELS.loading}</div>}
       {bodyState === 'empty' && <SharesEmptyState hasSearch={!!search} />}
-      {bodyState === 'items' && shares.map((share) => <ShareRow key={share.id} share={share} />)}
+      {bodyState === 'items' &&
+        shares.map((share) => {
+          const canRevoke = isAdmin || share.memberId === currentMemberId;
+
+          return <ShareRow key={share.id} share={share} canRevoke={canRevoke} onRevoke={() => onRevoke(share)} />;
+        })}
     </div>
   );
 };

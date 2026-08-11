@@ -1,6 +1,7 @@
 import { CSSProperties } from 'react';
 import { DownloadSimpleIcon, FileIcon, FolderIcon } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
+import { IconButton } from '../IconButton';
 import { ShareListItem } from '../../services/public-share.service';
 import { displayName } from '../../utils/displayName';
 import { T } from '../../sub-account/tokens';
@@ -52,18 +53,9 @@ export const ObjectRow = ({ obj, onOpen, onDownload }: ObjectRowProps) => {
         {displayName(obj.key)}
       </span>
       <span style={sizeStyle}>{prettyBytes(obj.size)}</span>
-      <button
-        type="button"
-        aria-label={`Download ${displayName(obj.key)}`}
-        onClick={onDownload}
-        style={{
-          width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: 'none', background: 'none', borderRadius: 6,
-          cursor: 'pointer', color: T.gray60,
-        }}
-      >
+      <IconButton aria-label={`Download ${displayName(obj.key)}`} onClick={onDownload} style={{ color: T.gray60 }}>
         <DownloadSimpleIcon size={16} />
-      </button>
+      </IconButton>
     </div>
   );
 };

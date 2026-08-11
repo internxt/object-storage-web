@@ -14,6 +14,7 @@ export interface CreateShareResponse {
 
 export interface ShareListItem {
   id: string;
+  memberId: string;
   bucket: string;
   objectKey: string;
   isFolder: boolean;
@@ -29,5 +30,8 @@ export const shareService = {
   listShares: async (entityId: string): Promise<ShareListItem[]> => {
     const response = await subAccountAxios.get<ShareListItem[]>(`/sub-accounts/${entityId}/shares`);
     return response.data;
+  },
+  revokeShare: async (entityId: string, shareId: string): Promise<void> => {
+    await subAccountAxios.delete(`/sub-accounts/${entityId}/shares/${shareId}`);
   },
 };

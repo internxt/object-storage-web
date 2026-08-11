@@ -1,23 +1,42 @@
 import { useEffect, useMemo, useState } from 'react';
 import notificationsService from '../../services/notifications.service';
+import { apiErrorMessage } from '../../utils/apiError';
+import Dialog from '../../components/Dialog';
 import { Pagination } from '../../components/Pagination';
 import { useSubAccount } from '../context/SubAccountContext';
 import { shareService, ShareListItem } from '../services/share.service';
 import { SharesTable } from '../components/shares/SharesTable';
-import { shareResourcePath } from '../components/shares/constants';
+import { LABELS, shareResourcePath } from '../components/shares/constants';
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 const DEFAULT_PAGE_SIZE = 100;
 const LOAD_ERROR_MESSAGE = 'Could not load shared links';
 
 export const SubAccountSharedPage = () => {
-  const { entityId } = useSubAccount();
+  const { entityId, memberId, isAdmin } = useSubAccount();
 
   const [shares, setShares] = useState<ShareListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [shareToRevoke, setShareToRevoke] = useState<ShareListItem | null>(null);
+  const [isRevoking, setIsRevoking] = useState(false);
+
+  const confirmRevoke = async () => {
+    if (!shareToRevoke || !entityId) return;
+    setIsRevoking(true);
+    try {
+      await shareService.revokeShare(entityId, shareToRevoke.id);
+      setShares((prev) => prev.filter((share) => share.id !== shareToRevoke.id));
+      notificationsService.success({ text: LABELS.revokeSuccess });
+      setShareToRevoke(null);
+    } catch (err) {
+      notificationsService.error({ text: apiErrorMessage(err, LABELS.revokeError) });
+    } finally {
+      setIsRevoking(false);
+    }
+  };
 
   useEffect(() => {
     if (!entityId) return;
@@ -26,7 +45,7 @@ export const SubAccountSharedPage = () => {
       .listShares(entityId)
       .then(setShares)
       .catch((err) => {
-        notificationsService.error({ text: err?.response?.data?.message ?? LOAD_ERROR_MESSAGE });
+        notificationsService.error({ text: apiErrorMessage(err, LOAD_ERROR_MESSAGE) });
       })
       .finally(() => setIsLoading(false));
   }, [entityId]);
@@ -63,6 +82,8 @@ export const SubAccountSharedPage = () => {
     [filteredShares, pageNumber, pageSize],
   );
 
+  const revokeTargetPath = shareToRevoke ? shareResourcePath(shareToRevoke) : '';
+
   return (
     <div
       style={{
@@ -81,6 +102,9 @@ export const SubAccountSharedPage = () => {
         isLoading={isLoading}
         search={search}
         onSearchChange={onSearchChange}
+        currentMemberId={memberId}
+        isAdmin={isAdmin}
+        onRevoke={setShareToRevoke}
       />
       <Pagination
         pageSize={pageSize}
@@ -92,6 +116,18 @@ export const SubAccountSharedPage = () => {
         onPrev={() => setPageNumber((n) => Math.max(1, n - 1))}
         onNext={() => setPageNumber((n) => Math.min(pageCount, n + 1))}
         isLoading={isLoading}
+      />
+      <Dialog
+        isOpen={!!shareToRevoke}
+        onClose={() => setShareToRevoke(null)}
+        onPrimaryAction={confirmRevoke}
+        onSecondaryAction={() => setShareToRevoke(null)}
+        isLoading={isRevoking}
+        primaryAction={LABELS.revokeConfirm}
+        secondaryAction="Cancel"
+        primaryActionColor="danger"
+        title={LABELS.revokeTitle}
+        subtitle={`The public link for ${revokeTargetPath} will stop working immediately.`}
       />
     </div>
   );

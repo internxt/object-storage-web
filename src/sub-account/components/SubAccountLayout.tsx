@@ -16,6 +16,7 @@ const TABS_ADMIN = [
 
 const TABS_MEMBER = [
   { key: '/subaccount/buckets', label: 'Buckets' },
+  { key: '/subaccount/shared', label: 'Shared' },
 ];
 
 const toInitials = (email: string | null): string => {
