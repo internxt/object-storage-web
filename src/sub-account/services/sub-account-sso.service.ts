@@ -89,6 +89,39 @@ async function getPublicConfig(organizationName: string): Promise<PublicSsoConfi
   }
 }
 
+/**
+ * MSAL flags an interaction as "in progress" in sessionStorage while a popup is open,
+ * and clears it once loginPopup() settles. If a previous attempt was interrupted before
+ * that cleanup ran (e.g. the backend rejecting a successful Azure login), the flag is
+ * left stuck and MSAL refuses to open the popup on every subsequent attempt.
+ */
+function clearStuckInteractionStatus(clientId?: string): void {
+  try {
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const key = sessionStorage.key(i);
+      if (!key || !key.includes('interaction.status')) continue;
+      if (!clientId || key.includes(clientId)) sessionStorage.removeItem(key);
+    }
+  } catch {
+    // sessionStorage may be unavailable (e.g. private browsing) — nothing to clean up.
+  }
+}
+
+function toAzureLoginError(error: unknown): unknown {
+  if (error instanceof BrowserAuthError) {
+    if (error.errorCode === 'popup_window_error' || error.errorCode === 'empty_window_error') {
+      return new SsoPopupBlockedError();
+    }
+    if (error.errorCode === 'user_cancelled') {
+      return new SsoCancelledError();
+    }
+    if (error.errorCode === 'monitor_window_timeout') {
+      return new SsoTimeoutError();
+    }
+  }
+  return error;
+}
+
 async function acquireAzureIdToken(config: PublicSsoConfig): Promise<{ idToken: string; azureEmail: string }> {
   const msalInstance = new PublicClientApplication({
     auth: {
@@ -102,6 +135,11 @@ async function acquireAzureIdToken(config: PublicSsoConfig): Promise<{ idToken: 
   });
   await msalInstance.initialize();
 
+  // Clear any stuck flag from a previous interrupted attempt before opening the
+  // popup, so this call — the direct result of the "Continue with Microsoft"
+  // click — stays the first and only loginPopup() call in the gesture chain.
+  clearStuckInteractionStatus(config.clientId);
+
   try {
     const result = await msalInstance.loginPopup({
       scopes: ['openid', 'profile', 'email'],
@@ -109,22 +147,19 @@ async function acquireAzureIdToken(config: PublicSsoConfig): Promise<{ idToken: 
     });
     return { idToken: result.idToken, azureEmail: result.account?.username ?? '' };
   } catch (error) {
-    if (error instanceof BrowserAuthError) {
-      if (error.errorCode === 'popup_window_error' || error.errorCode === 'empty_window_error') {
-        throw new SsoPopupBlockedError();
-      }
-      if (error.errorCode === 'user_cancelled') {
-        throw new SsoCancelledError();
-      }
-      if (error.errorCode === 'monitor_window_timeout') {
-        throw new SsoTimeoutError();
-      }
-    }
-    throw error;
+    throw toAzureLoginError(error);
   }
 }
 
 let ssoLoginInFlight = false;
+
+/** Resets all client-side SSO login state. Call whenever the SSO login modal opens,
+ *  so a previous interrupted attempt can never block or interfere with a fresh one. */
+function resetSsoLoginState(): void {
+  ssoLoginInFlight = false;
+  clearStuckInteractionStatus();
+}
+
 async function loginWithAzure(organizationName: string): Promise<{ token: string; azureEmail: string }> {
   if (ssoLoginInFlight) throw new SsoCancelledError();
   ssoLoginInFlight = true;
@@ -181,6 +216,7 @@ async function getOtherMemberCount(entityId: string, currentMemberId: string): P
 export const subAccountSsoService = {
   getPublicConfig,
   loginWithAzure,
+  resetSsoLoginState,
   getSsoConfig,
   configureSso,
   disableSso,

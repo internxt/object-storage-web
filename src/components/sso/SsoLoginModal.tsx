@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { WarningCircleIcon } from '@phosphor-icons/react';
 import Modal from '../Modal';
 import Input from '../Input';
@@ -9,6 +9,7 @@ import {
   SsoMemberNotFoundError,
   SsoNotConfiguredError,
   SsoPopupBlockedError,
+  subAccountSsoService,
 } from '../../sub-account/services/sub-account-sso.service';
 
 const SSO_ORG_KEY = 'subAccountSsoOrg';
@@ -23,11 +24,19 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
   const [organizationName, setOrganizationName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ kind: 'warning' | 'error'; message: string } | null>(null);
+  // Bumped every time the modal opens, so a stale response from an attempt left
+  // hanging in a previous, interrupted popup can't clobber a fresh one's state.
+  const attemptIdRef = useRef(0);
 
   useEffect(() => {
     if (isOpen) {
+      attemptIdRef.current += 1;
       setOrganizationName(localStorage.getItem(SSO_ORG_KEY) ?? '');
       setError(null);
+      setIsLoading(false);
+      // Start every attempt from a clean slate, even if the previous one was
+      // interrupted mid-popup and left MSAL's client-side state stuck.
+      subAccountSsoService.resetSsoLoginState();
     }
   }, [isOpen]);
 
@@ -36,13 +45,16 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
+    const attemptId = attemptIdRef.current;
     setError(null);
     setIsLoading(true);
     try {
       await logInWithSso(organizationName);
+      if (attemptId !== attemptIdRef.current) return;
       localStorage.setItem(SSO_ORG_KEY, organizationName.trim().toLowerCase());
       onClose();
     } catch (err) {
+      if (attemptId !== attemptIdRef.current) return;
       if (err instanceof SsoNotConfiguredError) {
         setError({
           kind: 'warning',
@@ -59,12 +71,15 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
           message: 'Your browser blocked the sign-in window. Allow pop-ups for this site and try again.',
         });
       } else if (err instanceof SsoCancelledError) {
-        // User closed the Microsoft popup — back to idle, no error.
+        setError({
+          kind: 'error',
+          message: 'The sign-in window was closed before completing. Try again.',
+        });
       } else {
         setError({ kind: 'error', message: 'Something went wrong while signing in with SSO. Try again.' });
       }
     } finally {
-      setIsLoading(false);
+      if (attemptId === attemptIdRef.current) setIsLoading(false);
     }
   };
 
