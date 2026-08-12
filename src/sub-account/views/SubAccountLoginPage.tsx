@@ -1,15 +1,13 @@
 import { LoginPageView } from '../../components/auth/LoginPageView';
 import { useSubAccount } from '../context/SubAccountContext';
+import { subAccountConsoleBranding } from '../console-branding';
 
 export const SubAccountLoginPage = () => {
   const { isAuthenticated, logIn } = useSubAccount();
 
   return (
     <LoginPageView
-      consoleTitle='Cloud Account Console'
-      rightHeadline={<>Object Storage<br />Sub-account</>}
-      rightDescription='Access your storage, manage buckets and objects, and control team member permissions from one place.'
-      rightFeaturePills={['Bucket management', 'Object storage', 'Team permissions']}
+      {...subAccountConsoleBranding}
       isAuthenticated={isAuthenticated}
       logIn={logIn}
       redirectTo='/subaccount/buckets'
