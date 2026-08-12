@@ -11,6 +11,7 @@ export const SubAccountLoginPage = () => {
       isAuthenticated={isAuthenticated}
       logIn={logIn}
       redirectTo='/subaccount/buckets'
+      forgotPasswordPath='/subaccount/forgot-password'
     />
   );
 };
