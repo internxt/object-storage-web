@@ -1,5 +1,5 @@
 import { FolderIcon } from '@phosphor-icons/react';
-import { ShareListItem } from '../../services/public-share.service';
+import { ShareListItem } from '../../services/share.service';
 import { T } from '../../sub-account/tokens';
 import { CenteredMessage } from './CenteredMessage';
 import { ObjectRow } from './ObjectRow';

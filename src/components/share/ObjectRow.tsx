@@ -2,7 +2,7 @@ import { CSSProperties } from 'react';
 import { DownloadSimpleIcon, FileIcon, FolderIcon } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import { IconButton } from '../IconButton';
-import { ShareListItem } from '../../services/public-share.service';
+import { ShareListItem } from '../../services/share.service';
 import { displayName } from '../../utils/displayName';
 import { T } from '../../sub-account/tokens';
 

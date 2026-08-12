@@ -32,6 +32,7 @@ import { SubAccountUsagePage } from './sub-account/views/SubAccountUsagePage';
 import { SubAccountSharedPage } from './sub-account/views/SubAccountSharedPage';
 import { SubAccountSettingsPage } from './sub-account/views/SubAccountSettingsPage';
 import { SharePage } from './views/SharePage';
+import { ShareAuthRoute } from './components/share/ShareAuthRoute';
 import { SubAccountBrandingProvider } from './sub-account/context/SubAccountBrandingContext/SubAccountBrandingContext';
 
 const DEFAULT_LOGIN_PATH = '/subaccount/login';
@@ -64,8 +65,10 @@ export function App() {
 
               <Route path='/' element={<Navigate to={getLoginPathForHost()} />} />
 
-              {/* Public share links */}
-              <Route path='/share/:token' element={<SharePage />} />
+              {/* Share links */}
+              <Route element={<ShareAuthRoute />}>
+                <Route path='/share/:token' element={<SharePage />} />
+              </Route>
 
               {/* Management console */}
               <Route path='/management/login' element={<ManagementLoginPage />} />

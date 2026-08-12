@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { HttpStatusCode } from 'axios';
 import { DownloadSimpleIcon, FileIcon, FolderIcon, LinkBreakIcon } from '@phosphor-icons/react';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
@@ -9,10 +10,12 @@ import { CenteredMessage } from '../components/share/CenteredMessage';
 import { FolderListing } from '../components/share/FolderListing';
 import { useObjectPagination } from '../sub-account/hooks/useObjectPagination';
 import {
-  publicShareService,
+  shareService,
   ShareListItem,
   ShareMetadata,
-} from '../services/public-share.service';
+} from '../services/share.service';
+import { subAccountAuthService } from '../sub-account/services/sub-account-auth.service';
+import { hasApiErrorStatus } from '../utils/apiError';
 import { T, card } from '../sub-account/tokens';
 
 const PAGE_VERTICAL_PADDING = 48;
@@ -21,6 +24,7 @@ const isFolderShare = (meta: ShareMetadata) => meta.type === 'folder';
 
 export const SharePage = () => {
   const { token } = useParams<{ token: string }>();
+  const navigate = useNavigate();
   const [metadata, setMetadata] = useState<ShareMetadata | null>(null);
   const [isNotFound, setIsNotFound] = useState(false);
   const [objects, setObjects] = useState<ShareListItem[]>([]);
@@ -30,32 +34,43 @@ export const SharePage = () => {
     state: pagination, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
   } = useObjectPagination();
 
+  const onShareError = (err: unknown) => {
+    if (hasApiErrorStatus(err, HttpStatusCode.Forbidden)) {
+      subAccountAuthService.logOut();
+      const redirect = encodeURIComponent(`/share/${token}`);
+      navigate(`/subaccount/login?redirect=${redirect}`, { replace: true });
+      return;
+    }
+    setIsNotFound(true);
+  };
+
   useEffect(() => {
     if (!token) return;
     const fetchMetadata = async () => {
       try {
-        const meta = await publicShareService.getMetadata(token);
+        const meta = await shareService.getMetadata(token);
         setMetadata(meta);
         if (isFolderShare(meta)) setCurrentPrefix(meta.prefix ?? null);
-      } catch {
-        setIsNotFound(true);
+      } catch (err) {
+        onShareError(err);
       }
     };
     fetchMetadata();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const loadList = async (prefix: string, cursor?: string) => {
     if (!token) return;
     setIsListLoading(true);
     try {
-      const result = await publicShareService.list(token, prefix, cursor);
+      const result = await shareService.list(token, prefix, cursor);
       setObjects(result.objects);
       recordPage({
         isTruncated: result.nextCursor !== null,
         continuationToken: result.nextCursor ?? undefined,
       });
-    } catch {
-      setIsNotFound(true);
+    } catch (err) {
+      onShareError(err);
     } finally {
       setIsListLoading(false);
     }
@@ -73,11 +88,16 @@ export const SharePage = () => {
     setCurrentPrefix(key);
   };
 
-  const onDownload = (key?: string) => {
+  const onDownload = async (key?: string) => {
     if (!token) return;
-    const anchor = document.createElement('a');
-    anchor.href = publicShareService.downloadUrl(token, key);
-    anchor.click();
+    try {
+      const url = await shareService.download(token, key);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.click();
+    } catch (err) {
+      onShareError(err);
+    }
   };
 
   const sharedRoot = metadata?.prefix ?? '';
@@ -101,7 +121,7 @@ export const SharePage = () => {
       <CenteredMessage
         icon={<LinkBreakIcon size={28} color={T.gray50} />}
         title="This link doesn't exist"
-        subtitle="The share link is invalid or is no longer available."
+        subtitle="The share link is invalid, was revoked or is no longer available."
       />
     );
   } else if (!metadata) {

@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import axios from 'axios';
+import { HttpStatusCode } from 'axios';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import Loader from '../../components/Loader';
@@ -7,6 +7,7 @@ import { S3Object } from '../../services/s3.service';
 import { shareService } from '../services/share.service';
 import { useSubAccount } from '../context/SubAccountContext';
 import { displayName } from '../../utils/displayName';
+import { hasApiErrorStatus } from '../../utils/apiError';
 import { ShareLink } from './ShareLink';
 import { text } from '../tokens';
 
@@ -34,7 +35,7 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
         });
         setUrl(`${window.location.origin}/share/${share.token}`);
       } catch (err) {
-        const isForbidden = axios.isAxiosError(err) && err.response?.status === 403;
+        const isForbidden = hasApiErrorStatus(err, HttpStatusCode.Forbidden);
         setError(
           isForbidden
             ? "You don't have access to this resource."
