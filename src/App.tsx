@@ -30,6 +30,10 @@ import { SubAccountBucketsPage } from './sub-account/views/SubAccountBucketsPage
 import { SubAccountBucketDetailPage } from './sub-account/views/SubAccountBucketDetailPage';
 import { SubAccountUsagePage } from './sub-account/views/SubAccountUsagePage';
 import { SubAccountSettingsPage } from './sub-account/views/SubAccountSettingsPage';
+import { PartnersForgotPasswordPage } from './partners/views/PartnersForgotPasswordPage';
+import { SubAccountForgotPasswordPage } from './sub-account/views/SubAccountForgotPasswordPage';
+import { PartnersResetPasswordPage } from './partners/views/PartnersResetPasswordPage';
+import { SubAccountResetPasswordPage } from './sub-account/views/SubAccountResetPasswordPage';
 
 const DEFAULT_LOGIN_PATH = '/subaccount/login';
 
@@ -72,6 +76,8 @@ export function App() {
 
               {/* Partners console */}
               <Route path='/partners/login' element={<PartnersLoginPage />} />
+              <Route path='/partners/forgot-password' element={<PartnersForgotPasswordPage />} />
+              <Route path='/partners/reset-password' element={<PartnersResetPasswordPage />} />
               <Route element={<PartnersAuthRoute />}>
                 <Route path='/partners' element={<Navigate to='/partners/sub-accounts' />} />
                 <Route path='/partners/sub-accounts' element={<PartnersSubAccountsPage />} />
@@ -81,6 +87,8 @@ export function App() {
 
               {/* Sub-account console */}
               <Route path='/subaccount/login' element={<SubAccountLoginPage />} />
+              <Route path='/subaccount/forgot-password' element={<SubAccountForgotPasswordPage />} />
+              <Route path='/subaccount/reset-password' element={<SubAccountResetPasswordPage />} />
               <Route element={<SubAccountAuthRoute />}>
                 <Route path='/subaccount/buckets' element={<SubAccountBucketsPage />} />
                 <Route path='/subaccount/buckets/:bucketName' element={<SubAccountBucketDetailPage />} />

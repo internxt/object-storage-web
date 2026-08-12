@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { captchaService } from '../../services/captcha.service';
 
 const TOKEN_KEY = 'subAccountToken';
 const EMAIL_KEY = 'subAccountEmail';
@@ -25,6 +26,19 @@ async function logIn(email: string, password: string): Promise<void> {
   setToken(response.data.token);
   localStorage.setItem(EMAIL_KEY, email);
   console.log('[sub-account] token saved', { role: getRole(), memberId: getMemberId(), entityId: getEntityId() });
+}
+
+async function requestPasswordReset(email: string): Promise<void> {
+  const captchaHeaders = await captchaService.getHeaders('ForgotPassword');
+  await axios.post(
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/forgot-password`,
+    { email },
+    { headers: captchaHeaders },
+  );
+}
+
+async function resetPassword(token: string, newPassword: string): Promise<void> {
+  await axios.post(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/reset-password`, { token, newPassword });
 }
 
 function getEmail(): string | null {
@@ -106,6 +120,8 @@ function getEntityCreatedAt(): string | null {
 export const subAccountAuthService = {
   logIn,
   logOut,
+  requestPasswordReset,
+  resetPassword,
   getToken,
   setToken,
   getRole,
