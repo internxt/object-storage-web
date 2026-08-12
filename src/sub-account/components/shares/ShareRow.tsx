@@ -10,11 +10,10 @@ import { bodyRow, ellipsis, iconTile } from './styles';
 
 interface ShareRowProps {
   share: ShareListItem;
-  canRevoke: boolean;
   onRevoke: () => void;
 }
 
-export const ShareRow = ({ share, canRevoke, onRevoke }: ShareRowProps) => {
+export const ShareRow = ({ share, onRevoke }: ShareRowProps) => {
   const [isRowHovered, setIsRowHovered] = useState(false);
   const Icon = share.isFolder ? FolderIcon : FileIcon;
   const path = shareResourcePath(share);
@@ -44,7 +43,7 @@ export const ShareRow = ({ share, canRevoke, onRevoke }: ShareRowProps) => {
 
       <span style={{ ...text.body, color: T.gray60 }}>{formatDateTime(new Date(share.createdAt))}</span>
       <span style={{ display: 'flex', justifyContent: 'center' }}>
-        {isRowHovered && canRevoke && (
+        {isRowHovered && (
           <IconButton title={LABELS.revokeTitle} onClick={onRevoke} style={{ color: T.gray60 }}>
             <TrashIcon size={16} />
           </IconButton>

@@ -13,7 +13,7 @@ const DEFAULT_PAGE_SIZE = 100;
 const LOAD_ERROR_MESSAGE = 'Could not load shared links';
 
 export const SubAccountSharedPage = () => {
-  const { entityId, memberId, isAdmin } = useSubAccount();
+  const { entityId } = useSubAccount();
 
   const [shares, setShares] = useState<ShareListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -102,8 +102,6 @@ export const SubAccountSharedPage = () => {
         isLoading={isLoading}
         search={search}
         onSearchChange={onSearchChange}
-        currentMemberId={memberId}
-        isAdmin={isAdmin}
         onRevoke={setShareToRevoke}
       />
       <Pagination

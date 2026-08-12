@@ -12,8 +12,6 @@ interface SharesTableProps {
   isLoading: boolean;
   search: string;
   onSearchChange: (value: string) => void;
-  currentMemberId: string | null;
-  isAdmin: boolean;
   onRevoke: (share: ShareListItem) => void;
 }
 
@@ -23,8 +21,6 @@ export const SharesTable = ({
   isLoading,
   search,
   onSearchChange,
-  currentMemberId,
-  isAdmin,
   onRevoke,
 }: SharesTableProps) => {
   const bodyState = toBodyState(isLoading, shares.length);
@@ -44,11 +40,9 @@ export const SharesTable = ({
       {bodyState === 'loading' && <div style={centeredMessage}>{LABELS.loading}</div>}
       {bodyState === 'empty' && <SharesEmptyState hasSearch={!!search} />}
       {bodyState === 'items' &&
-        shares.map((share) => {
-          const canRevoke = isAdmin || share.memberId === currentMemberId;
-
-          return <ShareRow key={share.id} share={share} canRevoke={canRevoke} onRevoke={() => onRevoke(share)} />;
-        })}
+        shares.map((share) => (
+          <ShareRow key={share.id} share={share} onRevoke={() => onRevoke(share)} />
+        ))}
     </div>
   );
 };
