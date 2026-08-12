@@ -145,7 +145,7 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete }: BucketRowProps) => 
             height: 32,
             borderRadius: 8,
             flexShrink: 0,
-            background: 'linear-gradient(135deg, rgba(0,102,255,0.14) 0%, rgba(0,102,255,0.06) 100%)',
+            background: `linear-gradient(135deg, ${T.primaryBg14} 0%, ${T.primaryBg6} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

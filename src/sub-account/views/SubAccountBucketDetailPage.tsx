@@ -81,7 +81,7 @@ const Pill = ({ type }: { type: 'public' | 'private' }) => {
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
       padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 500,
-      background: pub ? 'rgba(0,102,255,0.08)' : T.gray10,
+      background: pub ? T.primaryBg8 : T.gray10,
       color: pub ? T.primary : T.gray80,
     }}>
       <span style={{
@@ -230,7 +230,7 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
         display: 'grid', gridTemplateColumns: showVersions ? GRID_COLS_VERSIONS : GRID_COLS, alignItems: 'center',
         padding: '0 16px', height: 52,
         borderBottom: `1px solid ${T.gray15}`,
-        background: selected ? 'rgba(0,102,255,0.04)' : hovered ? T.gray5 : '#fff',
+        background: selected ? T.primaryBg4 : hovered ? T.gray5 : '#fff',
         transition: 'background 100ms', cursor: 'pointer', position: 'relative',
       }}
       onMouseEnter={() => setHovered(true)}
@@ -838,7 +838,7 @@ export const SubAccountBucketDetailPage = () => {
 
         <div style={{
           width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-          background: 'rgba(0,102,255,0.08)',
+          background: T.primaryBg8,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <DatabaseIcon size={20} color={T.primary} weight="duotone" />
