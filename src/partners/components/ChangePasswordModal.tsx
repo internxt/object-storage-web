@@ -2,21 +2,12 @@ import { useState } from 'react';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { partnersService } from '../services/partners.service';
 import notificationsService from '../../services/notifications.service';
+import { validatePassword } from '../../components/auth/passwordPolicy';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const validatePassword = (password: string): string[] => {
-  const errors: string[] = [];
-  if (!password || password.length < 6) errors.push('At least 6 characters');
-  if (!/[a-z]/.test(password)) errors.push('At least one lowercase letter');
-  if (!/[A-Z]/.test(password)) errors.push('At least one uppercase letter');
-  if (!/\d/.test(password)) errors.push('At least one digit');
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) errors.push('At least one special character (!@#$%^&* etc)');
-  return errors;
-};
 
 const PasswordInput = ({
   value,
