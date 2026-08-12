@@ -30,6 +30,7 @@ import { SubAccountBucketsPage } from './sub-account/views/SubAccountBucketsPage
 import { SubAccountBucketDetailPage } from './sub-account/views/SubAccountBucketDetailPage';
 import { SubAccountUsagePage } from './sub-account/views/SubAccountUsagePage';
 import { SubAccountSettingsPage } from './sub-account/views/SubAccountSettingsPage';
+import { SubAccountBrandingProvider } from './sub-account/context/SubAccountBrandingContext/SubAccountBrandingContext';
 
 const DEFAULT_LOGIN_PATH = '/subaccount/login';
 
@@ -48,7 +49,8 @@ export function App() {
       <ManagementProvider>
         <PartnersProvider>
           <SubAccountProvider>
-          <Router>
+          <SubAccountBrandingProvider>
+            <Router>
             <Routes>
               <Route path='/login' element={<LoginPage />} />
 
@@ -91,7 +93,8 @@ export function App() {
 
               {/* <Route path="*" element={<NotFoundPage />} /> */}
             </Routes>
-          </Router>
+            </Router>
+          </SubAccountBrandingProvider>
           </SubAccountProvider>
         </PartnersProvider>
       </ManagementProvider>
