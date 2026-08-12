@@ -90,7 +90,7 @@ const PasswordInput = ({
 /** Square avatar — variant 'primary' (solid blue) or 'tint' (blue-tinted) */
 const AvatarSquare = ({ initials, variant }: { initials: string; variant: 'primary' | 'tint' }) => (
   <div className={`w-[132px] h-[132px] rounded-2xl flex items-center justify-center text-[48px] font-bold select-none shrink-0 ${
-    variant === 'primary' ? 'bg-primary text-white' : 'bg-primary/[0.08] text-primary'
+    variant === 'primary' ? 'bg-primary text-[color:var(--sub-account-primary-contrast,#FFFFFF)]' : 'bg-primary/[0.08] text-primary'
   }`}>
     {initials}
   </div>
@@ -231,7 +231,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
           <div className='flex justify-end mt-1'>
             <button
               disabled={!canUpdatePw || isSavingPw}
-              className='h-10 px-4 bg-primary hover:bg-blue-60 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors'
+              className='h-10 px-4 bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-[color:var(--sub-account-primary-contrast,#FFFFFF)] rounded-lg text-sm font-medium transition-colors'
               onClick={handleUpdatePassword}
             >
               {isSavingPw ? 'Saving…' : 'Update'}
@@ -331,7 +331,7 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
       action={
         <button
           onClick={() => setIsAddMemberOpen(true)}
-          className='inline-flex items-center gap-2 h-10 px-4 bg-primary hover:bg-blue-60 text-white rounded-lg text-sm font-medium transition-colors'
+          className='inline-flex items-center gap-2 h-10 px-4 bg-primary hover:bg-primary-dark text-[color:var(--sub-account-primary-contrast,#FFFFFF)] rounded-lg text-sm font-medium transition-colors'
         >
           <PlusIcon size={14} weight='bold' />
           Add member
