@@ -328,6 +328,12 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
         </button>
       }
     >
+      {ssoConfigured && (
+        <p className='text-sm text-gray-60 mb-4'>
+          Single sign-on is enabled, so you don't need to add members by hand, anyone who signs in with Microsoft
+          and belongs to this organization is added automatically on their first login.
+        </p>
+      )}
       {isLoading ? (
         <p className='text-sm text-gray-50'>Loading...</p>
       ) : members.length === 0 ? (
