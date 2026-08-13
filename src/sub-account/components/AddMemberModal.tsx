@@ -30,15 +30,9 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
-    let userPassword = password;
-    if (ssoEnabled) {
-      // Generates a random password if SSO is enabled
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-      userPassword = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-        .map(n => chars[n % chars.length])
-        .join('');
-    }
-    await onAdd(email, userPassword ?? undefined, role);
+    // No password for SSO members as the backend creates them as SSO-managed (password: null)
+    // and they get linked to their Microsoft identity automatically on first login.
+    await onAdd(email, ssoEnabled ? undefined : password, role);
   };
 
   return (
