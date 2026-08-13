@@ -6,7 +6,7 @@ import { ConsoleTopBar } from './ConsoleTopBar';
 import { subAccountBillingService } from '../services/sub-account-billing.service';
 import notificationsService from '../../services/notifications.service';
 import { T } from '../tokens';
-import Skeleton from 'react-loading-skeleton';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 
 const TABS_ADMIN = [
   { key: '/subaccount/buckets', label: 'Buckets' },
@@ -78,8 +78,9 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
 
 export function SubAccountConsoleSkeleton() {
   return (
-    <div aria-busy='true' aria-label='Loading console branding' className='min-h-screen bg-[#F7F8FA]'>
-      <header className='h-16 bg-white border-b border-gray-100 px-7 flex items-center justify-between'>
+    <SkeletonTheme baseColor={T.gray15} highlightColor={T.gray10}>
+    <div aria-busy='true' aria-label='Loading console branding' className='min-h-screen' style={{ background: T.gray5 }}>
+      <header className='h-14 px-8 flex items-center justify-between' style={{ background: T.white, borderBottom: `1px solid ${T.gray20}` }}>
         <Skeleton height={18} width={132} />
         <div className='flex items-center gap-6'>
           <Skeleton height={16} width={58} />
@@ -90,14 +91,14 @@ export function SubAccountConsoleSkeleton() {
       <main className='max-w-[1200px] mx-auto px-7 py-8 flex flex-col gap-4'>
         <div className='flex gap-4'>
           {[0, 1, 2].map((index) => (
-            <div key={index} className='flex-1 bg-white border border-gray-100 rounded-xl p-5 flex flex-col gap-3'>
+            <div key={index} className='flex-1 rounded-xl p-5 flex flex-col gap-3' style={{ background: T.white, border: `1px solid ${T.gray20}` }}>
               <Skeleton height={12} width={88} />
               <Skeleton height={30} width={64} />
               <Skeleton height={12} width={120} />
             </div>
           ))}
         </div>
-        <div className='bg-white border border-gray-100 rounded-xl overflow-hidden'>
+        <div className='rounded-xl overflow-hidden' style={{ background: T.white, border: `1px solid ${T.gray20}` }}>
           <div className='p-6 flex justify-between items-center'>
             <div className='flex flex-col gap-2'>
               <Skeleton height={18} width={88} />
@@ -105,7 +106,7 @@ export function SubAccountConsoleSkeleton() {
             </div>
             <Skeleton height={40} width={148} borderRadius={8} />
           </div>
-          <div className='h-10 bg-gray-50 border-y border-gray-100 px-6 flex items-center gap-20'>
+          <div className='h-10 px-6 flex items-center gap-20' style={{ background: T.gray5, borderTop: `1px solid ${T.gray20}`, borderBottom: `1px solid ${T.gray20}` }}>
             <Skeleton height={10} width={64} />
             <Skeleton height={10} width={64} />
             <Skeleton height={10} width={64} />
@@ -116,5 +117,6 @@ export function SubAccountConsoleSkeleton() {
         </div>
       </main>
     </div>
+    </SkeletonTheme>
   );
 }
