@@ -12,15 +12,18 @@ export const SubAccountLoginPage = () => {
   const { isAuthenticated, logIn, logInWithSso } = useSubAccount();
   const { branding, isLoading, styles } = useSubAccountBranding();
 
-  if (isLoading) return <SubAccountLoginSkeleton />;
-
   const [isSsoModalOpen, setIsSsoModalOpen] = useState(false);
 
   useEffect(() => {
-    // When this page loads as the MSAL popup's redirect target, forward the
-    // auth response to the opener and close the popup. On a normal page load
-    // there's no response in the URL, so this just throws and is ignored.
-    broadcastResponseToMainFrame().catch(() => {});
+    // This page doubles as the MSAL popup's redirect target. Only forward the
+    // response when the URL actually carries one (an MSAL response includes a
+    // `state` param). broadcastResponseToMainFrame() sets document.title
+    // unconditionally as its first statement, before checking anything, so
+    // calling it on a normal page load leaves the tab title corrupted.
+    const hasMsalResponse =
+      new URLSearchParams(window.location.hash.replace(/^#/, '')).has('state') ||
+      new URLSearchParams(window.location.search).has('state');
+    if (hasMsalResponse) void broadcastResponseToMainFrame();
   }, []);
 
   const mapLoginError = (error: unknown): string | undefined => {
@@ -29,6 +32,8 @@ export const SubAccountLoginPage = () => {
     }
     return undefined;
   };
+
+  if (isLoading) return <SubAccountLoginSkeleton />;
 
   return (
     <>
