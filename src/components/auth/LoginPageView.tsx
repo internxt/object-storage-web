@@ -20,6 +20,8 @@ interface LoginPageViewProps {
   logIn: (email: string, password: string) => Promise<void>;
   redirectTo: string;
   branding?: LoginBranding;
+  ssoSlot?: React.ReactNode;
+  mapLoginError?: (error: unknown) => string | undefined;
 }
 
 export const LoginPageView = ({
@@ -31,6 +33,8 @@ export const LoginPageView = ({
   logIn,
   redirectTo,
   branding,
+  ssoSlot,
+  mapLoginError,
 }: LoginPageViewProps) => {
   const navigate = useNavigate();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -73,8 +77,8 @@ export const LoginPageView = ({
     try {
       await logIn(formData.email, formData.password);
       navigate(redirectTo);
-    } catch {
-      setLoginError('Invalid credentials');
+    } catch (err) {
+      setLoginError(mapLoginError?.(err) ?? 'Invalid credentials');
     } finally {
       setIsLoggingIn(false);
     }
@@ -156,6 +160,17 @@ export const LoginPageView = ({
               {isLoggingIn ? 'Signing in…' : 'Log in'}
             </button>
           </form>
+
+          {ssoSlot && (
+            <div className='flex flex-col gap-4 -mt-2'>
+              <div className='flex items-center gap-3'>
+                <div className='h-px flex-1 bg-gray-10' />
+                <span className='text-xs text-gray-50'>or</span>
+                <div className='h-px flex-1 bg-gray-10' />
+              </div>
+              {ssoSlot}
+            </div>
+          )}
         </div>
       </div>
 
