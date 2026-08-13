@@ -101,6 +101,10 @@ async function deleteSubAccount(id: string): Promise<void> {
   await axios.delete(`${API()}/sub-accounts/${id}`, { headers: headers() });
 }
 
+async function changeSubAccountPassword(id: string, newPassword: string): Promise<void> {
+  await axios.patch(`${API()}/sub-accounts/${id}/password`, { newPassword }, { headers: headers() });
+}
+
 async function getUsageSummary(): Promise<PartnersUsageSummary> {
   const response = await axios.get(`${API()}/usages/summary`, { headers: headers() });
   return response.data;
@@ -179,6 +183,7 @@ export const partnersService = {
   suspendSubAccount,
   reactivateSubAccount,
   deleteSubAccount,
+  changeSubAccountPassword,
   getUsageSummary,
   createBillingPortalSession,
   changePassword,

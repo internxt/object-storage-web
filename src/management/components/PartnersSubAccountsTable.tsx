@@ -5,6 +5,7 @@ import { DotsThree } from '@phosphor-icons/react'
 import { SubAccount } from '../services/management.service'
 import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable'
 import { ConfirmActionModal } from './ConfirmActionModal'
+import { ChangePasswordModal } from './ChangePasswordModal'
 import { T, shadow } from '../../sub-account/tokens'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
   onSuspend: (id: string) => void
   onReactivate: (id: string) => void
   onDelete: (id: string) => void
+  onChangePassword: (id: string, newPassword: string) => Promise<void>
   isLoading: boolean
   pendingAccountId?: string | null
   sortOrder?: SortOrder
@@ -97,17 +99,20 @@ const ActionsMenu = ({
   onSuspend,
   onReactivate,
   onDelete,
+  onChangePassword,
 }: {
   account: SubAccount
   onSuspend: (id: string) => void
   onReactivate: (id: string) => void
   onDelete: (id: string) => void
+  onChangePassword: (id: string, newPassword: string) => Promise<void>
 }) => {
   const [open, setOpen] = useState(false)
   const [coords, setCoords] = useState({ top: 0, right: 0 })
   const [confirmAction, setConfirmAction] = useState<
     'suspend' | 'reactivate' | 'delete' | null
   >(null)
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
 
   const handleOpen = () => {
@@ -178,12 +183,37 @@ const ActionsMenu = ({
                 border: `1px solid ${T.gray15}`,
                 borderRadius: 12,
                 boxShadow: shadow.lg,
-                width: 144,
+                minWidth: 144,
                 zIndex: 50,
                 overflow: 'hidden',
                 padding: '4px 0',
               }}
             >
+              <button
+                onClick={() => {
+                  setChangePasswordOpen(true)
+                  setOpen(false)
+                }}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 16px',
+                  fontSize: 14,
+                  color: T.gray80,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = T.gray5
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                Change password
+              </button>
               {account.status !== 'SUSPENDED' ? (
                 <button
                   onClick={() => {
@@ -237,6 +267,7 @@ const ActionsMenu = ({
                   Reactivate
                 </button>
               )}
+
               <div
                 style={{ height: 1, background: T.gray15, margin: '4px 0' }}
               />
@@ -296,6 +327,12 @@ const ActionsMenu = ({
         onConfirm={handleConfirm}
         onCancel={() => setConfirmAction(null)}
       />
+      <ChangePasswordModal
+        isOpen={changePasswordOpen}
+        subtitle={account.email}
+        onClose={() => setChangePasswordOpen(false)}
+        onSubmit={(newPassword) => onChangePassword(account.id, newPassword)}
+      />
     </div>
   )
 }
@@ -305,6 +342,7 @@ export const PartnersSubAccountsTable = ({
   onSuspend,
   onReactivate,
   onDelete,
+  onChangePassword,
   isLoading,
   pendingAccountId,
   sortOrder,
@@ -410,6 +448,7 @@ export const PartnersSubAccountsTable = ({
                   onSuspend={onSuspend}
                   onReactivate={onReactivate}
                   onDelete={onDelete}
+                  onChangePassword={onChangePassword}
                 />
               ),
           },
