@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { HttpStatusCode } from 'axios';
-import { DownloadSimpleIcon, FileIcon, FolderIcon, LinkBreakIcon } from '@phosphor-icons/react';
+import { DownloadSimpleIcon, FileIcon, FolderIcon, LinkBreakIcon, LockKeyIcon } from '@phosphor-icons/react';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
 import { Pagination } from '../components/Pagination';
@@ -14,7 +14,6 @@ import {
   ShareListItem,
   ShareMetadata,
 } from '../services/share.service';
-import { subAccountAuthService } from '../sub-account/services/sub-account-auth.service';
 import { hasApiErrorStatus } from '../utils/apiError';
 import { T, card } from '../sub-account/tokens';
 
@@ -24,9 +23,9 @@ const isFolderShare = (meta: ShareMetadata) => meta.type === 'folder';
 
 export const SharePage = () => {
   const { token } = useParams<{ token: string }>();
-  const navigate = useNavigate();
   const [metadata, setMetadata] = useState<ShareMetadata | null>(null);
   const [isNotFound, setIsNotFound] = useState(false);
+  const [isAccessDenied, setIsAccessDenied] = useState(false);
   const [objects, setObjects] = useState<ShareListItem[]>([]);
   const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
   const [isListLoading, setIsListLoading] = useState(false);
@@ -36,16 +35,28 @@ export const SharePage = () => {
 
   const onShareError = (err: unknown) => {
     if (hasApiErrorStatus(err, HttpStatusCode.Forbidden)) {
-      subAccountAuthService.logOut();
-      const redirect = encodeURIComponent(`/share/${token}`);
-      navigate(`/subaccount/login?redirect=${redirect}`, { replace: true });
+      setMetadata(null);
+      setObjects([]);
+      setCurrentPrefix(null);
+      resetPagination();
+      setIsAccessDenied(true);
+      setIsNotFound(false);
       return;
     }
+    if (hasApiErrorStatus(err, HttpStatusCode.Unauthorized)) return;
+    setIsAccessDenied(false);
     setIsNotFound(true);
   };
 
   useEffect(() => {
     if (!token) return;
+    setMetadata(null);
+    setObjects([]);
+    setCurrentPrefix(null);
+    setIsNotFound(false);
+    setIsAccessDenied(false);
+    resetPagination();
+
     const fetchMetadata = async () => {
       try {
         const meta = await shareService.getMetadata(token);
@@ -116,7 +127,15 @@ export const SharePage = () => {
   };
 
   let body: React.ReactNode;
-  if (isNotFound) {
+  if (isAccessDenied) {
+    body = (
+      <CenteredMessage
+        icon={<LockKeyIcon size={28} color={T.gray50} />}
+        title="You don't have access"
+        subtitle="This shared link is not available to your account. Ask the owner to share it with you."
+      />
+    );
+  } else if (isNotFound) {
     body = (
       <CenteredMessage
         icon={<LinkBreakIcon size={28} color={T.gray50} />}
