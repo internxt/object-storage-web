@@ -7,17 +7,11 @@ import { T, text, form } from '../../sub-account/tokens'
 
 interface Props {
   isOpen: boolean
-  subtitle?: string
   onClose: () => void
   onSubmit: (newPassword: string) => Promise<void>
 }
 
-export const ChangePasswordModal = ({
-  isOpen,
-  subtitle,
-  onClose,
-  onSubmit,
-}: Props) => {
+export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -57,11 +51,6 @@ export const ChangePasswordModal = ({
       >
         <div style={{ textAlign: 'left' }}>
           <p style={{ ...text.heading, margin: 0 }}>Change password</p>
-          {subtitle && (
-            <p style={{ fontSize: 13, color: T.gray50, margin: '4px 0 0' }}>
-              {subtitle}
-            </p>
-          )}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <label style={form.label}>New password</label>

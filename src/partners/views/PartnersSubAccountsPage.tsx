@@ -297,6 +297,7 @@ export const PartnersSubAccountsPage = () => {
 
         <PartnersSubAccountsTable
           subAccounts={subAccounts}
+          partnerInfo={partnerInfo}
           onSuspend={handleSuspend}
           onReactivate={handleReactivate}
           onDelete={handleDelete}

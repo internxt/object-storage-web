@@ -59,6 +59,7 @@ export interface PartnerInfo {
   name: string | null;
   email: string | null;
   createdAt: string;
+  automaticSubAccountCreationEnabled: boolean;
 }
 
 async function getMe(): Promise<PartnerInfo> {

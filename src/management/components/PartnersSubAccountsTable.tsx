@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { DotsThree } from '@phosphor-icons/react'
+import { DotsThree, InfoIcon } from '@phosphor-icons/react'
 import { SubAccount } from '../services/management.service'
 import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable'
 import { ConfirmActionModal } from './ConfirmActionModal'
 import { ChangePasswordModal } from './ChangePasswordModal'
+import { PartnerInfo } from '../../partners/services/partners.service'
 import { T, shadow } from '../../sub-account/tokens'
 
 interface Props {
   subAccounts: SubAccount[]
+  partnerInfo?: PartnerInfo | null
   onSuspend: (id: string) => void
   onReactivate: (id: string) => void
   onDelete: (id: string) => void
@@ -96,12 +98,14 @@ const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
 
 const ActionsMenu = ({
   account,
+  canChangePassword,
   onSuspend,
   onReactivate,
   onDelete,
   onChangePassword,
 }: {
   account: SubAccount
+  canChangePassword: boolean
   onSuspend: (id: string) => void
   onReactivate: (id: string) => void
   onDelete: (id: string) => void
@@ -189,31 +193,52 @@ const ActionsMenu = ({
                 padding: '4px 0',
               }}
             >
-              <button
-                onClick={() => {
-                  setChangePasswordOpen(true)
-                  setOpen(false)
-                }}
+              <div
                 style={{
-                  display: 'block',
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '8px 16px',
-                  fontSize: 14,
-                  color: T.gray80,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 4,
+                  padding: '0 8px 0 0',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = T.gray5
+                  if (canChangePassword)
+                    e.currentTarget.style.background = T.gray5
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent'
                 }}
               >
-                Change password
-              </button>
+                <button
+                  onClick={() => {
+                    if (!canChangePassword) return
+                    setChangePasswordOpen(true)
+                    setOpen(false)
+                  }}
+                  disabled={!canChangePassword}
+                  style={{
+                    flex: 1,
+                    display: 'block',
+                    textAlign: 'left',
+                    padding: '8px 16px',
+                    fontSize: 14,
+                    color: canChangePassword ? T.gray80 : T.gray20,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: canChangePassword ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  Change password
+                </button>
+                {!canChangePassword && (
+                  <span
+                    title="Sub-account password cannot be changed when automatic sub-account creation is enabled"
+                    style={{ display: 'inline-flex', flexShrink: 0 }}
+                  >
+                    <InfoIcon size={14} color={T.gray50} />
+                  </span>
+                )}
+              </div>
               {account.status !== 'SUSPENDED' ? (
                 <button
                   onClick={() => {
@@ -329,7 +354,6 @@ const ActionsMenu = ({
       />
       <ChangePasswordModal
         isOpen={changePasswordOpen}
-        subtitle={account.email}
         onClose={() => setChangePasswordOpen(false)}
         onSubmit={(newPassword) => onChangePassword(account.id, newPassword)}
       />
@@ -339,6 +363,7 @@ const ActionsMenu = ({
 
 export const PartnersSubAccountsTable = ({
   subAccounts,
+  partnerInfo,
   onSuspend,
   onReactivate,
   onDelete,
@@ -350,6 +375,13 @@ export const PartnersSubAccountsTable = ({
   readOnly = false,
 }: Props) => {
   const navigate = useNavigate()
+  /**
+   * The partner can update the password if the sub account is not automatically
+   * created by, for example, an external service.
+   * In other words, if this this value is false, then the sub account is created
+   * manually and the password can be updated
+   */
+  const canChangePassword = !partnerInfo?.automaticSubAccountCreationEnabled
 
   const linkStyle: React.CSSProperties = {
     fontSize: 13,
@@ -445,6 +477,7 @@ export const PartnersSubAccountsTable = ({
               ) : (
                 <ActionsMenu
                   account={acc}
+                  canChangePassword={canChangePassword}
                   onSuspend={onSuspend}
                   onReactivate={onReactivate}
                   onDelete={onDelete}
