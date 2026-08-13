@@ -1,9 +1,18 @@
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BaseSyntheticEvent, type CSSProperties, useEffect, useState } from 'react';
 import { WarningCircle } from '@phosphor-icons/react';
 import TextInput from './TextInput';
 import PasswordInput, { IFormValues } from '../PasswordInput';
+
+// Only app-internal paths are allowed as a post-login destination, so a crafted
+// ?redirect= can never send the user to another origin.
+const getSafeRedirect = (raw: string | null): string | null => {
+  if (!raw) return null;
+  const isInternalPath = raw.startsWith('/');
+  const isExternalUrl = raw.startsWith('//') || raw.startsWith('/\\');
+  return isInternalPath && !isExternalUrl ? raw : null;
+};
 import { BrandLogo } from '../BrandLogo';
 
 interface LoginBranding {
@@ -37,6 +46,8 @@ export const LoginPageView = ({
   mapLoginError,
 }: LoginPageViewProps) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const destination = getSafeRedirect(searchParams.get('redirect')) ?? redirectTo;
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string>();
   const defaultLogoUrl = branding
@@ -52,7 +63,7 @@ export const LoginPageView = ({
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(redirectTo, { replace: true });
+      navigate(destination, { replace: true });
     }
   }, [isAuthenticated]);
 
@@ -76,7 +87,7 @@ export const LoginPageView = ({
     setIsLoggingIn(true);
     try {
       await logIn(formData.email, formData.password);
-      navigate(redirectTo);
+      navigate(destination);
     } catch (err) {
       setLoginError(mapLoginError?.(err) ?? 'Invalid credentials');
     } finally {

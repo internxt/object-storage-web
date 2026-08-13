@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { XIcon, DownloadSimpleIcon, CopyIcon, TrashIcon, CheckCircleIcon, PencilSimpleIcon } from '@phosphor-icons/react';
+import { XIcon, DownloadSimpleIcon, CopyIcon, TrashIcon, CheckCircleIcon, PencilSimpleIcon, LinkIcon } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -23,6 +23,7 @@ interface FileDetailsPanelProps {
   onClose: () => void;
   onDownload: (obj: S3Object) => void;
   onCopyPath: (obj: S3Object) => void;
+  onShare?: (obj: S3Object) => void;
   onDelete: (obj: S3Object) => void;
   onShowAllVersions: (obj: S3Object) => void;
   onSaveRetention?: (mode: RetentionMode, retainUntilDate: Date) => Promise<void>;
@@ -58,7 +59,7 @@ const RetentionOption = ({ title, description, badge, selected, warning, onSelec
 );
 
 export const FileDetailsPanel = ({
-  obj, retention, isSavingRetention = false, onClose, onDownload, onCopyPath, onDelete, onShowAllVersions, onSaveRetention,
+  obj, retention, isSavingRetention = false, onClose, onDownload, onCopyPath, onShare, onDelete, onShowAllVersions, onSaveRetention,
 }: FileDetailsPanelProps) => {
   const filename = obj.key.split('/').filter(Boolean).pop() ?? obj.key;
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -93,7 +94,7 @@ export const FileDetailsPanel = ({
     <div className='flex flex-col h-full w-80 border-l border-gray-20 bg-white'>
       <div className='flex items-center justify-between px-6 py-4 border-b border-gray-20'>
         <p className='font-semibold text-gray-100'>File Details</p>
-        <button onClick={onClose} className='text-gray-40 hover:text-gray-60'>
+        <button type='button' onClick={onClose} className='text-gray-40 hover:text-gray-60'>
           <XIcon size={18} />
         </button>
       </div>
@@ -126,6 +127,7 @@ export const FileDetailsPanel = ({
             <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>Version ID</p>
             {!obj.isFolder && (
               <button
+                type='button'
                 onClick={() => onShowAllVersions(obj)}
                 className='text-xs text-primary hover:underline'
               >
@@ -146,7 +148,7 @@ export const FileDetailsPanel = ({
                 Object Locking
               </p>
               {onSaveRetention && (
-                <button onClick={openEdit} className='text-xs text-primary hover:underline flex items-center gap-1'>
+                <button type='button' onClick={openEdit} className='text-xs text-primary hover:underline flex items-center gap-1'>
                   <PencilSimpleIcon size={12} /> Edit
                 </button>
               )}
@@ -207,6 +209,7 @@ export const FileDetailsPanel = ({
       {isEditing ? (
         <div className='flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-10'>
           <button
+            type='button'
             onClick={() => setIsEditing(false)}
             disabled={isSavingRetention}
             className='px-4 py-2 text-sm border border-gray-30 rounded-md text-gray-80 hover:bg-gray-5 transition-colors disabled:opacity-50'
@@ -214,6 +217,7 @@ export const FileDetailsPanel = ({
             Cancel
           </button>
           <button
+            type='button'
             onClick={handleApply}
             disabled={!canApply || isSavingRetention}
             className='px-4 py-2 text-sm rounded-md bg-gray-100 text-white hover:opacity-90 transition-colors disabled:opacity-50'
@@ -224,6 +228,7 @@ export const FileDetailsPanel = ({
       ) : (
         <div className='flex flex-col border-t border-gray-10'>
           <button
+            type='button'
             onClick={() => onDownload(obj)}
             className='flex items-center gap-3 px-6 py-3.5 text-sm text-gray-80 hover:bg-gray-5 transition-colors'
           >
@@ -231,13 +236,25 @@ export const FileDetailsPanel = ({
             Download File
           </button>
           <button
+            type='button'
             onClick={() => onCopyPath(obj)}
             className='flex items-center gap-3 px-6 py-3.5 text-sm text-gray-80 hover:bg-gray-5 transition-colors'
           >
             <CopyIcon size={18} className='text-gray-50' />
             Copy Path
           </button>
+          {onShare && (
+            <button
+              type='button'
+              onClick={() => onShare(obj)}
+              className='flex items-center gap-3 px-6 py-3.5 text-sm text-gray-80 hover:bg-gray-5 transition-colors'
+            >
+              <LinkIcon size={18} className='text-gray-50' />
+              Share
+            </button>
+          )}
           <button
+            type='button'
             onClick={() => onDelete(obj)}
             className='flex items-center gap-3 px-6 py-3.5 text-sm text-red hover:bg-gray-5 transition-colors'
           >
