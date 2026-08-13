@@ -4,11 +4,9 @@ import { cacheBranding, getBrandingCacheKey, isSameBranding, mapToBranding, read
 import { DEFAULT_BRANDING } from './constants';
 
 export async function loadBrandingForCustomHostname({
-  cachedBranding,
   setBranding,
   setIsLoading,
 }: {
-  cachedBranding: SubAccountBranding | null;
   setBranding: Dispatch<SetStateAction<SubAccountBranding>>;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
 }) {
@@ -20,7 +18,7 @@ export async function loadBrandingForCustomHostname({
 
     // A 404 or malformed response leaves the existing cache unchanged.
     if (resolvedBranding) {
-      applyAndCacheBranding({ cachedBranding, cacheKey, resolvedBranding, setBranding });
+      applyAndCacheBranding({ cacheKey, resolvedBranding, setBranding });
     }
   } catch {
     // Keep cached branding, or default branding when there is no cache.
@@ -54,7 +52,7 @@ export async function loadBrandingForSharedConsole({
 
     // A failed lookup never clears a valid cache.
     if (resolvedBranding) {
-      applyAndCacheBranding({ cachedBranding, cacheKey, resolvedBranding, setBranding });
+      applyAndCacheBranding({ cacheKey, resolvedBranding, setBranding });
     }
   } catch {
     // Keep cached branding, or default branding when there is no cache.
@@ -64,23 +62,18 @@ export async function loadBrandingForSharedConsole({
 }
 
 function applyAndCacheBranding({
-  cachedBranding,
   cacheKey,
   resolvedBranding,
   setBranding,
 }: {
-  cachedBranding: SubAccountBranding | null;
   cacheKey: string;
   resolvedBranding: SubAccountBranding;
   setBranding: Dispatch<SetStateAction<SubAccountBranding>>;
 }) {
-  /**
-   * Keep cached branding stable for the current session.
-   * A newer result is saved for the next page load instead of repainting the current console.
-   */
-  if (!cachedBranding) setBranding(resolvedBranding);
+  const cachedBranding = readCachedBranding(cacheKey);
 
-  if (!isSameBranding(readCachedBranding(cacheKey), resolvedBranding)) {
-    cacheBranding(cacheKey, resolvedBranding);
-  }
+  if (isSameBranding(cachedBranding, resolvedBranding)) return;
+
+  cacheBranding(cacheKey, resolvedBranding);
+  setBranding(resolvedBranding);
 }

@@ -49,7 +49,7 @@ function SubAccountLoginSkeleton() {
             <Skeleton height={16} width={256} />
             <Skeleton height={16} width={208} />
           </div>
-          <div className='w-full max-w-md rounded-2xl border border-gray-10 bg-white p-5 flex flex-col gap-4'>
+          <div className='w-full max-w-md rounded-2xl bg-white p-5 flex flex-col gap-4'>
             <div className='flex items-center gap-2'>
               <Skeleton circle height={10} width={10} />
               <Skeleton height={8} width={96} />
@@ -57,7 +57,7 @@ function SubAccountLoginSkeleton() {
             </div>
             <div className='grid grid-cols-3 gap-2'>
               {[0, 1, 2].map((index) => (
-                <div key={index} className='rounded-xl border border-gray-10 bg-gray-1 p-3 flex flex-col gap-2'>
+                <div key={index} className='rounded-xl bg-gray-1 p-3 flex flex-col gap-2'>
                   <Skeleton height={6} width={48} />
                   <Skeleton height={12} width={64} />
                   <Skeleton height={8} />

@@ -26,14 +26,17 @@ export const SubAccountBrandingProvider = ({ children }: { children: ReactNode }
 
   useEffect(function loadBranding() {
     if (isSharedConsole) {
-      if (!entityId) return;
+      if (!entityId) {
+        setBranding(DEFAULT_BRANDING);
+        setIsLoading(false);
+        return;
+      }
 
       void loadBrandingForSharedConsole({ entityId, setBranding, setIsLoading });
       return;
     }
 
     void loadBrandingForCustomHostname({
-      cachedBranding: cachedHostnameBranding,
       setBranding,
       setIsLoading,
     });
