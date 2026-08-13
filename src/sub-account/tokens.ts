@@ -5,6 +5,10 @@ import type { CSSProperties } from 'react';
 export const T = {
   primary:   'var(--primary,#0066FF)',
   primaryBg: 'var(--primary-10,#E6F0FF)',
+  primaryBg4: 'rgb(var(--color-primary, 0 102 255) / 0.04)',
+  primaryBg6: 'rgb(var(--color-primary, 0 102 255) / 0.06)',
+  primaryBg8: 'rgb(var(--color-primary, 0 102 255) / 0.08)',
+  primaryBg14: 'rgb(var(--color-primary, 0 102 255) / 0.14)',
   gray5:     'var(--gray-5,#F9F9FC)',
   gray10:    'var(--gray-10,#F4F4F7)',
   gray15:    'var(--gray-15,#ECECEC)',

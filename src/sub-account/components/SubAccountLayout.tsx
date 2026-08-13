@@ -1,10 +1,12 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccountBranding } from '../context/SubAccountBrandingContext/useSubAccountBranding';
 import { ConsoleTopBar } from './ConsoleTopBar';
 import { subAccountBillingService } from '../services/sub-account-billing.service';
 import notificationsService from '../../services/notifications.service';
 import { T } from '../tokens';
+import Skeleton from 'react-loading-skeleton';
 
 const TABS_ADMIN = [
   { key: '/subaccount/buckets', label: 'Buckets' },
@@ -25,6 +27,7 @@ const toInitials = (email: string | null): string => {
 
 export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
   const { logOut, isAdmin, email, entityId, partnerId } = useSubAccount();
+  const { branding, styles, isLoading } = useSubAccountBranding();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [billingLoading, setBillingLoading] = useState(false);
@@ -32,6 +35,8 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
   const tabs = isAdmin ? TABS_ADMIN : TABS_MEMBER;
 
   const activeTab = tabs.find(t => pathname.startsWith(t.key))?.key ?? tabs[0].key;
+
+  if (isLoading) return <SubAccountConsoleSkeleton />;
 
   const handleLogOut = () => {
     logOut();
@@ -52,12 +57,13 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: T.gray5 }}>
+    <div style={{ ...styles, display: 'flex', flexDirection: 'column', minHeight: '100vh', background: T.gray5 }}>
       <ConsoleTopBar
         tabs={tabs}
         activeTab={activeTab}
         onTab={(key) => navigate(key)}
         consoleLabel="Cloud account"
+        logoUrl={branding.logoUrl}
         onSettings={() => navigate('/subaccount/settings')}
         onLogout={handleLogOut}
         user={{ email: email ?? undefined, initials: toInitials(email) }}
@@ -69,3 +75,46 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
     </div>
   );
 };
+
+export function SubAccountConsoleSkeleton() {
+  return (
+    <div aria-busy='true' aria-label='Loading console branding' className='min-h-screen bg-[#F7F8FA]'>
+      <header className='h-16 bg-white border-b border-gray-100 px-7 flex items-center justify-between'>
+        <Skeleton height={18} width={132} />
+        <div className='flex items-center gap-6'>
+          <Skeleton height={16} width={58} />
+          <Skeleton height={16} width={48} />
+          <Skeleton circle height={30} width={30} />
+        </div>
+      </header>
+      <main className='max-w-[1200px] mx-auto px-7 py-8 flex flex-col gap-4'>
+        <div className='flex gap-4'>
+          {[0, 1, 2].map((index) => (
+            <div key={index} className='flex-1 bg-white border border-gray-100 rounded-xl p-5 flex flex-col gap-3'>
+              <Skeleton height={12} width={88} />
+              <Skeleton height={30} width={64} />
+              <Skeleton height={12} width={120} />
+            </div>
+          ))}
+        </div>
+        <div className='bg-white border border-gray-100 rounded-xl overflow-hidden'>
+          <div className='p-6 flex justify-between items-center'>
+            <div className='flex flex-col gap-2'>
+              <Skeleton height={18} width={88} />
+              <Skeleton height={14} width={128} />
+            </div>
+            <Skeleton height={40} width={148} borderRadius={8} />
+          </div>
+          <div className='h-10 bg-gray-50 border-y border-gray-100 px-6 flex items-center gap-20'>
+            <Skeleton height={10} width={64} />
+            <Skeleton height={10} width={64} />
+            <Skeleton height={10} width={64} />
+          </div>
+          <div className='p-6 flex flex-col gap-4'>
+            {[0, 1, 2].map((index) => <Skeleton key={index} height={28} />)}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

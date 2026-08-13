@@ -1,9 +1,15 @@
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { BaseSyntheticEvent, useEffect, useState } from 'react';
+import { BaseSyntheticEvent, type CSSProperties, useEffect, useState } from 'react';
 import { WarningCircle } from '@phosphor-icons/react';
 import TextInput from './TextInput';
 import PasswordInput, { IFormValues } from '../PasswordInput';
+import { BrandLogo } from '../BrandLogo';
+
+interface LoginBranding {
+  logoUrl: string | null;
+  styles?: CSSProperties;
+}
 
 interface LoginPageViewProps {
   consoleTitle: string;
@@ -13,6 +19,7 @@ interface LoginPageViewProps {
   isAuthenticated: boolean;
   logIn: (email: string, password: string) => Promise<void>;
   redirectTo: string;
+  branding?: LoginBranding;
   ssoSlot?: React.ReactNode;
   mapLoginError?: (error: unknown) => string | undefined;
 }
@@ -25,12 +32,16 @@ export const LoginPageView = ({
   isAuthenticated,
   logIn,
   redirectTo,
+  branding,
   ssoSlot,
   mapLoginError,
 }: LoginPageViewProps) => {
   const navigate = useNavigate();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string>();
+  const defaultLogoUrl = branding
+    ? '/logo.svg'
+    : 'https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png';
 
   const {
     register,
@@ -89,15 +100,18 @@ export const LoginPageView = ({
   ].join(' ');
 
   return (
-    <div className='flex w-screen min-h-screen' style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' }}>
+    <div className='flex w-screen min-h-screen' style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif', ...branding?.styles }}>
 
       {/* ── Left: form ── */}
       <div className='relative flex flex-col w-full lg:max-w-[520px] min-h-screen bg-white px-10 lg:px-16 py-10 flex-shrink-0'>
-        <img
-          src='https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png'
-          alt='logo'
+        <BrandLogo
+          logoUrl={branding?.logoUrl}
+          fallbackLogoUrl={defaultLogoUrl}
+          fallbackAlt={branding ? 'Internxt' : 'logo'}
           width={180}
           height={45}
+          darkenFallback={Boolean(branding)}
+          style={{ maxWidth: 180, maxHeight: 45 }}
         />
 
         <div className='flex flex-col flex-1 justify-center max-w-[320px] gap-8'>
@@ -141,7 +155,7 @@ export const LoginPageView = ({
             <button
               type='submit'
               disabled={!isValid || isLoggingIn}
-              className='mt-1 w-full h-[52px] rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:bg-[#006edb] text-white text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+              className='mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
             >
               {isLoggingIn ? 'Signing in…' : 'Log in'}
             </button>
@@ -161,7 +175,7 @@ export const LoginPageView = ({
       </div>
 
       {/* ── Right: brand panel ── */}
-      <div className='relative flex-1 min-h-screen overflow-hidden hidden lg:block' style={{ background: 'linear-gradient(135deg, #060e5c 0%, #0d2aad 60%, #1a45d4 100%)' }}>
+      <div className='relative flex-1 min-h-screen overflow-hidden hidden lg:block' style={{ background: 'linear-gradient(135deg, var(--sub-account-primary-dark, #060e5c) 0%, var(--sub-account-primary, #0d2aad) 60%, var(--sub-account-primary, #1a45d4) 100%)' }}>
         <div className='absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-10' style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }} />
         <div className='absolute -bottom-40 -left-20 w-[400px] h-[400px] rounded-full opacity-10' style={{ background: 'radial-gradient(circle, #7eb3ff 0%, transparent 70%)' }} />
 
