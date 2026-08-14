@@ -79,7 +79,7 @@ function getToken(turnstile: Turnstile, siteKey: string, action: string): Promis
 }
 
 async function getHeaders(action: string): Promise<Record<string, string>> {
-  if (!SITE_KEY) return {};
+  if (!SITE_KEY) throw new CaptchaUnavailableError();
 
   const { turnstile } = window;
   if (!turnstile) throw new CaptchaUnavailableError();
