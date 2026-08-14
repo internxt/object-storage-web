@@ -6,7 +6,7 @@ interface PartnersContextType {
   isAuthenticated: boolean;
   isViewer: boolean;
   partnerInfo: PartnerInfo | null;
-  logIn: (email: string, password: string) => Promise<void>;
+  logIn: (email: string, password: string, code?: string) => Promise<void>;
   logOut: () => void;
 }
 
@@ -32,8 +32,8 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
       .catch(() => setPartnerInfo(null));
   }, [isAuthenticated]);
 
-  const logIn = async (email: string, password: string) => {
-    await partnersAuthService.logIn(email, password);
+  const logIn = async (email: string, password: string, code?: string) => {
+    await partnersAuthService.logIn(email, password, code);
     setIsAuthenticated(true);
     setIsViewer(partnersAuthService.getRole() === 'member');
   };

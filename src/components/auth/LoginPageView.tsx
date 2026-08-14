@@ -11,8 +11,9 @@ interface LoginPageViewProps {
   rightDescription: string;
   rightFeaturePills: string[];
   isAuthenticated: boolean;
-  logIn: (email: string, password: string) => Promise<void>;
+  logIn: (email: string, password: string, code?: string) => Promise<void>;
   redirectTo: string;
+  supportsTwoFactor?: boolean;
 }
 
 export const LoginPageView = ({
@@ -23,10 +24,13 @@ export const LoginPageView = ({
   isAuthenticated,
   logIn,
   redirectTo,
+  supportsTwoFactor,
 }: LoginPageViewProps) => {
   const navigate = useNavigate();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string>();
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
 
   const {
     register,
@@ -60,10 +64,14 @@ export const LoginPageView = ({
     setLoginError('');
     setIsLoggingIn(true);
     try {
-      await logIn(formData.email, formData.password);
+      await logIn(formData.email, formData.password, twoFactorRequired ? twoFactorCode : undefined);
       navigate(redirectTo);
-    } catch {
-      setLoginError('Invalid credentials');
+    } catch (err) {
+      if (supportsTwoFactor && !twoFactorRequired && (err as Error)?.message === '2FA_REQUIRED') {
+        setTwoFactorRequired(true);
+      } else {
+        setLoginError(twoFactorRequired ? 'Invalid code' : 'Invalid credentials');
+      }
     } finally {
       setIsLoggingIn(false);
     }
@@ -127,6 +135,19 @@ export const LoginPageView = ({
               className={inputClass}
             />
 
+            {twoFactorRequired && (
+              <input
+                type='text'
+                inputMode='numeric'
+                autoFocus
+                placeholder='6-digit code'
+                maxLength={6}
+                value={twoFactorCode}
+                onChange={(e) => setTwoFactorCode(e.target.value)}
+                className={`h-[52px] bg-[#f5f5f7] border-0 rounded-xl px-5 text-[15px] text-gray-900 placeholder-gray-400 outline-none ring-0 transition-all focus:bg-[#ebebed]`}
+              />
+            )}
+
             {loginError && (
               <div className='flex items-center gap-1.5 px-1'>
                 <WarningCircle weight='fill' className='h-3.5 w-3.5 text-red-500 flex-shrink-0' />
@@ -136,10 +157,10 @@ export const LoginPageView = ({
 
             <button
               type='submit'
-              disabled={!isValid || isLoggingIn}
+              disabled={!isValid || isLoggingIn || (twoFactorRequired && twoFactorCode.length !== 6)}
               className='mt-1 w-full h-[52px] rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:bg-[#006edb] text-white text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
             >
-              {isLoggingIn ? 'Signing in…' : 'Log in'}
+              {isLoggingIn ? 'Signing in…' : twoFactorRequired ? 'Verify' : 'Log in'}
             </button>
           </form>
         </div>
