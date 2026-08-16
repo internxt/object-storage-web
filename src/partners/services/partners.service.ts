@@ -36,6 +36,7 @@ interface DbSubAccount {
   email: string | null;
   activeStorageBytes: number;
   deletedStorageBytes: number;
+  storageQuotaTb: number | null;
   createdAt: string;
 }
 
@@ -49,6 +50,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     status: raw.status === 'SUSPENDED' ? 'SUSPENDED' : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
+    storageQuotaTb: raw.storageQuotaTb ?? null,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
     recordDate: '',
   };
@@ -95,6 +97,10 @@ async function suspendSubAccount(id: string): Promise<void> {
 
 async function reactivateSubAccount(id: string): Promise<void> {
   await axios.put(`${API()}/sub-accounts/${id}/reactivate`, {}, { headers: headers() });
+}
+
+async function updateSubAccountStorageQuota(id: string, limitTb: number | null): Promise<void> {
+  await axios.patch(`${API()}/sub-accounts/${id}/storage-quota`, { limitTb }, { headers: headers() });
 }
 
 async function getUsageSummary(): Promise<PartnersUsageSummary> {
@@ -174,6 +180,7 @@ export const partnersService = {
   createSubAccount,
   suspendSubAccount,
   reactivateSubAccount,
+  updateSubAccountStorageQuota,
   getUsageSummary,
   createBillingPortalSession,
   changePassword,

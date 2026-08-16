@@ -27,6 +27,26 @@ const formatStorage = (value?: number) => {
   return value.toFixed(4);
 };
 
+const QUOTA_WARNING_PCT = 80;
+
+const StorageQuotaCell = ({ used, quota }: { used?: number; quota?: number | null }) => {
+  if (quota == null) return <span style={{ fontSize: 13, color: T.gray50 }}>No limit</span>;
+
+  const pct = quota > 0 ? ((used ?? 0) / quota) * 100 : 0;
+  const color = pct >= 100 ? T.red : pct >= QUOTA_WARNING_PCT ? '#d97706' : T.primary;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 104 }}>
+      <div style={{ width: '100%', height: 6, borderRadius: 999, background: T.gray15, overflow: 'hidden' }}>
+        <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', borderRadius: 999, background: color }} />
+      </div>
+      <span style={{ fontSize: 12, color: T.gray50, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+        {(used ?? 0).toFixed(2)} / {quota} TB · <span style={{ color, fontWeight: 500 }}>{pct.toFixed(0)}%</span>
+      </span>
+    </div>
+  );
+};
+
 const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
   if (!status) return null;
   const config = {
@@ -197,6 +217,10 @@ export const PartnersSubAccountsTable = ({
       header: 'Deleted Storage (TB)',
       align: 'right',
       cell: (acc) => <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>{formatStorage(acc.deletedStorage)}</span>,
+    },
+    {
+      header: 'Storage Quota',
+      cell: (acc) => <StorageQuotaCell used={acc.activeStorage} quota={acc.storageQuotaTb} />,
     },
     {
       header: 'Created',
