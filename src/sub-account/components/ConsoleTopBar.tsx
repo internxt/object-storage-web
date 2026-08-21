@@ -7,6 +7,7 @@ import {
   ArrowSquareOutIcon,
 } from '@phosphor-icons/react';
 import { T, shadow } from '../tokens';
+import { BrandLogo } from '../../components/BrandLogo';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,7 @@ export interface ConsoleTopBarProps {
   onLogout: () => void;
   user: { email?: string; initials: string };
   billing?: { loading: boolean; onClick: () => void };
+  logoUrl: string | null;
 }
 
 // ─── AvatarMenu ───────────────────────────────────────────────────────────────
@@ -163,6 +165,7 @@ export const ConsoleTopBar = ({
   onLogout,
   user,
   billing,
+  logoUrl,
 }: ConsoleTopBarProps) => (
   <header style={{
     height: 56,
@@ -177,7 +180,13 @@ export const ConsoleTopBar = ({
   }}>
     {/* Left group */}
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <img src="/logo.svg" alt="Internxt" style={{ height: 14, filter: 'brightness(0)' }} />
+      <BrandLogo
+        logoUrl={logoUrl}
+        fallbackLogoUrl='/logo.svg'
+        fallbackAlt='Internxt'
+        darkenFallback
+        style={{ maxWidth: 132, height: 14 }}
+      />
 
       {/* Console badge */}
       <span style={{
