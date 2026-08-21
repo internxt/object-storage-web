@@ -1,11 +1,20 @@
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BaseSyntheticEvent, useEffect, useState } from 'react';
 import { WarningCircleIcon } from '@phosphor-icons/react';
 import TextInput from './TextInput';
 import PasswordInput, { IFormValues } from '../PasswordInput';
-import { AuthPageLayout } from './AuthPageLayout';
+import { AuthPageLayout, type AuthPageBranding } from './AuthPageLayout';
 import { authInputClass } from './authStyles';
+
+// Only app-internal paths are allowed as a post-login destination, so a crafted
+// ?redirect= can never send the user to another origin.
+const getSafeRedirect = (raw: string | null): string | null => {
+  if (!raw) return null;
+  const isInternalPath = raw.startsWith('/');
+  const isExternalUrl = raw.startsWith('//') || raw.startsWith('/\\');
+  return isInternalPath && !isExternalUrl ? raw : null;
+};
 
 interface LoginPageViewProps {
   consoleTitle: string;
@@ -15,6 +24,9 @@ interface LoginPageViewProps {
   isAuthenticated: boolean;
   logIn: (email: string, password: string) => Promise<void>;
   redirectTo: string;
+  branding?: AuthPageBranding;
+  ssoSlot?: React.ReactNode;
+  mapLoginError?: (error: unknown) => string | undefined;
 }
 
 export const LoginPageView = ({
@@ -25,8 +37,13 @@ export const LoginPageView = ({
   isAuthenticated,
   logIn,
   redirectTo,
+  branding,
+  ssoSlot,
+  mapLoginError,
 }: LoginPageViewProps) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const destination = getSafeRedirect(searchParams.get('redirect')) ?? redirectTo;
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string>();
 
@@ -39,7 +56,7 @@ export const LoginPageView = ({
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(redirectTo, { replace: true });
+      navigate(destination, { replace: true });
     }
   }, [isAuthenticated]);
 
@@ -63,9 +80,9 @@ export const LoginPageView = ({
     setIsLoggingIn(true);
     try {
       await logIn(formData.email, formData.password);
-      navigate(redirectTo);
-    } catch {
-      setLoginError('Invalid credentials');
+      navigate(destination);
+    } catch (err) {
+      setLoginError(mapLoginError?.(err) ?? 'Invalid credentials');
     } finally {
       setIsLoggingIn(false);
     }
@@ -78,6 +95,7 @@ export const LoginPageView = ({
       rightHeadline={rightHeadline}
       rightDescription={rightDescription}
       rightFeaturePills={rightFeaturePills}
+      branding={branding}
     >
       <form className='flex flex-col gap-2.5' onSubmit={handleSubmit(onSubmit)}>
         <TextInput
@@ -112,11 +130,22 @@ export const LoginPageView = ({
         <button
           type='submit'
           disabled={!isValid || isLoggingIn}
-          className='mt-1 w-full h-[52px] rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:bg-[#006edb] text-white text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+          className='mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
         >
           {isLoggingIn ? 'Signing in…' : 'Log in'}
         </button>
       </form>
+
+      {ssoSlot && (
+        <div className='flex flex-col gap-4 -mt-2'>
+          <div className='flex items-center gap-3'>
+            <div className='h-px flex-1 bg-gray-10' />
+            <span className='text-xs text-gray-50'>or</span>
+            <div className='h-px flex-1 bg-gray-10' />
+          </div>
+          {ssoSlot}
+        </div>
+      )}
     </AuthPageLayout>
   );
 };

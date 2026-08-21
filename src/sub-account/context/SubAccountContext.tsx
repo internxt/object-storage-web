@@ -11,6 +11,8 @@ interface SubAccountContextType {
   entityCreatedAt: string | null;
   email: string | null;
   logIn: (email: string, password: string) => Promise<void>;
+  logInWithSso: (organizationName: string) => Promise<void>;
+  refreshClaims: () => void;
   logOut: () => void;
 }
 
@@ -42,10 +44,8 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     () => subAccountAuthService.getEmail(),
   );
 
-  const logIn = async (email: string, password: string) => {
-    await subAccountAuthService.logIn(email, password);
-    console.log('[sub-account] context: logIn done, setting isAuthenticated=true');
-    setIsAuthenticated(true);
+  const refreshClaims = () => {
+    setIsAuthenticated(!!subAccountAuthService.getToken());
     setIsAdmin(subAccountAuthService.getRole() === 'admin');
     setSsoEnabled(subAccountAuthService.getSsoEnabled());
     setMemberId(subAccountAuthService.getMemberId());
@@ -53,6 +53,17 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     setPartnerId(subAccountAuthService.getPartnerId());
     setEntityCreatedAt(subAccountAuthService.getEntityCreatedAt());
     setEmail(subAccountAuthService.getEmail());
+  };
+
+  const logIn = async (email: string, password: string) => {
+    await subAccountAuthService.logIn(email, password);
+    console.log('[sub-account] context: logIn done, setting isAuthenticated=true');
+    refreshClaims();
+  };
+
+  const logInWithSso = async (organizationName: string) => {
+    await subAccountAuthService.logInWithSso(organizationName);
+    refreshClaims();
   };
 
   const logOut = () => {
@@ -68,7 +79,7 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const value = useMemo(
-    () => ({ isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, partnerId, entityCreatedAt, email, logIn, logOut }),
+    () => ({ isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, partnerId, entityCreatedAt, email, logIn, logInWithSso, refreshClaims, logOut }),
     [isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, partnerId, entityCreatedAt, email],
   );
 

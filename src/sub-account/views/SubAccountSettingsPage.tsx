@@ -6,6 +6,9 @@ import { subAccountAuthService } from '../services/sub-account-auth.service';
 import { useSubAccount } from '../context/SubAccountContext';
 import notificationsService from '../../services/notifications.service';
 import { AddMemberModal } from '../components/AddMemberModal';
+import { SsoSection } from '../../components/sso/SsoSection';
+import { subAccountSsoService } from '../services/sub-account-sso.service';
+import { SectionCard, ReadField } from '../components/SettingsAtoms';
 import { AssignPermissionsModal } from '../components/permissions-manager/AssignPermissionsModal';
 import { PolicyDocument } from '../services/iamPolicy.service';
 import Dialog from '../../components/Dialog';
@@ -51,16 +54,6 @@ function avatarInitials(email: string): string {
 
 // ─── Shared atoms ────────────────────────────────────────────────────────────
 
-/** Read-only field: label above a surface-muted box */
-const ReadField = ({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) => (
-  <div>
-    <p className='text-sm font-medium text-gray-100 mb-1.5'>{label}</p>
-    <div className={`min-h-[40px] bg-gray-5 border border-gray-10 rounded-lg px-3 py-2 flex items-center text-gray-80 ${mono ? 'font-mono text-sm' : 'text-sm'}`}>
-      {value || <span className='text-gray-50'>—</span>}
-    </div>
-  </div>
-);
-
 /** Password input with eye toggle */
 const PasswordInput = ({
   label, placeholder = '', value, show, onChange, onToggle, noPaste = false,
@@ -90,7 +83,7 @@ const PasswordInput = ({
 /** Square avatar — variant 'primary' (solid blue) or 'tint' (blue-tinted) */
 const AvatarSquare = ({ initials, variant }: { initials: string; variant: 'primary' | 'tint' }) => (
   <div className={`w-[132px] h-[132px] rounded-2xl flex items-center justify-center text-[48px] font-bold select-none shrink-0 ${
-    variant === 'primary' ? 'bg-primary text-white' : 'bg-primary/[0.08] text-primary'
+    variant === 'primary' ? 'bg-primary text-[color:var(--sub-account-primary-contrast,#FFFFFF)]' : 'bg-primary/[0.08] text-primary'
   }`}>
     {initials}
   </div>
@@ -109,19 +102,6 @@ const Pill = ({ type }: { type: 'active' | 'primary' }) =>
       Primary
     </span>
   );
-
-/** Section card */
-const SectionCard = ({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) => (
-  <div className='bg-surface border border-gray-10 rounded-xl p-6' style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
-    <div className='flex items-center justify-between'>
-      <h2 className='text-base font-semibold text-gray-100'>{title}</h2>
-      {action}
-    </div>
-    <div className='mt-4'>
-      {children}
-    </div>
-  </div>
-);
 
 // ─── Profile Tab ──────────────────────────────────────────────────────────────
 
@@ -231,7 +211,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
           <div className='flex justify-end mt-1'>
             <button
               disabled={!canUpdatePw || isSavingPw}
-              className='h-10 px-4 bg-primary hover:bg-blue-60 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors'
+              className='h-10 px-4 bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-[color:var(--sub-account-primary-contrast,#FFFFFF)] rounded-lg text-sm font-medium transition-colors'
               onClick={handleUpdatePassword}
             >
               {isSavingPw ? 'Saving…' : 'Update'}
@@ -254,8 +234,18 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
   const [memberToDelete, setMemberToDelete]     = useState<MemberItem | null>(null);
   const [permissionMember, setPermissionMember] = useState<MemberItem | null>(null);
   const [isAssigningPermission, setIsAssigningPermission] = useState(false);
+  // The session JWT's `ssoEnabled` claim is only as fresh as the token itself —
+  // it won't reflect SSO being configured/disabled in a different tab or session.
+  // Fetch the live value so "password optional when SSO is enabled" actually holds.
+  const [ssoConfigured, setSsoConfigured] = useState(ssoEnabled);
 
-  useEffect(() => { if (entityId) fetchMembers(); }, [entityId]);
+  useEffect(() => {
+    if (!entityId) return;
+    fetchMembers();
+    subAccountSsoService.getSsoConfig(entityId)
+      .then((config) => setSsoConfigured(config.configured))
+      .catch(() => {});
+  }, [entityId]);
 
   const fetchMembers = async () => {
     setIsLoading(true);
@@ -331,13 +321,19 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
       action={
         <button
           onClick={() => setIsAddMemberOpen(true)}
-          className='inline-flex items-center gap-2 h-10 px-4 bg-primary hover:bg-blue-60 text-white rounded-lg text-sm font-medium transition-colors'
+          className='inline-flex items-center gap-2 h-10 px-4 bg-primary hover:bg-primary-dark text-[color:var(--sub-account-primary-contrast,#FFFFFF)] rounded-lg text-sm font-medium transition-colors'
         >
           <PlusIcon size={14} weight='bold' />
           Add member
         </button>
       }
     >
+      {ssoConfigured && (
+        <p className='text-sm text-gray-60 mb-4'>
+          Single sign-on is enabled, so you don't need to add members by hand, anyone who signs in with Microsoft
+          and belongs to this organization is added automatically on their first login.
+        </p>
+      )}
       {isLoading ? (
         <p className='text-sm text-gray-50'>Loading...</p>
       ) : members.length === 0 ? (
@@ -387,7 +383,7 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
         </table>
       )}
 
-      <AddMemberModal isOpen={isAddMemberOpen} isLoading={isAddingMember} ssoEnabled={ssoEnabled} onClose={() => setIsAddMemberOpen(false)} onAdd={onAddMember} />
+      <AddMemberModal isOpen={isAddMemberOpen} isLoading={isAddingMember} ssoEnabled={ssoConfigured} onClose={() => setIsAddMemberOpen(false)} onAdd={onAddMember} />
       {permissionMember && (
         <AssignPermissionsModal isOpen={!!permissionMember} isLoading={isAssigningPermission} memberEmail={permissionMember.email} onClose={() => setPermissionMember(null)} onAssign={onAssignPermissions} onFetchPermissions={onFetchPermissions} />
       )}
@@ -512,8 +508,8 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
 
 // ─── Account Tab ──────────────────────────────────────────────────────────────
 
-const AccountTab = ({ entityId, memberId }: { entityId: string; memberId: string }) => {
-  const { entityCreatedAt } = useSubAccount();
+const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberId: string; isAdmin?: boolean }) => {
+  const { entityCreatedAt, refreshClaims } = useSubAccount();
   const [email, setEmail] = useState('');
 
   useEffect(() => {
@@ -529,19 +525,31 @@ const AccountTab = ({ entityId, memberId }: { entityId: string; memberId: string
   const initials = email ? avatarInitials(email) : '—';
 
   return (
-    <SectionCard title='Account Information'>
-      <div className='flex gap-8'>
-        <div className='flex flex-col items-center gap-3'>
-          <AvatarSquare initials={initials} variant='tint' />
-          <Pill type='active' />
+    <div className='flex flex-col gap-6'>
+      <SectionCard title='Account Information'>
+        <div className='flex gap-8'>
+          <div className='flex flex-col items-center gap-3'>
+            <AvatarSquare initials={initials} variant='tint' />
+            <Pill type='active' />
+          </div>
+          <div className='flex-1 flex flex-col gap-4'>
+            <ReadField label='Account email' value={email} />
+            <ReadField label='Storage account number' value={entityId} mono />
+            <ReadField label='Created at' value={createdAt} />
+          </div>
         </div>
-        <div className='flex-1 flex flex-col gap-4'>
-          <ReadField label='Account email' value={email} />
-          <ReadField label='Storage account number' value={entityId} mono />
-          <ReadField label='Created at' value={createdAt} />
-        </div>
-      </div>
-    </SectionCard>
+      </SectionCard>
+      {isAdmin && (
+        <SsoSection
+          entityId={entityId}
+          memberId={memberId}
+          onTokenReissued={(token) => {
+            subAccountAuthService.setToken(token);
+            refreshClaims();
+          }}
+        />
+      )}
+    </div>
   );
 };
 
@@ -593,7 +601,7 @@ export const SubAccountSettingsPage = () => {
       {activeTab === 'profile'     && entityId && memberId && <ProfileTab    entityId={entityId} memberId={memberId} role={role} />}
       {activeTab === 'members'     && entityId && memberId && <MembersTab    entityId={entityId} ssoEnabled={ssoEnabled} currentMemberId={memberId} />}
       {activeTab === 'access-keys' && entityId && memberId && <AccessKeysTab entityId={entityId} memberId={memberId} />}
-      {activeTab === 'account'     && entityId && memberId && <AccountTab    entityId={entityId} memberId={memberId} />}
+      {activeTab === 'account'     && entityId && memberId && <AccountTab    entityId={entityId} memberId={memberId} isAdmin={isAdmin} />}
     </div>
   );
 };

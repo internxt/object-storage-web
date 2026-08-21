@@ -1,9 +1,18 @@
+import { type CSSProperties } from 'react';
+import { BrandLogo } from '../BrandLogo';
+
+export interface AuthPageBranding {
+  logoUrl: string | null;
+  styles?: CSSProperties;
+}
+
 interface AuthPageLayoutProps {
   consoleTitle: string;
   title: string;
   rightHeadline: React.ReactNode;
   rightDescription: string;
   rightFeaturePills: string[];
+  branding?: AuthPageBranding;
   children: React.ReactNode;
 }
 
@@ -13,17 +22,25 @@ export const AuthPageLayout = ({
   rightHeadline,
   rightDescription,
   rightFeaturePills,
+  branding,
   children,
 }: AuthPageLayoutProps) => {
+  const defaultLogoUrl = branding
+    ? '/logo.svg'
+    : 'https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png';
+
   return (
-    <div className='flex w-screen min-h-screen' style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' }}>
+    <div className='flex w-screen min-h-screen' style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif', ...branding?.styles }}>
 
       <div className='relative flex flex-col w-full lg:max-w-[520px] min-h-screen bg-white px-10 lg:px-16 py-10 flex-shrink-0'>
-        <img
-          src='https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png'
-          alt='logo'
+        <BrandLogo
+          logoUrl={branding?.logoUrl}
+          fallbackLogoUrl={defaultLogoUrl}
+          fallbackAlt={branding ? 'Internxt' : 'logo'}
           width={180}
           height={45}
+          darkenFallback={Boolean(branding)}
+          style={{ maxWidth: 180, maxHeight: 45 }}
         />
 
         <div className='flex flex-col flex-1 justify-center max-w-[320px] gap-8'>
@@ -38,7 +55,7 @@ export const AuthPageLayout = ({
         </div>
       </div>
 
-      <div className='relative flex-1 min-h-screen overflow-hidden hidden lg:block' style={{ background: 'linear-gradient(135deg, #060e5c 0%, #0d2aad 60%, #1a45d4 100%)' }}>
+      <div className='relative flex-1 min-h-screen overflow-hidden hidden lg:block' style={{ background: 'linear-gradient(135deg, var(--sub-account-primary-dark, #060e5c) 0%, var(--sub-account-primary, #0d2aad) 60%, var(--sub-account-primary, #1a45d4) 100%)' }}>
         <div className='absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-10' style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }} />
         <div className='absolute -bottom-40 -left-20 w-[400px] h-[400px] rounded-full opacity-10' style={{ background: 'radial-gradient(circle, #7eb3ff 0%, transparent 70%)' }} />
 
