@@ -5,14 +5,21 @@ import Input from '../Input';
 import Button from '../Button';
 import { T, text, form } from '../../sub-account/tokens';
 import {
+  PublicSsoConfig,
   SsoCancelledError,
   SsoMemberNotFoundError,
   SsoNotConfiguredError,
   SsoPopupBlockedError,
   subAccountSsoService,
 } from '../../sub-account/services/sub-account-sso.service';
+import { isSharedConsoleHostname } from '../../sub-account/context/SubAccountBrandingContext/service';
 
 const SSO_ORG_KEY = 'subAccountSsoOrg';
+
+type ResolutionState =
+  | { kind: 'checking' }
+  | { kind: 'auto'; config: PublicSsoConfig }
+  | { kind: 'manual' };
 
 interface SsoLoginModalProps {
   isOpen: boolean;
@@ -22,6 +29,7 @@ interface SsoLoginModalProps {
 
 export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalProps) => {
   const [organizationName, setOrganizationName] = useState('');
+  const [resolution, setResolution] = useState<ResolutionState>({ kind: 'manual' });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ kind: 'warning' | 'error'; message: string } | null>(null);
   // Bumped every time the modal opens, so a stale response from an attempt left
@@ -29,18 +37,43 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
   const attemptIdRef = useRef(0);
 
   useEffect(() => {
-    if (isOpen) {
-      attemptIdRef.current += 1;
+    if (!isOpen) return;
+    attemptIdRef.current += 1;
+    const attemptId = attemptIdRef.current;
+    setError(null);
+    setIsLoading(false);
+    // Start every attempt from a clean slate, even if the previous one was
+    // interrupted mid-popup and left MSAL's client-side state stuck.
+    subAccountSsoService.resetSsoLoginState();
+
+    const startManual = () => {
       setOrganizationName(localStorage.getItem(SSO_ORG_KEY) ?? '');
-      setError(null);
-      setIsLoading(false);
-      // Start every attempt from a clean slate, even if the previous one was
-      // interrupted mid-popup and left MSAL's client-side state stuck.
-      subAccountSsoService.resetSsoLoginState();
+      setResolution({ kind: 'manual' });
+    };
+
+    // The shared console hostname has no custom-domain SSO association, so never
+    // attempt the hostname lookup there — go straight to the manual flow.
+    if (isSharedConsoleHostname()) {
+      startManual();
+      return;
     }
+
+    setResolution({ kind: 'checking' });
+    subAccountSsoService
+      .getConfigByHostname(window.location.hostname)
+      .then((config) => {
+        if (attemptId !== attemptIdRef.current) return;
+        setResolution({ kind: 'auto', config });
+      })
+      .catch(() => {
+        // No custom-domain SSO for this hostname (404) or a network hiccup —
+        // either way, degrade silently to the manual organization-name field.
+        if (attemptId !== attemptIdRef.current) return;
+        startManual();
+      });
   }, [isOpen]);
 
-  const canSubmit = !!organizationName.trim() && !isLoading;
+  const canSubmit = resolution.kind === 'auto' ? !isLoading : !!organizationName.trim() && !isLoading;
 
   const handleCancel = () => {
     // Invalidate the in-flight attempt (if any) so its eventual response is
@@ -56,12 +89,13 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
     e.preventDefault();
     if (!canSubmit) return;
     const attemptId = attemptIdRef.current;
+    const orgToLogIn = resolution.kind === 'auto' ? resolution.config.organizationName : organizationName;
     setError(null);
     setIsLoading(true);
     try {
-      await logInWithSso(organizationName);
+      await logInWithSso(orgToLogIn);
       if (attemptId !== attemptIdRef.current) return;
-      localStorage.setItem(SSO_ORG_KEY, organizationName.trim().toLowerCase());
+      if (resolution.kind !== 'auto') localStorage.setItem(SSO_ORG_KEY, orgToLogIn.trim().toLowerCase());
       onClose();
     } catch (err) {
       if (attemptId !== attemptIdRef.current) return;
@@ -99,14 +133,19 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
         <div>
           <p style={{ ...text.heading, margin: 0 }}>Sign in with SSO</p>
           <p style={{ ...text.hint, margin: '6px 0 0' }}>
-            Enter your organization name to continue with your Microsoft account.
+            {resolution.kind === 'auto' &&
+              `Continue with your Microsoft account to sign in to ${window.location.hostname}.`}
+            {resolution.kind === 'checking' && 'Checking your organization’s sign-in settings…'}
+            {resolution.kind === 'manual' && 'Enter your organization name to continue with your Microsoft account.'}
           </p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={form.label}>Organization name</label>
-          <Input value={organizationName} onChange={setOrganizationName} placeholder='your-organization' autofocus />
-        </div>
+        {resolution.kind === 'manual' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <label style={form.label}>Organization name</label>
+            <Input value={organizationName} onChange={setOrganizationName} placeholder='your-organization' autofocus />
+          </div>
+        )}
 
         {error && (
           <div
