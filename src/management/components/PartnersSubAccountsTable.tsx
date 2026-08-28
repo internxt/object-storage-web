@@ -9,6 +9,9 @@ import { ChangePasswordModal } from './ChangePasswordModal'
 import { PartnerInfo } from '../../partners/services/partners.service'
 import { T, shadow } from '../../sub-account/tokens'
 
+// TODO: flip back to true once the delete-sub-account backend PR is merged
+const SHOW_DELETE_ACTION = false
+
 interface Props {
   subAccounts: SubAccount[]
   partnerInfo?: PartnerInfo | null
@@ -293,34 +296,39 @@ const ActionsMenu = ({
                 </button>
               )}
 
-              <div
-                style={{ height: 1, background: T.gray15, margin: '4px 0' }}
-              />
-              <button
-                onClick={() => {
-                  setConfirmAction('delete')
-                  setOpen(false)
-                }}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '8px 16px',
-                  fontSize: 14,
-                  color: T.red,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#fef2f2'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent'
-                }}
-              >
-                Delete
-              </button>
+              {/* TODO: re-enable once the delete-sub-account backend PR is merged */}
+              {SHOW_DELETE_ACTION && (
+                <>
+                  <div
+                    style={{ height: 1, background: T.gray15, margin: '4px 0' }}
+                  />
+                  <button
+                    onClick={() => {
+                      setConfirmAction('delete')
+                      setOpen(false)
+                    }}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '8px 16px',
+                      fontSize: 14,
+                      color: T.red,
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#fef2f2'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent'
+                    }}
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
             </div>
           </>,
           document.body,
