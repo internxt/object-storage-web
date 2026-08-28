@@ -60,6 +60,7 @@ export interface PartnerInfo {
   email: string | null;
   createdAt: string;
   automaticSubAccountCreationEnabled: boolean;
+  twoFactorSetupRequired?: boolean;
 }
 
 async function getMe(): Promise<PartnerInfo> {
@@ -131,6 +132,7 @@ export interface PartnerMember {
   entityType: string;
   entityId: string;
   createdAt: string;
+  twoFactorEnabled: boolean;
 }
 
 async function listMembers(): Promise<PartnerMember[]> {
@@ -148,6 +150,10 @@ async function deleteMember(id: string): Promise<void> {
 
 async function updateMember(id: string, dto: { email?: string; newPassword?: string }): Promise<void> {
   await axios.patch(`${API()}/members/${id}`, dto, { headers: headers() });
+}
+
+async function updateMemberTwoFactor(id: string, action: 'disable' | 'reset'): Promise<void> {
+  await axios.patch(`${API()}/members/${id}/tfa`, { action }, { headers: headers() });
 }
 
 export interface DailyUsageEntry {
@@ -210,6 +216,7 @@ export const partnersService = {
   createMember,
   deleteMember,
   updateMember,
+  updateMemberTwoFactor,
   getTwoFactorStatus,
   getTwoFactorSetup,
   enableTwoFactor,

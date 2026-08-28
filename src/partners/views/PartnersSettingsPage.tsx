@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import dayjs from 'dayjs'
 import {
-  TrashIcon,
-  PencilSimpleIcon,
   EyeIcon,
   EyeSlashIcon,
   PlusIcon,
   DownloadSimpleIcon,
+  DotsThreeIcon,
 } from '@phosphor-icons/react'
 import { partnersService, PartnerMember } from '../services/partners.service'
 import { exportAsCSV } from '../../utils/exportUtils'
@@ -15,8 +15,9 @@ import Modal from '../../components/Modal'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
 import Dialog from '../../components/Dialog'
-import { T, text, form } from '../../sub-account/tokens'
+import { T, text, form, shadow } from '../../sub-account/tokens'
 import { usePartners } from '../context/partnersContext'
+import { TwoFactorSetupForm } from '../components/TwoFactorSetupForm'
 
 const Pill = ({ label, tone }: { label: string; tone: 'green' | 'gray' }) => (
   <span
@@ -215,9 +216,6 @@ const TwoFactorCard = () => {
   const [enabled, setEnabled] = useState<boolean | null>(null)
 
   const [setupOpen, setSetupOpen] = useState(false)
-  const [setupData, setSetupData] = useState<{ secret: string; qrCode: string } | null>(null)
-  const [setupCode, setSetupCode] = useState('')
-  const [setupLoading, setSetupLoading] = useState(false)
 
   const [disableOpen, setDisableOpen] = useState(false)
   const [disablePassword, setDisablePassword] = useState('')
@@ -236,33 +234,6 @@ const TwoFactorCard = () => {
   useEffect(() => {
     fetchStatus()
   }, [])
-
-  const handleOpenSetup = async () => {
-    setSetupOpen(true)
-    setSetupCode('')
-    try {
-      const data = await partnersService.getTwoFactorSetup()
-      setSetupData(data)
-    } catch (err) {
-      notificationsService.error({ text: (err as Error).message })
-      setSetupOpen(false)
-    }
-  }
-
-  const handleConfirmSetup = async () => {
-    setSetupLoading(true)
-    try {
-      await partnersService.enableTwoFactor(setupCode)
-      notificationsService.success({ text: 'Two-factor authentication enabled' })
-      setSetupOpen(false)
-      setSetupData(null)
-      setEnabled(true)
-    } catch {
-      notificationsService.error({ text: 'Invalid code' })
-    } finally {
-      setSetupLoading(false)
-    }
-  }
 
   const handleDisable = async () => {
     setDisableLoading(true)
@@ -292,72 +263,22 @@ const TwoFactorCard = () => {
             Disable 2FA
           </Button>
         ) : (
-          <Button onClick={handleOpenSetup}>Enable 2FA</Button>
+          <Button onClick={() => setSetupOpen(true)}>Enable 2FA</Button>
         )}
       </div>
 
       {/* Setup modal */}
-      <Modal
-        isOpen={setupOpen}
-        onClose={() => {
-          setSetupOpen(false)
-          setSetupData(null)
-        }}
-      >
+      <Modal isOpen={setupOpen} onClose={() => setSetupOpen(false)}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
           <p style={{ ...text.heading, margin: 0 }}>Enable two-factor authentication</p>
-          {setupData && (
-            <>
-              <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
-                Scan this QR code with your authenticator app (Google Authenticator, Authy, ...).
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <img src={setupData.qrCode} alt="2FA QR code" width={180} height={180} />
-              </div>
-              <div>
-                <p style={{ ...text.label, marginBottom: 6 }}>Or enter this code manually</p>
-                <div
-                  style={{
-                    background: T.gray5,
-                    border: `1px solid ${T.gray20}`,
-                    borderRadius: 8,
-                    padding: '8px 12px',
-                    fontSize: 13,
-                    color: T.gray80,
-                    fontFamily: 'monospace',
-                    wordBreak: 'break-all',
-                    userSelect: 'all',
-                  }}
-                >
-                  {setupData.secret}
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label style={form.label}>Enter the 6-digit code</label>
-                <Input value={setupCode} onChange={setSetupCode} placeholder="123456" variant="default" />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
-                <Button
-                  variant="secondary"
-                  type="button"
-                  onClick={() => {
-                    setSetupOpen(false)
-                    setSetupData(null)
-                  }}
-                  disabled={setupLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  disabled={setupLoading || setupCode.length !== 6}
-                  loading={setupLoading}
-                  onClick={handleConfirmSetup}
-                >
-                  Confirm
-                </Button>
-              </div>
-            </>
+          {setupOpen && (
+            <TwoFactorSetupForm
+              onComplete={() => {
+                setSetupOpen(false)
+                setEnabled(true)
+              }}
+              onCancel={() => setSetupOpen(false)}
+            />
           )}
         </div>
       </Modal>
@@ -693,6 +614,161 @@ const UsageTab = () => {
   )
 }
 
+// ─── Member row actions menu ────────────────────────────────────────────────
+
+const MemberActionsMenu = ({
+  member,
+  onEdit,
+  onDelete,
+  onDisableTwoFactor,
+  onResetTwoFactor,
+}: {
+  member: PartnerMember
+  onEdit: () => void
+  onDelete: () => void
+  onDisableTwoFactor: () => void
+  onResetTwoFactor: () => void
+}) => {
+  const [open, setOpen] = useState(false)
+  const [coords, setCoords] = useState({ top: 0, right: 0 })
+  const btnRef = useRef<HTMLButtonElement>(null)
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+    }
+    setOpen((o) => !o)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    const close = () => setOpen(false)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    return () => {
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
+    }
+  }, [open])
+
+  const itemStyle: React.CSSProperties = {
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    padding: '8px 16px',
+    fontSize: 14,
+    color: T.gray80,
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+  }
+
+  return (
+    <div>
+      <button
+        ref={btnRef}
+        onClick={handleOpen}
+        title="Actions"
+        style={{
+          padding: 6,
+          borderRadius: 8,
+          color: T.gray50,
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = T.gray80
+          e.currentTarget.style.background = T.gray10
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = T.gray50
+          e.currentTarget.style.background = 'transparent'
+        }}
+      >
+        <DotsThreeIcon size={18} weight="bold" />
+      </button>
+      {open &&
+        createPortal(
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
+            <div
+              style={{
+                position: 'fixed',
+                top: coords.top,
+                right: coords.right,
+                background: T.white,
+                border: `1px solid ${T.gray15}`,
+                borderRadius: 12,
+                boxShadow: shadow.lg,
+                minWidth: 160,
+                zIndex: 50,
+                overflow: 'hidden',
+                padding: '4px 0',
+              }}
+            >
+              <button
+                style={itemStyle}
+                onClick={() => {
+                  setOpen(false)
+                  onEdit()
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                Edit
+              </button>
+
+              {member.twoFactorEnabled && (
+                <>
+                  <div style={{ height: 1, background: T.gray15, margin: '4px 0' }} />
+                  <button
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false)
+                      onResetTwoFactor()
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    Reset 2FA
+                  </button>
+                  <button
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false)
+                      onDisableTwoFactor()
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    Disable 2FA
+                  </button>
+                </>
+              )}
+
+              <div style={{ height: 1, background: T.gray15, margin: '4px 0' }} />
+              <button
+                style={{ ...itemStyle, color: T.red }}
+                onClick={() => {
+                  setOpen(false)
+                  onDelete()
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#fef2f2')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                Delete
+              </button>
+            </div>
+          </>,
+          document.body,
+        )}
+    </div>
+  )
+}
+
 // ─── Members Tab ──────────────────────────────────────────────────────────────
 
 const PER_PAGE = 20
@@ -714,6 +790,9 @@ const MembersTab = () => {
 
   const [deleteTarget, setDeleteTarget] = useState<PartnerMember | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+
+  const [tfaTarget, setTfaTarget] = useState<{ member: PartnerMember; action: 'disable' | 'reset' } | null>(null)
+  const [tfaLoading, setTfaLoading] = useState(false)
 
   const fetch = async () => {
     setLoading(true)
@@ -776,6 +855,26 @@ const MembersTab = () => {
       notificationsService.error({ text: e.message })
     } finally {
       setDeleteLoading(false)
+    }
+  }
+
+  const handleTfaAction = async () => {
+    if (!tfaTarget) return
+    setTfaLoading(true)
+    try {
+      await partnersService.updateMemberTwoFactor(tfaTarget.member.id, tfaTarget.action)
+      notificationsService.success({
+        text:
+          tfaTarget.action === 'disable'
+            ? '2FA disabled for this member'
+            : '2FA reset — the member must set it up again',
+      })
+      setTfaTarget(null)
+      fetch()
+    } catch (e: any) {
+      notificationsService.error({ text: e.message })
+    } finally {
+      setTfaLoading(false)
     }
   }
 
@@ -851,7 +950,20 @@ const MembersTab = () => {
               >
                 Created
               </th>
-              <th style={{ width: 100 }} />
+              <th
+                style={{
+                  textAlign: 'left',
+                  padding: '12px 0',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  color: T.gray60,
+                }}
+              >
+                2FA
+              </th>
+              <th style={{ width: 140 }} />
             </tr>
           </thead>
           <tbody>
@@ -879,70 +991,25 @@ const MembersTab = () => {
                     : '—'}
                 </td>
                 <td style={{ padding: '14px 0' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      justifyContent: 'flex-end',
-                    }}
-                  >
-                    <button
-                      onClick={() => {
+                  {m.twoFactorEnabled ? (
+                    <Pill label="Enabled" tone="green" />
+                  ) : (
+                    <span style={{ fontSize: 13, color: T.gray50 }}>Off</span>
+                  )}
+                </td>
+                <td style={{ padding: '14px 0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <MemberActionsMenu
+                      member={m}
+                      onEdit={() => {
                         setEditTarget(m)
                         setEditEmail(m.email)
                         setEditPassword('')
                       }}
-                      title="Edit member"
-                      style={{
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 8,
-                        color: T.gray50,
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = T.gray80
-                        e.currentTarget.style.background = T.gray10
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = T.gray50
-                        e.currentTarget.style.background = 'transparent'
-                      }}
-                    >
-                      <PencilSimpleIcon size={15} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(m)}
-                      title="Delete member"
-                      style={{
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 8,
-                        color: T.gray50,
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = T.red
-                        e.currentTarget.style.background = T.gray10
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = T.gray50
-                        e.currentTarget.style.background = 'transparent'
-                      }}
-                    >
-                      <TrashIcon size={15} />
-                    </button>
+                      onDelete={() => setDeleteTarget(m)}
+                      onResetTwoFactor={() => setTfaTarget({ member: m, action: 'reset' })}
+                      onDisableTwoFactor={() => setTfaTarget({ member: m, action: 'disable' })}
+                    />
                   </div>
                 </td>
               </tr>
@@ -1154,6 +1221,24 @@ const MembersTab = () => {
         primaryActionColor="danger"
         title="Delete member account?"
         subtitle={`This will permanently remove ${deleteTarget?.email}. They will no longer be able to log in.`}
+      />
+
+      {/* Disable/Reset 2FA confirmation */}
+      <Dialog
+        isOpen={!!tfaTarget}
+        onClose={() => setTfaTarget(null)}
+        onPrimaryAction={handleTfaAction}
+        onSecondaryAction={() => setTfaTarget(null)}
+        isLoading={tfaLoading}
+        primaryAction={tfaTarget?.action === 'disable' ? 'Disable' : 'Reset'}
+        secondaryAction="Cancel"
+        primaryActionColor="danger"
+        title={tfaTarget?.action === 'disable' ? 'Disable 2FA?' : 'Reset 2FA?'}
+        subtitle={
+          tfaTarget?.action === 'disable'
+            ? `${tfaTarget?.member.email} will be able to log in with just their password. They can re-enable 2FA themselves at any time.`
+            : `${tfaTarget?.member.email} will be required to set up two-factor authentication again before they can use the console.`
+        }
       />
     </SectionCard>
   )

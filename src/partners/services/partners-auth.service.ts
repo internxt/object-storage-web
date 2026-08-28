@@ -22,13 +22,14 @@ function isTwoFactorRequiredError(err: unknown): boolean {
   );
 }
 
-async function logIn(email: string, password: string, code?: string): Promise<void> {
+async function logIn(email: string, password: string, code?: string): Promise<{ twoFactorSetupRequired: boolean }> {
   try {
-    const response = await axios.post<{ token: string }>(
+    const response = await axios.post<{ token: string; twoFactorSetupRequired: boolean }>(
       `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners/login`,
       { email, password, code }
     );
     setToken(response.data.token);
+    return { twoFactorSetupRequired: response.data.twoFactorSetupRequired };
   } catch (err) {
     if (isTwoFactorRequiredError(err)) {
       const error = new Error('2FA_REQUIRED');
