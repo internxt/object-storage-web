@@ -145,7 +145,7 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete }: BucketRowProps) => 
             height: 32,
             borderRadius: 8,
             flexShrink: 0,
-            background: 'linear-gradient(135deg, rgba(0,102,255,0.14) 0%, rgba(0,102,255,0.06) 100%)',
+            background: `linear-gradient(135deg, ${T.primaryBg14} 0%, ${T.primaryBg6} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -287,7 +287,7 @@ const BucketsTable = ({
         {/* TODO: hide based on user permissions once available */}
         <button
           onClick={onCreateOpen}
-          className="flex items-center gap-2 h-10 px-[18px] bg-[var(--primary,#0066FF)] text-white border-none rounded-lg cursor-pointer text-sm font-medium whitespace-nowrap"
+          className="flex items-center gap-2 h-10 px-[18px] bg-[var(--primary,#0066FF)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] border-none rounded-lg cursor-pointer text-sm font-medium whitespace-nowrap"
         >
           <PlusIcon size={18} weight="bold" />
           Create bucket
