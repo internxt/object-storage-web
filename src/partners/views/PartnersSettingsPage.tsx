@@ -18,6 +18,7 @@ import Dialog from '../../components/Dialog'
 import { T, text, form, shadow } from '../../sub-account/tokens'
 import { usePartners } from '../context/partnersContext'
 import { TwoFactorSetupForm } from '../components/TwoFactorSetupForm'
+import { BrandingTab } from '../components/BrandingTab'
 
 const Pill = ({ label, tone }: { label: string; tone: 'green' | 'gray' }) => (
   <span
@@ -1246,12 +1247,13 @@ const MembersTab = () => {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'profile' | 'usage' | 'members'
+type Tab = 'profile' | 'usage' | 'members' | 'branding'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'profile', label: 'Profile' },
   { key: 'usage', label: 'Usage' },
   { key: 'members', label: 'Members' },
+  { key: 'branding', label: 'Branding' },
 ]
 
 export const PartnersSettingsPage = () => {
@@ -1317,6 +1319,7 @@ export const PartnersSettingsPage = () => {
       {(isViewer || activeTab === 'profile') && <ProfileTab />}
       {!isViewer && activeTab === 'usage' && <UsageTab />}
       {!isViewer && activeTab === 'members' && <MembersTab />}
+      {!isViewer && activeTab === 'branding' && <BrandingTab />}
     </div>
   )
 }
