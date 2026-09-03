@@ -1,18 +1,42 @@
-import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { BaseSyntheticEvent, useEffect, useState } from 'react';
-import { WarningCircle } from '@phosphor-icons/react';
-import TextInput from './TextInput';
-import PasswordInput, { IFormValues } from '../PasswordInput';
+import { useForm } from 'react-hook-form'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  BaseSyntheticEvent,
+  type CSSProperties,
+  useEffect,
+  useState,
+} from 'react'
+import { WarningCircle } from '@phosphor-icons/react'
+import TextInput from './TextInput'
+import PasswordInput, { IFormValues } from '../PasswordInput'
+import { BrandLogo } from '../BrandLogo'
+
+// Only app-internal paths are allowed as a post-login destination, so a crafted
+// ?redirect= can never send the user to another origin.
+const getSafeRedirect = (raw: string | null): string | null => {
+  if (!raw) return null
+  const isInternalPath = raw.startsWith('/')
+  const isExternalUrl = raw.startsWith('//') || raw.startsWith('/\\')
+  return isInternalPath && !isExternalUrl ? raw : null
+}
+
+interface LoginBranding {
+  logoUrl: string | null
+  styles?: CSSProperties
+}
 
 interface LoginPageViewProps {
-  consoleTitle: string;
-  rightHeadline: React.ReactNode;
-  rightDescription: string;
-  rightFeaturePills: string[];
-  isAuthenticated: boolean;
-  logIn: (email: string, password: string) => Promise<void>;
-  redirectTo: string;
+  consoleTitle: string
+  rightHeadline: React.ReactNode
+  rightDescription: string
+  rightFeaturePills: string[]
+  isAuthenticated: boolean
+  logIn: (email: string, password: string, code?: string) => Promise<void>
+  redirectTo: string
+  branding?: LoginBranding
+  ssoSlot?: React.ReactNode
+  mapLoginError?: (error: unknown) => string | undefined
+  supportsTwoFactor?: boolean
 }
 
 export const LoginPageView = ({
@@ -23,51 +47,79 @@ export const LoginPageView = ({
   isAuthenticated,
   logIn,
   redirectTo,
+  branding,
+  ssoSlot,
+  mapLoginError,
+  supportsTwoFactor,
 }: LoginPageViewProps) => {
-  const navigate = useNavigate();
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [loginError, setLoginError] = useState<string>();
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const destination =
+    getSafeRedirect(searchParams.get('redirect')) ?? redirectTo
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const [loginError, setLoginError] = useState<string>()
+  const defaultLogoUrl = branding
+    ? '/logo.svg'
+    : 'https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png'
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false)
+  const [twoFactorCode, setTwoFactorCode] = useState('')
 
   const {
     register,
     handleSubmit,
     trigger,
     formState: { errors, isValid },
-  } = useForm<IFormValues>({ mode: 'onChange' });
+  } = useForm<IFormValues>({ mode: 'onChange' })
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(redirectTo, { replace: true });
+      navigate(destination, { replace: true })
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated])
 
   useEffect(() => {
-    trigger();
-  }, [trigger]);
+    trigger()
+  }, [trigger])
 
   useEffect(() => {
     if (loginError) {
-      const t = setTimeout(() => setLoginError(''), 4000);
-      return () => clearTimeout(t);
+      const t = setTimeout(() => setLoginError(''), 4000)
+      return () => clearTimeout(t)
     }
-  }, [loginError]);
+  }, [loginError])
 
   const onSubmit = async (
     formData: { email: string; password: string },
-    event: BaseSyntheticEvent<object, unknown, unknown> | undefined
+    event: BaseSyntheticEvent<object, unknown, unknown> | undefined,
   ) => {
-    event?.preventDefault();
-    setLoginError('');
-    setIsLoggingIn(true);
+    event?.preventDefault()
+    setLoginError('')
+    setIsLoggingIn(true)
     try {
-      await logIn(formData.email, formData.password);
-      navigate(redirectTo);
-    } catch {
-      setLoginError('Invalid credentials');
+      await logIn(
+        formData.email,
+        formData.password,
+        twoFactorRequired ? twoFactorCode : undefined,
+      )
+      navigate(destination)
+    } catch (err) {
+      if (
+        supportsTwoFactor &&
+        !twoFactorRequired &&
+        (err as Error)?.message === '2FA_REQUIRED'
+      ) {
+        setTwoFactorRequired(true)
+      } else {
+        setLoginError(
+          twoFactorRequired
+            ? 'Invalid code'
+            : (mapLoginError?.(err) ?? 'Invalid credentials'),
+        )
+      }
     } finally {
-      setIsLoggingIn(false);
+      setIsLoggingIn(false)
     }
-  };
+  }
 
   const inputClass = [
     '[&_input]:h-[52px]',
@@ -82,34 +134,48 @@ export const LoginPageView = ({
     '[&_input]:ring-0',
     '[&_input]:transition-all',
     '[&_input:focus]:bg-[#ebebed]',
-  ].join(' ');
+  ].join(' ')
 
   return (
-    <div className='flex w-screen min-h-screen' style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' }}>
-
+    <div
+      className="flex w-screen min-h-screen"
+      style={{
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
+        ...branding?.styles,
+      }}
+    >
       {/* ── Left: form ── */}
-      <div className='relative flex flex-col w-full lg:max-w-[520px] min-h-screen bg-white px-10 lg:px-16 py-10 flex-shrink-0'>
-        <img
-          src='https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png'
-          alt='logo'
+      <div className="relative flex flex-col w-full lg:max-w-[520px] min-h-screen bg-white px-10 lg:px-16 py-10 flex-shrink-0">
+        <BrandLogo
+          logoUrl={branding?.logoUrl}
+          fallbackLogoUrl={defaultLogoUrl}
+          fallbackAlt={branding ? 'Internxt' : 'logo'}
           width={180}
           height={45}
+          darkenFallback={Boolean(branding)}
+          style={{ maxWidth: 180, maxHeight: 45 }}
         />
 
-        <div className='flex flex-col flex-1 justify-center max-w-[320px] gap-8'>
+        <div className="flex flex-col flex-1 justify-center max-w-[320px] gap-8">
           <div>
-            <p className='text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-2'>{consoleTitle}</p>
-            <h1 className='text-[32px] font-semibold tracking-tight text-gray-900 leading-tight'>
+            <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-2">
+              {consoleTitle}
+            </p>
+            <h1 className="text-[32px] font-semibold tracking-tight text-gray-900 leading-tight">
               Welcome back
             </h1>
           </div>
 
-          <form className='flex flex-col gap-2.5' onSubmit={handleSubmit(onSubmit)}>
+          <form
+            className="flex flex-col gap-2.5"
+            onSubmit={handleSubmit(onSubmit)}
+          >
             <TextInput
-              placeholder='Email'
-              inputDataCy='emailInput'
-              label='email'
-              type='email'
+              placeholder="Email"
+              inputDataCy="emailInput"
+              label="email"
+              type="email"
               register={register}
               required={true}
               minLength={{ value: 1, message: 'Email must not be empty' }}
@@ -117,9 +183,9 @@ export const LoginPageView = ({
               className={inputClass}
             />
             <PasswordInput
-              placeholder='Password'
-              inputDataCy='passwordInput'
-              label='password'
+              placeholder="Password"
+              inputDataCy="passwordInput"
+              label="password"
               register={register}
               required={true}
               minLength={{ value: 1, message: 'Password must not be empty' }}
@@ -127,68 +193,130 @@ export const LoginPageView = ({
               className={inputClass}
             />
 
+            {twoFactorRequired && (
+              <input
+                type="text"
+                inputMode="numeric"
+                autoFocus
+                placeholder="6-digit code"
+                maxLength={6}
+                value={twoFactorCode}
+                onChange={(e) => setTwoFactorCode(e.target.value)}
+                className={`h-[52px] bg-[#f5f5f7] border-0 rounded-xl px-5 text-[15px] text-gray-900 placeholder-gray-400 outline-none ring-0 transition-all focus:bg-[#ebebed]`}
+              />
+            )}
+
             {loginError && (
-              <div className='flex items-center gap-1.5 px-1'>
-                <WarningCircle weight='fill' className='h-3.5 w-3.5 text-red-500 flex-shrink-0' />
-                <span className='text-[13px] text-red-500'>{loginError}</span>
+              <div className="flex items-center gap-1.5 px-1">
+                <WarningCircle
+                  weight="fill"
+                  className="h-3.5 w-3.5 text-red-500 flex-shrink-0"
+                />
+                <span className="text-[13px] text-red-500">{loginError}</span>
               </div>
             )}
 
             <button
-              type='submit'
-              disabled={!isValid || isLoggingIn}
-              className='mt-1 w-full h-[52px] rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:bg-[#006edb] text-white text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+              type="submit"
+              disabled={
+                !isValid ||
+                isLoggingIn ||
+                (twoFactorRequired && twoFactorCode.length !== 6)
+              }
+              className="mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoggingIn ? 'Signing in…' : 'Log in'}
+              {isLoggingIn
+                ? 'Signing in…'
+                : twoFactorRequired
+                  ? 'Verify'
+                  : 'Log in'}
             </button>
           </form>
+
+          {ssoSlot && (
+            <div className="flex flex-col gap-4 -mt-2">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-gray-10" />
+                <span className="text-xs text-gray-50">or</span>
+                <div className="h-px flex-1 bg-gray-10" />
+              </div>
+              {ssoSlot}
+            </div>
+          )}
         </div>
       </div>
 
       {/* ── Right: brand panel ── */}
-      <div className='relative flex-1 min-h-screen overflow-hidden hidden lg:block' style={{ background: 'linear-gradient(135deg, #060e5c 0%, #0d2aad 60%, #1a45d4 100%)' }}>
-        <div className='absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-10' style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }} />
-        <div className='absolute -bottom-40 -left-20 w-[400px] h-[400px] rounded-full opacity-10' style={{ background: 'radial-gradient(circle, #7eb3ff 0%, transparent 70%)' }} />
+      <div
+        className="relative flex-1 min-h-screen overflow-hidden hidden lg:block"
+        style={{
+          background:
+            'linear-gradient(135deg, var(--sub-account-primary-dark, #060e5c) 0%, var(--sub-account-primary, #0d2aad) 60%, var(--sub-account-primary, #1a45d4) 100%)',
+        }}
+      >
+        <div
+          className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-10"
+          style={{
+            background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)',
+          }}
+        />
+        <div
+          className="absolute -bottom-40 -left-20 w-[400px] h-[400px] rounded-full opacity-10"
+          style={{
+            background: 'radial-gradient(circle, #7eb3ff 0%, transparent 70%)',
+          }}
+        />
 
-        <div className='relative flex flex-col h-full items-center justify-center px-16 gap-16'>
-          <div className='text-center'>
-            <h2 className='text-4xl font-bold text-white tracking-tight leading-tight mb-4'>
+        <div className="relative flex flex-col h-full items-center justify-center px-16 gap-16">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-white tracking-tight leading-tight mb-4">
               {rightHeadline}
             </h2>
-            <p className='text-white/70 text-base max-w-xs mx-auto leading-relaxed'>
+            <p className="text-white/70 text-base max-w-xs mx-auto leading-relaxed">
               {rightDescription}
             </p>
           </div>
 
-          <div className='w-full max-w-md bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 p-5 flex flex-col gap-4'>
-            <div className='flex items-center gap-2'>
-              <div className='w-2.5 h-2.5 rounded-full bg-white/30' />
-              <div className='h-2 w-24 rounded-full bg-white/20' />
-              <div className='ml-auto h-2 w-12 rounded-full bg-white/20' />
+          <div className="w-full max-w-md bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 p-5 flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-white/30" />
+              <div className="h-2 w-24 rounded-full bg-white/20" />
+              <div className="ml-auto h-2 w-12 rounded-full bg-white/20" />
             </div>
-            <div className='grid grid-cols-3 gap-2'>
+            <div className="grid grid-cols-3 gap-2">
               {['Total Reserved', 'Used Storage', 'Remaining'].map((label) => (
-                <div key={label} className='bg-white/10 rounded-xl p-3 flex flex-col gap-2'>
-                  <div className='h-1.5 w-12 rounded-full bg-white/30' />
-                  <div className='h-3 w-16 rounded-full bg-white/50' />
-                  <div className='text-[10px] text-blue-100/70 leading-tight'>{label}</div>
+                <div
+                  key={label}
+                  className="bg-white/10 rounded-xl p-3 flex flex-col gap-2"
+                >
+                  <div className="h-1.5 w-12 rounded-full bg-white/30" />
+                  <div className="h-3 w-16 rounded-full bg-white/50" />
+                  <div className="text-[10px] text-blue-100/70 leading-tight">
+                    {label}
+                  </div>
                 </div>
               ))}
             </div>
-            <div className='flex flex-col gap-1.5'>
-              <div className='h-2 w-full rounded-full bg-white/15' />
+            <div className="flex flex-col gap-1.5">
+              <div className="h-2 w-full rounded-full bg-white/15" />
               {[0.8, 0.6, 0.9, 0.5].map((w, i) => (
-                <div key={i} className='flex items-center gap-2'>
-                  <div className='h-1.5 rounded-full bg-white/25' style={{ width: `${w * 100}%` }} />
-                  <div className='h-1.5 w-8 rounded-full bg-white/15 ml-auto flex-shrink-0' />
+                <div key={i} className="flex items-center gap-2">
+                  <div
+                    className="h-1.5 rounded-full bg-white/25"
+                    style={{ width: `${w * 100}%` }}
+                  />
+                  <div className="h-1.5 w-8 rounded-full bg-white/15 ml-auto flex-shrink-0" />
                 </div>
               ))}
             </div>
           </div>
 
-          <div className='flex flex-wrap justify-center gap-2'>
+          <div className="flex flex-wrap justify-center gap-2">
             {rightFeaturePills.map((f) => (
-              <span key={f} className='text-xs text-white/70 bg-white/10 border border-white/10 px-3 py-1.5 rounded-full'>
+              <span
+                key={f}
+                className="text-xs text-white/70 bg-white/10 border border-white/10 px-3 py-1.5 rounded-full"
+              >
                 {f}
               </span>
             ))}
@@ -196,5 +324,5 @@ export const LoginPageView = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

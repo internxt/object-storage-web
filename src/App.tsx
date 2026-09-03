@@ -29,7 +29,11 @@ import { SubAccountAuthRoute } from './sub-account/components/SubAccountAuthRout
 import { SubAccountBucketsPage } from './sub-account/views/SubAccountBucketsPage';
 import { SubAccountBucketDetailPage } from './sub-account/views/SubAccountBucketDetailPage';
 import { SubAccountUsagePage } from './sub-account/views/SubAccountUsagePage';
+import { SubAccountSharedPage } from './sub-account/views/SubAccountSharedPage';
 import { SubAccountSettingsPage } from './sub-account/views/SubAccountSettingsPage';
+import { SharePage } from './views/SharePage';
+import { ShareAuthRoute } from './components/share/ShareAuthRoute';
+import { SubAccountBrandingProvider } from './sub-account/context/SubAccountBrandingContext/SubAccountBrandingContext';
 
 const DEFAULT_LOGIN_PATH = '/subaccount/login';
 
@@ -48,7 +52,8 @@ export function App() {
       <ManagementProvider>
         <PartnersProvider>
           <SubAccountProvider>
-          <Router>
+          <SubAccountBrandingProvider>
+            <Router>
             <Routes>
               <Route path='/login' element={<LoginPage />} />
 
@@ -59,6 +64,11 @@ export function App() {
               </Route>
 
               <Route path='/' element={<Navigate to={getLoginPathForHost()} />} />
+
+              {/* Share links */}
+              <Route element={<ShareAuthRoute />}>
+                <Route path='/share/:token' element={<SharePage />} />
+              </Route>
 
               {/* Management console */}
               <Route path='/management/login' element={<ManagementLoginPage />} />
@@ -85,13 +95,15 @@ export function App() {
                 <Route path='/subaccount/buckets' element={<SubAccountBucketsPage />} />
                 <Route path='/subaccount/buckets/:bucketName' element={<SubAccountBucketDetailPage />} />
                 <Route path='/subaccount/usage' element={<SubAccountUsagePage />} />
+                <Route path='/subaccount/shared' element={<SubAccountSharedPage />} />
                 <Route path='/subaccount/settings' element={<SubAccountSettingsPage />} />
               </Route>
               <Route path='/subaccount' element={<Navigate to='/subaccount/buckets' />} />
 
               {/* <Route path="*" element={<NotFoundPage />} /> */}
             </Routes>
-          </Router>
+            </Router>
+          </SubAccountBrandingProvider>
           </SubAccountProvider>
         </PartnersProvider>
       </ManagementProvider>

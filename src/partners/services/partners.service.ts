@@ -46,7 +46,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     id: raw.id,
     name: raw.id,
     email: raw.email ?? '',
-    status: raw.status === 'SUSPENDED' ? 'SUSPENDED' : 'PAID_ACCOUNT',
+    status: raw.status === 'SUSPENDED' || raw.status === 'DELETED' ? raw.status : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
@@ -59,6 +59,8 @@ export interface PartnerInfo {
   name: string | null;
   email: string | null;
   createdAt: string;
+  automaticSubAccountCreationEnabled: boolean;
+  twoFactorSetupRequired?: boolean;
 }
 
 async function getMe(): Promise<PartnerInfo> {
@@ -97,6 +99,14 @@ async function reactivateSubAccount(id: string): Promise<void> {
   await axios.put(`${API()}/sub-accounts/${id}/reactivate`, {}, { headers: headers() });
 }
 
+async function deleteSubAccount(id: string): Promise<void> {
+  await axios.delete(`${API()}/sub-accounts/${id}`, { headers: headers() });
+}
+
+async function changeSubAccountPassword(id: string, newPassword: string): Promise<void> {
+  await axios.patch(`${API()}/sub-accounts/${id}/password`, { newPassword }, { headers: headers() });
+}
+
 async function getUsageSummary(): Promise<PartnersUsageSummary> {
   const response = await axios.get(`${API()}/usages/summary`, { headers: headers() });
   return response.data;
@@ -122,6 +132,7 @@ export interface PartnerMember {
   entityType: string;
   entityId: string;
   createdAt: string;
+  twoFactorEnabled: boolean;
 }
 
 async function listMembers(): Promise<PartnerMember[]> {
@@ -139,6 +150,10 @@ async function deleteMember(id: string): Promise<void> {
 
 async function updateMember(id: string, dto: { email?: string; newPassword?: string }): Promise<void> {
   await axios.patch(`${API()}/members/${id}`, dto, { headers: headers() });
+}
+
+async function updateMemberTwoFactor(id: string, action: 'disable' | 'reset'): Promise<void> {
+  await axios.patch(`${API()}/members/${id}/tfa`, { action }, { headers: headers() });
 }
 
 export interface DailyUsageEntry {
@@ -165,6 +180,24 @@ async function changePassword(currentPassword: string, newPassword: string): Pro
   partnersAuthService.setToken(response.data.token);
 }
 
+async function getTwoFactorStatus(): Promise<{ enabled: boolean }> {
+  const response = await axios.get(`${API()}/tfa/status`, { headers: headers() });
+  return response.data;
+}
+
+async function getTwoFactorSetup(): Promise<{ secret: string; qrCode: string }> {
+  const response = await axios.get(`${API()}/tfa`, { headers: headers() });
+  return response.data;
+}
+
+async function enableTwoFactor(code: string): Promise<void> {
+  await axios.put(`${API()}/tfa`, { code }, { headers: headers() });
+}
+
+async function disableTwoFactor(password: string, code: string): Promise<void> {
+  await axios.delete(`${API()}/tfa`, { headers: headers(), data: { password, code } });
+}
+
 export const partnersService = {
   getMe,
   exportDailyUsage,
@@ -174,6 +207,8 @@ export const partnersService = {
   createSubAccount,
   suspendSubAccount,
   reactivateSubAccount,
+  deleteSubAccount,
+  changeSubAccountPassword,
   getUsageSummary,
   createBillingPortalSession,
   changePassword,
@@ -181,4 +216,9 @@ export const partnersService = {
   createMember,
   deleteMember,
   updateMember,
+  updateMemberTwoFactor,
+  getTwoFactorStatus,
+  getTwoFactorSetup,
+  enableTwoFactor,
+  disableTwoFactor,
 };

@@ -13,6 +13,7 @@ export const PartnersLoginPage = () => {
       isAuthenticated={isAuthenticated}
       logIn={logIn}
       redirectTo='/partners/sub-accounts'
+      supportsTwoFactor
     />
   );
 };
