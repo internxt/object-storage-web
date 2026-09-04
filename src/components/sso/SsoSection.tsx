@@ -26,16 +26,9 @@ export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionPr
   const loadData = useCallback(() => {
     subAccountSsoService.getSsoConfig(entityId)
       .then(setConfig)
-      //TODO change setConfig to handle error when backend is ready
-      .catch(() => setConfig({
-        configured: true,
-        organizationName: 'string',
-        provider: 'azure-ad',
-        tenantId: 'string',
-        clientId: 'string',
-        configuredAt: 'string',
-        token: 'string'
-      }));
+      .catch(() => {
+        setConfig({ configured: false });
+      });
     subAccountSsoService.getOtherMemberCount(entityId, memberId)
       .then(setOtherMemberCount)
       .catch(() => setOtherMemberCount(null));
