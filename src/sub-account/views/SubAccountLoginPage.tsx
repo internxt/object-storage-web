@@ -4,6 +4,7 @@ import { LoginPageView } from '../../components/auth/LoginPageView';
 import Skeleton from 'react-loading-skeleton';
 import { useSubAccount } from '../context/SubAccountContext';
 import { useSubAccountBranding } from '../context/SubAccountBrandingContext/useSubAccountBranding';
+import { subAccountConsoleBranding } from '../console-branding';
 
 import { SsoLoginModal } from '../../components/sso/SsoLoginModal';
 import { SSO_ERROR_CODES, getSsoErrorCode } from '../services/sub-account-sso.service';
@@ -38,14 +39,11 @@ export const SubAccountLoginPage = () => {
   return (
     <>
       <LoginPageView
-        consoleTitle='Cloud Account Console'
-        rightHeadline={<>Object Storage<br />Sub-account</>}
-        rightDescription='Access your storage, manage buckets and objects, and control team member permissions from one place.'
-        rightFeaturePills={['Bucket management', 'Object storage', 'Team permissions']}
+        {...subAccountConsoleBranding}
         isAuthenticated={isAuthenticated}
         logIn={logIn}
         redirectTo='/subaccount/buckets'
-      branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
+        branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
         mapLoginError={mapLoginError}
         ssoSlot={
           <button
