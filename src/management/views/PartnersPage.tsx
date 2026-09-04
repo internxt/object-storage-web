@@ -4,6 +4,7 @@ import { partnersService, Partner, PartnersSummary } from '../services/partners.
 import { PartnersTable, SortOrder } from '../components/PartnersTable';
 import { CreatePartnerModal } from '../components/CreatePartnerModal';
 import notificationsService from '../../services/notifications.service';
+import { T } from '../../sub-account/tokens';
 
 const PER_PAGE = 20;
 
@@ -142,7 +143,13 @@ export const PartnersPage = () => {
             </label>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className='bg-indigo hover:bg-indigo-dark active:bg-indigo-dark text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm'
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                height: 40, padding: '0 18px',
+                background: T.primary, color: T.white,
+                border: 'none', borderRadius: 8, cursor: 'pointer',
+                fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
+              }}
             >
               Create Partner
             </button>
