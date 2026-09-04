@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { captchaService } from '../../services/captcha.service';
 import { subAccountSsoService } from './sub-account-sso.service';
 
 const TOKEN_KEY = 'subAccountToken';
@@ -32,6 +33,19 @@ async function logInWithSso(organizationName: string): Promise<void> {
   const { token, azureEmail } = await subAccountSsoService.loginWithAzure(organizationName);
   setToken(token);
   localStorage.setItem(EMAIL_KEY, azureEmail);
+}
+
+async function requestPasswordReset(email: string): Promise<void> {
+  const captchaHeaders = await captchaService.getHeaders('ForgotPassword');
+  await axios.post(
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/forgot-password`,
+    { email },
+    { headers: captchaHeaders },
+  );
+}
+
+async function resetPassword(token: string, newPassword: string): Promise<void> {
+  await axios.post(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/reset-password`, { token, newPassword });
 }
 
 function getEmail(): string | null {
@@ -114,6 +128,8 @@ export const subAccountAuthService = {
   logIn,
   logInWithSso,
   logOut,
+  requestPasswordReset,
+  resetPassword,
   getToken,
   setToken,
   getRole,

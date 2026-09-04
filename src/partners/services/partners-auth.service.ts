@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { captchaService } from '../../services/captcha.service';
 
 const PARTNERS_TOKEN_KEY = 'partnersToken';
 
@@ -40,6 +41,19 @@ async function logIn(email: string, password: string, code?: string): Promise<{ 
   }
 }
 
+async function requestPasswordReset(email: string): Promise<void> {
+  const captchaHeaders = await captchaService.getHeaders('ForgotPassword');
+  await axios.post(
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners/forgot-password`,
+    { email },
+    { headers: captchaHeaders },
+  );
+}
+
+async function resetPassword(token: string, newPassword: string): Promise<void> {
+  await axios.post(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners/reset-password`, { token, newPassword });
+}
+
 function logOut(): void {
   removeToken();
 }
@@ -63,6 +77,8 @@ function getRole(): 'partner' | 'member' | null {
 export const partnersAuthService = {
   logIn,
   logOut,
+  requestPasswordReset,
+  resetPassword,
   getToken,
   setToken,
   getAuthHeaders,

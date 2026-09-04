@@ -34,6 +34,92 @@
   When the user clicks the password visibility toggle
   Then the password field switches between hidden and visible text
 
+### Password recovery
+#### Scenario: Reach the password recovery page from the login page
+  Given the user is on the login page
+  When the user clicks the "Forgot password?" link
+  Then the user is taken to the password recovery page
+
+#### Scenario: Request a reset link for an existing account
+  Given the user is on the password recovery page
+  When the user enters the email of an existing account
+  And the user submits the form
+  Then a confirmation screen is shown
+  And the confirmation states that a link was sent if an account exists
+  And the confirmation states that the link expires in one hour
+
+#### Scenario: Request a reset link for an email without an account
+  Given the user is on the password recovery page
+  When the user enters an email that belongs to no account
+  And the user submits the form
+  Then the same confirmation screen is shown as for an existing account
+  And nothing in the response reveals whether the account exists
+
+#### Scenario: Request a reset link with a malformed email
+  Given the user is on the password recovery page
+  When the email field does not contain a valid address
+  Then the submit button is disabled
+  And the form cannot be submitted
+
+#### Scenario: Request a reset link while the verification service is blocked
+  Given the user is on the password recovery page
+  And the browser blocks the verification script
+  When the user submits the form
+  Then an error explains that verification could not be loaded
+  And the user stays on the form so the request can be retried
+
+#### Scenario: Open a valid reset link
+  Given the user has received a reset link
+  When the user opens the link
+  Then the page asks for a new password and its confirmation
+
+#### Scenario: See the password policy while typing
+  Given the user is on the reset password page
+  When the user types a password that does not meet the policy
+  Then the unmet requirements are listed under the field
+  And the confirmation field stays disabled
+
+#### Scenario: Confirm the new password
+  Given the user has typed a password that meets the policy
+  When the user types a confirmation that differs from it
+  Then an error states that the passwords do not match
+  And the submit button is disabled
+
+#### Scenario: Set a new password successfully
+  Given the user has typed a valid password twice
+  When the user submits the form
+  Then a confirmation message is shown
+  And the user is redirected to the login page
+
+#### Scenario: Log in with the new password
+  Given the user has completed a password reset
+  When the user logs in with the new password
+  Then the user is redirected to the Buckets page
+  And the previous password is no longer accepted
+
+#### Scenario: Open a reset link that was already used
+  Given the user opens a reset link that has already been used
+  When the user submits a new password
+  Then the page states that the link is no longer valid
+  And the page offers to request a new link
+
+#### Scenario: Open an expired reset link
+  Given the user opens a reset link that has expired
+  When the user submits a new password
+  Then the page states that the link is no longer valid
+  And the page offers to request a new link
+
+#### Scenario: Open the reset password page without a link
+  Given the user opens the reset password page with no token in the address
+  Then the page states that the link is no longer valid
+  And the page offers to request a new link
+
+#### Scenario: Request a reset link for an organization that uses single sign-on
+  Given the user belongs to an organization with single sign-on enabled
+  When the user requests a reset link
+  Then the same confirmation screen is shown as for any other account
+  And no reset link is sent
+
 ### Session
 #### Scenario: Redirect to Buckets with active session
   Given the user has an active session

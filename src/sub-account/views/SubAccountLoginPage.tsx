@@ -43,6 +43,7 @@ export const SubAccountLoginPage = () => {
         isAuthenticated={isAuthenticated}
         logIn={logIn}
         redirectTo='/subaccount/buckets'
+        forgotPasswordPath='/subaccount/forgot-password'
         branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
         mapLoginError={mapLoginError}
         ssoSlot={

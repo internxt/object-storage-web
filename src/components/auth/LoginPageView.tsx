@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { BaseSyntheticEvent, useEffect, useState } from 'react';
 import { WarningCircleIcon } from '@phosphor-icons/react';
 import TextInput from './TextInput';
@@ -24,6 +24,7 @@ interface LoginPageViewProps {
   isAuthenticated: boolean;
   logIn: (email: string, password: string, code?: string) => Promise<void>;
   redirectTo: string;
+  forgotPasswordPath?: string;
   branding?: AuthPageBranding;
   ssoSlot?: React.ReactNode;
   mapLoginError?: (error: unknown) => string | undefined;
@@ -38,6 +39,7 @@ export const LoginPageView = ({
   isAuthenticated,
   logIn,
   redirectTo,
+  forgotPasswordPath,
   branding,
   ssoSlot,
   mapLoginError,
@@ -155,6 +157,15 @@ export const LoginPageView = ({
         >
           {isLoggingIn ? 'Signing in…' : twoFactorRequired ? 'Verify' : 'Log in'}
         </button>
+
+        {forgotPasswordPath && (
+          <Link
+            to={forgotPasswordPath}
+            className='mt-1 self-end px-1 text-[13px] text-gray-60 no-underline hover:text-gray-100 transition-colors'
+          >
+            Forgot password?
+          </Link>
+        )}
       </form>
 
       {ssoSlot && (
