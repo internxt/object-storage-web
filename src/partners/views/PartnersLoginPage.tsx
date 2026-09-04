@@ -12,6 +12,7 @@ export const PartnersLoginPage = () => {
       logIn={logIn}
       redirectTo='/partners/sub-accounts'
       forgotPasswordPath='/partners/forgot-password'
+      supportsTwoFactor
     />
   );
 };

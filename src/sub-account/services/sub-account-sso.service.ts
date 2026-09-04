@@ -90,6 +90,27 @@ async function getPublicConfig(organizationName: string): Promise<PublicSsoConfi
 }
 
 /**
+ * Resolves the SSO config for a sub-account by the custom domain the app is being
+ * accessed from, instead of an organization name typed by the user. Callers should
+ * treat any failure (404 or otherwise) as "no custom-domain SSO for this hostname"
+ * and fall back to the manual organization-name flow.
+ */
+async function getConfigByHostname(hostname: string): Promise<PublicSsoConfig> {
+  try {
+    const response = await axios.get<PublicSsoConfig>(
+      `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/sso/config`,
+      { params: { hostname: hostname.trim().toLowerCase() } },
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      throw new SsoNotConfiguredError();
+    }
+    throw error;
+  }
+}
+
+/**
  * MSAL flags an interaction as "in progress" in sessionStorage while a popup is open,
  * and clears it once loginPopup() settles. If a previous attempt was interrupted before
  * that cleanup ran (e.g. the backend rejecting a successful Azure login), the flag is
@@ -215,6 +236,7 @@ async function getOtherMemberCount(entityId: string, currentMemberId: string): P
 
 export const subAccountSsoService = {
   getPublicConfig,
+  getConfigByHostname,
   loginWithAzure,
   resetSsoLoginState,
   getSsoConfig,
