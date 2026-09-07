@@ -6,7 +6,9 @@ interface PartnersContextType {
   isAuthenticated: boolean;
   isViewer: boolean;
   partnerInfo: PartnerInfo | null;
-  logIn: (email: string, password: string) => Promise<void>;
+  twoFactorSetupRequired: boolean;
+  clearTwoFactorSetupRequired: () => void;
+  logIn: (email: string, password: string, code?: string) => Promise<void>;
   logOut: () => void;
 }
 
@@ -20,6 +22,7 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
     () => partnersAuthService.getRole() === 'member'
   );
   const [partnerInfo, setPartnerInfo] = useState<PartnerInfo | null>(null);
+  const [twoFactorSetupRequired, setTwoFactorSetupRequired] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -28,14 +31,18 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
     }
     partnersService
       .getMe()
-      .then(setPartnerInfo)
+      .then((info) => {
+        setPartnerInfo(info);
+        setTwoFactorSetupRequired(!!info.twoFactorSetupRequired);
+      })
       .catch(() => setPartnerInfo(null));
   }, [isAuthenticated]);
 
-  const logIn = async (email: string, password: string) => {
-    await partnersAuthService.logIn(email, password);
+  const logIn = async (email: string, password: string, code?: string) => {
+    const { twoFactorSetupRequired } = await partnersAuthService.logIn(email, password, code);
     setIsAuthenticated(true);
     setIsViewer(partnersAuthService.getRole() === 'member');
+    setTwoFactorSetupRequired(twoFactorSetupRequired);
   };
 
   const logOut = () => {
@@ -43,11 +50,14 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
     setIsViewer(false);
     setPartnerInfo(null);
+    setTwoFactorSetupRequired(false);
   };
 
+  const clearTwoFactorSetupRequired = () => setTwoFactorSetupRequired(false);
+
   const value = useMemo(
-    () => ({ isAuthenticated, isViewer, partnerInfo, logIn, logOut }),
-    [isAuthenticated, isViewer, partnerInfo]
+    () => ({ isAuthenticated, isViewer, partnerInfo, twoFactorSetupRequired, clearTwoFactorSetupRequired, logIn, logOut }),
+    [isAuthenticated, isViewer, partnerInfo, twoFactorSetupRequired]
   );
 
   return (

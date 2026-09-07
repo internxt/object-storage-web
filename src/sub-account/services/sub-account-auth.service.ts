@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { subAccountSsoService } from './sub-account-sso.service';
 
 const TOKEN_KEY = 'subAccountToken';
 const EMAIL_KEY = 'subAccountEmail';
@@ -25,6 +26,12 @@ async function logIn(email: string, password: string): Promise<void> {
   setToken(response.data.token);
   localStorage.setItem(EMAIL_KEY, email);
   console.log('[sub-account] token saved', { role: getRole(), memberId: getMemberId(), entityId: getEntityId() });
+}
+
+async function logInWithSso(organizationName: string): Promise<void> {
+  const { token, azureEmail } = await subAccountSsoService.loginWithAzure(organizationName);
+  setToken(token);
+  localStorage.setItem(EMAIL_KEY, azureEmail);
 }
 
 function getEmail(): string | null {
@@ -105,6 +112,7 @@ function getEntityCreatedAt(): string | null {
 
 export const subAccountAuthService = {
   logIn,
+  logInWithSso,
   logOut,
   getToken,
   setToken,

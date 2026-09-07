@@ -17,9 +17,11 @@ import {
   DotsThreeVerticalIcon,
   DownloadSimpleIcon,
   CopyIcon,
+  LinkIcon,
 } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import { S3Object, s3Service, isAccessDeniedError, RetentionMode, VersioningStatus } from '../../services/s3.service';
+import { formatDateTime } from '../../utils/formatDate';
 import notificationsService from '../../services/notifications.service';
 import { UploadModal } from '../../components/objects/UploadModal';
 import { FileDetailsPanel } from '../../components/objects/FileDetailsPanel';
@@ -41,6 +43,7 @@ import { useFileRetention } from '../hooks/useFileRetention';
 import { useSubAccount } from '../context/SubAccountContext';
 import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal';
 import { RetentionConfirmModal } from '../components/RetentionConfirmModal';
+import { ShareModal } from '../components/ShareModal';
 import { T, shadow, text } from '../tokens';
 import { S3Client } from '@aws-sdk/client-s3';
 
@@ -52,12 +55,6 @@ function displayName(key: string): string {
 
 function versionRowId(obj: S3Object): string {
   return `${obj.key}::${obj.versionId ?? ''}`;
-}
-
-function fmtDate(d: Date): string {
-  const date = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  return `${date}, ${time}`;
 }
 
 function getFileIcon(name: string) {
@@ -81,7 +78,7 @@ const Pill = ({ type }: { type: 'public' | 'private' }) => {
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
       padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 500,
-      background: pub ? 'rgba(0,102,255,0.08)' : T.gray10,
+      background: pub ? T.primaryBg8 : T.gray10,
       color: pub ? T.primary : T.gray80,
     }}>
       <span style={{
@@ -216,9 +213,10 @@ interface ObjectRowProps {
   onDownload: (obj: S3Object) => void;
   onDelete: (obj: S3Object) => void;
   onCopyPath: (obj: S3Object) => void;
+  onShare: (obj: S3Object) => void;
 }
 
-const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath }: ObjectRowProps) => {
+const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath, onShare }: ObjectRowProps) => {
   const [hovered, setHovered] = useState(false);
   const [triggerHovered, setTriggerHovered] = useState(false);
   const name = displayName(obj.key);
@@ -230,7 +228,7 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
         display: 'grid', gridTemplateColumns: showVersions ? GRID_COLS_VERSIONS : GRID_COLS, alignItems: 'center',
         padding: '0 16px', height: 52,
         borderBottom: `1px solid ${T.gray15}`,
-        background: selected ? 'rgba(0,102,255,0.04)' : hovered ? T.gray5 : '#fff',
+        background: selected ? T.primaryBg4 : hovered ? T.gray5 : '#fff',
         transition: 'background 100ms', cursor: 'pointer', position: 'relative',
       }}
       onMouseEnter={() => setHovered(true)}
@@ -270,7 +268,7 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
 
       {/* Last modified */}
       <span style={{ fontSize: 13, color: T.gray60 }}>
-        {obj.isFolder ? '—' : fmtDate(obj.lastModified)}
+        {obj.isFolder ? '—' : formatDateTime(obj.lastModified)}
       </span>
 
       {/* Version ID */}
@@ -314,6 +312,11 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
                 label: 'Copy path',
                 icon: <CopyIcon size={15} />,
                 onClick: () => onCopyPath(obj),
+              },
+              {
+                label: 'Share',
+                icon: <LinkIcon size={15} />,
+                onClick: () => onShare(obj),
               },
               {
                 label: 'Delete',
@@ -436,6 +439,7 @@ export const SubAccountBucketDetailPage = () => {
   const [selectedFile, setSelectedFile] = useState<S3Object | null>(null);
   const fileRetention = useFileRetention();
   const [fileToDelete, setFileToDelete] = useState<S3Object | null>(null);
+  const [objectToShare, setObjectToShare] = useState<S3Object | null>(null);
   const [isDeletingSingle, setIsDeletingSingle] = useState(false);
   const [isDeleteBucketOpen, setIsDeleteBucketOpen] = useState(false);
   const [isDeletingBucket, setIsDeletingBucket] = useState(false);
@@ -738,6 +742,8 @@ export const SubAccountBucketDetailPage = () => {
 
   const onDeleteSingle = (obj: S3Object) => setFileToDelete(obj);
 
+  const onShare = (obj: S3Object) => setObjectToShare(obj);
+
   const onConfirmDeleteSingle = async () => {
     if (!client || !bucketName || !fileToDelete) return;
     setIsDeletingSingle(true);
@@ -838,7 +844,7 @@ export const SubAccountBucketDetailPage = () => {
 
         <div style={{
           width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-          background: 'rgba(0,102,255,0.08)',
+          background: T.primaryBg8,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <DatabaseIcon size={20} color={T.primary} weight="duotone" />
@@ -1041,6 +1047,7 @@ export const SubAccountBucketDetailPage = () => {
                     onDownload={onDownload}
                     onDelete={onDeleteSingle}
                     onCopyPath={onCopyPath}
+                    onShare={onShare}
                   />
                 ))
               )}
@@ -1153,6 +1160,7 @@ export const SubAccountBucketDetailPage = () => {
             onClose={() => setSelectedFile(null)}
             onDownload={onDownload}
             onCopyPath={onCopyPath}
+            onShare={onShare}
             onDelete={obj => { setSelectedFile(null); onDeleteSingle(obj); }}
             onShowAllVersions={onShowAllVersions}
             onSaveRetention={objectLockConfig.enabled ? onSaveFileRetention : undefined}
@@ -1228,6 +1236,16 @@ export const SubAccountBucketDetailPage = () => {
         onConfirm={onConfirmDeleteBucket}
         onClose={() => !isDeletingBucket && setIsDeleteBucketOpen(false)}
       />
+
+      {objectToShare && bucketName && (
+        <ShareModal
+          obj={objectToShare}
+          bucket={bucketName}
+          endpoint={endpointRef.current ?? undefined}
+          region={regionRef.current ?? undefined}
+          onClose={() => setObjectToShare(null)}
+        />
+      )}
 
       <Modal isOpen={isCreateFolderOpen} onClose={() => !isCreatingFolder && setIsCreateFolderOpen(false)}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 400 }}>

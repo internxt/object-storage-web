@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import dayjs from 'dayjs'
 import {
-  TrashIcon,
-  PencilSimpleIcon,
   EyeIcon,
   EyeSlashIcon,
   PlusIcon,
   DownloadSimpleIcon,
+  DotsThreeIcon,
 } from '@phosphor-icons/react'
 import { partnersService, PartnerMember } from '../services/partners.service'
 import { exportAsCSV } from '../../utils/exportUtils'
@@ -15,7 +15,36 @@ import Modal from '../../components/Modal'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
 import Dialog from '../../components/Dialog'
-import { T, text, form } from '../../sub-account/tokens'
+import { T, text, form, shadow } from '../../sub-account/tokens'
+import { usePartners } from '../context/partnersContext'
+import { TwoFactorSetupForm } from '../components/TwoFactorSetupForm'
+
+const Pill = ({ label, tone }: { label: string; tone: 'green' | 'gray' }) => (
+  <span
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+      padding: '4px 10px',
+      borderRadius: 999,
+      fontSize: 12,
+      fontWeight: 500,
+      background: tone === 'green' ? 'rgba(16,185,129,0.12)' : T.gray10,
+      color: tone === 'green' ? '#10b981' : T.gray60,
+    }}
+  >
+    <span
+      style={{
+        width: 6,
+        height: 6,
+        borderRadius: '50%',
+        background: tone === 'green' ? '#10b981' : T.gray50,
+        flexShrink: 0,
+      }}
+    />
+    {label}
+  </span>
+)
 
 // ─── Shared atoms (mirrors SubAccountSettingsPage design) ─────────────────────
 
@@ -181,9 +210,117 @@ const validatePassword = (p: string) => {
 
 const MAX_EXPORT_RANGE_DAYS = 40
 
+// ─── Two-Factor Authentication Card ────────────────────────────────────────────
+
+const TwoFactorCard = () => {
+  const [enabled, setEnabled] = useState<boolean | null>(null)
+
+  const [setupOpen, setSetupOpen] = useState(false)
+
+  const [disableOpen, setDisableOpen] = useState(false)
+  const [disablePassword, setDisablePassword] = useState('')
+  const [disableCode, setDisableCode] = useState('')
+  const [disableLoading, setDisableLoading] = useState(false)
+
+  const fetchStatus = async () => {
+    try {
+      const { enabled } = await partnersService.getTwoFactorStatus()
+      setEnabled(enabled)
+    } catch {
+      setEnabled(null)
+    }
+  }
+
+  useEffect(() => {
+    fetchStatus()
+  }, [])
+
+  const handleDisable = async () => {
+    setDisableLoading(true)
+    try {
+      await partnersService.disableTwoFactor(disablePassword, disableCode)
+      notificationsService.success({ text: 'Two-factor authentication disabled' })
+      setDisableOpen(false)
+      setDisablePassword('')
+      setDisableCode('')
+      setEnabled(false)
+    } catch {
+      notificationsService.error({ text: 'Invalid password or code' })
+    } finally {
+      setDisableLoading(false)
+    }
+  }
+
+  return (
+    <SectionCard
+      title="Two-factor authentication"
+      subtitle="Add an extra layer of security using an authenticator app"
+      action={enabled ? <Pill label="Enabled" tone="green" /> : undefined}
+    >
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        {enabled ? (
+          <Button variant="secondary" onClick={() => setDisableOpen(true)}>
+            Disable 2FA
+          </Button>
+        ) : (
+          <Button onClick={() => setSetupOpen(true)}>Enable 2FA</Button>
+        )}
+      </div>
+
+      {/* Setup modal */}
+      <Modal isOpen={setupOpen} onClose={() => setSetupOpen(false)}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
+          <p style={{ ...text.heading, margin: 0 }}>Enable two-factor authentication</p>
+          {setupOpen && (
+            <TwoFactorSetupForm
+              onComplete={() => {
+                setSetupOpen(false)
+                setEnabled(true)
+              }}
+              onCancel={() => setSetupOpen(false)}
+            />
+          )}
+        </div>
+      </Modal>
+
+      {/* Disable modal */}
+      <Modal isOpen={disableOpen} onClose={() => setDisableOpen(false)}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
+          <p style={{ ...text.heading, margin: 0 }}>Disable two-factor authentication</p>
+          <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
+            Confirm your password and a current code from your authenticator app.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <label style={form.label}>Password</label>
+            <Input value={disablePassword} onChange={setDisablePassword} variant="password" />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <label style={form.label}>6-digit code</label>
+            <Input value={disableCode} onChange={setDisableCode} placeholder="123456" variant="default" />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
+            <Button variant="secondary" type="button" onClick={() => setDisableOpen(false)} disabled={disableLoading}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={disableLoading || !disablePassword || disableCode.length !== 6}
+              loading={disableLoading}
+              onClick={handleDisable}
+            >
+              Disable
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </SectionCard>
+  )
+}
+
 // ─── Profile Tab ──────────────────────────────────────────────────────────────
 
 const ProfileTab = () => {
+  const { isViewer } = usePartners()
   const [profile, setProfile] = useState<{
     name: string | null
     email: string | null
@@ -267,90 +404,94 @@ const ProfileTab = () => {
         </div>
       </SectionCard>
 
-      <SectionCard title="Change password">
-        <form
-          onSubmit={handleChangePassword}
-          style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-        >
-          <PasswordField
-            label="Old password"
-            value={current}
-            onChange={setCurrent}
-          />
-          <PasswordField
-            label="New password"
-            placeholder="At least 6 characters"
-            value={newPwd}
-            onChange={(v) => {
-              setNewPwd(v)
-              setTouched((t) => ({ ...t, newPwd: true }))
-            }}
-          />
-          {sameAsCurrent && (
-            <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-              New password must differ from current
-            </p>
-          )}
-          {!sameAsCurrent && policyErrors.length > 0 && (
-            <ul
+      <TwoFactorCard />
+
+      {!isViewer && (
+        <SectionCard title="Change password">
+          <form
+            onSubmit={handleChangePassword}
+            style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+          >
+            <PasswordField
+              label="Old password"
+              value={current}
+              onChange={setCurrent}
+            />
+            <PasswordField
+              label="New password"
+              placeholder="At least 6 characters"
+              value={newPwd}
+              onChange={(v) => {
+                setNewPwd(v)
+                setTouched((t) => ({ ...t, newPwd: true }))
+              }}
+            />
+            {sameAsCurrent && (
+              <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
+                New password must differ from current
+              </p>
+            )}
+            {!sameAsCurrent && policyErrors.length > 0 && (
+              <ul
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  margin: 0,
+                  padding: 0,
+                  listStyle: 'none',
+                }}
+              >
+                {policyErrors.map((e) => (
+                  <li key={e} style={{ fontSize: 12, color: T.red }}>
+                    · {e}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <PasswordField
+              label="Confirm new password"
+              placeholder="Repeat new password"
+              value={confirm}
+              onChange={(v) => {
+                setConfirm(v)
+                setTouched((t) => ({ ...t, confirm: true }))
+              }}
+            />
+            {mismatch && (
+              <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
+                Passwords do not match
+              </p>
+            )}
+            <div
               style={{
                 display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-                margin: 0,
-                padding: 0,
-                listStyle: 'none',
+                justifyContent: 'flex-end',
+                marginTop: 4,
               }}
             >
-              {policyErrors.map((e) => (
-                <li key={e} style={{ fontSize: 12, color: T.red }}>
-                  · {e}
-                </li>
-              ))}
-            </ul>
-          )}
-          <PasswordField
-            label="Confirm new password"
-            placeholder="Repeat new password"
-            value={confirm}
-            onChange={(v) => {
-              setConfirm(v)
-              setTouched((t) => ({ ...t, confirm: true }))
-            }}
-          />
-          {mismatch && (
-            <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-              Passwords do not match
-            </p>
-          )}
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              marginTop: 4,
-            }}
-          >
-            <button
-              type="submit"
-              disabled={saving || !isValid}
-              style={{
-                height: 40,
-                padding: '0 16px',
-                background: T.primary,
-                color: T.white,
-                border: 'none',
-                borderRadius: 8,
-                cursor: saving || !isValid ? 'not-allowed' : 'pointer',
-                fontSize: 14,
-                fontWeight: 500,
-                opacity: saving || !isValid ? 0.4 : 1,
-              }}
-            >
-              {saving ? 'Saving…' : 'Change password'}
-            </button>
-          </div>
-        </form>
-      </SectionCard>
+              <button
+                type="submit"
+                disabled={saving || !isValid}
+                style={{
+                  height: 40,
+                  padding: '0 16px',
+                  background: T.primary,
+                  color: T.white,
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: saving || !isValid ? 'not-allowed' : 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  opacity: saving || !isValid ? 0.4 : 1,
+                }}
+              >
+                {saving ? 'Saving…' : 'Change password'}
+              </button>
+            </div>
+          </form>
+        </SectionCard>
+      )}
     </div>
   )
 }
@@ -473,6 +614,161 @@ const UsageTab = () => {
   )
 }
 
+// ─── Member row actions menu ────────────────────────────────────────────────
+
+const MemberActionsMenu = ({
+  member,
+  onEdit,
+  onDelete,
+  onDisableTwoFactor,
+  onResetTwoFactor,
+}: {
+  member: PartnerMember
+  onEdit: () => void
+  onDelete: () => void
+  onDisableTwoFactor: () => void
+  onResetTwoFactor: () => void
+}) => {
+  const [open, setOpen] = useState(false)
+  const [coords, setCoords] = useState({ top: 0, right: 0 })
+  const btnRef = useRef<HTMLButtonElement>(null)
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+    }
+    setOpen((o) => !o)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    const close = () => setOpen(false)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    return () => {
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
+    }
+  }, [open])
+
+  const itemStyle: React.CSSProperties = {
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    padding: '8px 16px',
+    fontSize: 14,
+    color: T.gray80,
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+  }
+
+  return (
+    <div>
+      <button
+        ref={btnRef}
+        onClick={handleOpen}
+        title="Actions"
+        style={{
+          padding: 6,
+          borderRadius: 8,
+          color: T.gray50,
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = T.gray80
+          e.currentTarget.style.background = T.gray10
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = T.gray50
+          e.currentTarget.style.background = 'transparent'
+        }}
+      >
+        <DotsThreeIcon size={18} weight="bold" />
+      </button>
+      {open &&
+        createPortal(
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
+            <div
+              style={{
+                position: 'fixed',
+                top: coords.top,
+                right: coords.right,
+                background: T.white,
+                border: `1px solid ${T.gray15}`,
+                borderRadius: 12,
+                boxShadow: shadow.lg,
+                minWidth: 160,
+                zIndex: 50,
+                overflow: 'hidden',
+                padding: '4px 0',
+              }}
+            >
+              <button
+                style={itemStyle}
+                onClick={() => {
+                  setOpen(false)
+                  onEdit()
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                Edit
+              </button>
+
+              {member.twoFactorEnabled && (
+                <>
+                  <div style={{ height: 1, background: T.gray15, margin: '4px 0' }} />
+                  <button
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false)
+                      onResetTwoFactor()
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    Reset 2FA
+                  </button>
+                  <button
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false)
+                      onDisableTwoFactor()
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    Disable 2FA
+                  </button>
+                </>
+              )}
+
+              <div style={{ height: 1, background: T.gray15, margin: '4px 0' }} />
+              <button
+                style={{ ...itemStyle, color: T.red }}
+                onClick={() => {
+                  setOpen(false)
+                  onDelete()
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = '#fef2f2')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                Delete
+              </button>
+            </div>
+          </>,
+          document.body,
+        )}
+    </div>
+  )
+}
+
 // ─── Members Tab ──────────────────────────────────────────────────────────────
 
 const PER_PAGE = 20
@@ -494,6 +790,9 @@ const MembersTab = () => {
 
   const [deleteTarget, setDeleteTarget] = useState<PartnerMember | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+
+  const [tfaTarget, setTfaTarget] = useState<{ member: PartnerMember; action: 'disable' | 'reset' } | null>(null)
+  const [tfaLoading, setTfaLoading] = useState(false)
 
   const fetch = async () => {
     setLoading(true)
@@ -556,6 +855,26 @@ const MembersTab = () => {
       notificationsService.error({ text: e.message })
     } finally {
       setDeleteLoading(false)
+    }
+  }
+
+  const handleTfaAction = async () => {
+    if (!tfaTarget) return
+    setTfaLoading(true)
+    try {
+      await partnersService.updateMemberTwoFactor(tfaTarget.member.id, tfaTarget.action)
+      notificationsService.success({
+        text:
+          tfaTarget.action === 'disable'
+            ? '2FA disabled for this member'
+            : '2FA reset — the member must set it up again',
+      })
+      setTfaTarget(null)
+      fetch()
+    } catch (e: any) {
+      notificationsService.error({ text: e.message })
+    } finally {
+      setTfaLoading(false)
     }
   }
 
@@ -631,7 +950,20 @@ const MembersTab = () => {
               >
                 Created
               </th>
-              <th style={{ width: 100 }} />
+              <th
+                style={{
+                  textAlign: 'left',
+                  padding: '12px 0',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  color: T.gray60,
+                }}
+              >
+                2FA
+              </th>
+              <th style={{ width: 140 }} />
             </tr>
           </thead>
           <tbody>
@@ -659,70 +991,25 @@ const MembersTab = () => {
                     : '—'}
                 </td>
                 <td style={{ padding: '14px 0' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      justifyContent: 'flex-end',
-                    }}
-                  >
-                    <button
-                      onClick={() => {
+                  {m.twoFactorEnabled ? (
+                    <Pill label="Enabled" tone="green" />
+                  ) : (
+                    <span style={{ fontSize: 13, color: T.gray50 }}>Off</span>
+                  )}
+                </td>
+                <td style={{ padding: '14px 0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <MemberActionsMenu
+                      member={m}
+                      onEdit={() => {
                         setEditTarget(m)
                         setEditEmail(m.email)
                         setEditPassword('')
                       }}
-                      title="Edit member"
-                      style={{
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 8,
-                        color: T.gray50,
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = T.gray80
-                        e.currentTarget.style.background = T.gray10
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = T.gray50
-                        e.currentTarget.style.background = 'transparent'
-                      }}
-                    >
-                      <PencilSimpleIcon size={15} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(m)}
-                      title="Delete member"
-                      style={{
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 8,
-                        color: T.gray50,
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = T.red
-                        e.currentTarget.style.background = T.gray10
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = T.gray50
-                        e.currentTarget.style.background = 'transparent'
-                      }}
-                    >
-                      <TrashIcon size={15} />
-                    </button>
+                      onDelete={() => setDeleteTarget(m)}
+                      onResetTwoFactor={() => setTfaTarget({ member: m, action: 'reset' })}
+                      onDisableTwoFactor={() => setTfaTarget({ member: m, action: 'disable' })}
+                    />
                   </div>
                 </td>
               </tr>
@@ -935,6 +1222,24 @@ const MembersTab = () => {
         title="Delete member account?"
         subtitle={`This will permanently remove ${deleteTarget?.email}. They will no longer be able to log in.`}
       />
+
+      {/* Disable/Reset 2FA confirmation */}
+      <Dialog
+        isOpen={!!tfaTarget}
+        onClose={() => setTfaTarget(null)}
+        onPrimaryAction={handleTfaAction}
+        onSecondaryAction={() => setTfaTarget(null)}
+        isLoading={tfaLoading}
+        primaryAction={tfaTarget?.action === 'disable' ? 'Disable' : 'Reset'}
+        secondaryAction="Cancel"
+        primaryActionColor="danger"
+        title={tfaTarget?.action === 'disable' ? 'Disable 2FA?' : 'Reset 2FA?'}
+        subtitle={
+          tfaTarget?.action === 'disable'
+            ? `${tfaTarget?.member.email} will be able to log in with just their password. They can re-enable 2FA themselves at any time.`
+            : `${tfaTarget?.member.email} will be required to set up two-factor authentication again before they can use the console.`
+        }
+      />
     </SectionCard>
   )
 }
@@ -950,7 +1255,10 @@ const TABS: { key: Tab; label: string }[] = [
 ]
 
 export const PartnersSettingsPage = () => {
+  const { isViewer } = usePartners()
   const [activeTab, setActiveTab] = useState<Tab>('profile')
+
+  const tabs = isViewer ? TABS.filter((tab) => tab.key === 'profile') : TABS
 
   return (
     <div
@@ -970,41 +1278,45 @@ export const PartnersSettingsPage = () => {
           Settings
         </h1>
         <p style={{ fontSize: 14, color: T.gray60, margin: '6px 0 0' }}>
-          Manage your profile, usage and team.
+          {isViewer
+            ? 'Manage your profile.'
+            : 'Manage your profile, usage and team.'}
         </p>
       </div>
 
-      <div style={{ borderBottom: `1px solid ${T.gray20}` }}>
-        <div style={{ display: 'flex' }}>
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              style={{
-                padding: '12px 4px',
-                margin: '0 12px',
-                fontSize: 14,
-                fontWeight: 500,
-                border: 'none',
-                borderBottom:
-                  activeTab === tab.key
-                    ? `2px solid ${T.primary}`
-                    : '2px solid transparent',
-                marginBottom: -1,
-                color: activeTab === tab.key ? T.gray100 : T.gray60,
-                background: 'transparent',
-                cursor: 'pointer',
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
+      {!isViewer && (
+        <div style={{ borderBottom: `1px solid ${T.gray20}` }}>
+          <div style={{ display: 'flex' }}>
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                style={{
+                  padding: '12px 4px',
+                  margin: '0 12px',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  border: 'none',
+                  borderBottom:
+                    activeTab === tab.key
+                      ? `2px solid ${T.primary}`
+                      : '2px solid transparent',
+                  marginBottom: -1,
+                  color: activeTab === tab.key ? T.gray100 : T.gray60,
+                  background: 'transparent',
+                  cursor: 'pointer',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {activeTab === 'profile' && <ProfileTab />}
-      {activeTab === 'usage' && <UsageTab />}
-      {activeTab === 'members' && <MembersTab />}
+      {(isViewer || activeTab === 'profile') && <ProfileTab />}
+      {!isViewer && activeTab === 'usage' && <UsageTab />}
+      {!isViewer && activeTab === 'members' && <MembersTab />}
     </div>
   )
 }
