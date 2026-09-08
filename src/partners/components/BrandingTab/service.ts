@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { HEX_COLOUR_PATTERN } from './constants';
+import { HEX_COLOUR_PATTERN, HOSTNAME_PATTERN } from './constants';
 
 const LIGHT_COLOUR_LUMINANCE_THRESHOLD = 160;
 
@@ -47,6 +47,13 @@ export function validatePrimaryColour(value: string): { isValid: true; error?: u
 
   if (HEX_COLOUR_PATTERN.test(value)) return { isValid: true };
   return { isValid: false, error: 'Use a valid hex colour, for example #0066FF' }
+}
+
+export function validateConsoleHostname(value: string): { isValid: true; error?: undefined } | { isValid: false; error: string } {
+  if (!value) return { isValid: true };
+
+  if (HOSTNAME_PATTERN.test(value)) return { isValid: true };
+  return { isValid: false, error: 'Use a valid hostname, for example acme.cloud.internxt.com' }
 }
 
 export function getErrorMessage(error: unknown): string {

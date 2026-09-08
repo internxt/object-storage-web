@@ -7,10 +7,11 @@ import type { Branding } from '../../services/branding.service';
 import notificationsService from '../../../services/notifications.service';
 import { getErrorMessage } from './service';
 
-function toFormBranding({ logoUrl, primaryColor }: Branding) {
+function toFormBranding({ logoUrl, primaryColor, consoleHostname }: Branding) {
   return {
     logoUrl: logoUrl ?? '',
     primaryColor: primaryColor ?? '',
+    consoleHostname: consoleHostname ?? '',
   };
 }
 
@@ -33,6 +34,7 @@ export function BrandingTab() {
       const response = await brandingService.updateBranding({
         logoUrl: branding.logoUrl.trim() || null,
         primaryColor: branding.primaryColor.trim() || null,
+        consoleHostname: branding.consoleHostname.trim().toLowerCase() || null,
       });
       setBranding(toFormBranding(response));
       notificationsService.success({ text: 'Branding saved successfully.' });

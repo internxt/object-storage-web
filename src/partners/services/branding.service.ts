@@ -7,6 +7,7 @@ const headers = () => partnersAuthService.getAuthHeaders();
 export type Branding = {
   logoUrl: string | null;
   primaryColor: string | null;
+  consoleHostname: string | null;
 }
 async function getBranding(): Promise<Branding> {
   const response = await axios.get<Branding>(BRANDING_API(), { headers: headers() });

@@ -3,7 +3,8 @@ import Button from '../../../components/Button';
 import Input from '../../../components/Input';
 import { T, text } from '../../../sub-account/tokens';
 import { DEFAULT_PRIMARY_COLOUR, type BrandingFormValues } from './constants';
-import { validateLogoUrl, validatePrimaryColour } from './service';
+import { validateConsoleHostname, validateLogoUrl, validatePrimaryColour } from './service';
+import { CustomDomainInstructions } from './CustomDomainInstructions';
 
 type BrandingFormProps = {
   branding: BrandingFormValues;
@@ -22,20 +23,21 @@ export function BrandingForm({
   onSave,
   onReset,
 }: BrandingFormProps) {
-  const [touched, setTouched] = useState({ logoUrl: false, primaryColor: false });
+  const [touched, setTouched] = useState({ logoUrl: false, primaryColor: false, consoleHostname: false });
   const {isValid: isValidLogoUrl, error: logoUrlError} = validateLogoUrl(branding.logoUrl);
   const {isValid: isValidPrimaryColor, error: primaryColorError} = validatePrimaryColour(branding.primaryColor);
-  const isValid = isValidLogoUrl && isValidPrimaryColor;
+  const {isValid: isValidConsoleHostname, error: consoleHostnameError} = validateConsoleHostname(branding.consoleHostname);
+  const isValid = isValidLogoUrl && isValidPrimaryColor && isValidConsoleHostname;
   const isFormDisabled = loading || saving;
   const isSaveDisabled = isFormDisabled || !isValid;
 
   function reset() {
-    setTouched({ logoUrl: false, primaryColor: false });
+    setTouched({ logoUrl: false, primaryColor: false, consoleHostname: false });
     onReset();
   }
 
   async function save() {
-    setTouched({ logoUrl: true, primaryColor: true });
+    setTouched({ logoUrl: true, primaryColor: true, consoleHostname: true });
     if (isValid) await onSave();
   }
 
@@ -88,8 +90,28 @@ export function BrandingForm({
             />
           </label>
         </div>
+        <div>
+          <Input
+            label='Console hostname'
+            placeholder='acme.cloud.internxt.com'
+            value={branding.consoleHostname}
+            disabled={loading}
+            onChange={(consoleHostname) => onChange({ consoleHostname: consoleHostname.trim().toLowerCase() })}
+            onBlur={() => setTouched((value) => ({ ...value, consoleHostname: true }))}
+            accent={touched.consoleHostname && consoleHostnameError ? 'error' : undefined}
+            message={touched.consoleHostname ? consoleHostnameError : undefined}
+          />
+          <p style={{ ...text.hint, margin: '6px 0 0' }}>
+            This is the domain your sub-accounts (your customers) use to access their console. Once it's pointed
+            to Internxt, they'll see your branding automatically whenever they visit it — no setup needed on
+            their side.
+          </p>
+        </div>
+        <CustomDomainInstructions
+          hostname={branding.consoleHostname?.trim().toLowerCase() ?? undefined}
+        />
         <p style={{ ...text.hint, margin: '-10px 0 0' }}>
-          Leave either field empty to keep the default Internxt value. Reset values clears both fields; save to apply the reset.
+          Leave any field empty to keep the default Internxt value. Reset values clears all fields; save to apply the reset.
         </p>
         <div style={{ display: 'flex', gap: 10, marginTop: 2 }}>
           <Button variant='secondary' disabled={isFormDisabled} onClick={reset}>Reset values</Button>
