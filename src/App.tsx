@@ -35,6 +35,11 @@ import { SubAccountSettingsPage } from './sub-account/views/SubAccountSettingsPa
 import { SharePage } from './views/SharePage';
 import { ShareAuthRoute } from './components/share/ShareAuthRoute';
 import { SubAccountBrandingProvider } from './sub-account/context/SubAccountBrandingContext/SubAccountBrandingContext';
+import { WholesalersProvider } from './wholesalers/context/wholesalersContext';
+import { WholesalersLoginPage } from './wholesalers/views/WholesalersLoginPage';
+import { WholesalersAuthRoute } from './wholesalers/components/WholesalersAuthRoute';
+import { WholesalersPartnersPage } from './wholesalers/views/WholesalersPartnersPage';
+import { WholesalersPartnerDetailPage } from './wholesalers/views/WholesalersPartnerDetailPage';
 
 const DEFAULT_LOGIN_PATH = '/subaccount/login';
 
@@ -52,6 +57,7 @@ export function App() {
     <UserProvider>
       <ManagementProvider>
         <PartnersProvider>
+          <WholesalersProvider>
           <SubAccountProvider>
           <SubAccountBrandingProvider>
             <Router>
@@ -91,6 +97,18 @@ export function App() {
                 <Route path='/partners/settings' element={<PartnersSettingsPage />} />
               </Route>
 
+              {/* Wholesalers console — hidden outside local development until the panel ships */}
+              {import.meta.env.DEV && (
+                <>
+                  <Route path='/wholesalers/login' element={<WholesalersLoginPage />} />
+                  <Route element={<WholesalersAuthRoute />}>
+                    <Route path='/wholesalers' element={<Navigate to='/wholesalers/partners' />} />
+                    <Route path='/wholesalers/partners' element={<WholesalersPartnersPage />} />
+                    <Route path='/wholesalers/partners/:id' element={<WholesalersPartnerDetailPage />} />
+                  </Route>
+                </>
+              )}
+
               {/* Sub-account console */}
               <Route path='/subaccount/login' element={<SubAccountLoginPage />} />
               <Route element={<SubAccountAuthRoute />}>
@@ -107,6 +125,7 @@ export function App() {
             </Router>
           </SubAccountBrandingProvider>
           </SubAccountProvider>
+          </WholesalersProvider>
         </PartnersProvider>
       </ManagementProvider>
     </UserProvider>
