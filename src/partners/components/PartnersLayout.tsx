@@ -226,32 +226,34 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
             <NavLink to="/partners/sub-accounts" style={navLinkStyle}>
               Sub-Accounts
             </NavLink>
-            <button
-              onClick={openBilling}
-              disabled={billingLoading}
-              style={{
-                height: '100%',
-                padding: '0 14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                borderBottom: '2px solid transparent',
-                borderTop: 'none',
-                borderLeft: 'none',
-                borderRight: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: 14,
-                fontWeight: 500,
-                fontFamily: 'inherit',
-                color: T.gray60,
-                whiteSpace: 'nowrap',
-                opacity: billingLoading ? 0.5 : 1,
-              }}
-            >
-              Billing
-              <ArrowSquareOutIcon size={14} />
-            </button>
+            {!partnerInfo?.hasWholesaler && (
+              <button
+                onClick={openBilling}
+                disabled={billingLoading}
+                style={{
+                  height: '100%',
+                  padding: '0 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  borderBottom: '2px solid transparent',
+                  borderTop: 'none',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  fontFamily: 'inherit',
+                  color: T.gray60,
+                  whiteSpace: 'nowrap',
+                  opacity: billingLoading ? 0.5 : 1,
+                }}
+              >
+                Billing
+                <ArrowSquareOutIcon size={14} />
+              </button>
+            )}
           </nav>
         </div>
 
