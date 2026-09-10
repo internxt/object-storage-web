@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { HEX_COLOUR_PATTERN, HOSTNAME_PATTERN } from './constants';
+import { HEX_COLOUR_PATTERN, HOSTNAME_PATTERN, RESERVED_CONSOLE_HOSTNAMES } from './constants';
 
 const LIGHT_COLOUR_LUMINANCE_THRESHOLD = 160;
 
@@ -52,6 +52,9 @@ export function validatePrimaryColour(value: string): { isValid: true; error?: u
 export function validateConsoleHostname(value: string): { isValid: true; error?: undefined } | { isValid: false; error: string } {
   if (!value) return { isValid: true };
 
+  if (RESERVED_CONSOLE_HOSTNAMES.has(value.trim().toLowerCase())) {
+    return { isValid: false, error: 'This hostname is reserved and cannot be used as a custom domain' };
+  }
   if (HOSTNAME_PATTERN.test(value)) return { isValid: true };
   return { isValid: false, error: 'Use a valid hostname, for example acme.cloud.internxt.com' }
 }
