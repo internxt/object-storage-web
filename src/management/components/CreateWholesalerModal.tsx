@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Eye, EyeSlash } from '@phosphor-icons/react';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
@@ -21,6 +22,7 @@ type FormValues = { name: string; email: string; password: string; country: stri
 export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -32,6 +34,7 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const handleClose = () => {
     reset();
     setError(undefined);
+    setShowPassword(false);
     onClose();
   };
 
@@ -76,12 +79,22 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
           </Field>
 
           <Field label='Password' error={errors.password?.message}>
-            <input
-              {...register('password', { required: 'Password is required' })}
-              type='password'
-              placeholder='••••••••'
-              className={inputClass}
-            />
+            <div className='relative'>
+              <input
+                {...register('password', { required: 'Password is required' })}
+                type={showPassword ? 'text' : 'password'}
+                placeholder='••••••••'
+                className={`${inputClass} pr-10`}
+              />
+              <button
+                type='button'
+                onClick={() => setShowPassword((s) => !s)}
+                className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'
+                tabIndex={-1}
+              >
+                {showPassword ? <Eye size={16} /> : <EyeSlash size={16} />}
+              </button>
+            </div>
           </Field>
 
           <Field label='Country' error={errors.country?.message}>

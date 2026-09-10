@@ -4,7 +4,7 @@ import { wholesalersService, Wholesaler } from '../services/wholesalers.service'
 import { WholesalersTable } from '../components/WholesalersTable';
 import { CreateWholesalerModal } from '../components/CreateWholesalerModal';
 import notificationsService from '../../services/notifications.service';
-import { T } from '../../sub-account/tokens';
+import { T, card } from '../../sub-account/tokens';
 
 const PER_PAGE = 20;
 
@@ -40,29 +40,23 @@ export const WholesalersPage = () => {
   const toItem = Math.min((page + 1) * PER_PAGE, total);
 
   return (
-    <div className='flex flex-col gap-5'>
-      <div className='bg-white rounded-xl shadow-sm p-6'>
-        <div className='flex items-center justify-between mb-5'>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ ...card, borderRadius: 16, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <h2 className='text-base font-semibold text-gray-900'>Wholesalers</h2>
-            {total > 0 && <p className='text-xs text-gray-400 mt-0.5'>{total} wholesalers total</p>}
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>Wholesalers</h2>
+            {total > 0 && (
+              <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{total} wholesalers total</p>
+            )}
           </div>
           <button
             onClick={() => setIsCreateModalOpen(true)}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              height: 40,
-              padding: '0 18px',
-              background: T.primary,
-              color: T.white,
-              border: 'none',
-              borderRadius: 8,
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
+              display: 'flex', alignItems: 'center', gap: 8,
+              height: 40, padding: '0 18px',
+              background: T.primary, color: T.white,
+              border: 'none', borderRadius: 8, cursor: 'pointer',
+              fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
             }}
           >
             Create Wholesaler
@@ -71,26 +65,40 @@ export const WholesalersPage = () => {
 
         <WholesalersTable wholesalers={wholesalers} isLoading={isLoading} />
 
-        <div className='flex items-center justify-between mt-4 pt-4 border-t border-gray-50'>
-          <span className='text-xs text-gray-400'>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.gray15}` }}>
+          <span style={{ fontSize: 13, color: T.gray50 }}>
             Showing {fromItem}–{toItem} of {total} wholesalers
           </span>
-          <div className='flex items-center gap-1'>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
-              className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                height: 32, padding: '0 12px',
+                fontSize: 13, fontWeight: 500, color: T.gray80,
+                border: `1px solid ${T.gray20}`, borderRadius: 8,
+                background: T.white, cursor: hasPrev ? 'pointer' : 'not-allowed',
+                opacity: hasPrev ? 1 : 0.4,
+              }}
             >
               <CaretLeft size={14} />
               Prev
             </button>
-            <span className='px-3 py-1.5 text-sm text-gray-500'>
+            <span style={{ padding: '0 8px', fontSize: 13, color: T.gray50 }}>
               {page + 1} / {Math.max(1, totalPages)}
             </span>
             <button
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
-              className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                height: 32, padding: '0 12px',
+                fontSize: 13, fontWeight: 500, color: T.gray80,
+                border: `1px solid ${T.gray20}`, borderRadius: 8,
+                background: T.white, cursor: hasNext ? 'pointer' : 'not-allowed',
+                opacity: hasNext ? 1 : 0.4,
+              }}
             >
               Next
               <CaretRight size={14} />
@@ -98,6 +106,7 @@ export const WholesalersPage = () => {
           </div>
         </div>
       </div>
+
       <CreateWholesalerModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
