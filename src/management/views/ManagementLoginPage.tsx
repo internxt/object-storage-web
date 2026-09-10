@@ -1,8 +1,10 @@
 import { LoginPageView } from '../../components/auth/LoginPageView';
 import { useManagement } from '../context/managementContext';
+import { useSubAccountBranding } from '../../sub-account/context/SubAccountBrandingContext/useSubAccountBranding';
 
 export const ManagementLoginPage = () => {
   const { isAuthenticated, logIn } = useManagement();
+  const { branding, styles } = useSubAccountBranding();
 
   return (
     <LoginPageView
@@ -13,6 +15,7 @@ export const ManagementLoginPage = () => {
       isAuthenticated={isAuthenticated}
       logIn={logIn}
       redirectTo='/management/accounts'
+      branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
     />
   );
 };

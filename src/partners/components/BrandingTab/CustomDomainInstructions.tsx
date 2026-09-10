@@ -72,6 +72,11 @@ export function CustomDomainInstructions({ hostname }: { hostname?: string }) {
               If you manage DNS through Cloudflare, this record must be set to "DNS only" (grey cloud, not
               orange/proxied), or this won't work.
             </li>
+            <li>
+              DNS changes can take a while to propagate. If verification doesn't succeed right after creating
+              the record, wait a bit and try again before reaching out, if it's still failing after a
+              reasonable amount of time, contact us via support.
+            </li>
           </ul>
         </div>
       </div>
