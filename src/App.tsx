@@ -97,8 +97,8 @@ export function App() {
                 <Route path='/partners/settings' element={<PartnersSettingsPage />} />
               </Route>
 
-              {/* Wholesalers console — hidden outside local development until the panel ships */}
-              {import.meta.env.DEV && (
+              {/* Wholesalers console — hidden behind a feature flag until the panel ships */}
+              {import.meta.env.VITE_ENABLE_WHOLESALER_PANEL === 'true' && (
                 <>
                   <Route path='/wholesalers/login' element={<WholesalersLoginPage />} />
                   <Route element={<WholesalersAuthRoute />}>
