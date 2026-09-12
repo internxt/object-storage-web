@@ -28,7 +28,7 @@ export interface SubAccount {
   activeStorage: number
   deletedStorage: number
   storageUtilization?: number
-  storageQuotaTB?: number
+  storageQuotaTb?: number | null
   creationDate: string
   deletionDate?: string
   trialExpiration?: string
@@ -165,6 +165,7 @@ export interface SubAccountDetail {
   trialExpiration: string | null
   partnerId?: string | null
   partnerName?: string | null
+  storageQuotaTb?: number | null
 }
 
 export interface SubAccountUsage {
