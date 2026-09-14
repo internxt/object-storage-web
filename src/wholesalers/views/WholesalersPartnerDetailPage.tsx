@@ -3,6 +3,9 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Database, HardDrives, Users } from '@phosphor-icons/react';
 import { wholesalersService, WholesalerPartner, WholesalerPartnerUsageSummary } from '../services/wholesalers.service';
 import notificationsService from '../../services/notifications.service';
+import { apiErrorMessage } from '../../utils/apiError';
+import { DeletePartnerAction } from '../components/DeletePartnerAction';
+import { PartnerStatusBadge } from '../components/PartnerStatusBadge';
 
 const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
   <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>
@@ -26,6 +29,7 @@ export const WholesalersPartnerDetailPage = () => {
   const [usage, setUsage] = useState<WholesalerPartnerUsageSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -44,6 +48,19 @@ export const WholesalersPartnerDetailPage = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const handleDelete = async (partnerId: string) => {
+    setIsDeleting(true);
+    try {
+      await wholesalersService.deletePartner(partnerId);
+      notificationsService.success({ text: 'Partner deleted' });
+      navigate('/wholesalers/partners');
+    } catch (err) {
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete partner') });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (notFound) {
     navigate('/wholesalers/partners');
     return null;
@@ -60,9 +77,25 @@ export const WholesalersPartnerDetailPage = () => {
           Back
         </button>
         <div>
-          <h1 className='text-lg font-bold text-gray-900'>{partner?.name ?? 'Partner'}</h1>
+          <div className='flex items-center gap-3'>
+            <h1 className='text-lg font-bold text-gray-900'>{partner?.name ?? 'Partner'}</h1>
+            {partner && <PartnerStatusBadge status={partner.status} />}
+          </div>
           {partner?.email && <p className='text-sm text-gray-400 mt-0.5'>{partner.email}</p>}
         </div>
+
+        {/* The partner travels in the router state and there is no endpoint to fetch it by id, so on
+            a direct link there is nothing to delete and the button is not rendered. */}
+        {partner && (
+          <div style={{ marginLeft: 'auto' }}>
+            <DeletePartnerAction
+              partner={partner}
+              isDeleting={isDeleting}
+              onDelete={handleDelete}
+              variant='button'
+            />
+          </div>
+        )}
       </div>
 
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
