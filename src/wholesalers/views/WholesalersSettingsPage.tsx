@@ -6,6 +6,7 @@ import {
   PlusIcon,
   DotsThreeIcon,
 } from "@phosphor-icons/react";
+import { WholesalersTwoFactorSetupForm } from "../components/WholesalersTwoFactorSetupForm";
 import {
   wholesalersService,
   WholesalerMember,
@@ -137,6 +138,117 @@ const PasswordField = ({
         </button>
       </div>
     </div>
+  );
+};
+
+const TwoFactorCard = () => {
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [isSetupOpen, setIsSetupOpen] = useState(false);
+  const [isDisableOpen, setIsDisableOpen] = useState(false);
+  const [disablePassword, setDisablePassword] = useState('');
+  const [disableCode, setDisableCode] = useState('');
+  const [isDisabling, setIsDisabling] = useState(false);
+
+  useEffect(() => {
+    wholesalersService
+      .getTwoFactorStatus()
+      .then(({ enabled }) => setIsEnabled(enabled))
+      .catch(() => setIsEnabled(null));
+  }, []);
+
+  const closeDisable = () => {
+    setIsDisableOpen(false);
+    setDisablePassword('');
+    setDisableCode('');
+  };
+
+  const handleDisable = async () => {
+    setIsDisabling(true);
+    try {
+      await wholesalersService.disableTwoFactor(disablePassword, disableCode);
+      notificationsService.success({ text: 'Two-factor authentication disabled' });
+      setIsEnabled(false);
+      closeDisable();
+    } catch (err) {
+      notificationsService.error({ text: apiErrorMessage(err, 'Invalid password or code') });
+    } finally {
+      setIsDisabling(false);
+    }
+  };
+
+  return (
+    <SectionCard
+      title='Two-factor authentication'
+      subtitle='Add an extra layer of security using an authenticator app'
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+        <span style={{ fontSize: 13, color: T.gray60 }}>
+          {isEnabled === null ? 'Loading…' : isEnabled ? 'Enabled' : 'Disabled'}
+        </span>
+
+        {isEnabled !== null &&
+          (isEnabled ? (
+            <Button variant='secondary' onClick={() => setIsDisableOpen(true)}>
+              Disable 2FA
+            </Button>
+          ) : (
+            <Button onClick={() => setIsSetupOpen(true)}>Enable 2FA</Button>
+          ))}
+      </div>
+
+      <Modal isOpen={isSetupOpen} onClose={() => setIsSetupOpen(false)}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
+          <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100, margin: 0 }}>
+            Enable two-factor authentication
+          </p>
+          {isSetupOpen && (
+            <WholesalersTwoFactorSetupForm
+              onComplete={() => {
+                setIsSetupOpen(false);
+                setIsEnabled(true);
+              }}
+              onCancel={() => setIsSetupOpen(false)}
+            />
+          )}
+        </div>
+      </Modal>
+
+      <Modal isOpen={isDisableOpen} onClose={closeDisable}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 4 }}>
+          <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100, margin: 0 }}>
+            Disable two-factor authentication
+          </p>
+          <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
+            Confirm with your password and a code from your authenticator app.
+          </p>
+
+          <div>
+            <p style={{ ...text.label, marginBottom: 6 }}>Password</p>
+            <Input value={disablePassword} onChange={setDisablePassword} variant='password' />
+          </div>
+
+          <div>
+            <p style={{ ...text.label, marginBottom: 6 }}>Authentication code</p>
+            <Input value={disableCode} onChange={setDisableCode} placeholder='123456' maxLength={6} variant='default' />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
+            <Button variant='secondary' type='button' onClick={closeDisable} disabled={isDisabling}>
+              Cancel
+            </Button>
+            <Button
+              variant='destructive'
+              type='button'
+              onClick={handleDisable}
+              disabled={isDisabling || !disablePassword || disableCode.length !== 6}
+              loading={isDisabling}
+            >
+              Disable
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </SectionCard>
   );
 };
 
@@ -731,6 +843,8 @@ const ProfileTab = () => {
 
       {!isViewer && (
         <>
+          <TwoFactorCard />
+
           <SectionCard title="Change password">
             <form
               onSubmit={handleSubmit}
