@@ -8,6 +8,7 @@ import {
 import { managementService, SubAccountDetail, SubAccountUsage } from '../services/management.service';
 import notificationsService from '../../services/notifications.service';
 import { exportAsCSV } from '../../utils/exportUtils';
+import { StatusBadge } from '../../components/StatusBadge';
 
 type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'>;
 
@@ -17,24 +18,6 @@ interface SubAccountDetailPageProps {
 }
 
 const PER_PAGE = 20;
-
-const StatusBadge = ({ status }: { status: SubAccountDetail['status'] }) => {
-  const config = {
-    ACTIVE:    { bg: '#22c55e', border: '#16a34a', color: '#fff', dot: 'rgba(255,255,255,0.6)', label: 'Active' },
-    SUSPENDED: { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171',            label: 'Suspended' },
-    DELETED:   { bg: '#f4f4f5', border: '#d4d4d8', color: '#52525b', dot: '#a1a1aa',            label: 'Deleted' },
-  }[status];
-
-  return (
-    <span
-      className='inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border'
-      style={{ background: config.bg, borderColor: config.border, color: config.color }}
-    >
-      <span className='w-1.5 h-1.5 rounded-full flex-shrink-0' style={{ background: config.dot }} />
-      {config.label}
-    </span>
-  );
-};
 
 const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
   <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>

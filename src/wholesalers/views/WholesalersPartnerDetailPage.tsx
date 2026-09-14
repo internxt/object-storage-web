@@ -5,7 +5,7 @@ import { wholesalersService, WholesalerPartner, WholesalerPartnerUsageSummary } 
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { DeletePartnerAction } from '../components/DeletePartnerAction';
-import { PartnerStatusBadge } from '../components/PartnerStatusBadge';
+import { StatusBadge } from '../../components/StatusBadge';
 
 const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
   <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>
@@ -79,7 +79,7 @@ export const WholesalersPartnerDetailPage = () => {
         <div>
           <div className='flex items-center gap-3'>
             <h1 className='text-lg font-bold text-gray-900'>{partner?.name ?? 'Partner'}</h1>
-            {partner && <PartnerStatusBadge status={partner.status} />}
+            {partner && <StatusBadge status={partner.status} />}
           </div>
           {partner?.email && <p className='text-sm text-gray-400 mt-0.5'>{partner.email}</p>}
         </div>

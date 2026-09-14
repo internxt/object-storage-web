@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { WholesalerPartner } from '../services/wholesalers.service';
 import { DeletePartnerAction } from './DeletePartnerAction';
-import { PartnerStatusBadge } from './PartnerStatusBadge';
+import { StatusBadge } from '../../components/StatusBadge';
 import { T } from '../../sub-account/tokens';
 
 interface Props {
@@ -97,7 +97,7 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, deleti
                   <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>{formatStorage(p.activeStorageTb)}</span>
                 </td>
                 <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
-                  <PartnerStatusBadge status={p.status} />
+                  <StatusBadge status={p.status} />
                 </td>
                 <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
                   <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>{formatDate(p.createdAt)}</span>
