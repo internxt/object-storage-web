@@ -96,6 +96,7 @@ export interface WholesalerProfile {
   name?: string;
   email: string;
   createdAt: string;
+  twoFactorSetupRequired?: boolean;
 }
 
 async function getMe(): Promise<WholesalerProfile> {

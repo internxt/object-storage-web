@@ -13,7 +13,7 @@ export const WholesalersTwoFactorSetupForm = ({
   onCancel,
 }: {
   onComplete: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
 }) => {
   const [setup, setSetup] = useState<{ secret: string; qrCode: string } | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -86,9 +86,11 @@ export const WholesalersTwoFactorSetupForm = ({
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
-        <Button variant='secondary' type='button' onClick={onCancel} disabled={isConfirming}>
-          Cancel
-        </Button>
+        {onCancel && (
+          <Button variant='secondary' type='button' onClick={onCancel} disabled={isConfirming}>
+            Cancel
+          </Button>
+        )}
         <Button
           type='button'
           onClick={handleConfirm}
