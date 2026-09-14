@@ -73,6 +73,24 @@ async function changePassword(currentPassword: string, newPassword: string): Pro
   wholesalersAuthService.setToken(response.data.token);
 }
 
+async function getTwoFactorStatus(): Promise<{ enabled: boolean }> {
+  const response = await axios.get(`${API()}/tfa/status`, { headers: headers() });
+  return response.data;
+}
+
+async function getTwoFactorSetup(): Promise<{ secret: string; qrCode: string }> {
+  const response = await axios.get(`${API()}/tfa`, { headers: headers() });
+  return response.data;
+}
+
+async function enableTwoFactor(code: string): Promise<void> {
+  await axios.put(`${API()}/tfa`, { code }, { headers: headers() });
+}
+
+async function disableTwoFactor(password: string, code: string): Promise<void> {
+  await axios.delete(`${API()}/tfa`, { headers: headers(), data: { password, code } });
+}
+
 export interface WholesalerProfile {
   id: string;
   name?: string;
@@ -109,6 +127,10 @@ async function deleteMember(id: string): Promise<void> {
 }
 
 export const wholesalersService = {
+  getTwoFactorStatus,
+  getTwoFactorSetup,
+  enableTwoFactor,
+  disableTwoFactor,
   getMe,
   listMembers,
   createMember,

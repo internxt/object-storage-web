@@ -6,7 +6,7 @@ interface WholesalersContextType {
   isAuthenticated: boolean;
   isViewer: boolean;
   wholesalerEmail: string | null;
-  logIn: (email: string, password: string) => Promise<void>;
+  logIn: (email: string, password: string, code?: string) => Promise<void>;
   logOut: () => void;
 }
 
@@ -28,8 +28,8 @@ export const WholesalersProvider = ({ children }: { children: ReactNode }) => {
       .catch(() => setWholesalerEmail(null));
   }, [isAuthenticated]);
 
-  const logIn = async (email: string, password: string) => {
-    await wholesalersAuthService.logIn(email, password);
+  const logIn = async (email: string, password: string, code?: string) => {
+    await wholesalersAuthService.logIn(email, password, code);
     setIsAuthenticated(true);
     setIsViewer(wholesalersAuthService.getRole() === 'member');
   };
