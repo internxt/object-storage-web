@@ -84,8 +84,8 @@ export const WholesalersPartnerDetailPage = () => {
           {partner?.email && <p className='text-sm text-gray-400 mt-0.5'>{partner.email}</p>}
         </div>
 
-        {/* The partner travels in the router state and there is no endpoint to fetch it by id, so on
-            a direct link there is nothing to delete and the button is not rendered. */}
+        {/* The partner arrives in the router state and there is no endpoint to fetch it by id, so on a
+            fresh history entry (a pasted URL, a new tab) there is nothing to delete. */}
         {partner && (
           <div style={{ marginLeft: 'auto' }}>
             <DeletePartnerAction
