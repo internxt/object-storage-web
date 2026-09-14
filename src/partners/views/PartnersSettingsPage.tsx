@@ -10,6 +10,7 @@ import {
 } from '@phosphor-icons/react'
 import { partnersService, PartnerMember } from '../services/partners.service'
 import { exportAsCSV } from '../../utils/exportUtils'
+import { apiErrorMessage } from '../../utils/apiError'
 import notificationsService from '../../services/notifications.service'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
@@ -365,12 +366,9 @@ const ProfileTab = () => {
       setNewPwd('')
       setConfirm('')
       setTouched({ newPwd: false, confirm: false })
-    } catch (err: any) {
+    } catch (err) {
       notificationsService.error({
-        text:
-          err?.response?.status === 403
-            ? 'Current password is incorrect'
-            : 'Failed to change password',
+        text: apiErrorMessage(err, 'Failed to change password'),
       })
     } finally {
       setSaving(false)
