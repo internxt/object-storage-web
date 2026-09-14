@@ -131,6 +131,8 @@ const PasswordField = ({
 
 const MIN_MEMBER_PASSWORD_LENGTH = 8;
 
+const PER_PAGE = 20;
+
 const formatDate = (value: string) =>
   value
     ? new Date(value).toLocaleDateString("en-GB", {
@@ -153,6 +155,7 @@ const headerCell = {
 const MembersCard = () => {
   const [members, setMembers] = useState<WholesalerMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(0);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createEmail, setCreateEmail] = useState("");
@@ -258,6 +261,11 @@ const MembersCard = () => {
     (editPassword.length === 0 ||
       editPassword.length >= MIN_MEMBER_PASSWORD_LENGTH);
 
+  const paged = members.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
+  const totalPages = Math.ceil(members.length / PER_PAGE);
+  const hasPrev = page > 0;
+  const hasNext = page < totalPages - 1;
+
   return (
     <SectionCard
       title="Member accounts"
@@ -299,7 +307,7 @@ const MembersCard = () => {
             </tr>
           </thead>
           <tbody>
-            {members.map((member) => (
+            {paged.map((member) => (
               <tr
                 key={member.id}
                 style={{ borderBottom: `1px solid ${T.gray15}` }}
@@ -349,6 +357,64 @@ const MembersCard = () => {
             ))}
           </tbody>
         </table>
+      )}
+
+      {!isLoading && members.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: 16,
+            paddingTop: 16,
+            borderTop: `1px solid ${T.gray15}`,
+          }}
+        >
+          <span style={{ fontSize: 13, color: T.gray50 }}>
+            {members.length} members
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
+              disabled={!hasPrev}
+              onClick={() => setPage((p) => p - 1)}
+              style={{
+                height: 32,
+                padding: "0 12px",
+                fontSize: 13,
+                fontWeight: 500,
+                color: T.gray80,
+                border: `1px solid ${T.gray20}`,
+                borderRadius: 8,
+                background: T.white,
+                cursor: hasPrev ? "pointer" : "not-allowed",
+                opacity: hasPrev ? 1 : 0.4,
+              }}
+            >
+              Prev
+            </button>
+            <span style={{ padding: "0 8px", fontSize: 13, color: T.gray50 }}>
+              {page + 1} / {totalPages}
+            </span>
+            <button
+              disabled={!hasNext}
+              onClick={() => setPage((p) => p + 1)}
+              style={{
+                height: 32,
+                padding: "0 12px",
+                fontSize: 13,
+                fontWeight: 500,
+                color: T.gray80,
+                border: `1px solid ${T.gray20}`,
+                borderRadius: 8,
+                background: T.white,
+                cursor: hasNext ? "pointer" : "not-allowed",
+                opacity: hasNext ? 1 : 0.4,
+              }}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       )}
 
       <Modal isOpen={isCreateOpen} onClose={closeCreate}>
