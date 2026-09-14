@@ -73,7 +73,47 @@ async function changePassword(currentPassword: string, newPassword: string): Pro
   wholesalersAuthService.setToken(response.data.token);
 }
 
+export interface WholesalerProfile {
+  id: string;
+  name?: string;
+  email: string;
+  createdAt: string;
+}
+
+async function getMe(): Promise<WholesalerProfile> {
+  const response = await axios.get(`${API()}/me`, { headers: headers() });
+  return response.data;
+}
+
+export interface WholesalerMember {
+  id: string;
+  email: string;
+  createdAt: string;
+}
+
+async function listMembers(): Promise<WholesalerMember[]> {
+  const response = await axios.get(`${API()}/members`, { headers: headers() });
+  return response.data;
+}
+
+async function createMember(email: string, password: string): Promise<void> {
+  await axios.post(`${API()}/members`, { email, password }, { headers: headers() });
+}
+
+async function updateMember(id: string, dto: { email?: string; newPassword?: string }): Promise<void> {
+  await axios.patch(`${API()}/members/${id}`, dto, { headers: headers() });
+}
+
+async function deleteMember(id: string): Promise<void> {
+  await axios.delete(`${API()}/members/${id}`, { headers: headers() });
+}
+
 export const wholesalersService = {
+  getMe,
+  listMembers,
+  createMember,
+  updateMember,
+  deleteMember,
   changePassword,
   getPartners,
   createPartner,
