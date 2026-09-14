@@ -841,101 +841,99 @@ const ProfileTab = () => {
         <ReadField label="Email" value={wholesalerEmail ?? ""} />
       </SectionCard>
 
+      <TwoFactorCard />
+
       {!isViewer && (
-        <>
-          <TwoFactorCard />
+        <SectionCard title="Change password">
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: 16 }}
+          >
+            <PasswordField
+              label="Old password"
+              value={current}
+              onChange={setCurrent}
+            />
 
-          <SectionCard title="Change password">
-            <form
-              onSubmit={handleSubmit}
-              style={{ display: "flex", flexDirection: "column", gap: 16 }}
-            >
-              <PasswordField
-                label="Old password"
-                value={current}
-                onChange={setCurrent}
-              />
+            <PasswordField
+              label="New password"
+              placeholder="At least 6 characters"
+              value={newPassword}
+              onChange={(v) => {
+                setNewPassword(v);
+                setTouched((t) => ({ ...t, newPassword: true }));
+              }}
+            />
 
-              <PasswordField
-                label="New password"
-                placeholder="At least 6 characters"
-                value={newPassword}
-                onChange={(v) => {
-                  setNewPassword(v);
-                  setTouched((t) => ({ ...t, newPassword: true }));
-                }}
-              />
+            {sameAsCurrent && (
+              <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
+                New password must differ from current
+              </p>
+            )}
 
-              {sameAsCurrent && (
-                <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-                  New password must differ from current
-                </p>
-              )}
-
-              {!sameAsCurrent && policyErrors.length > 0 && (
-                <ul
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                    margin: 0,
-                    padding: 0,
-                    listStyle: "none",
-                  }}
-                >
-                  {policyErrors.map((error) => (
-                    <li key={error} style={{ fontSize: 12, color: T.red }}>
-                      · {error}
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <PasswordField
-                label="Confirm new password"
-                placeholder="Repeat new password"
-                value={confirm}
-                onChange={(v) => {
-                  setConfirm(v);
-                  setTouched((t) => ({ ...t, confirm: true }));
-                }}
-              />
-
-              {mismatch && (
-                <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-                  Passwords do not match
-                </p>
-              )}
-
-              <div
+            {!sameAsCurrent && policyErrors.length > 0 && (
+              <ul
                 style={{
                   display: "flex",
-                  justifyContent: "flex-end",
-                  marginTop: 4,
+                  flexDirection: "column",
+                  gap: 2,
+                  margin: 0,
+                  padding: 0,
+                  listStyle: "none",
                 }}
               >
-                <button
-                  type="submit"
-                  disabled={isSaving || !isValid}
-                  style={{
-                    height: 40,
-                    padding: "0 16px",
-                    background: T.primary,
-                    color: T.white,
-                    border: "none",
-                    borderRadius: 8,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    cursor: isSaving || !isValid ? "not-allowed" : "pointer",
-                    opacity: isSaving || !isValid ? 0.4 : 1,
-                  }}
-                >
-                  {isSaving ? "Saving…" : "Change password"}
-                </button>
-              </div>
-            </form>
-          </SectionCard>
-        </>
+                {policyErrors.map((error) => (
+                  <li key={error} style={{ fontSize: 12, color: T.red }}>
+                    · {error}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <PasswordField
+              label="Confirm new password"
+              placeholder="Repeat new password"
+              value={confirm}
+              onChange={(v) => {
+                setConfirm(v);
+                setTouched((t) => ({ ...t, confirm: true }));
+              }}
+            />
+
+            {mismatch && (
+              <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
+                Passwords do not match
+              </p>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginTop: 4,
+              }}
+            >
+              <button
+                type="submit"
+                disabled={isSaving || !isValid}
+                style={{
+                  height: 40,
+                  padding: "0 16px",
+                  background: T.primary,
+                  color: T.white,
+                  border: "none",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: isSaving || !isValid ? "not-allowed" : "pointer",
+                  opacity: isSaving || !isValid ? 0.4 : 1,
+                }}
+              >
+                {isSaving ? "Saving…" : "Change password"}
+              </button>
+            </div>
+          </form>
+        </SectionCard>
       )}
     </div>
   );
