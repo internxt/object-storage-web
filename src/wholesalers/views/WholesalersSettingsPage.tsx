@@ -255,11 +255,17 @@ const TwoFactorCard = () => {
 const MIN_MEMBER_PASSWORD_LENGTH = 8;
 
 const MemberActionsMenu = ({
+  member,
   onEdit,
   onDelete,
+  onDisableTwoFactor,
+  onResetTwoFactor,
 }: {
+  member: WholesalerMember;
   onEdit: () => void;
   onDelete: () => void;
+  onDisableTwoFactor: () => void;
+  onResetTwoFactor: () => void;
 }) => {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, right: 0 });
@@ -356,6 +362,34 @@ const MemberActionsMenu = ({
                 Edit
               </button>
 
+              {member.twoFactorEnabled && (
+                <>
+                  <div style={{ height: 1, background: T.gray15, margin: "4px 0" }} />
+                  <button
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false);
+                      onResetTwoFactor();
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    Reset 2FA
+                  </button>
+                  <button
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false);
+                      onDisableTwoFactor();
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    Disable 2FA
+                  </button>
+                </>
+              )}
+
               <div style={{ height: 1, background: T.gray15, margin: "4px 0" }} />
               <button
                 style={{ ...itemStyle, color: T.red }}
@@ -397,6 +431,33 @@ const headerCell = {
   color: T.gray60,
 };
 
+const Pill = ({ label, tone }: { label: string; tone: "green" | "gray" }) => (
+  <span
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      padding: "4px 10px",
+      borderRadius: 999,
+      fontSize: 12,
+      fontWeight: 500,
+      background: tone === "green" ? "rgba(16,185,129,0.12)" : T.gray10,
+      color: tone === "green" ? "#10b981" : T.gray60,
+    }}
+  >
+    <span
+      style={{
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: tone === "green" ? "#10b981" : T.gray50,
+        flexShrink: 0,
+      }}
+    />
+    {label}
+  </span>
+);
+
 const MembersCard = () => {
   const [members, setMembers] = useState<WholesalerMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -415,6 +476,10 @@ const MembersCard = () => {
   const [deleteTarget, setDeleteTarget] = useState<WholesalerMember | null>(
     null,
   );
+  const [tfaTarget, setTfaTarget] = useState<{
+    member: WholesalerMember;
+    action: "disable" | "reset";
+  } | null>(null);
 
   const fetchMembers = async () => {
     setIsLoading(true);
@@ -482,6 +547,25 @@ const MembersCard = () => {
     }
   };
 
+  const handleTwoFactorAction = async () => {
+    if (!tfaTarget) return;
+    try {
+      await wholesalersService.updateMemberTwoFactor(tfaTarget.member.id, tfaTarget.action);
+      notificationsService.success({
+        text:
+          tfaTarget.action === "disable"
+            ? "2FA disabled for this member"
+            : "2FA reset \u2014 the member must set it up again",
+      });
+      setTfaTarget(null);
+      fetchMembers();
+    } catch (err) {
+      notificationsService.error({
+        text: apiErrorMessage(err, "Failed to update the member 2FA"),
+      });
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     const member = deleteTarget;
@@ -541,6 +625,7 @@ const MembersCard = () => {
             >
               <th style={headerCell}>Email</th>
               <th style={headerCell}>Created</th>
+              <th style={headerCell}>2FA</th>
               <th style={{ width: 80 }} />
             </tr>
           </thead>
@@ -566,10 +651,20 @@ const MembersCard = () => {
                   {formatDate(member.createdAt)}
                 </td>
                 <td style={{ padding: "14px 0" }}>
+                  {member.twoFactorEnabled ? (
+                    <Pill label="Enabled" tone="green" />
+                  ) : (
+                    <span style={{ fontSize: 13, color: T.gray50 }}>Off</span>
+                  )}
+                </td>
+                <td style={{ padding: "14px 0" }}>
                   <div style={{ display: "flex", justifyContent: "flex-end" }}>
                     <MemberActionsMenu
+                      member={member}
                       onEdit={() => openEdit(member)}
                       onDelete={() => setDeleteTarget(member)}
+                      onResetTwoFactor={() => setTfaTarget({ member, action: "reset" })}
+                      onDisableTwoFactor={() => setTfaTarget({ member, action: "disable" })}
                     />
                   </div>
                 </td>
@@ -780,6 +875,20 @@ const MembersCard = () => {
         variant="danger"
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmActionModal
+        isOpen={!!tfaTarget}
+        title={tfaTarget?.action === "disable" ? "Disable 2FA?" : "Reset 2FA?"}
+        description={
+          tfaTarget?.action === "disable"
+            ? `${tfaTarget?.member.email} will be able to log in with just their password. They can re-enable 2FA themselves at any time.`
+            : `${tfaTarget?.member.email ?? ""} will be required to set up two-factor authentication again before they can use the console.`
+        }
+        confirmLabel={tfaTarget?.action === "disable" ? "Disable" : "Reset"}
+        variant="danger"
+        onConfirm={handleTwoFactorAction}
+        onCancel={() => setTfaTarget(null)}
       />
     </SectionCard>
   );

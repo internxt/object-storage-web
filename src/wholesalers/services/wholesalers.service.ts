@@ -107,6 +107,7 @@ export interface WholesalerMember {
   id: string;
   email: string;
   createdAt: string;
+  twoFactorEnabled: boolean;
 }
 
 async function listMembers(): Promise<WholesalerMember[]> {
@@ -126,6 +127,10 @@ async function deleteMember(id: string): Promise<void> {
   await axios.delete(`${API()}/members/${id}`, { headers: headers() });
 }
 
+async function updateMemberTwoFactor(id: string, action: 'disable' | 'reset'): Promise<void> {
+  await axios.patch(`${API()}/members/${id}/tfa`, { action }, { headers: headers() });
+}
+
 export const wholesalersService = {
   getTwoFactorStatus,
   getTwoFactorSetup,
@@ -136,6 +141,7 @@ export const wholesalersService = {
   createMember,
   updateMember,
   deleteMember,
+  updateMemberTwoFactor,
   changePassword,
   getPartners,
   createPartner,
