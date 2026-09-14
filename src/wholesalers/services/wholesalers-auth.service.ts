@@ -49,6 +49,7 @@ function getPayload(): WholesalerTokenPayload | null {
 
 export const wholesalersAuthService = {
   logIn,
+  setToken,
   logOut,
   getToken,
   getAuthHeaders,
