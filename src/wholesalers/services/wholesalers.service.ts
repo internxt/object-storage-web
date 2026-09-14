@@ -44,6 +44,10 @@ async function createPartner(dto: { name: string; email: string; password: strin
   await axios.post(`${API()}/partners`, dto, { headers: headers() });
 }
 
+async function deletePartner(id: string): Promise<void> {
+  await axios.delete(`${API()}/partners/${id}`, { headers: headers() });
+}
+
 export interface WholesalerPartnerUsageSummary {
   totalSubAccounts: number;
   activeStorageTb: number;
@@ -67,6 +71,7 @@ async function createBillingPortalSession(): Promise<{ url: string }> {
 export const wholesalersService = {
   getPartners,
   createPartner,
+  deletePartner,
   getPartnerUsageSummary,
   createBillingPortalSession,
 };
