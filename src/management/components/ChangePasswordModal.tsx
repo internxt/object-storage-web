@@ -63,11 +63,10 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
           flexDirection: 'column',
           gap: 20,
           paddingTop: 4,
+          textAlign: 'left',
         }}
       >
-        <div style={{ textAlign: 'left' }}>
-          <p style={{ ...text.heading, margin: 0 }}>Change password</p>
-        </div>
+        <p style={{ ...text.heading, margin: 0 }}>Change password</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <label style={form.label}>New password</label>
           <Input
