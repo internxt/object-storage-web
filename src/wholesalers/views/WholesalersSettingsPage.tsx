@@ -122,7 +122,7 @@ const PasswordField = ({
             cursor: "pointer",
           }}
         >
-          {show ? <EyeSlash size={18} /> : <Eye size={18} />}
+          {show ? <Eye size={18} /> : <EyeSlash size={18} />}
         </button>
       </div>
     </div>
