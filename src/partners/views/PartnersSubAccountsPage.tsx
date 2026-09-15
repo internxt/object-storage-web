@@ -126,6 +126,7 @@ export const PartnersSubAccountsPage = () => {
       await partnersService.deleteSubAccount(id)
       notificationsService.success({ text: 'Account deleted' })
       fetchSubAccounts()
+      fetchUsageSummary()
     } catch (err) {
       notificationsService.error({ text: (err as Error).message })
     } finally {
