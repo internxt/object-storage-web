@@ -627,12 +627,23 @@ export const WholesalersSettingsPage = () => {
   return (
     <div
       style={{
+        maxWidth: 920,
+        margin: "0 auto",
+        padding: "32px 32px",
         display: "flex",
         flexDirection: "column",
-        gap: 20,
-        maxWidth: 640,
+        gap: 24,
       }}
     >
+      <div>
+        <h1 style={{ fontSize: 24, fontWeight: 600, color: T.gray100, margin: 0 }}>
+          Settings
+        </h1>
+        <p style={{ fontSize: 14, color: T.gray60, margin: "6px 0 0" }}>
+          {isViewer ? "Manage your account." : "Manage your account and team."}
+        </p>
+      </div>
+
       <SectionCard title="Account">
         <ReadField label="Email" value={wholesalerEmail ?? ""} />
       </SectionCard>
