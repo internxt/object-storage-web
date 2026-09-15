@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { AlertCircle } from 'lucide-react';
+import { Eye, EyeSlash } from '@phosphor-icons/react';
 
 interface Props {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -57,6 +59,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
     reset();
     setError(undefined);
     setPasswordErrors([]);
+    setShowPassword(false);
     onClose();
   };
 
@@ -104,16 +107,30 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
           </Field>
 
           <Field label='Password' error={errors.password?.message}>
-            <input
-              {...register('password', {
-                required: 'Password is required',
-                validate: (value: string) =>
-                  validatePassword(value).isValid || 'Password does not meet the requirements',
-              })}
-              type='password'
-              placeholder='••••••••'
-              className={`${inputClass} ${passwordErrors.length > 0 ? 'border-red focus:ring-red' : ''}`}
-            />
+            <div className='relative'>
+              <input
+                {...register('password', {
+                  required: 'Password is required',
+                  validate: (value: string) =>
+                    validatePassword(value).isValid || 'Password does not meet the requirements',
+                })}
+                type={showPassword ? 'text' : 'password'}
+                placeholder='••••••••'
+                className={`${inputClass} pr-10 ${passwordErrors.length > 0 ? 'border-red focus:ring-red' : ''}`}
+              />
+              <button
+                type='button'
+                className='absolute inset-y-0 right-0 flex items-center pr-3'
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <Eye className='h-5 w-5 text-gray-40' />
+                ) : (
+                  <EyeSlash className='h-5 w-5 text-gray-40' />
+                )}
+              </button>
+            </div>
             {passwordErrors.length > 0 && touchedFields.password && (
               <div className='p-2 bg-red/10 border border-red rounded-md mt-2'>
                 <div className='flex items-start gap-2'>
