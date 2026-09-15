@@ -500,7 +500,7 @@ const ProfileTab = () => {
 // ─── Usage Tab ────────────────────────────────────────────────────────────────
 
 const UsageTab = () => {
-  const [profile, setProfile] = useState<{ createdAt: string } | null>(null)
+  const [profile, setProfile] = useState<{ createdAt: string; hasWholesaler?: boolean } | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [exportFrom, setExportFrom] = useState(() =>
     dayjs().startOf('month').format('YYYY-MM-DD'),
@@ -531,6 +531,16 @@ const UsageTab = () => {
     } finally {
       setIsExporting(false)
     }
+  }
+
+  if (profile?.hasWholesaler) {
+    return (
+      <SectionCard title="Export Usage" subtitle="Usage export is managed by your wholesaler">
+        <p style={{ fontSize: 14, color: T.gray50 }}>
+          Your usage is billed and reported through your wholesaler, so it isn't available here.
+        </p>
+      </SectionCard>
+    )
   }
 
   return (
