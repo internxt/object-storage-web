@@ -574,7 +574,7 @@ const iconButtonStyle = (color: string) => ({
   lineHeight: 0,
 });
 
-export const WholesalersSettingsPage = () => {
+const ProfileTab = () => {
   const { isViewer, wholesalerEmail } = useWholesalers();
 
   const [current, setCurrent] = useState("");
@@ -625,33 +625,13 @@ export const WholesalersSettingsPage = () => {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 920,
-        margin: "0 auto",
-        padding: "32px 32px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 24,
-      }}
-    >
-      <div>
-        <h1 style={{ fontSize: 24, fontWeight: 600, color: T.gray100, margin: 0 }}>
-          Settings
-        </h1>
-        <p style={{ fontSize: 14, color: T.gray60, margin: "6px 0 0" }}>
-          {isViewer ? "Manage your account." : "Manage your account and team."}
-        </p>
-      </div>
-
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <SectionCard title="Account">
         <ReadField label="Email" value={wholesalerEmail ?? ""} />
       </SectionCard>
 
       {!isViewer && (
         <>
-          <MembersCard />
-
           <SectionCard
             title="Change password"
             subtitle="Changing your password signs out every other session."
@@ -747,6 +727,75 @@ export const WholesalersSettingsPage = () => {
           </SectionCard>
         </>
       )}
+    </div>
+  );
+};
+
+type Tab = "profile" | "members";
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: "profile", label: "Profile" },
+  { key: "members", label: "Members" },
+];
+
+export const WholesalersSettingsPage = () => {
+  const { isViewer } = useWholesalers();
+  const [activeTab, setActiveTab] = useState<Tab>("profile");
+
+  const tabs = isViewer ? TABS.filter((tab) => tab.key === "profile") : TABS;
+
+  return (
+    <div
+      style={{
+        maxWidth: 920,
+        margin: "0 auto",
+        padding: "32px 32px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 24,
+      }}
+    >
+      <div>
+        <h1 style={{ fontSize: 24, fontWeight: 600, color: T.gray100, margin: 0 }}>
+          Settings
+        </h1>
+        <p style={{ fontSize: 14, color: T.gray60, margin: "6px 0 0" }}>
+          {isViewer ? "Manage your account." : "Manage your account and team."}
+        </p>
+      </div>
+
+      {!isViewer && (
+        <div style={{ borderBottom: `1px solid ${T.gray20}` }}>
+          <div style={{ display: "flex" }}>
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                style={{
+                  padding: "12px 4px",
+                  margin: "0 12px",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  border: "none",
+                  borderBottom:
+                    activeTab === tab.key
+                      ? `2px solid ${T.primary}`
+                      : "2px solid transparent",
+                  marginBottom: -1,
+                  color: activeTab === tab.key ? T.gray100 : T.gray60,
+                  background: "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(isViewer || activeTab === "profile") && <ProfileTab />}
+      {!isViewer && activeTab === "members" && <MembersCard />}
     </div>
   );
 };
