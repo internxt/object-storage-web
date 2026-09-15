@@ -141,6 +141,33 @@ const PasswordField = ({
   );
 };
 
+const Pill = ({ label, tone }: { label: string; tone: "green" | "gray" }) => (
+  <span
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      padding: "4px 10px",
+      borderRadius: 999,
+      fontSize: 12,
+      fontWeight: 500,
+      background: tone === "green" ? "rgba(16,185,129,0.12)" : T.gray10,
+      color: tone === "green" ? "#10b981" : T.gray60,
+    }}
+  >
+    <span
+      style={{
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: tone === "green" ? "#10b981" : T.gray50,
+        flexShrink: 0,
+      }}
+    />
+    {label}
+  </span>
+);
+
 const TwoFactorCard = () => {
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
   const [isSetupOpen, setIsSetupOpen] = useState(false);
@@ -180,12 +207,9 @@ const TwoFactorCard = () => {
     <SectionCard
       title='Two-factor authentication'
       subtitle='Add an extra layer of security using an authenticator app'
+      action={isEnabled ? <Pill label='Enabled' tone='green' /> : undefined}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-        <span style={{ fontSize: 13, color: T.gray60 }}>
-          {isEnabled === null ? 'Loading…' : isEnabled ? 'Enabled' : 'Disabled'}
-        </span>
-
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         {isEnabled !== null &&
           (isEnabled ? (
             <Button variant='secondary' onClick={() => setIsDisableOpen(true)}>
@@ -198,9 +222,7 @@ const TwoFactorCard = () => {
 
       <Modal isOpen={isSetupOpen} onClose={() => setIsSetupOpen(false)}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
-          <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100, margin: 0 }}>
-            Enable two-factor authentication
-          </p>
+          <p style={{ ...text.heading, margin: 0 }}>Enable two-factor authentication</p>
           {isSetupOpen && (
             <WholesalersTwoFactorSetupForm
               onComplete={() => {
@@ -214,12 +236,10 @@ const TwoFactorCard = () => {
       </Modal>
 
       <Modal isOpen={isDisableOpen} onClose={closeDisable}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 4 }}>
-          <p style={{ fontSize: 18, fontWeight: 600, color: T.gray100, margin: 0 }}>
-            Disable two-factor authentication
-          </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
+          <p style={{ ...text.heading, margin: 0 }}>Disable two-factor authentication</p>
           <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
-            Confirm with your password and a code from your authenticator app.
+            Confirm your password and a current code from your authenticator app.
           </p>
 
           <div>
@@ -228,7 +248,7 @@ const TwoFactorCard = () => {
           </div>
 
           <div>
-            <p style={{ ...text.label, marginBottom: 6 }}>Authentication code</p>
+            <p style={{ ...text.label, marginBottom: 6 }}>6-digit code</p>
             <Input value={disableCode} onChange={setDisableCode} placeholder='123456' maxLength={6} variant='default' />
           </div>
 
@@ -237,7 +257,6 @@ const TwoFactorCard = () => {
               Cancel
             </Button>
             <Button
-              variant='destructive'
               type='button'
               onClick={handleDisable}
               disabled={isDisabling || !disablePassword || disableCode.length !== 6}
@@ -430,33 +449,6 @@ const headerCell = {
   letterSpacing: "0.08em",
   color: T.gray60,
 };
-
-const Pill = ({ label, tone }: { label: string; tone: "green" | "gray" }) => (
-  <span
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 6,
-      padding: "4px 10px",
-      borderRadius: 999,
-      fontSize: 12,
-      fontWeight: 500,
-      background: tone === "green" ? "rgba(16,185,129,0.12)" : T.gray10,
-      color: tone === "green" ? "#10b981" : T.gray60,
-    }}
-  >
-    <span
-      style={{
-        width: 6,
-        height: 6,
-        borderRadius: "50%",
-        background: tone === "green" ? "#10b981" : T.gray50,
-        flexShrink: 0,
-      }}
-    />
-    {label}
-  </span>
-);
 
 const MembersCard = () => {
   const [members, setMembers] = useState<WholesalerMember[]>([]);

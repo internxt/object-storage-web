@@ -44,7 +44,7 @@ export const WholesalersTwoFactorSetupForm = ({
   };
 
   if (loadFailed) {
-    return <p style={{ fontSize: 13, color: T.red, margin: 0 }}>Failed to load the setup information.</p>;
+    return <p style={{ fontSize: 13, color: T.red, margin: 0 }}>Failed to load the setup information. Please try again.</p>;
   }
 
   if (!setup) {
@@ -54,7 +54,7 @@ export const WholesalersTwoFactorSetupForm = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
-        Scan this QR code with your authenticator app (Google Authenticator, Authy, …).
+        Scan this QR code with your authenticator app (Google Authenticator, Authy, ...).
       </p>
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
