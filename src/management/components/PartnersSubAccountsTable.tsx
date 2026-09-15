@@ -12,6 +12,9 @@ import { T, shadow } from '../../sub-account/tokens'
 // TODO: flip back to true once the delete-sub-account backend PR is merged
 const SHOW_DELETE_ACTION = false
 
+// TODO: flip back to true once the change-sub-account-password backend PR is merged
+const SHOW_CHANGE_PASSWORD_ACTION = false
+
 interface Props {
   subAccounts: SubAccount[]
   partnerInfo?: PartnerInfo | null
@@ -196,52 +199,55 @@ const ActionsMenu = ({
                 padding: '4px 0',
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 4,
-                  padding: '0 8px 0 0',
-                }}
-                onMouseEnter={(e) => {
-                  if (canChangePassword)
-                    e.currentTarget.style.background = T.gray5
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent'
-                }}
-              >
-                <button
-                  onClick={() => {
-                    if (!canChangePassword) return
-                    setChangePasswordOpen(true)
-                    setOpen(false)
-                  }}
-                  disabled={!canChangePassword}
+              {/* TODO: re-enable once the change-sub-account-password backend PR is merged */}
+              {SHOW_CHANGE_PASSWORD_ACTION && (
+                <div
                   style={{
-                    flex: 1,
-                    display: 'block',
-                    textAlign: 'left',
-                    padding: '8px 16px',
-                    fontSize: 14,
-                    color: canChangePassword ? T.gray80 : T.gray20,
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: canChangePassword ? 'pointer' : 'not-allowed',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 4,
+                    padding: '0 8px 0 0',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (canChangePassword)
+                      e.currentTarget.style.background = T.gray5
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent'
                   }}
                 >
-                  Change password
-                </button>
-                {!canChangePassword && (
-                  <span
-                    title="Sub-account password cannot be changed when automatic sub-account creation is enabled"
-                    style={{ display: 'inline-flex', flexShrink: 0 }}
+                  <button
+                    onClick={() => {
+                      if (!canChangePassword) return
+                      setChangePasswordOpen(true)
+                      setOpen(false)
+                    }}
+                    disabled={!canChangePassword}
+                    style={{
+                      flex: 1,
+                      display: 'block',
+                      textAlign: 'left',
+                      padding: '8px 16px',
+                      fontSize: 14,
+                      color: canChangePassword ? T.gray80 : T.gray20,
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: canChangePassword ? 'pointer' : 'not-allowed',
+                    }}
                   >
-                    <InfoIcon size={14} color={T.gray50} />
-                  </span>
-                )}
-              </div>
+                    Change password
+                  </button>
+                  {!canChangePassword && (
+                    <span
+                      title="Sub-account password cannot be changed when automatic sub-account creation is enabled"
+                      style={{ display: 'inline-flex', flexShrink: 0 }}
+                    >
+                      <InfoIcon size={14} color={T.gray50} />
+                    </span>
+                  )}
+                </div>
+              )}
               {account.status !== 'SUSPENDED' ? (
                 <button
                   onClick={() => {
