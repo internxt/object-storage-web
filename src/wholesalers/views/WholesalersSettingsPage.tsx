@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Eye,
   EyeSlash,
   PlusIcon,
-  PencilSimpleIcon,
-  TrashIcon,
+  DotsThreeIcon,
 } from "@phosphor-icons/react";
 import {
   wholesalersService,
@@ -18,15 +18,17 @@ import { ConfirmActionModal } from "../../management/components/ConfirmActionMod
 import notificationsService from "../../services/notifications.service";
 import { passwordPolicyErrors } from "../../utils/passwordPolicy";
 import { apiErrorMessage } from "../../utils/apiError";
-import { T, text } from "../../sub-account/tokens";
+import { T, text, shadow } from "../../sub-account/tokens";
 
 const SectionCard = ({
   title,
   subtitle,
+  action,
   children,
 }: {
   title: string;
   subtitle?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) => (
   <div
@@ -38,14 +40,25 @@ const SectionCard = ({
       boxShadow: "0 1px 2px 0 rgba(0,0,0,0.05)",
     }}
   >
-    <h2 style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>
-      {title}
-    </h2>
-    {subtitle && (
-      <p style={{ fontSize: 13, color: T.gray50, margin: "2px 0 0" }}>
-        {subtitle}
-      </p>
-    )}
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}
+    >
+      <div>
+        <h2 style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>
+          {title}
+        </h2>
+        {subtitle && (
+          <p style={{ fontSize: 13, color: T.gray50, margin: "2px 0 0" }}>
+            {subtitle}
+          </p>
+        )}
+      </div>
+      {action}
+    </div>
     <div style={{ marginTop: 16 }}>{children}</div>
   </div>
 );
@@ -130,6 +143,128 @@ const PasswordField = ({
 };
 
 const MIN_MEMBER_PASSWORD_LENGTH = 8;
+
+const MemberActionsMenu = ({
+  onEdit,
+  onDelete,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, right: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+    setOpen((o) => !o);
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
+  }, [open]);
+
+  const itemStyle: React.CSSProperties = {
+    display: "block",
+    width: "100%",
+    textAlign: "left",
+    padding: "8px 16px",
+    fontSize: 14,
+    color: T.gray80,
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+  };
+
+  return (
+    <div>
+      <button
+        ref={btnRef}
+        onClick={handleOpen}
+        title="Actions"
+        style={{
+          padding: 6,
+          borderRadius: 8,
+          color: T.gray50,
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = T.gray80;
+          e.currentTarget.style.background = T.gray10;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = T.gray50;
+          e.currentTarget.style.background = "transparent";
+        }}
+      >
+        <DotsThreeIcon size={18} weight="bold" />
+      </button>
+      {open &&
+        createPortal(
+          <>
+            <div
+              style={{ position: "fixed", inset: 0, zIndex: 40 }}
+              onClick={() => setOpen(false)}
+            />
+            <div
+              style={{
+                position: "fixed",
+                top: coords.top,
+                right: coords.right,
+                background: T.white,
+                border: `1px solid ${T.gray15}`,
+                borderRadius: 12,
+                boxShadow: shadow.lg,
+                minWidth: 160,
+                zIndex: 50,
+                overflow: "hidden",
+                padding: "4px 0",
+              }}
+            >
+              <button
+                style={itemStyle}
+                onClick={() => {
+                  setOpen(false);
+                  onEdit();
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                Edit
+              </button>
+
+              <div style={{ height: 1, background: T.gray15, margin: "4px 0" }} />
+              <button
+                style={{ ...itemStyle, color: T.red }}
+                onClick={() => {
+                  setOpen(false);
+                  onDelete();
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#fef2f2")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                Delete
+              </button>
+            </div>
+          </>,
+          document.body,
+        )}
+    </div>
+  );
+};
 
 const PER_PAGE = 20;
 
@@ -270,22 +405,15 @@ const MembersCard = () => {
     <SectionCard
       title="Member accounts"
       subtitle="Read-only access to your partners and their usage"
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          marginBottom: 12,
-        }}
-      >
+      action={
         <Button onClick={() => setIsCreateOpen(true)}>
           <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <PlusIcon size={14} weight="bold" />
             Add member
           </span>
         </Button>
-      </div>
-
+      }
+    >
       {isLoading ? (
         <p style={{ fontSize: 13, color: T.gray50, margin: 0 }}>Loading…</p>
       ) : members.length === 0 ? (
@@ -327,31 +455,13 @@ const MembersCard = () => {
                 >
                   {formatDate(member.createdAt)}
                 </td>
-                <td
-                  style={{
-                    padding: "14px 0",
-                    textAlign: "right",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => openEdit(member)}
-                    aria-label={`Edit member ${member.email}`}
-                    title="Edit"
-                    style={iconButtonStyle(T.gray60)}
-                  >
-                    <PencilSimpleIcon size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(member)}
-                    aria-label={`Delete member ${member.email}`}
-                    title="Delete"
-                    style={iconButtonStyle(T.red)}
-                  >
-                    <TrashIcon size={16} />
-                  </button>
+                <td style={{ padding: "14px 0" }}>
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <MemberActionsMenu
+                      onEdit={() => openEdit(member)}
+                      onDelete={() => setDeleteTarget(member)}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}
@@ -359,7 +469,7 @@ const MembersCard = () => {
         </table>
       )}
 
-      {!isLoading && members.length > 0 && (
+      {totalPages > 1 && (
         <div
           style={{
             display: "flex",
@@ -456,7 +566,7 @@ const MembersCard = () => {
             <Input
               value={createPassword}
               onChange={setCreatePassword}
-              placeholder={`At least ${MIN_MEMBER_PASSWORD_LENGTH} characters`}
+              placeholder={`Min. ${MIN_MEMBER_PASSWORD_LENGTH} characters`}
               variant="password"
             />
           </div>
@@ -564,15 +674,6 @@ const MembersCard = () => {
     </SectionCard>
   );
 };
-
-const iconButtonStyle = (color: string) => ({
-  background: "transparent",
-  border: "none",
-  cursor: "pointer",
-  color,
-  padding: 6,
-  lineHeight: 0,
-});
 
 const ProfileTab = () => {
   const { isViewer, wholesalerEmail } = useWholesalers();
