@@ -85,7 +85,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
               style={{
                 display: 'flex',
                 alignItems: 'flex-start',
-                gap: 8,
+                gap: 6,
                 marginTop: 8,
                 padding: 8,
                 borderRadius: 6,
