@@ -114,7 +114,7 @@ const PasswordField = ({
             borderRadius: 8,
             padding: "0 40px 0 12px",
             fontSize: 14,
-            color: T.gray100,
+            color: T.gray80,
             outline: "none",
           }}
         />
@@ -124,18 +124,16 @@ const PasswordField = ({
           aria-label={show ? "Hide password" : "Show password"}
           style={{
             position: "absolute",
-            right: 8,
-            top: 0,
-            height: 40,
-            display: "flex",
-            alignItems: "center",
+            right: 12,
+            top: "50%",
+            transform: "translateY(-50%)",
             background: "transparent",
             border: "none",
             color: T.gray50,
             cursor: "pointer",
           }}
         >
-          {show ? <Eye size={18} /> : <EyeSlash size={18} />}
+          {show ? <Eye size={16} /> : <EyeSlash size={16} />}
         </button>
       </div>
     </div>
@@ -733,16 +731,13 @@ const ProfileTab = () => {
 
       {!isViewer && (
         <>
-          <SectionCard
-            title="Change password"
-            subtitle="Changing your password signs out every other session."
-          >
+          <SectionCard title="Change password">
             <form
               onSubmit={handleSubmit}
               style={{ display: "flex", flexDirection: "column", gap: 16 }}
             >
               <PasswordField
-                label="Current password"
+                label="Old password"
                 value={current}
                 onChange={setCurrent}
               />
