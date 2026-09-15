@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
+import { AlertCircle } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -11,20 +12,51 @@ interface Props {
 
 type FormValues = { name: string; email: string; password: string };
 
+const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  if (!password || password.length < 8) {
+    errors.push('At least 8 characters');
+  }
+  if (!/[a-z]/.test(password)) {
+    errors.push('At least one lowercase letter');
+  }
+  if (!/[A-Z]/.test(password)) {
+    errors.push('At least one uppercase letter');
+  }
+  if (!/\d/.test(password)) {
+    errors.push('At least one digit');
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    errors.push('At least one special character (!@#$%^&* etc)');
+  }
+
+  return { isValid: errors.length === 0, errors };
+};
+
 export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
   const {
     register,
     handleSubmit,
+    watch,
     reset,
-    formState: { errors, isValid },
+    formState: { errors, isValid, touchedFields },
   } = useForm<FormValues>({ mode: 'onChange' });
+
+  const password = watch('password');
+
+  useEffect(() => {
+    setPasswordErrors(password ? validatePassword(password).errors : []);
+  }, [password]);
 
   const handleClose = () => {
     reset();
     setError(undefined);
+    setPasswordErrors([]);
     onClose();
   };
 
@@ -42,6 +74,9 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
     }
   };
 
+  const isPasswordValid = password && validatePassword(password).isValid;
+  const isFormValid = isValid && isPasswordValid;
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose} maxWidth='max-w-md'>
       <div className='flex flex-col gap-4'>
@@ -52,7 +87,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
             <input
               {...register('name', { required: 'Name is required' })}
               placeholder='Partner name'
-              className={inputClass}
+              className={`${inputClass} ${errors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
             />
           </Field>
 
@@ -64,17 +99,36 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
               })}
               type='email'
               placeholder='contact@example.com'
-              className={inputClass}
+              className={`${inputClass} ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
             />
           </Field>
 
           <Field label='Password' error={errors.password?.message}>
             <input
-              {...register('password', { required: 'Password is required' })}
+              {...register('password', {
+                required: 'Password is required',
+                validate: (value: string) =>
+                  validatePassword(value).isValid || 'Password does not meet the requirements',
+              })}
               type='password'
               placeholder='••••••••'
-              className={inputClass}
+              className={`${inputClass} ${passwordErrors.length > 0 ? 'border-red-500 focus:ring-red-500' : ''}`}
             />
+            {passwordErrors.length > 0 && touchedFields.password && (
+              <div className='p-2 bg-red-50 border border-red-500 rounded-md mt-2'>
+                <div className='flex items-start gap-2'>
+                  <AlertCircle className='w-4 h-4 text-red-600 flex-shrink-0 mt-0.5' />
+                  <div className='text-xs text-red-700'>
+                    <p className='font-medium mb-1'>Password must contain:</p>
+                    <ul className='space-y-1'>
+                      {passwordErrors.map((err) => (
+                        <li key={err}>• {err}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </Field>
 
           {error && <p className='text-sm text-red-600'>{error}</p>}
@@ -83,7 +137,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
             <Button variant='secondary' type='button' onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type='submit' disabled={!isValid || isSubmitting} loading={isSubmitting}>
+            <Button type='submit' disabled={!isFormValid || isSubmitting} loading={isSubmitting}>
               Create
             </Button>
           </div>
