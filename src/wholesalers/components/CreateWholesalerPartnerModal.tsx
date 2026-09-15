@@ -87,7 +87,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
             <input
               {...register('name', { required: 'Name is required' })}
               placeholder='Partner name'
-              className={`${inputClass} ${errors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
+              className={`${inputClass} ${errors.name ? 'border-red focus:ring-red' : ''}`}
             />
           </Field>
 
@@ -99,7 +99,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
               })}
               type='email'
               placeholder='contact@example.com'
-              className={`${inputClass} ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
+              className={`${inputClass} ${errors.email ? 'border-red focus:ring-red' : ''}`}
             />
           </Field>
 
@@ -112,13 +112,13 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
               })}
               type='password'
               placeholder='••••••••'
-              className={`${inputClass} ${passwordErrors.length > 0 ? 'border-red-500 focus:ring-red-500' : ''}`}
+              className={`${inputClass} ${passwordErrors.length > 0 ? 'border-red focus:ring-red' : ''}`}
             />
             {passwordErrors.length > 0 && touchedFields.password && (
-              <div className='p-2 bg-red-50 border border-red-500 rounded-md mt-2'>
+              <div className='p-2 bg-red/10 border border-red rounded-md mt-2'>
                 <div className='flex items-start gap-2'>
-                  <AlertCircle className='w-4 h-4 text-red-600 flex-shrink-0 mt-0.5' />
-                  <div className='text-xs text-red-700'>
+                  <AlertCircle className='w-4 h-4 text-red flex-shrink-0 mt-0.5' />
+                  <div className='text-xs text-red-dark'>
                     <p className='font-medium mb-1'>Password must contain:</p>
                     <ul className='space-y-1'>
                       {passwordErrors.map((err) => (
@@ -131,7 +131,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
             )}
           </Field>
 
-          {error && <p className='text-sm text-red-600'>{error}</p>}
+          {error && <p className='text-sm text-red'>{error}</p>}
 
           <div className='flex justify-end gap-3 pt-2'>
             <Button variant='secondary' type='button' onClick={handleClose} disabled={isSubmitting}>
@@ -154,6 +154,6 @@ const Field = ({ label, error, children }: { label: string; error?: string; chil
   <div className='flex flex-col gap-1'>
     <label className='text-sm font-medium text-gray-700'>{label}</label>
     {children}
-    {error && <span className='text-xs text-red-600'>{error}</span>}
+    {error && <span className='text-xs text-red'>{error}</span>}
   </div>
 );
