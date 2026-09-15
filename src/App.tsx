@@ -46,6 +46,7 @@ const DEFAULT_LOGIN_PATH = '/subaccount/login';
 const LOGIN_PATH_BY_HOSTNAME: Record<string, string> = {
   'os.management.internxt.com': '/management/login',
   'os.partners.internxt.com': '/partners/login',
+  'os.wholesalers.internxt.com': '/wholesalers/login',
 };
 
 function getLoginPathForHost(): string {
