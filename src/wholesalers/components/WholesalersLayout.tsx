@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useWholesalers } from '../context/wholesalersContext'
-import { SignOutIcon, ArrowSquareOutIcon, QuestionIcon } from '@phosphor-icons/react'
+import { SignOutIcon, ArrowSquareOutIcon, GearSixIcon, QuestionIcon } from '@phosphor-icons/react'
 import { wholesalersService } from '../services/wholesalers.service'
 import notificationsService from '../../services/notifications.service'
 import { T, shadow } from '../../sub-account/tokens'
@@ -21,6 +21,7 @@ const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
 
 const AvatarMenu = ({ initials, onLogout }: { initials: string; onLogout: () => void }) => {
   const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -74,6 +75,33 @@ const AvatarMenu = ({ initials, onLogout }: { initials: string; onLogout: () => 
             padding: 6,
           }}
         >
+          <button
+            role="menuitem"
+            onClick={() => {
+              setOpen(false)
+              navigate('/wholesalers/settings')
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              width: '100%',
+              height: 40,
+              padding: '0 12px',
+              background: 'transparent',
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 500,
+              color: T.gray80,
+              textAlign: 'left',
+            }}
+          >
+            <GearSixIcon size={16} />
+            Settings
+          </button>
+
           <button
             role="menuitem"
             onClick={onLogout}
@@ -165,9 +193,6 @@ export const WholesalersLayout = ({ children }: { children: ReactNode }) => {
           <nav style={{ display: 'flex', alignItems: 'stretch', height: 56, marginLeft: 8 }}>
             <NavLink to="/wholesalers/partners" style={navLinkStyle}>
               Partners
-            </NavLink>
-            <NavLink to="/wholesalers/settings" style={navLinkStyle}>
-              Settings
             </NavLink>
             <button
               onClick={openBilling}

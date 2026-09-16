@@ -31,11 +31,9 @@ function getAuthHeaders() {
   return { Authorization: `Bearer ${token}` };
 }
 
-interface WholesalerTokenPayload {
-  role: 'wholesaler';
-  wholesalerId: string;
-  email: string;
-}
+type WholesalerTokenPayload =
+  | { role: 'wholesaler'; wholesalerId: string; email: string }
+  | { role: 'member'; memberId: string; entityType: 'wholesaler'; entityId: string };
 
 function getPayload(): WholesalerTokenPayload | null {
   const token = getToken();
@@ -47,7 +45,12 @@ function getPayload(): WholesalerTokenPayload | null {
   }
 }
 
+function getRole(): 'wholesaler' | 'member' | null {
+  return getPayload()?.role ?? null;
+}
+
 export const wholesalersAuthService = {
+  getRole,
   logIn,
   setToken,
   logOut,
