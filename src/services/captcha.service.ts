@@ -1,5 +1,8 @@
+import axios from 'axios';
+
 const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 const CAPTCHA_HEADER = 'x-internxt-captcha';
+const CAPTCHA_FAILED_CODE = 'CAPTCHA_FAILED';
 
 interface TurnstileOptions {
   sitekey: string;
@@ -87,6 +90,24 @@ async function getHeaders(action: string): Promise<Record<string, string>> {
   return { [CAPTCHA_HEADER]: await getToken(turnstile, SITE_KEY, action) };
 }
 
+async function tryGetHeaders(action: string): Promise<Record<string, string>> {
+  try {
+    return await getHeaders(action);
+  } catch {
+    return {};
+  }
+}
+
+function isCaptchaRejection(err: unknown): boolean {
+  return (
+    axios.isAxiosError(err) &&
+    err.response?.status === 403 &&
+    (err.response?.data as { code?: string } | undefined)?.code === CAPTCHA_FAILED_CODE
+  );
+}
+
 export const captchaService = {
   getHeaders,
+  tryGetHeaders,
+  isCaptchaRejection,
 };
