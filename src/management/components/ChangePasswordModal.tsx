@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { WarningCircleIcon } from '@phosphor-icons/react'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
@@ -11,20 +12,35 @@ interface Props {
   onSubmit: (newPassword: string) => Promise<void>
 }
 
+const validatePassword = (password: string): string[] => {
+  const errors: string[] = []
+  if (!password || password.length < 8) errors.push('At least 8 characters')
+  if (!/[a-z]/.test(password)) errors.push('At least one lowercase letter')
+  if (!/[A-Z]/.test(password)) errors.push('At least one uppercase letter')
+  if (!/\d/.test(password)) errors.push('At least one digit')
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password))
+    errors.push('At least one special character (!@#$%^&* etc)')
+  return errors
+}
+
 export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [touched, setTouched] = useState(false)
 
   useEffect(() => {
     if (!isOpen) {
       setNewPassword('')
       setConfirmPassword('')
       setIsSaving(false)
+      setTouched(false)
     }
   }, [isOpen])
 
-  const canSubmit = newPassword.length >= 8 && newPassword === confirmPassword
+  const policyErrors = validatePassword(newPassword)
+  const showPolicyErrors = touched && policyErrors.length > 0
+  const canSubmit = policyErrors.length === 0 && newPassword === confirmPassword
 
   const handleSubmit = async () => {
     if (!canSubmit) return
@@ -47,21 +63,62 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
           flexDirection: 'column',
           gap: 20,
           paddingTop: 4,
+          textAlign: 'left',
         }}
       >
-        <div style={{ textAlign: 'left' }}>
-          <p style={{ ...text.heading, margin: 0 }}>Change password</p>
-        </div>
+        <p style={{ ...text.heading, margin: 0 }}>Change password</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <label style={form.label}>New password</label>
           <Input
             autoComplete="new-password"
             value={newPassword}
-            onChange={setNewPassword}
+            onChange={(v) => {
+              setNewPassword(v)
+              setTouched(true)
+            }}
             placeholder="At least 8 characters"
             variant="password"
             className="!text-sm"
           />
+          {showPolicyErrors && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 6,
+                marginTop: 8,
+                padding: 8,
+                borderRadius: 6,
+                background: 'rgba(224,49,49,0.1)',
+                border: `1px solid ${T.red}`,
+              }}
+            >
+              <WarningCircleIcon
+                size={16}
+                color={T.red}
+                style={{ flexShrink: 0, marginTop: 1 }}
+              />
+              <div style={{ fontSize: 12, color: T.red }}>
+                <p style={{ fontWeight: 500, margin: '0 0 4px' }}>
+                  Password must contain:
+                </p>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: 0,
+                    listStyle: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                  }}
+                >
+                  {policyErrors.map((err) => (
+                    <li key={err}>• {err}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <label style={form.label}>Confirm password</label>

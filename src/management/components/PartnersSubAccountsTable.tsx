@@ -10,12 +10,6 @@ import { PartnerInfo } from '../../partners/services/partners.service'
 import { T, shadow } from '../../sub-account/tokens'
 import { StatusBadge } from '../../components/StatusBadge'
 
-// TODO: flip back to true once the delete-sub-account backend PR is merged
-const SHOW_DELETE_ACTION = false
-
-// TODO: flip back to true once the change-sub-account-password backend PR is merged
-const SHOW_CHANGE_PASSWORD_ACTION = false
-
 interface Props {
   subAccounts: SubAccount[]
   partnerInfo?: PartnerInfo | null
@@ -142,55 +136,52 @@ const ActionsMenu = ({
                 padding: '4px 0',
               }}
             >
-              {/* TODO: re-enable once the change-sub-account-password backend PR is merged */}
-              {SHOW_CHANGE_PASSWORD_ACTION && (
-                <div
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 4,
+                  padding: '0 8px 0 0',
+                }}
+                onMouseEnter={(e) => {
+                  if (canChangePassword)
+                    e.currentTarget.style.background = T.gray5
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                <button
+                  onClick={() => {
+                    if (!canChangePassword) return
+                    setChangePasswordOpen(true)
+                    setOpen(false)
+                  }}
+                  disabled={!canChangePassword}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 4,
-                    padding: '0 8px 0 0',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (canChangePassword)
-                      e.currentTarget.style.background = T.gray5
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent'
+                    flex: 1,
+                    display: 'block',
+                    textAlign: 'left',
+                    padding: '8px 16px',
+                    fontSize: 14,
+                    color: canChangePassword ? T.gray80 : T.gray20,
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: canChangePassword ? 'pointer' : 'not-allowed',
                   }}
                 >
-                  <button
-                    onClick={() => {
-                      if (!canChangePassword) return
-                      setChangePasswordOpen(true)
-                      setOpen(false)
-                    }}
-                    disabled={!canChangePassword}
-                    style={{
-                      flex: 1,
-                      display: 'block',
-                      textAlign: 'left',
-                      padding: '8px 16px',
-                      fontSize: 14,
-                      color: canChangePassword ? T.gray80 : T.gray20,
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: canChangePassword ? 'pointer' : 'not-allowed',
-                    }}
+                  Change password
+                </button>
+                {!canChangePassword && (
+                  <span
+                    title="Sub-account password cannot be changed when automatic sub-account creation is enabled"
+                    style={{ display: 'inline-flex', flexShrink: 0 }}
                   >
-                    Change password
-                  </button>
-                  {!canChangePassword && (
-                    <span
-                      title="Sub-account password cannot be changed when automatic sub-account creation is enabled"
-                      style={{ display: 'inline-flex', flexShrink: 0 }}
-                    >
-                      <InfoIcon size={14} color={T.gray50} />
-                    </span>
-                  )}
-                </div>
-              )}
+                    <InfoIcon size={14} color={T.gray50} />
+                  </span>
+                )}
+              </div>
               {account.status !== 'SUSPENDED' ? (
                 <button
                   onClick={() => {
@@ -245,39 +236,34 @@ const ActionsMenu = ({
                 </button>
               )}
 
-              {/* TODO: re-enable once the delete-sub-account backend PR is merged */}
-              {SHOW_DELETE_ACTION && (
-                <>
-                  <div
-                    style={{ height: 1, background: T.gray15, margin: '4px 0' }}
-                  />
-                  <button
-                    onClick={() => {
-                      setConfirmAction('delete')
-                      setOpen(false)
-                    }}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '8px 16px',
-                      fontSize: 14,
-                      color: T.red,
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#fef2f2'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent'
-                    }}
-                  >
-                    Delete
-                  </button>
-                </>
-              )}
+              <div
+                style={{ height: 1, background: T.gray15, margin: '4px 0' }}
+              />
+              <button
+                onClick={() => {
+                  setConfirmAction('delete')
+                  setOpen(false)
+                }}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 16px',
+                  fontSize: 14,
+                  color: T.red,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#fef2f2'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                Delete
+              </button>
             </div>
           </>,
           document.body,
