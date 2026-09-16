@@ -40,6 +40,7 @@ import { WholesalersLoginPage } from './wholesalers/views/WholesalersLoginPage';
 import { WholesalersAuthRoute } from './wholesalers/components/WholesalersAuthRoute';
 import { WholesalersPartnersPage } from './wholesalers/views/WholesalersPartnersPage';
 import { WholesalersPartnerDetailPage } from './wholesalers/views/WholesalersPartnerDetailPage';
+import { WholesalersSettingsPage } from './wholesalers/views/WholesalersSettingsPage';
 
 const DEFAULT_LOGIN_PATH = '/subaccount/login';
 
@@ -106,6 +107,7 @@ export function App() {
                     <Route path='/wholesalers' element={<Navigate to='/wholesalers/partners' />} />
                     <Route path='/wholesalers/partners' element={<WholesalersPartnersPage />} />
                     <Route path='/wholesalers/partners/:id' element={<WholesalersPartnerDetailPage />} />
+                    <Route path='/wholesalers/settings' element={<WholesalersSettingsPage />} />
                   </Route>
                 </>
               )}

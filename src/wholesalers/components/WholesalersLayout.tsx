@@ -166,6 +166,9 @@ export const WholesalersLayout = ({ children }: { children: ReactNode }) => {
             <NavLink to="/wholesalers/partners" style={navLinkStyle}>
               Partners
             </NavLink>
+            <NavLink to="/wholesalers/settings" style={navLinkStyle}>
+              Settings
+            </NavLink>
             <button
               onClick={openBilling}
               disabled={billingLoading}

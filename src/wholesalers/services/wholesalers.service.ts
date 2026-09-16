@@ -68,7 +68,17 @@ async function createBillingPortalSession(): Promise<{ url: string }> {
   return response.data;
 }
 
+async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const response = await axios.put<{ token: string }>(
+    `${API()}/password`,
+    { currentPassword, newPassword },
+    { headers: headers() },
+  );
+  wholesalersAuthService.setToken(response.data.token);
+}
+
 export const wholesalersService = {
+  changePassword,
   getPartners,
   createPartner,
   deletePartner,
