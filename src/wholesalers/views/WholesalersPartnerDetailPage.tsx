@@ -6,6 +6,7 @@ import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { DeletePartnerAction } from '../components/DeletePartnerAction';
 import { StatusBadge } from '../../components/StatusBadge';
+import { useWholesalers } from '../context/wholesalersContext';
 
 const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
   <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>
@@ -23,6 +24,7 @@ export const WholesalersPartnerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
+  const { isViewer } = useWholesalers();
 
   const partner: WholesalerPartner | undefined = (location.state as { partner?: WholesalerPartner })?.partner;
 
@@ -86,7 +88,7 @@ export const WholesalersPartnerDetailPage = () => {
 
         {/* The partner arrives in the router state and there is no endpoint to fetch it by id, so on a
             fresh history entry (a pasted URL, a new tab) there is nothing to delete. */}
-        {partner && (
+        {partner && !isViewer && (
           <div style={{ marginLeft: 'auto' }}>
             <DeletePartnerAction
               partner={partner}
