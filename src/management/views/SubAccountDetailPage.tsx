@@ -57,6 +57,10 @@ const DetailField = ({ label, value }: { label: string; value?: string | number 
   </div>
 );
 
+const MIN_STORAGE_QUOTA_TB = 1;
+// `type=number` accepts scientific notation and signs; a quota is always a whole number of TB.
+const BLOCKED_QUOTA_KEYS = ['e', 'E', '+', '-', '.', ','];
+
 const StorageQuotaCard = ({
   quota,
   used,
@@ -73,8 +77,8 @@ const StorageQuotaCard = ({
 
   useEffect(() => setValue(quota != null ? String(quota) : ''), [quota]);
 
-  const parsed = parseFloat(value);
-  const isValid = Number.isFinite(parsed) && parsed > 0;
+  const parsed = Number(value);
+  const isValid = /^\d+$/.test(value) && parsed >= MIN_STORAGE_QUOTA_TB;
   const canSave = !busy && isValid && parsed !== quota;
 
   const run = async (action: () => Promise<void>) => {
@@ -111,12 +115,17 @@ const StorageQuotaCard = ({
       <div className='flex items-center gap-2 flex-wrap'>
         <input
           type='number'
-          min={0}
-          step={0.1}
+          min={MIN_STORAGE_QUOTA_TB}
+          step={1}
           value={value}
           disabled={busy}
           placeholder='No limit'
-          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (BLOCKED_QUOTA_KEYS.includes(e.key)) e.preventDefault();
+          }}
+          onChange={(e) => {
+            if (/^\d*$/.test(e.target.value)) setValue(e.target.value);
+          }}
           className='w-32 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400 disabled:bg-gray-50'
         />
         <span className='text-sm text-gray-700'>TB</span>
@@ -128,7 +137,7 @@ const StorageQuotaCard = ({
           {busy ? 'Saving…' : 'Save limit'}
         </button>
         {value !== '' && !isValid && (
-          <span className='text-xs text-red-600'>Enter a number greater than 0</span>
+          <span className='text-xs text-red-600'>Enter a whole number of TB, {MIN_STORAGE_QUOTA_TB} or more</span>
         )}
       </div>
     </div>
