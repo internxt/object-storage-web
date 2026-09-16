@@ -1,8 +1,10 @@
 import { LoginPageView } from '../../components/auth/LoginPageView';
 import { usePartners } from '../context/partnersContext';
+import { useSubAccountBranding } from '../../sub-account/context/SubAccountBrandingContext/useSubAccountBranding';
 
 export const PartnersLoginPage = () => {
   const { isAuthenticated, logIn } = usePartners();
+  const { branding, styles } = useSubAccountBranding();
 
   return (
     <LoginPageView
@@ -13,6 +15,7 @@ export const PartnersLoginPage = () => {
       isAuthenticated={isAuthenticated}
       logIn={logIn}
       redirectTo='/partners/sub-accounts'
+      branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
       supportsTwoFactor
     />
   );

@@ -10,6 +10,7 @@ import {
 } from '@phosphor-icons/react'
 import { partnersService, PartnerMember } from '../services/partners.service'
 import { exportAsCSV } from '../../utils/exportUtils'
+import { apiErrorMessage } from '../../utils/apiError'
 import notificationsService from '../../services/notifications.service'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
@@ -18,6 +19,7 @@ import Dialog from '../../components/Dialog'
 import { T, text, form, shadow } from '../../sub-account/tokens'
 import { usePartners } from '../context/partnersContext'
 import { TwoFactorSetupForm } from '../components/TwoFactorSetupForm'
+import { BrandingTab } from '../components/BrandingTab'
 
 const Pill = ({ label, tone }: { label: string; tone: 'green' | 'gray' }) => (
   <span
@@ -364,12 +366,9 @@ const ProfileTab = () => {
       setNewPwd('')
       setConfirm('')
       setTouched({ newPwd: false, confirm: false })
-    } catch (err: any) {
+    } catch (err) {
       notificationsService.error({
-        text:
-          err?.response?.status === 403
-            ? 'Current password is incorrect'
-            : 'Failed to change password',
+        text: apiErrorMessage(err, 'Failed to change password'),
       })
     } finally {
       setSaving(false)
@@ -499,7 +498,7 @@ const ProfileTab = () => {
 // ─── Usage Tab ────────────────────────────────────────────────────────────────
 
 const UsageTab = () => {
-  const [profile, setProfile] = useState<{ createdAt: string } | null>(null)
+  const [profile, setProfile] = useState<{ createdAt: string; hasWholesaler?: boolean } | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [exportFrom, setExportFrom] = useState(() =>
     dayjs().startOf('month').format('YYYY-MM-DD'),
@@ -530,6 +529,16 @@ const UsageTab = () => {
     } finally {
       setIsExporting(false)
     }
+  }
+
+  if (profile?.hasWholesaler) {
+    return (
+      <SectionCard title="Export Usage" subtitle="Usage export is managed by your wholesaler">
+        <p style={{ fontSize: 14, color: T.gray50 }}>
+          Your usage is billed and reported through your wholesaler, so it isn't available here.
+        </p>
+      </SectionCard>
+    )
   }
 
   return (
@@ -1246,12 +1255,13 @@ const MembersTab = () => {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'profile' | 'usage' | 'members'
+type Tab = 'profile' | 'usage' | 'members' | 'branding'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'profile', label: 'Profile' },
   { key: 'usage', label: 'Usage' },
   { key: 'members', label: 'Members' },
+  { key: 'branding', label: 'Branding' },
 ]
 
 export const PartnersSettingsPage = () => {
@@ -1317,6 +1327,7 @@ export const PartnersSettingsPage = () => {
       {(isViewer || activeTab === 'profile') && <ProfileTab />}
       {!isViewer && activeTab === 'usage' && <UsageTab />}
       {!isViewer && activeTab === 'members' && <MembersTab />}
+      {!isViewer && activeTab === 'branding' && <BrandingTab />}
     </div>
   )
 }

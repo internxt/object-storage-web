@@ -8,9 +8,7 @@ import { ConfirmActionModal } from './ConfirmActionModal'
 import { ChangePasswordModal } from './ChangePasswordModal'
 import { PartnerInfo } from '../../partners/services/partners.service'
 import { T, shadow } from '../../sub-account/tokens'
-
-// TODO: flip back to true once the delete-sub-account backend PR is merged
-const SHOW_DELETE_ACTION = false
+import { StatusBadge } from '../../components/StatusBadge'
 
 interface Props {
   subAccounts: SubAccount[]
@@ -60,64 +58,6 @@ const StorageQuotaCell = ({ used, quota }: { used?: number; quota?: number | nul
     </div>
   );
 };
-
-const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
-  if (!status) return null
-  const config = {
-    PAID_ACCOUNT: {
-      bg: '#f0fdf4',
-      border: '#bbf7d0',
-      color: '#15803d',
-      dot: '#22c55e',
-      label: 'Paid',
-    },
-    SUSPENDED: {
-      bg: '#f4f4f5',
-      border: '#d4d4d8',
-      color: '#52525b',
-      dot: '#a1a1aa',
-      label: 'Suspended',
-    },
-    DELETED: {
-      bg: '#fef2f2',
-      border: '#fecaca',
-      color: '#b91c1c',
-      dot: '#f87171',
-      label: 'Deleted',
-    },
-  }[status]
-  if (!config)
-    return <span style={{ fontSize: 12, color: T.gray50 }}>{status}</span>
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: '0.02em',
-        padding: '4px 10px',
-        borderRadius: 999,
-        border: '1px solid',
-        background: config.bg,
-        borderColor: config.border,
-        color: config.color,
-      }}
-    >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: '50%',
-          flexShrink: 0,
-          background: config.dot,
-        }}
-      />
-      {config.label}
-    </span>
-  )
-}
 
 const ActionsMenu = ({
   account,
@@ -316,39 +256,34 @@ const ActionsMenu = ({
                 </button>
               )}
 
-              {/* TODO: re-enable once the delete-sub-account backend PR is merged */}
-              {SHOW_DELETE_ACTION && (
-                <>
-                  <div
-                    style={{ height: 1, background: T.gray15, margin: '4px 0' }}
-                  />
-                  <button
-                    onClick={() => {
-                      setConfirmAction('delete')
-                      setOpen(false)
-                    }}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '8px 16px',
-                      fontSize: 14,
-                      color: T.red,
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#fef2f2'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent'
-                    }}
-                  >
-                    Delete
-                  </button>
-                </>
-              )}
+              <div
+                style={{ height: 1, background: T.gray15, margin: '4px 0' }}
+              />
+              <button
+                onClick={() => {
+                  setConfirmAction('delete')
+                  setOpen(false)
+                }}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 16px',
+                  fontSize: 14,
+                  color: T.red,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#fef2f2'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                Delete
+              </button>
             </div>
           </>,
           document.body,

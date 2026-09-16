@@ -3,44 +3,9 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Database, Users, CaretLeft, CaretRight, ArrowSquareOut, Info } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
 import { Partner, PartnerSubAccount, partnersService } from '../services/partners.service';
+import { StatusBadge } from '../../components/StatusBadge';
 
 const PER_PAGE = 20;
-
-const PartnerStatusBadge = ({ status }: { status: Partner['status'] }) => {
-  const config = {
-    ACTIVE:  { bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d', dot: '#22c55e', label: 'Active' },
-    DELETED: { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171', label: 'Deleted' },
-  }[status];
-
-  return (
-    <span
-      className='inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border'
-      style={{ background: config.bg, borderColor: config.border, color: config.color }}
-    >
-      <span className='w-1.5 h-1.5 rounded-full flex-shrink-0' style={{ background: config.dot }} />
-      {config.label}
-    </span>
-  );
-};
-
-const SubAccountStatusBadge = ({ status }: { status: PartnerSubAccount['status'] }) => {
-  const config: Record<string, { bg: string; border: string; color: string; dot: string; label: string }> = {
-    ACTIVE:    { bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d', dot: '#22c55e', label: 'Active' },
-    SUSPENDED: { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171', label: 'Suspended' },
-    DELETED:   { bg: '#f9fafb', border: '#e5e7eb', color: '#6b7280', dot: '#9ca3af', label: 'Deleted' },
-  };
-  const c = config[status] ?? config['DELETED'];
-
-  return (
-    <span
-      className='inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border tracking-wide'
-      style={{ background: c.bg, borderColor: c.border, color: c.color }}
-    >
-      <span className='w-1.5 h-1.5 rounded-full flex-shrink-0' style={{ background: c.dot }} />
-      {c.label}
-    </span>
-  );
-};
 
 const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
   <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>
@@ -128,7 +93,7 @@ export const PartnerDetailPage = () => {
             <h1 className='text-lg font-bold text-gray-900'>
               {partner.name ?? <span className='font-mono'>{partner.storageProviderId}</span>}
             </h1>
-            <PartnerStatusBadge status={partner.status} />
+            <StatusBadge status={partner.status} />
           </div>
           {partner.email && (
             <p className='text-sm text-gray-400 mt-0.5'>{partner.email}</p>
@@ -220,7 +185,7 @@ export const PartnerDetailPage = () => {
                       {formatStorage(sa.deletedStorageBytes)}
                     </td>
                     <td className={`px-4 py-3.5 ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                      <SubAccountStatusBadge status={sa.status} />
+                      <StatusBadge status={sa.status} />
                     </td>
                     <td className={`px-4 py-3.5 text-[12px] text-gray-500 whitespace-nowrap ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
                       {formatDate(sa.createdAt)}

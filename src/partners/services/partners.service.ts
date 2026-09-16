@@ -63,6 +63,7 @@ export interface PartnerInfo {
   createdAt: string;
   automaticSubAccountCreationEnabled: boolean;
   twoFactorSetupRequired?: boolean;
+  hasWholesaler?: boolean;
 }
 
 async function getMe(): Promise<PartnerInfo> {

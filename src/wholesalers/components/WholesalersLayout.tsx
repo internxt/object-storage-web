@@ -1,17 +1,10 @@
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { usePartners } from '../context/partnersContext'
-import {
-  SignOutIcon,
-  ArrowSquareOutIcon,
-  GearSixIcon,
-  QuestionIcon,
-} from '@phosphor-icons/react'
-import { partnersService } from '../services/partners.service'
+import { useWholesalers } from '../context/wholesalersContext'
+import { SignOutIcon, ArrowSquareOutIcon, GearSixIcon, QuestionIcon } from '@phosphor-icons/react'
+import { wholesalersService } from '../services/wholesalers.service'
 import notificationsService from '../../services/notifications.service'
 import { T, shadow } from '../../sub-account/tokens'
-import { useSubAccountBranding } from '../../sub-account/context/SubAccountBrandingContext/useSubAccountBranding'
-import { BrandLogo } from '../../components/BrandLogo'
 
 const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
   height: '100%',
@@ -26,13 +19,7 @@ const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
   whiteSpace: 'nowrap',
 })
 
-const AvatarMenu = ({
-  initials,
-  onLogout,
-}: {
-  initials: string
-  onLogout: () => void
-}) => {
+const AvatarMenu = ({ initials, onLogout }: { initials: string; onLogout: () => void }) => {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const ref = useRef<HTMLDivElement>(null)
@@ -92,7 +79,7 @@ const AvatarMenu = ({
             role="menuitem"
             onClick={() => {
               setOpen(false)
-              navigate('/partners/settings')
+              navigate('/wholesalers/settings')
             }}
             style={{
               display: 'flex',
@@ -144,16 +131,15 @@ const AvatarMenu = ({
   )
 }
 
-export const PartnersLayout = ({ children }: { children: ReactNode }) => {
-  const { logOut, partnerInfo } = usePartners()
-  const { branding, styles } = useSubAccountBranding()
+export const WholesalersLayout = ({ children }: { children: ReactNode }) => {
+  const { logOut, wholesalerEmail } = useWholesalers()
   const navigate = useNavigate()
   const [billingLoading, setBillingLoading] = useState(false)
 
   const openBilling = async () => {
     setBillingLoading(true)
     try {
-      const { url } = await partnersService.createBillingPortalSession()
+      const { url } = await wholesalersService.createBillingPortalSession()
       window.open(url, '_blank')
     } catch {
       notificationsService.error({ text: 'Failed to open billing portal' })
@@ -164,24 +150,13 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
 
   const handleLogOut = () => {
     logOut()
-    navigate('/partners/login')
+    navigate('/wholesalers/login')
   }
 
-  const initials = (partnerInfo?.name ?? partnerInfo?.email ?? '?')
-    .trim()
-    .slice(0, 2)
-    .toUpperCase()
+  const initials = (wholesalerEmail ?? '?').trim().slice(0, 2).toUpperCase()
 
   return (
-    <div
-      style={{
-        ...styles,
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100vh',
-        background: T.gray5,
-      }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: T.gray5 }}>
       <header
         style={{
           height: 56,
@@ -197,13 +172,7 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <BrandLogo
-            logoUrl={branding.logoUrl}
-            fallbackLogoUrl="/logo.svg"
-            fallbackAlt="Internxt"
-            darkenFallback
-            style={{ maxWidth: 132, height: 14 }}
-          />
+          <img src="/logo.svg" alt="logo" style={{ height: 14, filter: 'brightness(0)' }} />
 
           <span
             style={{
@@ -218,60 +187,46 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
               whiteSpace: 'nowrap',
             }}
           >
-            Partners
+            Wholesalers
           </span>
 
-          <nav
-            style={{
-              display: 'flex',
-              alignItems: 'stretch',
-              height: 56,
-              marginLeft: 8,
-            }}
-          >
-            <NavLink to="/partners/sub-accounts" style={navLinkStyle}>
-              Sub-Accounts
+          <nav style={{ display: 'flex', alignItems: 'stretch', height: 56, marginLeft: 8 }}>
+            <NavLink to="/wholesalers/partners" style={navLinkStyle}>
+              Partners
             </NavLink>
-            {!partnerInfo?.hasWholesaler && (
-              <button
-                onClick={openBilling}
-                disabled={billingLoading}
-                style={{
-                  height: '100%',
-                  padding: '0 14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  borderBottom: '2px solid transparent',
-                  borderTop: 'none',
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  fontFamily: 'inherit',
-                  color: T.gray60,
-                  whiteSpace: 'nowrap',
-                  opacity: billingLoading ? 0.5 : 1,
-                }}
-              >
-                Billing
-                <ArrowSquareOutIcon size={14} />
-              </button>
-            )}
+            <button
+              onClick={openBilling}
+              disabled={billingLoading}
+              style={{
+                height: '100%',
+                padding: '0 14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                borderBottom: '2px solid transparent',
+                borderTop: 'none',
+                borderLeft: 'none',
+                borderRight: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 500,
+                fontFamily: 'inherit',
+                color: T.gray60,
+                whiteSpace: 'nowrap',
+                opacity: billingLoading ? 0.5 : 1,
+              }}
+            >
+              Billing
+              <ArrowSquareOutIcon size={14} />
+            </button>
           </nav>
         </div>
 
         <div style={{ flex: 1 }} />
 
         <button
-          onClick={() =>
-            window.open(
-              'https://help.internxt.com/en/collections/10286865-internxt-s3',
-              '_blank',
-            )
-          }
+          onClick={() => window.open('https://help.internxt.com/en/collections/10286865-internxt-s3', '_blank')}
           aria-label="Help"
           title="Help"
           style={{
@@ -294,11 +249,7 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
         <AvatarMenu initials={initials} onLogout={handleLogOut} />
       </header>
 
-      <main
-        style={{ flex: 1, padding: 24, overflow: 'auto', background: T.gray5 }}
-      >
-        {children}
-      </main>
+      <main style={{ flex: 1, padding: 24, overflow: 'auto', background: T.gray5 }}>{children}</main>
     </div>
   )
 }
