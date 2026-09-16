@@ -4,6 +4,7 @@ import { LoginPageView } from '../../components/auth/LoginPageView';
 import Skeleton from 'react-loading-skeleton';
 import { useSubAccount } from '../context/SubAccountContext';
 import { useSubAccountBranding } from '../context/SubAccountBrandingContext/useSubAccountBranding';
+import { isSharedConsoleHostname } from '../context/SubAccountBrandingContext/service';
 
 import { SsoLoginModal } from '../../components/sso/SsoLoginModal';
 import { SSO_ERROR_CODES, getSsoErrorCode } from '../services/sub-account-sso.service';
@@ -11,6 +12,7 @@ import { SSO_ERROR_CODES, getSsoErrorCode } from '../services/sub-account-sso.se
 export const SubAccountLoginPage = () => {
   const { isAuthenticated, logIn, logInWithSso } = useSubAccount();
   const { branding, isLoading, styles } = useSubAccountBranding();
+  const isCustomDomain = !isSharedConsoleHostname();
 
   const [isSsoModalOpen, setIsSsoModalOpen] = useState(false);
 
@@ -39,9 +41,9 @@ export const SubAccountLoginPage = () => {
     <>
       <LoginPageView
         consoleTitle='Cloud Account Console'
-        rightHeadline={<>Object Storage<br />Sub-account</>}
-        rightDescription='Access your storage, manage buckets and objects, and control team member permissions from one place.'
-        rightFeaturePills={['Bucket management', 'Object storage', 'Team permissions']}
+        rightHeadline={isCustomDomain ? undefined : <>Object Storage<br />Sub-account</>}
+        rightDescription={isCustomDomain ? undefined : 'Access your storage, manage buckets and objects, and control team member permissions from one place.'}
+        rightFeaturePills={isCustomDomain ? undefined : ['Bucket management', 'Object storage', 'Team permissions']}
         isAuthenticated={isAuthenticated}
         logIn={logIn}
         redirectTo='/subaccount/buckets'

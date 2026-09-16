@@ -27,9 +27,9 @@ interface LoginBranding {
 
 interface LoginPageViewProps {
   consoleTitle: string
-  rightHeadline: React.ReactNode
-  rightDescription: string
-  rightFeaturePills: string[]
+  rightHeadline?: React.ReactNode
+  rightDescription?: string
+  rightFeaturePills?: string[]
   isAuthenticated: boolean
   logIn: (email: string, password: string, code?: string) => Promise<void>
   redirectTo: string
@@ -267,61 +267,63 @@ export const LoginPageView = ({
           }}
         />
 
-        <div className="relative flex flex-col h-full items-center justify-center px-16 gap-16">
-          <div className="text-center">
-            <h2 className="text-4xl font-bold text-white tracking-tight leading-tight mb-4">
-              {rightHeadline}
-            </h2>
-            <p className="text-white/70 text-base max-w-xs mx-auto leading-relaxed">
-              {rightDescription}
-            </p>
-          </div>
+        {rightHeadline && (
+          <div className="relative flex flex-col h-full items-center justify-center px-16 gap-16">
+            <div className="text-center">
+              <h2 className="text-4xl font-bold text-white tracking-tight leading-tight mb-4">
+                {rightHeadline}
+              </h2>
+              <p className="text-white/70 text-base max-w-xs mx-auto leading-relaxed">
+                {rightDescription}
+              </p>
+            </div>
 
-          <div className="w-full max-w-md bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 p-5 flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-white/30" />
-              <div className="h-2 w-24 rounded-full bg-white/20" />
-              <div className="ml-auto h-2 w-12 rounded-full bg-white/20" />
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {['Total Reserved', 'Used Storage', 'Remaining'].map((label) => (
-                <div
-                  key={label}
-                  className="bg-white/10 rounded-xl p-3 flex flex-col gap-2"
-                >
-                  <div className="h-1.5 w-12 rounded-full bg-white/30" />
-                  <div className="h-3 w-16 rounded-full bg-white/50" />
-                  <div className="text-[10px] text-blue-100/70 leading-tight">
-                    {label}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <div className="h-2 w-full rounded-full bg-white/15" />
-              {[0.8, 0.6, 0.9, 0.5].map((w, i) => (
-                <div key={i} className="flex items-center gap-2">
+            <div className="w-full max-w-md bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 p-5 flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-white/30" />
+                <div className="h-2 w-24 rounded-full bg-white/20" />
+                <div className="ml-auto h-2 w-12 rounded-full bg-white/20" />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {['Total Reserved', 'Used Storage', 'Remaining'].map((label) => (
                   <div
-                    className="h-1.5 rounded-full bg-white/25"
-                    style={{ width: `${w * 100}%` }}
-                  />
-                  <div className="h-1.5 w-8 rounded-full bg-white/15 ml-auto flex-shrink-0" />
-                </div>
+                    key={label}
+                    className="bg-white/10 rounded-xl p-3 flex flex-col gap-2"
+                  >
+                    <div className="h-1.5 w-12 rounded-full bg-white/30" />
+                    <div className="h-3 w-16 rounded-full bg-white/50" />
+                    <div className="text-[10px] text-blue-100/70 leading-tight">
+                      {label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <div className="h-2 w-full rounded-full bg-white/15" />
+                {[0.8, 0.6, 0.9, 0.5].map((w, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div
+                      className="h-1.5 rounded-full bg-white/25"
+                      style={{ width: `${w * 100}%` }}
+                    />
+                    <div className="h-1.5 w-8 rounded-full bg-white/15 ml-auto flex-shrink-0" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-2">
+              {rightFeaturePills?.map((f) => (
+                <span
+                  key={f}
+                  className="text-xs text-white/70 bg-white/10 border border-white/10 px-3 py-1.5 rounded-full"
+                >
+                  {f}
+                </span>
               ))}
             </div>
           </div>
-
-          <div className="flex flex-wrap justify-center gap-2">
-            {rightFeaturePills.map((f) => (
-              <span
-                key={f}
-                className="text-xs text-white/70 bg-white/10 border border-white/10 px-3 py-1.5 rounded-full"
-              >
-                {f}
-              </span>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )
