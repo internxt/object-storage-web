@@ -4,6 +4,7 @@ import { wholesalersService, WholesalerPartner } from '../services/wholesalers.s
 import { WholesalersPartnersTable } from '../components/WholesalersPartnersTable';
 import { CreateWholesalerPartnerModal } from '../components/CreateWholesalerPartnerModal';
 import notificationsService from '../../services/notifications.service';
+import { apiErrorMessage } from '../../utils/apiError';
 import { T, card } from '../../sub-account/tokens';
 
 const PER_PAGE = 20;
@@ -14,6 +15,7 @@ export const WholesalersPartnersPage = () => {
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deletingPartnerId, setDeletingPartnerId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPartners();
@@ -30,6 +32,19 @@ export const WholesalersPartnersPage = () => {
       notificationsService.error({ text: e.message });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeletingPartnerId(id);
+    try {
+      await wholesalersService.deletePartner(id);
+      notificationsService.success({ text: 'Partner deleted' });
+      fetchPartners();
+    } catch (err) {
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete partner') });
+    } finally {
+      setDeletingPartnerId(null);
     }
   };
 
@@ -63,7 +78,12 @@ export const WholesalersPartnersPage = () => {
           </button>
         </div>
 
-        <WholesalersPartnersTable partners={partners} isLoading={isLoading} />
+        <WholesalersPartnersTable
+          partners={partners}
+          isLoading={isLoading}
+          onDelete={handleDelete}
+          deletingPartnerId={deletingPartnerId}
+        />
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.gray15}` }}>
           <span style={{ fontSize: 13, color: T.gray50 }}>

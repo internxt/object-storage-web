@@ -1,32 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { WholesalerPartner } from '../services/wholesalers.service';
+import { DeletePartnerAction } from './DeletePartnerAction';
+import { StatusBadge } from '../../components/StatusBadge';
 import { T } from '../../sub-account/tokens';
 
 interface Props {
   partners: WholesalerPartner[];
   isLoading: boolean;
+  onDelete: (id: string) => void;
+  deletingPartnerId: string | null;
 }
-
-const StatusBadge = ({ status }: { status: WholesalerPartner['status'] }) => {
-  const config = {
-    ACTIVE: { bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d', dot: '#22c55e', label: 'Active' },
-    DELETED: { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171', label: 'Deleted' },
-  }[status];
-
-  return (
-    <span
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
-        fontSize: 11, fontWeight: 600, letterSpacing: '0.02em',
-        padding: '4px 10px', borderRadius: 999, border: '1px solid',
-        background: config.bg, borderColor: config.border, color: config.color,
-      }}
-    >
-      <span style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: config.dot }} />
-      {config.label}
-    </span>
-  );
-};
 
 const formatDate = (date?: string | null) =>
   date ? new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -44,9 +27,10 @@ const COLUMNS = [
   { header: 'Active Storage (TB)', align: 'right' as const },
   { header: 'Status', align: 'left' as const },
   { header: 'Created', align: 'left' as const },
+  { header: '', align: 'right' as const },
 ];
 
-export const WholesalersPartnersTable = ({ partners, isLoading }: Props) => {
+export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, deletingPartnerId }: Props) => {
   const navigate = useNavigate();
 
   return (
@@ -117,6 +101,9 @@ export const WholesalersPartnersTable = ({ partners, isLoading }: Props) => {
                 </td>
                 <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
                   <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>{formatDate(p.createdAt)}</span>
+                </td>
+                <td style={{ padding: '14px 16px', textAlign: 'right', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
+                  <DeletePartnerAction partner={p} isDeleting={deletingPartnerId === p.id} onDelete={onDelete} />
                 </td>
               </tr>
             ))
