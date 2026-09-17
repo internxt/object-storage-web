@@ -21,7 +21,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getPreviewInfo } from '../utils/previewable';
 
 export const RetentionMode = {
@@ -264,6 +264,10 @@ export const s3Service = {
   getPreviewUrl: async (client: S3Client, bucket: string, key: string, versionId?: string): Promise<string> => {
     const info = getPreviewInfo(key);
     if (!info) throw new Error('Preview is not available for this file type');
+    // A presigned URL is signed locally and never fails on its own, so a permission
+    // check here (via a real request) is required, otherwise a denied file would
+    // silently render its raw S3 error body inline instead of surfacing as an error.
+    await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key, VersionId: versionId }));
     const filename = key.split('/').pop() ?? key;
     return getSignedUrl(client, new GetObjectCommand({
       Bucket: bucket,

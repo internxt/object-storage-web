@@ -769,8 +769,10 @@ export const SubAccountBucketDetailPage = () => {
     try {
       const url = await s3Service.getPreviewUrl(client, bucketName, obj.key, obj.versionId);
       setPreviewUrl(url);
-    } catch {
-      setPreviewError('Could not generate preview link.');
+    } catch (err) {
+      setPreviewError(
+        isAccessDeniedError(err) ? "You don't have permission to preview this file." : 'Could not generate preview link.',
+      );
     } finally {
       setIsPreviewLoading(false);
     }
