@@ -99,9 +99,7 @@ export const MemberPasswordField = ({
         variant='password'
         accent={requirements.length > 0 ? 'error' : undefined}
       />
-      {touched && requirements.length > 0 && (
-        <PasswordRequirements errors={requirements} />
-      )}
+      {requirements.length > 0 && <PasswordRequirements errors={requirements} />}
       {showError && <FieldError message={error} />}
     </>
   );
