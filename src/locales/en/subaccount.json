@@ -79,6 +79,7 @@
     "breadcrumbBuckets": "Buckets",
     "showHiddenFolders": "Show hidden folders",
     "selectObject": "Select {{name}}",
+    "preview": "Preview",
     "download": "Download",
     "copyPath": "Copy path",
     "share": "Share",
@@ -333,7 +334,16 @@
     "folder": "folder",
     "file": "file",
     "accessDenied": "You don't have access to this resource.",
-    "createError": "Could not create the share link. Please try again."
+    "createError": "Could not create the share link. Please try again.",
+    "expiresInLabel": "Link expires in",
+    "preset24h": "24 hours",
+    "preset7d": "7 days",
+    "preset30d": "30 days",
+    "presetCustom": "Custom",
+    "customDaysHint": "days (max {{max}})",
+    "customDaysValidationError": "Enter a whole number of days between 1 and {{max}}.",
+    "durationApiError": "Duration must be between 1 hour and {{max}} days.",
+    "createLink": "Create link"
   },
   "shareLink": {
     "descriptionFolder": "Anyone with this link can browse and download the contents of this folder.",

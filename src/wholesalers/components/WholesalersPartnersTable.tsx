@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { WholesalerPartner } from '../services/wholesalers.service';
 import { DeletePartnerAction } from './DeletePartnerAction';
+import { useWholesalers } from '../context/wholesalersContext';
 import { StatusBadge } from '../../components/StatusBadge';
 import { T } from '../../sub-account/tokens';
 
@@ -32,6 +33,7 @@ const COLUMNS = [
 
 export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, deletingPartnerId }: Props) => {
   const navigate = useNavigate();
+  const { isViewer } = useWholesalers();
 
   return (
     <div style={{ overflowX: 'auto', position: 'relative' }}>
@@ -103,7 +105,9 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, deleti
                   <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>{formatDate(p.createdAt)}</span>
                 </td>
                 <td style={{ padding: '14px 16px', textAlign: 'right', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
-                  <DeletePartnerAction partner={p} isDeleting={deletingPartnerId === p.id} onDelete={onDelete} />
+                  {!isViewer && (
+                    <DeletePartnerAction partner={p} isDeleting={deletingPartnerId === p.id} onDelete={onDelete} />
+                  )}
                 </td>
               </tr>
             ))

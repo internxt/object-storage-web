@@ -79,6 +79,7 @@
     "breadcrumbBuckets": "Buckets",
     "showHiddenFolders": "Mostrar carpetas ocultas",
     "selectObject": "Seleccionar {{name}}",
+    "preview": "Vista previa",
     "download": "Descargar",
     "copyPath": "Copiar ruta",
     "share": "Compartir",
@@ -333,7 +334,16 @@
     "folder": "carpeta",
     "file": "archivo",
     "accessDenied": "No tienes acceso a este recurso.",
-    "createError": "No se pudo crear el enlace compartido. Inténtalo de nuevo."
+    "createError": "No se pudo crear el enlace compartido. Inténtalo de nuevo.",
+    "expiresInLabel": "El enlace expira en",
+    "preset24h": "24 horas",
+    "preset7d": "7 días",
+    "preset30d": "30 días",
+    "presetCustom": "Personalizado",
+    "customDaysHint": "días (máx. {{max}})",
+    "customDaysValidationError": "Introduce un número entero de días entre 1 y {{max}}.",
+    "durationApiError": "La duración debe estar entre 1 hora y {{max}} días.",
+    "createLink": "Crear enlace"
   },
   "shareLink": {
     "descriptionFolder": "Cualquiera con este enlace puede explorar y descargar el contenido de esta carpeta.",
