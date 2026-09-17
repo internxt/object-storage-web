@@ -37,6 +37,7 @@ interface LoginPageViewProps {
   ssoSlot?: React.ReactNode
   mapLoginError?: (error: unknown) => string | undefined
   supportsTwoFactor?: boolean
+  hideLocalForm?: boolean
 }
 
 export const LoginPageView = ({
@@ -51,6 +52,7 @@ export const LoginPageView = ({
   ssoSlot,
   mapLoginError,
   supportsTwoFactor,
+  hideLocalForm,
 }: LoginPageViewProps) => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -167,79 +169,83 @@ export const LoginPageView = ({
             </h1>
           </div>
 
-          <form
-            className="flex flex-col gap-2.5"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            <TextInput
-              placeholder="Email"
-              inputDataCy="emailInput"
-              label="email"
-              type="email"
-              register={register}
-              required={true}
-              minLength={{ value: 1, message: 'Email must not be empty' }}
-              error={errors.email}
-              className={inputClass}
-            />
-            <PasswordInput
-              placeholder="Password"
-              inputDataCy="passwordInput"
-              label="password"
-              register={register}
-              required={true}
-              minLength={{ value: 1, message: 'Password must not be empty' }}
-              error={errors.password}
-              className={inputClass}
-            />
-
-            {twoFactorRequired && (
-              <input
-                type="text"
-                inputMode="numeric"
-                autoFocus
-                placeholder="6-digit code"
-                maxLength={6}
-                value={twoFactorCode}
-                onChange={(e) => setTwoFactorCode(e.target.value)}
-                className={`h-[52px] bg-[#f5f5f7] border-0 rounded-xl px-5 text-[15px] text-gray-900 placeholder-gray-400 outline-none ring-0 transition-all focus:bg-[#ebebed]`}
-              />
-            )}
-
-            {loginError && (
-              <div className="flex items-center gap-1.5 px-1">
-                <WarningCircle
-                  weight="fill"
-                  className="h-3.5 w-3.5 text-red-500 flex-shrink-0"
-                />
-                <span className="text-[13px] text-red-500">{loginError}</span>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={
-                !isValid ||
-                isLoggingIn ||
-                (twoFactorRequired && twoFactorCode.length !== 6)
-              }
-              className="mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          {!hideLocalForm && (
+            <form
+              className="flex flex-col gap-2.5"
+              onSubmit={handleSubmit(onSubmit)}
             >
-              {isLoggingIn
-                ? 'Signing in…'
-                : twoFactorRequired
-                  ? 'Verify'
-                  : 'Log in'}
-            </button>
-          </form>
+              <TextInput
+                placeholder="Email"
+                inputDataCy="emailInput"
+                label="email"
+                type="email"
+                register={register}
+                required={true}
+                minLength={{ value: 1, message: 'Email must not be empty' }}
+                error={errors.email}
+                className={inputClass}
+              />
+              <PasswordInput
+                placeholder="Password"
+                inputDataCy="passwordInput"
+                label="password"
+                register={register}
+                required={true}
+                minLength={{ value: 1, message: 'Password must not be empty' }}
+                error={errors.password}
+                className={inputClass}
+              />
+
+              {twoFactorRequired && (
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoFocus
+                  placeholder="6-digit code"
+                  maxLength={6}
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value)}
+                  className={`h-[52px] bg-[#f5f5f7] border-0 rounded-xl px-5 text-[15px] text-gray-900 placeholder-gray-400 outline-none ring-0 transition-all focus:bg-[#ebebed]`}
+                />
+              )}
+
+              {loginError && (
+                <div className="flex items-center gap-1.5 px-1">
+                  <WarningCircle
+                    weight="fill"
+                    className="h-3.5 w-3.5 text-red-500 flex-shrink-0"
+                  />
+                  <span className="text-[13px] text-red-500">{loginError}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={
+                  !isValid ||
+                  isLoggingIn ||
+                  (twoFactorRequired && twoFactorCode.length !== 6)
+                }
+                className="mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoggingIn
+                  ? 'Signing in…'
+                  : twoFactorRequired
+                    ? 'Verify'
+                    : 'Log in'}
+              </button>
+            </form>
+          )}
 
           {ssoSlot && (
             <div className="flex flex-col gap-4 -mt-2">
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-gray-10" />
-                <span className="text-xs text-gray-50">or</span>
-                <div className="h-px flex-1 bg-gray-10" />
-              </div>
+              {!hideLocalForm && (
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-gray-10" />
+                  <span className="text-xs text-gray-50">or</span>
+                  <div className="h-px flex-1 bg-gray-10" />
+                </div>
+              )}
               {ssoSlot}
             </div>
           )}

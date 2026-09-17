@@ -7,7 +7,19 @@ import { useSubAccountBranding } from '../context/SubAccountBrandingContext/useS
 import { isSharedConsoleHostname } from '../context/SubAccountBrandingContext/service';
 
 import { SsoLoginModal } from '../../components/sso/SsoLoginModal';
-import { SSO_ERROR_CODES, getSsoErrorCode } from '../services/sub-account-sso.service';
+import {
+  PublicSsoConfig,
+  SSO_ERROR_CODES,
+  getSsoErrorCode,
+  subAccountSsoService,
+} from '../services/sub-account-sso.service';
+
+const SSO_HOSTNAME_LOOKUP_TIMEOUT_MS = 4000;
+
+type SsoHostnameLookup =
+  | { status: 'checking' }
+  | { status: 'configured'; config: PublicSsoConfig }
+  | { status: 'not-configured' };
 
 export const SubAccountLoginPage = () => {
   const { isAuthenticated, logIn, logInWithSso } = useSubAccount();
@@ -15,6 +27,40 @@ export const SubAccountLoginPage = () => {
   const isCustomDomain = !isSharedConsoleHostname();
 
   const [isSsoModalOpen, setIsSsoModalOpen] = useState(false);
+  const [ssoHostnameLookup, setSsoHostnameLookup] = useState<SsoHostnameLookup>(
+    isSharedConsoleHostname() ? { status: 'not-configured' } : { status: 'checking' },
+  );
+
+  useEffect(() => {
+    if (isSharedConsoleHostname()) return;
+
+    let settled = false;
+    const timeoutId = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      setSsoHostnameLookup({ status: 'not-configured' });
+    }, SSO_HOSTNAME_LOOKUP_TIMEOUT_MS);
+
+    subAccountSsoService
+      .getConfigByHostname(window.location.hostname)
+      .then((config) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        setSsoHostnameLookup({ status: 'configured', config });
+      })
+      .catch(() => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        setSsoHostnameLookup({ status: 'not-configured' });
+      });
+
+    return () => {
+      settled = true;
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
   useEffect(() => {
     // This page doubles as the MSAL popup's redirect target. Only forward the
@@ -35,7 +81,9 @@ export const SubAccountLoginPage = () => {
     return undefined;
   };
 
-  if (isLoading) return <SubAccountLoginSkeleton />;
+  if (isLoading || ssoHostnameLookup.status === 'checking') return <SubAccountLoginSkeleton />;
+
+  const ssoOnly = ssoHostnameLookup.status === 'configured';
 
   return (
     <>
@@ -49,6 +97,7 @@ export const SubAccountLoginPage = () => {
         redirectTo='/subaccount/buckets'
       branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
         mapLoginError={mapLoginError}
+        hideLocalForm={ssoOnly}
         ssoSlot={
           <button
             type='button'
@@ -63,6 +112,7 @@ export const SubAccountLoginPage = () => {
         isOpen={isSsoModalOpen}
         onClose={() => setIsSsoModalOpen(false)}
         logInWithSso={logInWithSso}
+        resolvedConfig={ssoOnly ? ssoHostnameLookup.config : undefined}
       />
     </>
   );
