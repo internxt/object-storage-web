@@ -6,11 +6,13 @@ import {
   PlusIcon,
   DotsThreeIcon,
 } from "@phosphor-icons/react";
+import { WholesalersTwoFactorSetupForm } from "../components/WholesalersTwoFactorSetupForm";
 import {
   wholesalersService,
   WholesalerMember,
 } from "../services/wholesalers.service";
 import Modal from "../../components/Modal";
+import Input from "../../components/Input";
 import Button from "../../components/Button";
 import { useWholesalers } from "../context/wholesalersContext";
 import { ConfirmActionModal } from "../../management/components/ConfirmActionModal";
@@ -147,12 +149,148 @@ const PasswordField = ({
   );
 };
 
+const Pill = ({ label, tone }: { label: string; tone: "green" | "gray" }) => (
+  <span
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      padding: "4px 10px",
+      borderRadius: 999,
+      fontSize: 12,
+      fontWeight: 500,
+      background: tone === "green" ? "rgba(16,185,129,0.12)" : T.gray10,
+      color: tone === "green" ? "#10b981" : T.gray60,
+    }}
+  >
+    <span
+      style={{
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: tone === "green" ? "#10b981" : T.gray50,
+        flexShrink: 0,
+      }}
+    />
+    {label}
+  </span>
+);
+
+const TwoFactorCard = () => {
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [isSetupOpen, setIsSetupOpen] = useState(false);
+  const [isDisableOpen, setIsDisableOpen] = useState(false);
+  const [disablePassword, setDisablePassword] = useState('');
+  const [disableCode, setDisableCode] = useState('');
+  const [isDisabling, setIsDisabling] = useState(false);
+
+  useEffect(() => {
+    wholesalersService
+      .getTwoFactorStatus()
+      .then(({ enabled }) => setIsEnabled(enabled))
+      .catch(() => setIsEnabled(null));
+  }, []);
+
+  const closeDisable = () => {
+    setIsDisableOpen(false);
+    setDisablePassword('');
+    setDisableCode('');
+  };
+
+  const handleDisable = async () => {
+    setIsDisabling(true);
+    try {
+      await wholesalersService.disableTwoFactor(disablePassword, disableCode);
+      notificationsService.success({ text: 'Two-factor authentication disabled' });
+      setIsEnabled(false);
+      closeDisable();
+    } catch (err) {
+      notificationsService.error({ text: apiErrorMessage(err, 'Invalid password or code') });
+    } finally {
+      setIsDisabling(false);
+    }
+  };
+
+  return (
+    <SectionCard
+      title='Two-factor authentication'
+      subtitle='Add an extra layer of security using an authenticator app'
+      action={isEnabled ? <Pill label='Enabled' tone='green' /> : undefined}
+    >
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        {isEnabled !== null &&
+          (isEnabled ? (
+            <Button variant='secondary' onClick={() => setIsDisableOpen(true)}>
+              Disable 2FA
+            </Button>
+          ) : (
+            <Button onClick={() => setIsSetupOpen(true)}>Enable 2FA</Button>
+          ))}
+      </div>
+
+      <Modal isOpen={isSetupOpen} onClose={() => setIsSetupOpen(false)}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
+          <p style={{ ...text.heading, margin: 0 }}>Enable two-factor authentication</p>
+          {isSetupOpen && (
+            <WholesalersTwoFactorSetupForm
+              onComplete={() => {
+                setIsSetupOpen(false);
+                setIsEnabled(true);
+              }}
+              onCancel={() => setIsSetupOpen(false)}
+            />
+          )}
+        </div>
+      </Modal>
+
+      <Modal isOpen={isDisableOpen} onClose={closeDisable}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
+          <p style={{ ...text.heading, margin: 0 }}>Disable two-factor authentication</p>
+          <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
+            Confirm your password and a current code from your authenticator app.
+          </p>
+
+          <div>
+            <p style={{ ...text.label, marginBottom: 6 }}>Password</p>
+            <Input value={disablePassword} onChange={setDisablePassword} variant='password' />
+          </div>
+
+          <div>
+            <p style={{ ...text.label, marginBottom: 6 }}>6-digit code</p>
+            <Input value={disableCode} onChange={setDisableCode} placeholder='123456' maxLength={6} variant='default' />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
+            <Button variant='secondary' type='button' onClick={closeDisable} disabled={isDisabling}>
+              Cancel
+            </Button>
+            <Button
+              type='button'
+              onClick={handleDisable}
+              disabled={isDisabling || !disablePassword || disableCode.length !== 6}
+              loading={isDisabling}
+            >
+              Disable
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </SectionCard>
+  );
+};
+
 const MemberActionsMenu = ({
+  member,
   onEdit,
   onDelete,
+  onDisableTwoFactor,
+  onResetTwoFactor,
 }: {
+  member: WholesalerMember;
   onEdit: () => void;
   onDelete: () => void;
+  onDisableTwoFactor: () => void;
+  onResetTwoFactor: () => void;
 }) => {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, right: 0 });
@@ -249,6 +387,34 @@ const MemberActionsMenu = ({
                 Edit
               </button>
 
+              {member.twoFactorEnabled && (
+                <>
+                  <div style={{ height: 1, background: T.gray15, margin: "4px 0" }} />
+                  <button
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false);
+                      onResetTwoFactor();
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    Reset 2FA
+                  </button>
+                  <button
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false);
+                      onDisableTwoFactor();
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    Disable 2FA
+                  </button>
+                </>
+              )}
+
               <div style={{ height: 1, background: T.gray15, margin: "4px 0" }} />
               <button
                 style={{ ...itemStyle, color: T.red }}
@@ -308,6 +474,10 @@ const MembersCard = () => {
   const [deleteTarget, setDeleteTarget] = useState<WholesalerMember | null>(
     null,
   );
+  const [tfaTarget, setTfaTarget] = useState<{
+    member: WholesalerMember;
+    action: "disable" | "reset";
+  } | null>(null);
 
   const fetchMembers = async () => {
     setIsLoading(true);
@@ -375,6 +545,25 @@ const MembersCard = () => {
     }
   };
 
+  const handleTwoFactorAction = async () => {
+    if (!tfaTarget) return;
+    try {
+      await wholesalersService.updateMemberTwoFactor(tfaTarget.member.id, tfaTarget.action);
+      notificationsService.success({
+        text:
+          tfaTarget.action === "disable"
+            ? "2FA disabled for this member"
+            : "2FA reset \u2014 the member must set it up again",
+      });
+      setTfaTarget(null);
+      fetchMembers();
+    } catch (err) {
+      notificationsService.error({
+        text: apiErrorMessage(err, "Failed to update the member 2FA"),
+      });
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     const member = deleteTarget;
@@ -433,6 +622,7 @@ const MembersCard = () => {
             >
               <th style={headerCell}>Email</th>
               <th style={headerCell}>Created</th>
+              <th style={headerCell}>2FA</th>
               <th style={{ width: 80 }} />
             </tr>
           </thead>
@@ -458,10 +648,20 @@ const MembersCard = () => {
                   {formatDate(member.createdAt)}
                 </td>
                 <td style={{ padding: "14px 0" }}>
+                  {member.twoFactorEnabled ? (
+                    <Pill label="Enabled" tone="green" />
+                  ) : (
+                    <span style={{ fontSize: 13, color: T.gray50 }}>Off</span>
+                  )}
+                </td>
+                <td style={{ padding: "14px 0" }}>
                   <div style={{ display: "flex", justifyContent: "flex-end" }}>
                     <MemberActionsMenu
+                      member={member}
                       onEdit={() => openEdit(member)}
                       onDelete={() => setDeleteTarget(member)}
+                      onResetTwoFactor={() => setTfaTarget({ member, action: "reset" })}
+                      onDisableTwoFactor={() => setTfaTarget({ member, action: "disable" })}
                     />
                   </div>
                 </td>
@@ -671,6 +871,20 @@ const MembersCard = () => {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
+
+      <ConfirmActionModal
+        isOpen={!!tfaTarget}
+        title={tfaTarget?.action === "disable" ? "Disable 2FA?" : "Reset 2FA?"}
+        description={
+          tfaTarget?.action === "disable"
+            ? `${tfaTarget?.member.email} will be able to log in with just their password. They can re-enable 2FA themselves at any time.`
+            : `${tfaTarget?.member.email ?? ""} will be required to set up two-factor authentication again before they can use the console.`
+        }
+        confirmLabel={tfaTarget?.action === "disable" ? "Disable" : "Reset"}
+        variant="danger"
+        onConfirm={handleTwoFactorAction}
+        onCancel={() => setTfaTarget(null)}
+      />
     </SectionCard>
   );
 };
@@ -731,84 +945,84 @@ const ProfileTab = () => {
         <ReadField label="Email" value={wholesalerEmail ?? ""} />
       </SectionCard>
 
+      <TwoFactorCard />
+
       {!isViewer && (
-        <>
-          <SectionCard title="Change password">
-            <form
-              onSubmit={handleSubmit}
-              style={{ display: "flex", flexDirection: "column", gap: 16 }}
+        <SectionCard title="Change password">
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: "flex", flexDirection: "column", gap: 16 }}
+          >
+            <PasswordField
+              label="Old password"
+              value={current}
+              onChange={setCurrent}
+            />
+
+            <PasswordField
+              label="New password"
+              placeholder="At least 6 characters"
+              value={newPassword}
+              onChange={(v) => {
+                setNewPassword(v);
+                setTouched((t) => ({ ...t, newPassword: true }));
+              }}
+            />
+
+            {sameAsCurrent && (
+              <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
+                New password must differ from current
+              </p>
+            )}
+
+            {!sameAsCurrent && policyErrors.length > 0 && (
+              <PasswordRequirements errors={policyErrors} />
+            )}
+
+            <PasswordField
+              label="Confirm new password"
+              placeholder="Repeat new password"
+              value={confirm}
+              onChange={(v) => {
+                setConfirm(v);
+                setTouched((t) => ({ ...t, confirm: true }));
+              }}
+            />
+
+            {mismatch && (
+              <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
+                Passwords do not match
+              </p>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginTop: 4,
+              }}
             >
-              <PasswordField
-                label="Old password"
-                value={current}
-                onChange={setCurrent}
-              />
-
-              <PasswordField
-                label="New password"
-                placeholder="At least 6 characters"
-                value={newPassword}
-                onChange={(v) => {
-                  setNewPassword(v);
-                  setTouched((t) => ({ ...t, newPassword: true }));
-                }}
-              />
-
-              {sameAsCurrent && (
-                <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-                  New password must differ from current
-                </p>
-              )}
-
-              {!sameAsCurrent && policyErrors.length > 0 && (
-                <PasswordRequirements errors={policyErrors} />
-              )}
-
-              <PasswordField
-                label="Confirm new password"
-                placeholder="Repeat new password"
-                value={confirm}
-                onChange={(v) => {
-                  setConfirm(v);
-                  setTouched((t) => ({ ...t, confirm: true }));
-                }}
-              />
-
-              {mismatch && (
-                <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-                  Passwords do not match
-                </p>
-              )}
-
-              <div
+              <button
+                type="submit"
+                disabled={isSaving || !isValid}
                 style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  marginTop: 4,
+                  height: 40,
+                  padding: "0 16px",
+                  background: T.primary,
+                  color: T.white,
+                  border: "none",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: isSaving || !isValid ? "not-allowed" : "pointer",
+                  opacity: isSaving || !isValid ? 0.4 : 1,
                 }}
               >
-                <button
-                  type="submit"
-                  disabled={isSaving || !isValid}
-                  style={{
-                    height: 40,
-                    padding: "0 16px",
-                    background: T.primary,
-                    color: T.white,
-                    border: "none",
-                    borderRadius: 8,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    cursor: isSaving || !isValid ? "not-allowed" : "pointer",
-                    opacity: isSaving || !isValid ? 0.4 : 1,
-                  }}
-                >
-                  {isSaving ? "Saving…" : "Change password"}
-                </button>
-              </div>
-            </form>
-          </SectionCard>
-        </>
+                {isSaving ? "Saving…" : "Change password"}
+              </button>
+            </div>
+          </form>
+        </SectionCard>
       )}
     </div>
   );

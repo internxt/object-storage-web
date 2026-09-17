@@ -12,6 +12,7 @@ export const WholesalersLoginPage = () => {
       rightFeaturePills={['Partner management', 'Usage monitoring', 'Aggregated billing']}
       isAuthenticated={isAuthenticated}
       logIn={logIn}
+      supportsTwoFactor
       redirectTo='/wholesalers/partners'
     />
   );
