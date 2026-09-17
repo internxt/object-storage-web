@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { XIcon, DownloadSimpleIcon, CopyIcon, TrashIcon, CheckCircleIcon, PencilSimpleIcon, LinkIcon } from '@phosphor-icons/react';
+import { XIcon, DownloadSimpleIcon, CopyIcon, TrashIcon, CheckCircleIcon, PencilSimpleIcon, LinkIcon, EyeIcon } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -24,6 +24,7 @@ interface FileDetailsPanelProps {
   onDownload: (obj: S3Object) => void;
   onCopyPath: (obj: S3Object) => void;
   onShare?: (obj: S3Object) => void;
+  onPreview?: (obj: S3Object) => void;
   onDelete: (obj: S3Object) => void;
   onShowAllVersions: (obj: S3Object) => void;
   onSaveRetention?: (mode: RetentionMode, retainUntilDate: Date) => Promise<void>;
@@ -59,7 +60,7 @@ const RetentionOption = ({ title, description, badge, selected, warning, onSelec
 );
 
 export const FileDetailsPanel = ({
-  obj, retention, isSavingRetention = false, onClose, onDownload, onCopyPath, onShare, onDelete, onShowAllVersions, onSaveRetention,
+  obj, retention, isSavingRetention = false, onClose, onDownload, onCopyPath, onShare, onPreview, onDelete, onShowAllVersions, onSaveRetention,
 }: FileDetailsPanelProps) => {
   const filename = obj.key.split('/').filter(Boolean).pop() ?? obj.key;
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -227,6 +228,16 @@ export const FileDetailsPanel = ({
         </div>
       ) : (
         <div className='flex flex-col border-t border-gray-10'>
+          {onPreview && (
+            <button
+              type='button'
+              onClick={() => onPreview(obj)}
+              className='flex items-center gap-3 px-6 py-3.5 text-sm text-gray-80 hover:bg-gray-5 transition-colors'
+            >
+              <EyeIcon size={18} className='text-gray-50' />
+              Preview
+            </button>
+          )}
           <button
             type='button'
             onClick={() => onDownload(obj)}
