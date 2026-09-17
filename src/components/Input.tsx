@@ -158,6 +158,11 @@ const Input = ({
         ? 'border-gray-30'
         : 'border-gray-30 disabled:border-gray-10'
 
+  const focusRing =
+    accent === 'error'
+      ? 'focus:ring-2 focus:ring-red'
+      : 'focus:ring-2 focus:ring-primary'
+
   const placeholderColor =
     variant === 'search' ? 'placeholder-gray-40' : 'placeholder-gray-30'
 
@@ -174,7 +179,7 @@ const Input = ({
         ref={inputRef}
         disabled={disabled}
         className={` h-10 w-full rounded-md border font-normal text-gray-800 outline-none disabled:text-gray-40 disabled:placeholder-gray-20
-          ${borderColor} ${placeholderColor} ${padding} ${background}`}
+          ${borderColor} ${focusRing} ${placeholderColor} ${padding} ${background}`}
         type={
           variant === 'password' && !showPassword
             ? 'password'
