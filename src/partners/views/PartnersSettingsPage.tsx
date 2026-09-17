@@ -2,16 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import dayjs from 'dayjs'
 import {
-  EyeIcon,
-  EyeSlashIcon,
   PlusIcon,
   DownloadSimpleIcon,
   DotsThreeIcon,
 } from '@phosphor-icons/react'
 import { partnersService, PartnerMember } from '../services/partners.service'
 import { exportAsCSV } from '../../utils/exportUtils'
-import { apiErrorMessage } from '../../utils/apiError'
-import { passwordPolicyErrors } from '../../utils/passwordPolicy'
+import { ChangePasswordForm } from '../../components/ChangePasswordForm'
 import notificationsService from '../../services/notifications.service'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
@@ -23,7 +20,6 @@ import {
   memberEmailError,
   memberPasswordError,
 } from '../../components/MemberCredentialFields'
-import { PasswordRequirements } from '../../components/FieldFeedback'
 import Dialog from '../../components/Dialog'
 import { T, text, form, shadow } from '../../sub-account/tokens'
 import { usePartners } from '../context/partnersContext'
@@ -79,60 +75,6 @@ const ReadField = ({ label, value }: { label: string; value: string }) => (
     </div>
   </div>
 )
-
-const PasswordField = ({
-  label,
-  placeholder = '',
-  value,
-  onChange,
-}: {
-  label: string
-  placeholder?: string
-  value: string
-  onChange: (v: string) => void
-}) => {
-  const [show, setShow] = useState(false)
-  return (
-    <div>
-      <p style={{ ...text.label, marginBottom: 6 }}>{label}</p>
-      <div style={{ position: 'relative' }}>
-        <input
-          type={show ? 'text' : 'password'}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            width: '100%',
-            height: 40,
-            background: T.gray5,
-            border: `1px solid ${T.gray20}`,
-            borderRadius: 8,
-            padding: '0 40px 0 12px',
-            fontSize: 14,
-            color: T.gray80,
-            outline: 'none',
-          }}
-        />
-        <button
-          type="button"
-          onClick={() => setShow((s) => !s)}
-          style={{
-            position: 'absolute',
-            right: 12,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            background: 'transparent',
-            border: 'none',
-            color: T.gray50,
-            cursor: 'pointer',
-          }}
-        >
-          {show ? <EyeIcon size={16} /> : <EyeSlashIcon size={16} />}
-        </button>
-      </div>
-    </div>
-  )
-}
 
 const AvatarSquare = ({ initials }: { initials: string }) => (
   <div
@@ -327,11 +269,6 @@ const ProfileTab = () => {
     createdAt: string
   } | null>(null)
 
-  const [current, setCurrent] = useState('')
-  const [newPwd, setNewPwd] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [touched, setTouched] = useState({ newPwd: false, confirm: false })
-  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     partnersService
@@ -339,39 +276,6 @@ const ProfileTab = () => {
       .then(setProfile)
       .catch(() => {})
   }, [])
-
-  const policyErrors = touched.newPwd ? passwordPolicyErrors(newPwd) : []
-  const sameAsCurrent =
-    touched.newPwd && newPwd.length > 0 && newPwd === current
-  const mismatch = touched.confirm && confirm.length > 0 && newPwd !== confirm
-  const isValid =
-    current.length > 0 &&
-    newPwd.length > 0 &&
-    confirm.length > 0 &&
-    passwordPolicyErrors(newPwd).length === 0 &&
-    !sameAsCurrent &&
-    newPwd === confirm
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setTouched({ newPwd: true, confirm: true })
-    if (!isValid) return
-    setSaving(true)
-    try {
-      await partnersService.changePassword(current, newPwd)
-      notificationsService.success({ text: 'Password changed successfully' })
-      setCurrent('')
-      setNewPwd('')
-      setConfirm('')
-      setTouched({ newPwd: false, confirm: false })
-    } catch (err) {
-      notificationsService.error({
-        text: apiErrorMessage(err, 'Failed to change password'),
-      })
-    } finally {
-      setSaving(false)
-    }
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -405,73 +309,7 @@ const ProfileTab = () => {
 
       {!isViewer && (
         <SectionCard title="Change password">
-          <form
-            onSubmit={handleChangePassword}
-            style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-          >
-            <PasswordField
-              label="Old password"
-              value={current}
-              onChange={setCurrent}
-            />
-            <PasswordField
-              label="New password"
-              placeholder="At least 6 characters"
-              value={newPwd}
-              onChange={(v) => {
-                setNewPwd(v)
-                setTouched((t) => ({ ...t, newPwd: true }))
-              }}
-            />
-            {sameAsCurrent && (
-              <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-                New password must differ from current
-              </p>
-            )}
-            {!sameAsCurrent && policyErrors.length > 0 && (
-              <PasswordRequirements errors={policyErrors} variant='list' />
-            )}
-            <PasswordField
-              label="Confirm new password"
-              placeholder="Repeat new password"
-              value={confirm}
-              onChange={(v) => {
-                setConfirm(v)
-                setTouched((t) => ({ ...t, confirm: true }))
-              }}
-            />
-            {mismatch && (
-              <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-                Passwords do not match
-              </p>
-            )}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                marginTop: 4,
-              }}
-            >
-              <button
-                type="submit"
-                disabled={saving || !isValid}
-                style={{
-                  height: 40,
-                  padding: '0 16px',
-                  background: T.primary,
-                  color: T.white,
-                  border: 'none',
-                  borderRadius: 8,
-                  cursor: saving || !isValid ? 'not-allowed' : 'pointer',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  opacity: saving || !isValid ? 0.4 : 1,
-                }}
-              >
-                {saving ? 'Saving…' : 'Change password'}
-              </button>
-            </div>
-          </form>
+          <ChangePasswordForm onSubmit={partnersService.changePassword} />
         </SectionCard>
       )}
     </div>

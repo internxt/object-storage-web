@@ -194,7 +194,9 @@
       "passwordUpdated": "Password updated",
       "passwordUpdateFailed": "Failed to update password",
       "emailUpdated": "Email updated",
-      "emailUpdateFailed": "Failed to update email"
+      "emailUpdateFailed": "Failed to update email",
+      "passwordSameAsCurrent": "New password must differ from current",
+      "passwordsDoNotMatch": "Passwords do not match"
     },
     "members": {
       "sectionTitle": "Members",
