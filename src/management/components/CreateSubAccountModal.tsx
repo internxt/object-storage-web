@@ -3,9 +3,11 @@ import { useForm } from 'react-hook-form'
 import Modal from '../../components/Modal'
 import Button from '../../components/Button'
 import { CreateSubAccountDto } from '../services/management.service'
-import { Copy, Check, AlertCircle } from 'lucide-react'
+import { Copy, Check } from 'lucide-react'
 import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries'
+import { passwordPolicyErrors } from '../../utils/passwordPolicy'
+import { PasswordRequirements } from '../../components/MemberCredentialFields'
 
 interface Props {
   isOpen: boolean
@@ -22,34 +24,7 @@ interface SuccessData {
   password: string
 }
 
-// Validación de password
-
-const validatePassword = (
-  password: string,
-): { isValid: boolean; errors: string[] } => {
-  const errors: string[] = []
-
-  if (!password || password.length < 8) {
-    errors.push('At least 8 characters')
-  }
-  if (!/[a-z]/.test(password)) {
-    errors.push('At least one lowercase letter')
-  }
-  if (!/[A-Z]/.test(password)) {
-    errors.push('At least one uppercase letter')
-  }
-  if (!/\d/.test(password)) {
-    errors.push('At least one digit')
-  }
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('At least one special character (!@#$%^&* etc)')
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors,
-  }
-}
+const MIN_PASSWORD_LENGTH = 8
 
 export const CreateSubAccountModal = ({
   isOpen,
@@ -79,12 +54,9 @@ export const CreateSubAccountModal = ({
 
   // Validar password en tiempo real
   useEffect(() => {
-    if (password) {
-      const validation = validatePassword(password)
-      setPasswordErrors(validation.errors)
-    } else {
-      setPasswordErrors([])
-    }
+    setPasswordErrors(
+      password ? passwordPolicyErrors(password, MIN_PASSWORD_LENGTH) : [],
+    )
   }, [password])
 
   const handleClose = () => {
@@ -132,7 +104,8 @@ export const CreateSubAccountModal = ({
     }
   }
 
-  const isPasswordValid = password && validatePassword(password).isValid
+  const isPasswordValid =
+    password && passwordPolicyErrors(password, MIN_PASSWORD_LENGTH).length === 0
   const isFormValid = isValid && isPasswordValid
 
   // Modal de éxito con credenciales
@@ -229,8 +202,8 @@ export const CreateSubAccountModal = ({
                 {...register('password', {
                   required: 'Password is required',
                   validate: (value: string) =>
-                    validatePassword(value).isValid ||
-                    'Password does not meet the requirements',
+                    passwordPolicyErrors(value, MIN_PASSWORD_LENGTH).length ===
+                      0 || 'Password does not meet the requirements',
                 })}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
@@ -252,19 +225,7 @@ export const CreateSubAccountModal = ({
               </button>
             </div>
             {passwordErrors.length > 0 && touchedFields.password && (
-              <div className="p-2 bg-red/10 border border-red rounded-md mt-2">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red flex-shrink-0 mt-0.5" />
-                  <div className="text-xs text-red-dark">
-                    <p className="font-medium mb-1">Password must contain:</p>
-                    <ul className="space-y-1">
-                      {passwordErrors.map((err) => (
-                        <li key={err}>• {err}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              <PasswordRequirements errors={passwordErrors} />
             )}
           </Field>
 
