@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Switch } from '../Switch';
 import Button from '../Button';
 import { RetentionMode } from '../../services/s3.service';
@@ -49,6 +50,7 @@ const Option = ({ title, description, badge, selected, disabled, onSelect }: {
 export const ObjectLockingControl = ({
   lockEnabledAtCreation, retentionConfig, disabled = false, isSaving = false, onSave, onDisable,
 }: ObjectLockingControlProps) => {
+  const { t } = useTranslation('subaccount');
   const [retentionOpen, setRetentionOpen] = useState(retentionConfig.enabled);
   const [mode, setMode] = useState<RetentionMode>(retentionConfig.mode ?? RetentionMode.COMPLIANCE);
   const [scale, setScale] = useState<TimeScale | ''>('');
@@ -67,10 +69,9 @@ export const ObjectLockingControl = ({
   if (!lockEnabledAtCreation) {
     return (
       <div className="flex max-w-[480px] flex-col gap-2">
-        <span className="text-xs font-medium uppercase tracking-[0.04em] text-gray-60">Object Locking</span>
+        <span className="text-xs font-medium uppercase tracking-[0.04em] text-gray-60">{t('objectLockingControl.title')}</span>
         <p className="m-0 text-[13px] leading-normal text-gray-60">
-          Object Lock must be enabled at the time a bucket is created. Buckets using Object Lock must also have
-          Versioning enabled.
+          {t('objectLockingControl.notEnabledAtCreationDescription')}
         </p>
       </div>
     );
@@ -81,14 +82,14 @@ export const ObjectLockingControl = ({
 
   return (
     <div className="flex max-w-[480px] flex-col gap-3.5">
-      <span className="text-xs font-medium uppercase tracking-[0.04em] text-gray-60">Object Locking</span>
+      <span className="text-xs font-medium uppercase tracking-[0.04em] text-gray-60">{t('objectLockingControl.title')}</span>
 
       <p className="m-0 text-[13px] leading-normal text-gray-60">
-        Objects placed in this bucket are subject to retention modes set at the bucket or object level.
+        {t('objectLockingControl.description')}
       </p>
 
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-100">Enable Bucket-Level Object Retention</span>
+        <span className="text-sm text-gray-100">{t('objectLockingControl.enableRetentionLabel')}</span>
         <Switch
           checked={retentionOpen}
           disabled={disabled}
@@ -102,22 +103,21 @@ export const ObjectLockingControl = ({
       {retentionOpen && (
         <>
           <p className="m-0 text-[13px] text-gray-60">
-            These settings will automatically apply to all new objects placed into the bucket after you confirm the
-            settings.
+            {t('objectLockingControl.applyNoticeDescription')}
           </p>
 
           <Option
-            title="Governance Mode"
-            badge={retentionConfig.enabled && retentionConfig.mode === RetentionMode.GOVERNANCE ? 'Enabled' : undefined}
-            description="Objects placed in Governance Mode remain immutable until after they have reached the retain until date, unless a user has specific IAM permissions to alter the settings."
+            title={t('objectLockingControl.governanceModeTitle')}
+            badge={retentionConfig.enabled && retentionConfig.mode === RetentionMode.GOVERNANCE ? t('objectLockingControl.enabledBadge') : undefined}
+            description={t('objectLockingControl.governanceDescription')}
             selected={mode === RetentionMode.GOVERNANCE}
             disabled={disabled}
             onSelect={() => setMode(RetentionMode.GOVERNANCE)}
           />
           <Option
-            title="Compliance Mode"
-            badge={retentionConfig.enabled && retentionConfig.mode === RetentionMode.COMPLIANCE ? 'Enabled' : undefined}
-            description="Objects placed in Compliance Mode remain immutable until after they have reached the retain until date. This cannot be reversed for any reason, by any user, regardless of user permissions."
+            title={t('objectLockingControl.complianceModeTitle')}
+            badge={retentionConfig.enabled && retentionConfig.mode === RetentionMode.COMPLIANCE ? t('objectLockingControl.enabledBadge') : undefined}
+            description={t('objectLockingControl.complianceDescription')}
             selected={mode === RetentionMode.COMPLIANCE}
             disabled={disabled}
             onSelect={() => setMode(RetentionMode.COMPLIANCE)}
@@ -125,7 +125,7 @@ export const ObjectLockingControl = ({
 
           <div className="flex gap-3">
             <div className="flex flex-1 flex-col gap-1.5">
-              <label htmlFor="lock-time-scale" className="text-xs text-gray-60">Time Scale*</label>
+              <label htmlFor="lock-time-scale" className="text-xs text-gray-60">{t('objectLockingControl.timeScaleLabel')}</label>
               <select
                 id="lock-time-scale"
                 value={scale}
@@ -133,13 +133,13 @@ export const ObjectLockingControl = ({
                 onChange={(e) => setScale(e.target.value as TimeScale)}
                 className={`${inputClass} cursor-pointer`}
               >
-                <option value="" disabled>Select time scale</option>
-                <option value="days">Day(s)</option>
-                <option value="years">Year(s)</option>
+                <option value="" disabled>{t('objectLockingControl.selectTimeScale')}</option>
+                <option value="days">{t('objectLockingControl.days')}</option>
+                <option value="years">{t('objectLockingControl.years')}</option>
               </select>
             </div>
             <div className="flex flex-1 flex-col gap-1.5">
-              <label htmlFor="lock-retention-time" className="text-xs text-gray-60">Retention Time*</label>
+              <label htmlFor="lock-retention-time" className="text-xs text-gray-60">{t('objectLockingControl.retentionTimeLabel')}</label>
               <input
                 id="lock-retention-time"
                 type="number"
@@ -159,7 +159,7 @@ export const ObjectLockingControl = ({
               loading={isSaving}
               onClick={() => scale && onSave(mode, scale, numericValue)}
             >
-              Update
+              {t('objectLockingControl.update')}
             </Button>
           </div>
         </>

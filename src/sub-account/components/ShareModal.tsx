@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { HttpStatusCode } from 'axios';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
@@ -39,6 +40,7 @@ const DurationOption = ({ title, selected, onSelect }: {
 );
 
 export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModalProps) => {
+  const { t } = useTranslation('subaccount');
   const { entityId } = useSubAccount();
   const [duration, setDuration] = useState<DurationPreset>('24h');
   const [customDays, setCustomDays] = useState('1');
@@ -53,7 +55,7 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
     if (duration === 'custom') {
       const days = Number(customDays);
       if (!Number.isInteger(days) || days < 1 || days > MAX_CUSTOM_DAYS) {
-        setValidationError(`Enter a whole number of days between 1 and ${MAX_CUSTOM_DAYS}.`);
+        setValidationError(t('shareModal.customDaysValidationError', { max: MAX_CUSTOM_DAYS }));
         return;
       }
       expiresInHours = days * 24;
@@ -70,10 +72,10 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
       const isBadRequest = hasApiErrorStatus(err, HttpStatusCode.BadRequest);
       setError(
         isForbidden
-          ? "You don't have access to this resource."
+          ? t('shareModal.accessDenied')
           : isBadRequest
-            ? `Duration must be between 1 hour and ${MAX_CUSTOM_DAYS} days.`
-            : 'Could not create the share link. Please try again.',
+            ? t('shareModal.durationApiError', { max: MAX_CUSTOM_DAYS })
+            : t('shareModal.createError'),
       );
     } finally {
       setCreating(false);
@@ -94,12 +96,12 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
   } else {
     body = (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <span style={text.label}>Link expires in</span>
+        <span style={text.label}>{t('shareModal.expiresInLabel')}</span>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <DurationOption title="24 hours" selected={duration === '24h'} onSelect={() => setDuration('24h')} />
-          <DurationOption title="7 days" selected={duration === '7d'} onSelect={() => setDuration('7d')} />
-          <DurationOption title="30 days" selected={duration === '30d'} onSelect={() => setDuration('30d')} />
-          <DurationOption title="Custom" selected={duration === 'custom'} onSelect={() => setDuration('custom')} />
+          <DurationOption title={t('shareModal.preset24h')} selected={duration === '24h'} onSelect={() => setDuration('24h')} />
+          <DurationOption title={t('shareModal.preset7d')} selected={duration === '7d'} onSelect={() => setDuration('7d')} />
+          <DurationOption title={t('shareModal.preset30d')} selected={duration === '30d'} onSelect={() => setDuration('30d')} />
+          <DurationOption title={t('shareModal.presetCustom')} selected={duration === 'custom'} onSelect={() => setDuration('custom')} />
         </div>
         {duration === 'custom' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 24 }}>
@@ -115,7 +117,7 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
                 fontSize: 14, color: T.gray100,
               }}
             />
-            <span style={text.hint}>days (max {MAX_CUSTOM_DAYS})</span>
+            <span style={text.hint}>{t('shareModal.customDaysHint', { max: MAX_CUSTOM_DAYS })}</span>
           </div>
         )}
         {validationError && <p style={{ fontSize: 13, color: T.red, margin: 0 }}>{validationError}</p>}
@@ -127,18 +129,21 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
     <Modal isOpen onClose={onClose}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 440 }}>
         <p style={{ ...text.heading, margin: 0 }}>
-          Share {obj.isFolder ? 'folder' : 'file'} “{displayName(obj.key)}”
+          {t('shareModal.title', {
+            type: obj.isFolder ? t('shareModal.folder') : t('shareModal.file'),
+            name: displayName(obj.key),
+          })}
         </p>
 
         {body}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <Button variant="secondary" type="button" onClick={onClose}>
-            Close
+            {t('actions.close')}
           </Button>
           {!url && !error && !creating && (
             <Button type="button" onClick={handleCreate}>
-              Create link
+              {t('shareModal.createLink')}
             </Button>
           )}
         </div>

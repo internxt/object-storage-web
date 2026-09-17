@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { UploadSimple, X, CheckCircle, Warning } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -79,6 +80,7 @@ interface UploadModalProps {
 }
 
 export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClose, onUploaded }: UploadModalProps) => {
+  const { t } = useTranslation('subaccount');
   const { client: hookClient } = useS3Client();
   const client = clientProp ?? hookClient;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -156,7 +158,7 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
         if (signal.aborted) break;
         anyError = true;
         const message = isAccessDeniedError(err)
-          ? 'You do not have enough access to this bucket.'
+          ? t('uploadModal.accessDenied')
           : (err as Error).message;
         setFiles((prev) =>
           prev.map((f, idx) => idx === i ? { ...f, status: 'error', error: message } : f),
@@ -181,7 +183,7 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
     }
 
     if (!anyError) {
-      notificationsService.success({ text: `${files.length} file(s) uploaded` });
+      notificationsService.success({ text: t('uploadModal.uploaded', { count: files.length }) });
       setFiles([]);
       onUploaded();
       onClose();
@@ -191,7 +193,7 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
       <div className='flex flex-col gap-5 w-full min-w-[480px]'>
-        <p className='text-black text-xl font-semibold'>Upload Files</p>
+        <p className='text-black text-xl font-semibold'>{t('uploadModal.title')}</p>
 
         {/* Drop zone */}
         {!isUploading && (
@@ -206,7 +208,7 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
           >
             <UploadSimple size={32} className='mx-auto text-gray-400 mb-2' />
             <p className='text-sm text-gray-500'>
-              Drag & drop files or folders here, or <span className='text-blue-600 font-medium'>browse</span>
+              {t('uploadModal.dropzone')} <span className='text-blue-600 font-medium'>{t('uploadModal.browse')}</span>
             </p>
             <input
               ref={inputRef}
@@ -261,7 +263,7 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
             className='rounded-md'
             onClick={isUploading ? cancelUpload : handleClose}
           >
-            Cancel
+            {t('actions.cancel')}
           </Button>
           <Button
             className='rounded-md'
@@ -269,7 +271,7 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
             loading={isUploading}
             onClick={uploadAll}
           >
-            Upload {files.length > 0 ? `(${files.length})` : ''}
+            {t('uploadModal.upload')} {files.length > 0 ? t('uploadModal.uploadCount', { count: files.length }) : ''}
           </Button>
         </div>
       </div>

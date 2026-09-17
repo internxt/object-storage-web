@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { broadcastResponseToMainFrame } from '@azure/msal-browser/redirect-bridge';
 import { LoginPageView } from '../../components/auth/LoginPageView';
 import Skeleton from 'react-loading-skeleton';
@@ -22,6 +23,7 @@ type SsoHostnameLookup =
   | { status: 'not-configured' };
 
 export const SubAccountLoginPage = () => {
+  const { t } = useTranslation('subaccount');
   const { isAuthenticated, logIn, logInWithSso } = useSubAccount();
   const { branding, isLoading, styles } = useSubAccountBranding();
   const isCustomDomain = !isSharedConsoleHostname();
@@ -76,7 +78,7 @@ export const SubAccountLoginPage = () => {
 
   const mapLoginError = (error: unknown): string | undefined => {
     if (getSsoErrorCode(error) === SSO_ERROR_CODES.SSO_REQUIRED) {
-      return "This account uses single sign-on. Use 'Sign in with SSO' below.";
+      return t('login.ssoRequiredError');
     }
     return undefined;
   };
@@ -88,10 +90,14 @@ export const SubAccountLoginPage = () => {
   return (
     <>
       <LoginPageView
-        consoleTitle='Cloud Account Console'
-        rightHeadline={isCustomDomain ? undefined : <>Object Storage<br />Sub-account</>}
-        rightDescription={isCustomDomain ? undefined : 'Access your storage, manage buckets and objects, and control team member permissions from one place.'}
-        rightFeaturePills={isCustomDomain ? undefined : ['Bucket management', 'Object storage', 'Team permissions']}
+        consoleTitle={t('login.consoleTitle')}
+        rightHeadline={isCustomDomain ? undefined : <>{t('login.rightHeadlineLine1')}<br />{t('login.rightHeadlineLine2')}</>}
+        rightDescription={isCustomDomain ? undefined : t('login.rightDescription')}
+        rightFeaturePills={isCustomDomain ? undefined : [
+          t('login.featurePillBucketManagement'),
+          t('login.featurePillObjectStorage'),
+          t('login.featurePillTeamPermissions'),
+        ]}
         isAuthenticated={isAuthenticated}
         logIn={logIn}
         redirectTo='/subaccount/buckets'
@@ -104,7 +110,7 @@ export const SubAccountLoginPage = () => {
             onClick={() => setIsSsoModalOpen(true)}
             className='w-full h-[52px] rounded-xl bg-[#f5f5f7] hover:bg-[#ebebed] text-gray-900 text-[15px] font-medium tracking-[-0.01em] transition-colors'
           >
-            Sign in with SSO
+            {t('login.signInWithSso')}
           </button>
         }
       />
@@ -119,8 +125,9 @@ export const SubAccountLoginPage = () => {
 };
 
 function SubAccountLoginSkeleton() {
+  const { t } = useTranslation('subaccount');
   return (
-    <div aria-busy='true' aria-label='Loading console branding' className='flex w-screen min-h-screen' style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' }}>
+    <div aria-busy='true' aria-label={t('shared.loadingBrandingAriaLabel')} className='flex w-screen min-h-screen' style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' }}>
       <div className='relative flex flex-col w-full lg:max-w-[520px] min-h-screen bg-white px-10 lg:px-16 py-10 flex-shrink-0'>
         <Skeleton height={28} width={180} />
         <div className='flex flex-col flex-1 justify-center max-w-[320px] gap-8'>

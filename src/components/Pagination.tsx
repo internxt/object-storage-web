@@ -1,4 +1,5 @@
 import { CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 import {
     CaretDownIcon,
     CaretLeftIcon,
@@ -42,6 +43,7 @@ export const Pagination = ({
     onNext,
     isLoading,
 }: PaginationProps) => {
+    const { t } = useTranslation("common");
     const isPrevDisabled = !hasPrevPage || isLoading;
     const isNextDisabled = !hasNextPage || isLoading;
     const hasPageSizeSelector =
@@ -80,11 +82,11 @@ export const Pagination = ({
                                 whiteSpace: "nowrap",
                             }}
                         >
-                            {pageSize} per page <CaretDownIcon size={12} />
+                            {t("pagination.perPage", { count: pageSize })} <CaretDownIcon size={12} />
                         </span>
                     }
                     items={pageSizeOptions.map((size) => ({
-                        label: `${size} per page`,
+                        label: t("pagination.perPage", { count: size }),
                         onClick: () => onPageSizeChange(size),
                     }))}
                 />
@@ -92,7 +94,7 @@ export const Pagination = ({
             <span
                 style={{ fontSize: 13, color: T.gray60, whiteSpace: "nowrap" }}
             >
-                Page {pageNumber}
+                {t("pagination.page", { number: pageNumber })}
             </span>
             <div
                 style={{
@@ -107,7 +109,7 @@ export const Pagination = ({
                     type="button"
                     disabled={isPrevDisabled}
                     onClick={onPrev}
-                    aria-label="Previous page"
+                    aria-label={t("pagination.previousPage")}
                     style={navButtonStyle(isPrevDisabled)}
                 >
                     <CaretLeftIcon size={14} weight="bold" />
@@ -117,7 +119,7 @@ export const Pagination = ({
                     type="button"
                     disabled={isNextDisabled}
                     onClick={onNext}
-                    aria-label="Next page"
+                    aria-label={t("pagination.nextPage")}
                     style={navButtonStyle(isNextDisabled)}
                 >
                     <CaretRightIcon size={14} weight="bold" />

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Switch } from '../Switch';
 
 interface BucketLoggingSetupProps {
@@ -17,20 +18,22 @@ const inputClassName =
 export const BucketLoggingSetup = ({
   enabled, prefix, target, buckets, disabled = false,
   onEnabledChange, onPrefixChange, onTargetChange,
-}: BucketLoggingSetupProps) => (
+}: BucketLoggingSetupProps) => {
+  const { t } = useTranslation('subaccount');
+  return (
   <div className="flex flex-col gap-1.5">
     <div className="flex items-center justify-between">
-      <span className="text-sm text-[var(--gray-100,#18181B)]">Bucket Logging</span>
+      <span className="text-sm text-[var(--gray-100,#18181B)]">{t('bucketLogging.title')}</span>
       <Switch checked={enabled} disabled={disabled} onChange={onEnabledChange} />
     </div>
     <p className="m-0 text-[13px] leading-normal text-[var(--gray-60,#636367)]">
-      When logging is enabled a text log file of all access to a bucket is created in the bucket specified.
+      {t('bucketLogging.description')}
     </p>
     {enabled && (
       <>
         <input
           type="text"
-          placeholder="Logging Prefix"
+          placeholder={t('bucketLogging.prefixPlaceholder')}
           value={prefix}
           disabled={disabled}
           onChange={(e) => onPrefixChange(e.target.value)}
@@ -42,7 +45,7 @@ export const BucketLoggingSetup = ({
           onChange={(e) => onTargetChange(e.target.value)}
           className={`${inputClassName} ${disabled ? 'cursor-default' : 'cursor-pointer'}`}
         >
-          <option value="">Bucket to store logs</option>
+          <option value="">{t('bucketLogging.targetPlaceholder')}</option>
           {buckets.map((name) => (
             <option key={name} value={name}>{name}</option>
           ))}
@@ -50,4 +53,5 @@ export const BucketLoggingSetup = ({
       </>
     )}
   </div>
-);
+  );
+};

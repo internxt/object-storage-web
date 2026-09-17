@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import Dialog from '../../components/Dialog';
@@ -6,13 +7,13 @@ import { Pagination } from '../../components/Pagination';
 import { useSubAccount } from '../context/SubAccountContext';
 import { shareService, ShareListItem } from '../services/share.service';
 import { SharesTable } from '../components/shares/SharesTable';
-import { LABELS, shareResourcePath } from '../components/shares/constants';
+import { shareResourcePath } from '../components/shares/constants';
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 const DEFAULT_PAGE_SIZE = 100;
-const LOAD_ERROR_MESSAGE = 'Could not load shared links';
 
 export const SubAccountSharedPage = () => {
+  const { t } = useTranslation('subaccount');
   const { entityId } = useSubAccount();
 
   const [shares, setShares] = useState<ShareListItem[]>([]);
@@ -29,10 +30,10 @@ export const SubAccountSharedPage = () => {
     try {
       await shareService.revokeShare(entityId, shareToRevoke.id);
       setShares((prev) => prev.filter((share) => share.id !== shareToRevoke.id));
-      notificationsService.success({ text: LABELS.revokeSuccess });
+      notificationsService.success({ text: t('shares.revokeSuccess') });
       setShareToRevoke(null);
     } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, LABELS.revokeError) });
+      notificationsService.error({ text: apiErrorMessage(err, t('shares.revokeError')) });
     } finally {
       setIsRevoking(false);
     }
@@ -45,10 +46,10 @@ export const SubAccountSharedPage = () => {
       .listShares(entityId)
       .then(setShares)
       .catch((err) => {
-        notificationsService.error({ text: apiErrorMessage(err, LOAD_ERROR_MESSAGE) });
+        notificationsService.error({ text: apiErrorMessage(err, t('shares.loadError')) });
       })
       .finally(() => setIsLoading(false));
-  }, [entityId]);
+  }, [entityId, t]);
 
   const onSearchChange = (value: string) => {
     setSearch(value);
@@ -121,11 +122,11 @@ export const SubAccountSharedPage = () => {
         onPrimaryAction={confirmRevoke}
         onSecondaryAction={() => setShareToRevoke(null)}
         isLoading={isRevoking}
-        primaryAction={LABELS.revokeConfirm}
-        secondaryAction="Cancel"
+        primaryAction={t('shares.revokeConfirm')}
+        secondaryAction={t('actions.cancel')}
         primaryActionColor="danger"
-        title={LABELS.revokeTitle}
-        subtitle={`The public link for ${revokeTargetPath} will stop working immediately.`}
+        title={t('shares.revokeTitle')}
+        subtitle={t('shares.revokeSubtitle', { path: revokeTargetPath })}
       />
     </div>
   );
