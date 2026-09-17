@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import Modal from '../../components/Modal'
 import Button from '../../components/Button'
@@ -8,6 +8,7 @@ import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries'
 import { passwordPolicyErrors } from '../../utils/passwordPolicy'
 import { PasswordRequirements } from '../../components/FieldFeedback'
+import { Field, inputClass } from '../../components/FormField'
 
 interface Props {
   isOpen: boolean
@@ -39,7 +40,6 @@ export const CreateSubAccountModal = ({
   const [copiedField, setCopiedField] = useState<
     'email' | 'password' | 'url' | null
   >(null)
-  const [passwordErrors, setPasswordErrors] = useState<string[]>([])
   const [showPassword, setShowPassword] = useState(false)
 
   const {
@@ -51,19 +51,14 @@ export const CreateSubAccountModal = ({
   } = useForm<FormValues>({ mode: 'onChange' })
 
   const password = watch('password')
-
-  // Validar password en tiempo real
-  useEffect(() => {
-    setPasswordErrors(
-      password ? passwordPolicyErrors(password, MIN_PASSWORD_LENGTH) : [],
-    )
-  }, [password])
+  const passwordErrors = password
+    ? passwordPolicyErrors(password, MIN_PASSWORD_LENGTH)
+    : []
 
   const handleClose = () => {
     reset()
     setError(undefined)
     setSuccessData(null)
-    setPasswordErrors([])
     setShowPassword(false)
     onClose()
   }
@@ -104,8 +99,7 @@ export const CreateSubAccountModal = ({
     }
   }
 
-  const isPasswordValid =
-    password && passwordPolicyErrors(password, MIN_PASSWORD_LENGTH).length === 0
+  const isPasswordValid = !!password && passwordErrors.length === 0
   const isFormValid = isValid && isPasswordValid
 
   // Modal de éxito con credenciales
@@ -285,25 +279,6 @@ export const CreateSubAccountModal = ({
     </Modal>
   )
 }
-
-const inputClass =
-  'w-full border border-gray-20 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary'
-
-const Field = ({
-  label,
-  error,
-  children,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-}) => (
-  <div className="flex flex-col gap-1">
-    <label className="text-sm font-medium text-gray-80">{label}</label>
-    {children}
-    {error && <span className="text-xs text-red">{error}</span>}
-  </div>
-)
 
 const CredentialField = ({
   label,
