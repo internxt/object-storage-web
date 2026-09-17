@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { HttpStatusCode } from 'axios';
-import { DownloadSimpleIcon, FileIcon, FolderIcon, LinkBreakIcon, LockKeyIcon } from '@phosphor-icons/react';
+import { DownloadSimpleIcon, EyeIcon, FileIcon, FolderIcon, LinkBreakIcon, LockKeyIcon } from '@phosphor-icons/react';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
 import { Pagination } from '../components/Pagination';
 import { Breadcrumb, ROOT_SEGMENT_INDEX } from '../components/share/Breadcrumb';
 import { CenteredMessage } from '../components/share/CenteredMessage';
 import { FolderListing } from '../components/share/FolderListing';
+import { PreviewModal } from '../components/objects/PreviewModal';
 import { useObjectPagination } from '../sub-account/hooks/useObjectPagination';
 import {
   shareService,
@@ -15,6 +16,8 @@ import {
   ShareMetadata,
 } from '../services/share.service';
 import { hasApiErrorStatus } from '../utils/apiError';
+import { displayName } from '../utils/displayName';
+import { kindFromContentType, PreviewKind } from '../utils/previewable';
 import { T, card } from '../sub-account/tokens';
 
 const PAGE_VERTICAL_PADDING = 48;
@@ -29,6 +32,9 @@ export const SharePage = () => {
   const [objects, setObjects] = useState<ShareListItem[]>([]);
   const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
   const [isListLoading, setIsListLoading] = useState(false);
+  const [preview, setPreview] = useState<{
+    fileName: string; kind: PreviewKind | null; url: string | null; isLoading: boolean; error: string | null;
+  } | null>(null);
   const {
     state: pagination, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
   } = useObjectPagination();
@@ -111,6 +117,23 @@ export const SharePage = () => {
     }
   };
 
+  const onPreview = async (key?: string) => {
+    if (!token) return;
+    const fileName = key ? displayName(key) : (metadata?.name ?? '');
+    setPreview({ fileName, kind: null, url: null, isLoading: true, error: null });
+    try {
+      const { url, contentType } = await shareService.preview(token, key);
+      setPreview({ fileName, kind: kindFromContentType(contentType), url, isLoading: false, error: null });
+    } catch (err) {
+      if (hasApiErrorStatus(err, HttpStatusCode.UnprocessableEntity)) {
+        setPreview({ fileName, kind: null, url: null, isLoading: false, error: null });
+        return;
+      }
+      setPreview(null);
+      onShareError(err);
+    }
+  };
+
   const sharedRoot = metadata?.prefix ?? '';
   const relativeSegments =
     currentPrefix !== null && currentPrefix.length > sharedRoot.length
@@ -153,12 +176,20 @@ export const SharePage = () => {
     body = (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '48px 24px' }}>
         <p style={{ fontSize: 14, color: T.gray60, margin: 0 }}>You have been given access to download this file.</p>
-        <Button type="button" onClick={() => onDownload()}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <DownloadSimpleIcon size={16} weight="bold" />
-            Download
-          </span>
-        </Button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Button type="button" onClick={() => onPreview()}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <EyeIcon size={16} weight="bold" />
+              Preview
+            </span>
+          </Button>
+          <Button type="button" onClick={() => onDownload()}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <DownloadSimpleIcon size={16} weight="bold" />
+              Download
+            </span>
+          </Button>
+        </div>
       </div>
     );
   } else {
@@ -181,6 +212,7 @@ export const SharePage = () => {
             isLoading={isListLoading}
             onOpenFolder={openFolder}
             onDownload={onDownload}
+            onPreview={onPreview}
           />
         </div>
       </div>
@@ -208,6 +240,16 @@ export const SharePage = () => {
 
         {body}
       </div>
+
+      <PreviewModal
+        isOpen={!!preview}
+        fileName={preview?.fileName ?? ''}
+        kind={preview?.kind ?? null}
+        url={preview?.url ?? null}
+        isLoading={preview?.isLoading ?? false}
+        error={preview?.error ?? null}
+        onClose={() => setPreview(null)}
+      />
     </div>
   );
 };

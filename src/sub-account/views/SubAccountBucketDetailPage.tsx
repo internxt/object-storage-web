@@ -18,13 +18,16 @@ import {
   DownloadSimpleIcon,
   CopyIcon,
   LinkIcon,
+  EyeIcon,
 } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import { S3Object, s3Service, isAccessDeniedError, RetentionMode, VersioningStatus } from '../../services/s3.service';
 import { formatDateTime } from '../../utils/formatDate';
+import { getPreviewInfo, PreviewKind } from '../../utils/previewable';
 import notificationsService from '../../services/notifications.service';
 import { UploadModal } from '../../components/objects/UploadModal';
 import { FileDetailsPanel } from '../../components/objects/FileDetailsPanel';
+import { PreviewModal } from '../../components/objects/PreviewModal';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import Dialog from '../../components/Dialog';
@@ -214,9 +217,10 @@ interface ObjectRowProps {
   onDelete: (obj: S3Object) => void;
   onCopyPath: (obj: S3Object) => void;
   onShare: (obj: S3Object) => void;
+  onPreview: (obj: S3Object) => void;
 }
 
-const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath, onShare }: ObjectRowProps) => {
+const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath, onShare, onPreview }: ObjectRowProps) => {
   const [hovered, setHovered] = useState(false);
   const [triggerHovered, setTriggerHovered] = useState(false);
   const name = displayName(obj.key);
@@ -303,6 +307,11 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
               </span>
             }
             items={[
+              ...(!obj.isFolder ? [{
+                label: 'Preview',
+                icon: <EyeIcon size={15} />,
+                onClick: () => onPreview(obj),
+              }] : []),
               ...(!obj.isFolder ? [{
                 label: 'Download',
                 icon: <DownloadSimpleIcon size={15} />,
@@ -440,6 +449,11 @@ export const SubAccountBucketDetailPage = () => {
   const fileRetention = useFileRetention();
   const [fileToDelete, setFileToDelete] = useState<S3Object | null>(null);
   const [objectToShare, setObjectToShare] = useState<S3Object | null>(null);
+  const [previewTarget, setPreviewTarget] = useState<S3Object | null>(null);
+  const [previewKind, setPreviewKind] = useState<PreviewKind | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [isDeletingSingle, setIsDeletingSingle] = useState(false);
   const [isDeleteBucketOpen, setIsDeleteBucketOpen] = useState(false);
   const [isDeletingBucket, setIsDeletingBucket] = useState(false);
@@ -743,6 +757,26 @@ export const SubAccountBucketDetailPage = () => {
   const onDeleteSingle = (obj: S3Object) => setFileToDelete(obj);
 
   const onShare = (obj: S3Object) => setObjectToShare(obj);
+
+  const onPreview = async (obj: S3Object) => {
+    const info = getPreviewInfo(obj.key);
+    setPreviewTarget(obj);
+    setPreviewKind(info?.kind ?? null);
+    setPreviewUrl(null);
+    setPreviewError(null);
+    if (!info || !client || !bucketName) return;
+    setIsPreviewLoading(true);
+    try {
+      const url = await s3Service.getPreviewUrl(client, bucketName, obj.key, obj.versionId);
+      setPreviewUrl(url);
+    } catch (err) {
+      setPreviewError(
+        isAccessDeniedError(err) ? "You don't have permission to preview this file." : 'Could not generate preview link.',
+      );
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
 
   const onConfirmDeleteSingle = async () => {
     if (!client || !bucketName || !fileToDelete) return;
@@ -1048,6 +1082,7 @@ export const SubAccountBucketDetailPage = () => {
                     onDelete={onDeleteSingle}
                     onCopyPath={onCopyPath}
                     onShare={onShare}
+                    onPreview={onPreview}
                   />
                 ))
               )}
@@ -1161,6 +1196,7 @@ export const SubAccountBucketDetailPage = () => {
             onDownload={onDownload}
             onCopyPath={onCopyPath}
             onShare={onShare}
+            onPreview={onPreview}
             onDelete={obj => { setSelectedFile(null); onDeleteSingle(obj); }}
             onShowAllVersions={onShowAllVersions}
             onSaveRetention={objectLockConfig.enabled ? onSaveFileRetention : undefined}
@@ -1235,6 +1271,16 @@ export const SubAccountBucketDetailPage = () => {
         isDeleting={isDeletingBucket}
         onConfirm={onConfirmDeleteBucket}
         onClose={() => !isDeletingBucket && setIsDeleteBucketOpen(false)}
+      />
+
+      <PreviewModal
+        isOpen={!!previewTarget}
+        fileName={previewTarget ? displayName(previewTarget.key) : ''}
+        kind={previewKind}
+        url={previewUrl}
+        isLoading={isPreviewLoading}
+        error={previewError}
+        onClose={() => setPreviewTarget(null)}
       />
 
       {objectToShare && bucketName && (

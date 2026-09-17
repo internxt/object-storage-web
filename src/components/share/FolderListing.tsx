@@ -9,9 +9,10 @@ interface FolderListingProps {
   isLoading: boolean;
   onOpenFolder: (key: string) => void;
   onDownload: (key: string) => void;
+  onPreview: (key: string) => void;
 }
 
-export const FolderListing = ({ objects, isLoading, onOpenFolder, onDownload }: FolderListingProps) => {
+export const FolderListing = ({ objects, isLoading, onOpenFolder, onDownload, onPreview }: FolderListingProps) => {
   if (isLoading) {
     return (
       <div style={{ padding: '40px 20px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
@@ -38,6 +39,7 @@ export const FolderListing = ({ objects, isLoading, onOpenFolder, onDownload }: 
           obj={obj}
           onOpen={() => onOpenFolder(obj.key)}
           onDownload={() => onDownload(obj.key)}
+          onPreview={() => onPreview(obj.key)}
         />
       ))}
     </div>

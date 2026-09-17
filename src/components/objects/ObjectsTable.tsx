@@ -1,4 +1,4 @@
-import { Folder, File, ArrowDown, Trash } from '@phosphor-icons/react';
+import { Folder, File, ArrowDown, Trash, Eye } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import dayjs from 'dayjs';
 import { S3Object } from '../../services/s3.service';
@@ -11,6 +11,7 @@ interface ObjectsTableProps {
   onSelectAll: (selected: boolean) => void;
   onFolderClick: (prefix: string) => void;
   onFileClick?: (obj: S3Object) => void;
+  onPreview: (obj: S3Object) => void;
   onDownload: (obj: S3Object) => void;
   onDelete: (obj: S3Object) => void;
   isLoading: boolean;
@@ -23,6 +24,7 @@ export const ObjectsTable = ({
   onSelectAll,
   onFolderClick,
   onFileClick,
+  onPreview,
   onDownload,
   onDelete,
   isLoading,
@@ -115,6 +117,13 @@ export const ObjectsTable = ({
                 <td className='px-3'>
                   {!obj.isFolder && (
                     <div className='flex items-center gap-1'>
+                      <button
+                        onClick={() => onPreview(obj)}
+                        className='p-1 hover:bg-gray-20 rounded'
+                        title='Preview'
+                      >
+                        <Eye size={16} />
+                      </button>
                       <button
                         onClick={() => onDownload(obj)}
                         className='p-1 hover:bg-gray-20 rounded'
