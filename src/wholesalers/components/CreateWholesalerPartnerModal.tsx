@@ -67,7 +67,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
             <input
               {...register('name', { required: 'Name is required' })}
               placeholder='Partner name'
-              className={`${inputClass} ${errors.name ? 'border-red focus:ring-red' : ''}`}
+              className={inputClass(errors.name)}
             />
           </Field>
 
@@ -79,7 +79,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
               })}
               type='email'
               placeholder='contact@example.com'
-              className={`${inputClass} ${errors.email ? 'border-red focus:ring-red' : ''}`}
+              className={inputClass(errors.email)}
             />
           </Field>
 
@@ -94,7 +94,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
                 })}
                 type={showPassword ? 'text' : 'password'}
                 placeholder='••••••••'
-                className={`${inputClass} pr-10 ${passwordErrors.length > 0 ? 'border-red focus:ring-red' : ''}`}
+                className={`${inputClass(passwordErrors.length > 0)} pr-10`}
               />
               <button
                 type='button'

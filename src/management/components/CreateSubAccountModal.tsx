@@ -173,7 +173,7 @@ export const CreateSubAccountModal = ({
               <input
                 {...register('name', { required: 'Name is required' })}
                 placeholder="Account name"
-                className={inputClass}
+                className={inputClass(errors.name)}
               />
             </Field>
           )}
@@ -186,7 +186,7 @@ export const CreateSubAccountModal = ({
               })}
               type="email"
               placeholder="email@example.com"
-              className={inputClass}
+              className={inputClass(errors.email)}
             />
           </Field>
 
@@ -201,9 +201,7 @@ export const CreateSubAccountModal = ({
                 })}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
-                className={`${inputClass} pr-10 ${
-                  passwordErrors.length > 0 ? 'border-red focus:ring-red' : ''
-                }`}
+                className={`${inputClass(passwordErrors.length > 0)} pr-10`}
               />
               <button
                 type="button"
@@ -227,7 +225,7 @@ export const CreateSubAccountModal = ({
             <div className="relative">
               <select
                 {...register('country', { required: 'Country is required' })}
-                className={`${inputClass} appearance-none bg-white pr-8`}
+                className={`${inputClass(errors.country)} appearance-none bg-white pr-8`}
                 defaultValue=""
               >
                 <option value="" disabled>
@@ -251,7 +249,7 @@ export const CreateSubAccountModal = ({
                 required: 'Postal code is required',
               })}
               placeholder="12345"
-              className={inputClass}
+              className={inputClass(errors.postalCode)}
             />
           </Field>
 
