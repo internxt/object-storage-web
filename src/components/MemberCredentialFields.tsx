@@ -54,6 +54,7 @@ export const MemberEmailField = ({
 }) => {
   const [touched, setTouched] = useState(false);
   const error = memberEmailError(value);
+  const showError = (touched || value.length > 0) && error;
 
   return (
     <>
@@ -63,9 +64,9 @@ export const MemberEmailField = ({
         onBlur={() => setTouched(true)}
         placeholder={placeholder}
         variant='email'
-        accent={touched && error ? 'error' : undefined}
+        accent={showError ? 'error' : undefined}
       />
-      {touched && error && <FieldError message={error} />}
+      {showError && <FieldError message={error} />}
     </>
   );
 };
@@ -86,6 +87,7 @@ export const MemberPasswordField = ({
   const requirements = value
     ? passwordPolicyErrors(value, MIN_MEMBER_PASSWORD_LENGTH)
     : [];
+  const showError = (touched || value.length > 0) && error;
 
   return (
     <>
@@ -95,16 +97,12 @@ export const MemberPasswordField = ({
         onBlur={() => setTouched(true)}
         placeholder={placeholder}
         variant='password'
-        accent={touched && error ? 'error' : undefined}
+        accent={requirements.length > 0 ? 'error' : undefined}
       />
-      {touched && error && (
-        <>
-          {requirements.length > 0 && (
-            <PasswordRequirements errors={requirements} />
-          )}
-          <FieldError message={error} />
-        </>
+      {touched && requirements.length > 0 && (
+        <PasswordRequirements errors={requirements} />
       )}
+      {showError && <FieldError message={error} />}
     </>
   );
 };
