@@ -439,7 +439,7 @@ const ProfileTab = () => {
               </p>
             )}
             {!sameAsCurrent && policyErrors.length > 0 && (
-              <PasswordRequirements errors={policyErrors} />
+              <PasswordRequirements errors={policyErrors} variant='list' />
             )}
             <PasswordField
               label="Confirm new password"

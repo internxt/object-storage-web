@@ -976,7 +976,7 @@ const ProfileTab = () => {
             )}
 
             {!sameAsCurrent && policyErrors.length > 0 && (
-              <PasswordRequirements errors={policyErrors} />
+              <PasswordRequirements errors={policyErrors} variant="list" />
             )}
 
             <PasswordField
