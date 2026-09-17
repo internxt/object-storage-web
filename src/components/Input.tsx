@@ -152,9 +152,11 @@ const Input = ({
   }, [message, autofocus, disabled])
 
   const borderColor =
-    variant === 'search'
-      ? 'border-gray-30'
-      : 'border-gray-30 disabled:border-gray-10'
+    accent === 'error'
+      ? 'border-red disabled:border-gray-10'
+      : variant === 'search'
+        ? 'border-gray-30'
+        : 'border-gray-30 disabled:border-gray-10'
 
   const placeholderColor =
     variant === 'search' ? 'placeholder-gray-40' : 'placeholder-gray-30'
