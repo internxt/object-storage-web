@@ -6,7 +6,9 @@ interface WholesalersContextType {
   isAuthenticated: boolean;
   isViewer: boolean;
   wholesalerEmail: string | null;
-  logIn: (email: string, password: string) => Promise<void>;
+  twoFactorSetupRequired: boolean;
+  clearTwoFactorSetupRequired: () => void;
+  logIn: (email: string, password: string, code?: string) => Promise<void>;
   logOut: () => void;
 }
 
@@ -16,6 +18,7 @@ export const WholesalersProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!wholesalersAuthService.getToken());
   const [isViewer, setIsViewer] = useState(() => wholesalersAuthService.getRole() === 'member');
   const [wholesalerEmail, setWholesalerEmail] = useState<string | null>(null);
+  const [twoFactorSetupRequired, setTwoFactorSetupRequired] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -24,14 +27,18 @@ export const WholesalersProvider = ({ children }: { children: ReactNode }) => {
     }
     wholesalersService
       .getMe()
-      .then((profile) => setWholesalerEmail(profile.email))
+      .then((profile) => {
+        setWholesalerEmail(profile.email);
+        setTwoFactorSetupRequired(!!profile.twoFactorSetupRequired);
+      })
       .catch(() => setWholesalerEmail(null));
   }, [isAuthenticated]);
 
-  const logIn = async (email: string, password: string) => {
-    await wholesalersAuthService.logIn(email, password);
+  const logIn = async (email: string, password: string, code?: string) => {
+    const { twoFactorSetupRequired } = await wholesalersAuthService.logIn(email, password, code);
     setIsAuthenticated(true);
     setIsViewer(wholesalersAuthService.getRole() === 'member');
+    setTwoFactorSetupRequired(twoFactorSetupRequired);
   };
 
   const logOut = () => {
@@ -39,11 +46,22 @@ export const WholesalersProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
     setIsViewer(false);
     setWholesalerEmail(null);
+    setTwoFactorSetupRequired(false);
   };
 
+  const clearTwoFactorSetupRequired = () => setTwoFactorSetupRequired(false);
+
   const value = useMemo(
-    () => ({ isAuthenticated, isViewer, wholesalerEmail, logIn, logOut }),
-    [isAuthenticated, isViewer, wholesalerEmail],
+    () => ({
+      isAuthenticated,
+      isViewer,
+      wholesalerEmail,
+      twoFactorSetupRequired,
+      clearTwoFactorSetupRequired,
+      logIn,
+      logOut,
+    }),
+    [isAuthenticated, isViewer, wholesalerEmail, twoFactorSetupRequired],
   );
 
   return <WholesalersContext.Provider value={value}>{children}</WholesalersContext.Provider>;
