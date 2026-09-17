@@ -78,6 +78,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
             }}
             placeholder="At least 8 characters"
             variant="password"
+            accent={showPolicyErrors ? 'error' : undefined}
             className="!text-sm"
           />
           {showPolicyErrors && (
@@ -128,6 +129,11 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
             onChange={setConfirmPassword}
             placeholder="Repeat new password"
             variant="password"
+            accent={
+              confirmPassword.length > 0 && newPassword !== confirmPassword
+                ? 'error'
+                : undefined
+            }
           />
         </div>
         {confirmPassword.length > 0 && newPassword !== confirmPassword && (
