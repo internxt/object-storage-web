@@ -15,6 +15,14 @@ import notificationsService from '../../services/notifications.service'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
+import {
+  MIN_MEMBER_PASSWORD_LENGTH,
+  MemberEmailField,
+  MemberPasswordField,
+  PasswordRequirements,
+  memberEmailError,
+  memberPasswordError,
+} from '../../components/MemberCredentialFields'
 import Dialog from '../../components/Dialog'
 import { T, text, form, shadow } from '../../sub-account/tokens'
 import { usePartners } from '../context/partnersContext'
@@ -431,22 +439,7 @@ const ProfileTab = () => {
               </p>
             )}
             {!sameAsCurrent && policyErrors.length > 0 && (
-              <ul
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                  margin: 0,
-                  padding: 0,
-                  listStyle: 'none',
-                }}
-              >
-                {policyErrors.map((e) => (
-                  <li key={e} style={{ fontSize: 12, color: T.red }}>
-                    · {e}
-                  </li>
-                ))}
-              </ul>
+              <PasswordRequirements errors={policyErrors} />
             )}
             <PasswordField
               label="Confirm new password"
@@ -892,6 +885,13 @@ const MembersTab = () => {
   const hasPrev = page > 0
   const hasNext = page < totalPages - 1
 
+  const isCreateValid =
+    !memberEmailError(createEmail) && !memberPasswordError(createPassword)
+  const isEditValid =
+    !memberEmailError(editEmail) &&
+    !memberPasswordError(editPassword, true) &&
+    (editEmail !== editTarget?.email || !!editPassword)
+
   return (
     <SectionCard
       title="Member Accounts"
@@ -1113,20 +1113,18 @@ const MembersTab = () => {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Email</label>
-            <Input
+            <MemberEmailField
               value={createEmail}
               onChange={setCreateEmail}
               placeholder="member@example.com"
-              variant="email"
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Password</label>
-            <Input
+            <MemberPasswordField
               value={createPassword}
               onChange={setCreatePassword}
-              placeholder="Min. 8 characters"
-              variant="password"
+              placeholder={`Min. ${MIN_MEMBER_PASSWORD_LENGTH} characters`}
             />
           </div>
           <div
@@ -1147,9 +1145,7 @@ const MembersTab = () => {
             </Button>
             <Button
               type="button"
-              disabled={
-                createLoading || !createEmail || createPassword.length < 8
-              }
+              disabled={createLoading || !isCreateValid}
               loading={createLoading}
               onClick={handleCreate}
             >
@@ -1174,15 +1170,15 @@ const MembersTab = () => {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Email</label>
-            <Input value={editEmail} onChange={setEditEmail} variant="email" />
+            <MemberEmailField value={editEmail} onChange={setEditEmail} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>New password</label>
-            <Input
+            <MemberPasswordField
               value={editPassword}
               onChange={setEditPassword}
               placeholder="Leave blank to keep current"
-              variant="password"
+              optional
             />
           </div>
           <div
@@ -1203,12 +1199,7 @@ const MembersTab = () => {
             </Button>
             <Button
               type="button"
-              disabled={
-                editLoading ||
-                !editEmail ||
-                (editEmail === editTarget?.email && !editPassword) ||
-                (!!editPassword && editPassword.length < 8)
-              }
+              disabled={editLoading || !isEditValid}
               loading={editLoading}
               onClick={handleUpdate}
             >
