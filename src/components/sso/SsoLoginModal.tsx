@@ -25,9 +25,10 @@ interface SsoLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   logInWithSso: (organizationName: string) => Promise<void>;
+  resolvedConfig?: PublicSsoConfig;
 }
 
-export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalProps) => {
+export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }: SsoLoginModalProps) => {
   const [organizationName, setOrganizationName] = useState('');
   const [resolution, setResolution] = useState<ResolutionState>({ kind: 'manual' });
   const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +52,13 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
       setResolution({ kind: 'manual' });
     };
 
+    // The caller already resolved the config for this hostname (e.g. the login
+    // page's own by-hostname check) — reuse it instead of looking it up again.
+    if (resolvedConfig) {
+      setResolution({ kind: 'auto', config: resolvedConfig });
+      return;
+    }
+
     // The shared console hostname has no custom-domain SSO association, so never
     // attempt the hostname lookup there — go straight to the manual flow.
     if (isSharedConsoleHostname()) {
@@ -71,7 +79,7 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
         if (attemptId !== attemptIdRef.current) return;
         startManual();
       });
-  }, [isOpen]);
+  }, [isOpen, resolvedConfig]);
 
   const canSubmit = resolution.kind === 'auto' ? !isLoading : !!organizationName.trim() && !isLoading;
 
