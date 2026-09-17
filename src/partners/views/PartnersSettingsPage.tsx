@@ -11,6 +11,7 @@ import {
 import { partnersService, PartnerMember } from '../services/partners.service'
 import { exportAsCSV } from '../../utils/exportUtils'
 import { apiErrorMessage } from '../../utils/apiError'
+import { passwordPolicyErrors } from '../../utils/passwordPolicy'
 import notificationsService from '../../services/notifications.service'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
@@ -207,17 +208,6 @@ const SectionCard = ({
   </div>
 )
 
-const validatePassword = (p: string) => {
-  const errs: string[] = []
-  if (p.length < 6) errs.push('At least 6 characters')
-  if (!/[a-z]/.test(p)) errs.push('At least one lowercase letter')
-  if (!/[A-Z]/.test(p)) errs.push('At least one uppercase letter')
-  if (!/\d/.test(p)) errs.push('At least one digit')
-  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(p))
-    errs.push('At least one special character')
-  return errs
-}
-
 const MAX_EXPORT_RANGE_DAYS = 40
 
 // ─── Two-Factor Authentication Card ────────────────────────────────────────────
@@ -350,7 +340,7 @@ const ProfileTab = () => {
       .catch(() => {})
   }, [])
 
-  const policyErrors = touched.newPwd ? validatePassword(newPwd) : []
+  const policyErrors = touched.newPwd ? passwordPolicyErrors(newPwd) : []
   const sameAsCurrent =
     touched.newPwd && newPwd.length > 0 && newPwd === current
   const mismatch = touched.confirm && confirm.length > 0 && newPwd !== confirm
@@ -358,7 +348,7 @@ const ProfileTab = () => {
     current.length > 0 &&
     newPwd.length > 0 &&
     confirm.length > 0 &&
-    validatePassword(newPwd).length === 0 &&
+    passwordPolicyErrors(newPwd).length === 0 &&
     !sameAsCurrent &&
     newPwd === confirm
 
