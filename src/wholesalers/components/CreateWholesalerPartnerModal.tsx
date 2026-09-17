@@ -27,7 +27,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
     handleSubmit,
     watch,
     reset,
-    formState: { errors, isValid, touchedFields },
+    formState: { errors, isValid },
   } = useForm<FormValues>({ mode: 'onChange' });
 
   const password = watch('password');
@@ -113,7 +113,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
                 )}
               </button>
             </div>
-            {passwordErrors.length > 0 && touchedFields.password && (
+            {passwordErrors.length > 0 && (
               <PasswordRequirements errors={passwordErrors} />
             )}
           </Field>
