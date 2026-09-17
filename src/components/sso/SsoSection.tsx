@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Dialog from '../Dialog';
 import notificationsService from '../../services/notifications.service';
 import { SectionCard, ReadField } from '../../sub-account/components/SettingsAtoms';
@@ -17,6 +18,7 @@ interface SsoSectionProps {
 }
 
 export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionProps) => {
+  const { t } = useTranslation('subaccount');
   const [config, setConfig] = useState<SsoConfig | null>(null);
   const [otherMemberCount, setOtherMemberCount] = useState<number | null>(null);
   const [isConfigureOpen, setIsConfigureOpen] = useState(false);
@@ -44,7 +46,7 @@ export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionPr
     setIsConfigureOpen(false);
     if (newConfig.configured) applyReissuedToken(newConfig.token);
     setConfig(newConfig);
-    notificationsService.success({ text: 'SSO configured' });
+    notificationsService.success({ text: t('sso.configured') });
   };
 
   const onDisable = async () => {
@@ -53,15 +55,15 @@ export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionPr
       const { token } = await subAccountSsoService.disableSso(entityId);
       applyReissuedToken(token);
       setIsDisableConfirmOpen(false);
-      notificationsService.success({ text: 'SSO disabled' });
+      notificationsService.success({ text: t('sso.disabled') });
       loadData();
     } catch (err) {
       setIsDisableConfirmOpen(false);
       if (getSsoErrorCode(err) === SSO_ERROR_CODES.SSO_HAS_MEMBERS) {
-        notificationsService.error({ text: 'SSO cannot be disabled while the account has members.' });
+        notificationsService.error({ text: t('sso.disableBlockedError') });
         loadData();
       } else {
-        notificationsService.error({ text: 'Failed to disable SSO. Try again.' });
+        notificationsService.error({ text: t('sso.disableFailed') });
       }
     } finally {
       setIsDisabling(false);
@@ -80,36 +82,36 @@ export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionPr
 
   return (
     <SectionCard
-      title='Single sign-on (SSO)'
+      title={t('sso.sectionTitle')}
       action={config.configured ? (
         <span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green'>
           <span className='w-1.5 h-1.5 rounded-full bg-green shrink-0' />
-          Enabled
+          {t('sso.enabledBadge')}
         </span>
       ) : undefined}
     >
       {!config.configured ? (
         <div className='flex flex-col gap-4'>
           <p className='text-sm text-gray-60'>
-            Let members sign in with your Microsoft Entra ID (Azure AD) tenant instead of a password.
+            {t('sso.description')}
           </p>
           <div className='flex items-center gap-4'>
             <button
               onClick={() => setIsConfigureOpen(true)}
               className='h-10 px-5 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-medium transition-colors shrink-0'
             >
-              Start SSO Configuration
+              {t('sso.startConfiguration')}
             </button>
-            <p className='text-xs text-gray-50'>Once configured, SSO settings cannot be changed.</p>
+            <p className='text-xs text-gray-50'>{t('sso.configuredHint')}</p>
           </div>
         </div>
       ) : (
         <div className='flex flex-col gap-4'>
-          <ReadField label='Organization name' value={config.organizationName} />
-          <ReadField label='Provider' value='Microsoft Entra ID (Azure AD)' />
-          <ReadField label='Directory (tenant) ID' value={config.tenantId} mono />
-          <ReadField label='Application (client) ID' value={config.clientId} mono />
-          <ReadField label='Configured at' value={config.configuredAt ? new Date(config.configuredAt).toLocaleDateString() : ''} />
+          <ReadField label={t('sso.organizationNameLabel')} value={config.organizationName} />
+          <ReadField label={t('sso.providerLabel')} value={t('sso.providerValue')} />
+          <ReadField label={t('sso.tenantIdLabel')} value={config.tenantId} mono />
+          <ReadField label={t('sso.clientIdLabel')} value={config.clientId} mono />
+          <ReadField label={t('sso.configuredAtLabel')} value={config.configuredAt ? new Date(config.configuredAt).toLocaleDateString() : ''} />
 
           <div className='flex flex-col gap-2 pt-2 border-t border-gray-10'>
             <div className='flex items-center gap-4'>
@@ -118,11 +120,11 @@ export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionPr
                 disabled={disableBlocked}
                 className='h-10 px-5 rounded-lg bg-red hover:bg-red-dark text-white text-sm font-medium transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red'
               >
-                Disable SSO
+                {t('sso.disableSso')}
               </button>
               {disableBlocked && (
                 <p className='text-xs text-gray-50'>
-                  SSO cannot be disabled while the account has members. Remove all other members first.
+                  {t('sso.disableBlockedHint')}
                 </p>
               )}
             </div>
@@ -143,11 +145,11 @@ export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionPr
         onPrimaryAction={onDisable}
         onSecondaryAction={() => setIsDisableConfirmOpen(false)}
         isLoading={isDisabling}
-        primaryAction='Disable SSO'
-        secondaryAction='Cancel'
+        primaryAction={t('sso.disableSso')}
+        secondaryAction={t('actions.cancel')}
         primaryActionColor='danger'
-        title='Disable SSO'
-        subtitle='Members will no longer be able to sign in with their Microsoft account. Password login will be required again.'
+        title={t('sso.disableConfirmTitle')}
+        subtitle={t('sso.disableConfirmSubtitle')}
       />
     </SectionCard>
   );

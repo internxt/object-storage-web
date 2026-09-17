@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { WarningCircle } from '@phosphor-icons/react'
 import TextInput from './TextInput'
 import PasswordInput, { IFormValues } from '../PasswordInput'
@@ -54,6 +55,7 @@ export const LoginPageView = ({
   supportsTwoFactor,
   hideLocalForm,
 }: LoginPageViewProps) => {
+  const { t } = useTranslation('common')
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const destination =
@@ -114,8 +116,8 @@ export const LoginPageView = ({
       } else {
         setLoginError(
           twoFactorRequired
-            ? 'Invalid code'
-            : (mapLoginError?.(err) ?? 'Invalid credentials'),
+            ? t('login.invalidCode')
+            : (mapLoginError?.(err) ?? t('login.invalidCredentials')),
         )
       }
     } finally {
@@ -165,7 +167,7 @@ export const LoginPageView = ({
               {consoleTitle}
             </p>
             <h1 className="text-[32px] font-semibold tracking-tight text-gray-900 leading-tight">
-              Welcome back
+              {t('login.welcomeBack')}
             </h1>
           </div>
 
@@ -175,23 +177,23 @@ export const LoginPageView = ({
               onSubmit={handleSubmit(onSubmit)}
             >
               <TextInput
-                placeholder="Email"
+                placeholder={t('login.emailPlaceholder')}
                 inputDataCy="emailInput"
                 label="email"
                 type="email"
                 register={register}
                 required={true}
-                minLength={{ value: 1, message: 'Email must not be empty' }}
+                minLength={{ value: 1, message: t('login.emailRequired') }}
                 error={errors.email}
                 className={inputClass}
               />
               <PasswordInput
-                placeholder="Password"
+                placeholder={t('login.passwordPlaceholder')}
                 inputDataCy="passwordInput"
                 label="password"
                 register={register}
                 required={true}
-                minLength={{ value: 1, message: 'Password must not be empty' }}
+                minLength={{ value: 1, message: t('login.passwordRequired') }}
                 error={errors.password}
                 className={inputClass}
               />
@@ -201,7 +203,7 @@ export const LoginPageView = ({
                   type="text"
                   inputMode="numeric"
                   autoFocus
-                  placeholder="6-digit code"
+                  placeholder={t('login.twoFactorCodePlaceholder')}
                   maxLength={6}
                   value={twoFactorCode}
                   onChange={(e) => setTwoFactorCode(e.target.value)}
@@ -229,10 +231,10 @@ export const LoginPageView = ({
                 className="mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoggingIn
-                  ? 'Signing in…'
+                  ? t('login.signingIn')
                   : twoFactorRequired
-                    ? 'Verify'
-                    : 'Log in'}
+                    ? t('login.verify')
+                    : t('login.logIn')}
               </button>
             </form>
           )}
@@ -242,7 +244,7 @@ export const LoginPageView = ({
               {!hideLocalForm && (
                 <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-gray-10" />
-                  <span className="text-xs text-gray-50">or</span>
+                  <span className="text-xs text-gray-50">{t('login.or')}</span>
                   <div className="h-px flex-1 bg-gray-10" />
                 </div>
               )}
@@ -291,7 +293,7 @@ export const LoginPageView = ({
                 <div className="ml-auto h-2 w-12 rounded-full bg-white/20" />
               </div>
               <div className="grid grid-cols-3 gap-2">
-                {['Total Reserved', 'Used Storage', 'Remaining'].map((label) => (
+                {[t('login.mockTotalReserved'), t('login.mockUsedStorage'), t('login.mockRemaining')].map((label) => (
                   <div
                     key={label}
                     className="bg-white/10 rounded-xl p-3 flex flex-col gap-2"

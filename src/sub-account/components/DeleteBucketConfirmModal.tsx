@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from '@phosphor-icons/react';
 import Modal from '../../components/Modal';
 import { T, text } from '../tokens';
@@ -18,6 +19,7 @@ export const DeleteBucketConfirmModal = ({
   onConfirm,
   onClose,
 }: DeleteBucketConfirmModalProps) => {
+  const { t } = useTranslation('subaccount');
   const [typedName, setTypedName] = useState('');
 
   useEffect(() => {
@@ -30,11 +32,11 @@ export const DeleteBucketConfirmModal = ({
     <Modal isOpen={isOpen} onClose={() => !isDeleting && onClose()}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 400 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <p style={{ ...text.heading }}>Delete bucket</p>
+          <p style={{ ...text.heading }}>{t('deleteBucketModal.title')}</p>
           <button
             onClick={onClose}
             disabled={isDeleting}
-            aria-label='Close'
+            aria-label={t('actions.close')}
             style={{
               background: 'transparent', border: 'none', cursor: 'pointer',
               color: T.gray50, padding: 4, lineHeight: 0,
@@ -45,12 +47,12 @@ export const DeleteBucketConfirmModal = ({
         </div>
 
         <p style={{ fontSize: 14, color: T.gray80, margin: 0 }}>
-          This will permanently delete the bucket <strong>{bucketName}</strong> and all of its contents. This action cannot be undone.
+          {t('deleteBucketModal.descriptionPrefix')} <strong>{bucketName}</strong> {t('deleteBucketModal.descriptionSuffix')}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label htmlFor='confirm-bucket-name' style={{ ...text.label }}>
-            Type <strong>{bucketName}</strong> to confirm
+            {t('deleteBucketModal.confirmLabelPrefix')} <strong>{bucketName}</strong> {t('deleteBucketModal.confirmLabelSuffix')}
           </label>
           <input
             id='confirm-bucket-name'
@@ -79,7 +81,7 @@ export const DeleteBucketConfirmModal = ({
               borderRadius: 8, cursor: 'pointer',
             }}
           >
-            Cancel
+            {t('actions.cancel')}
           </button>
           <button
             onClick={onConfirm}
@@ -91,7 +93,7 @@ export const DeleteBucketConfirmModal = ({
               opacity: canDelete && !isDeleting ? 1 : 0.5,
             }}
           >
-            {isDeleting ? 'Deleting…' : 'Delete'}
+            {isDeleting ? t('deleteBucketModal.deleting') : t('deleteBucketModal.delete')}
           </button>
         </div>
       </div>

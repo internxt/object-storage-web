@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { S3Client } from '@aws-sdk/client-s3';
 import Input from '../../../components/Input';
 import { s3Service } from '../../../services/s3.service';
@@ -26,6 +27,7 @@ const fetchAllBuckets = async (client: S3Client): Promise<BucketOption[]> => {
 };
 
 export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: BucketPickerProps) => {
+  const { t } = useTranslation('subaccount');
   const [search, setSearch] = useState('');
   const [buckets, setBuckets] = useState<BucketOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +57,7 @@ export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: Bucket
 
   return (
     <div className='border border-gray-20 rounded-lg p-2 flex flex-col gap-2'>
-      <Input variant='search' value={search} onChange={setSearch} onClear={() => setSearch('')} placeholder='Search bucket' />
+      <Input variant='search' value={search} onChange={setSearch} onClear={() => setSearch('')} placeholder={t('permissions.searchBucketPlaceholder')} />
       <div className='max-h-[160px] overflow-y-auto'>
         {!excludedNames.has(ALL_BUCKETS) && (
           <button
@@ -63,13 +65,13 @@ export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: Bucket
             onClick={() => onSelect(ALL_BUCKETS)}
             className='flex items-center justify-between gap-2 w-full px-2 py-2 text-left bg-transparent border-none cursor-pointer hover:bg-gray-10 rounded'
           >
-            <span className='text-sm font-medium text-gray-80'>All buckets</span>
+            <span className='text-sm font-medium text-gray-80'>{t('permissions.allBuckets')}</span>
           </button>
         )}
         {isLoading ? (
-          <p className='text-xs text-gray-60 px-2 py-2 m-0'>Loading buckets...</p>
+          <p className='text-xs text-gray-60 px-2 py-2 m-0'>{t('permissions.loadingBuckets')}</p>
         ) : filteredBuckets.length === 0 ? (
-          <p className='text-xs text-gray-60 px-2 py-2 m-0'>No buckets found</p>
+          <p className='text-xs text-gray-60 px-2 py-2 m-0'>{t('permissions.noBucketsFound')}</p>
         ) : (
           filteredBuckets.map((b) => (
             <button

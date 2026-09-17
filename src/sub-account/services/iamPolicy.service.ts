@@ -84,9 +84,6 @@ export const ACCESS_LEVEL_CONFIG: Record<AccessLevel, AccessLevelDefinition> = {
 
 export const ACCESS_LEVELS = Object.keys(ACCESS_LEVEL_CONFIG) as AccessLevel[]
 
-export const accessLevelLabel = (level: AccessLevel): string =>
-  ACCESS_LEVEL_CONFIG[level].label
-
 export interface BucketRule {
   bucketName: string
   accessLevel: AccessLevel

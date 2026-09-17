@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { HttpStatusCode } from 'axios';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
@@ -20,6 +21,7 @@ interface ShareModalProps {
 }
 
 export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModalProps) => {
+  const { t } = useTranslation('subaccount');
   const { entityId } = useSubAccount();
   const [url, setUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +40,8 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
         const isForbidden = hasApiErrorStatus(err, HttpStatusCode.Forbidden);
         setError(
           isForbidden
-            ? "You don't have access to this resource."
-            : 'Could not create the share link. Please try again.',
+            ? t('shareModal.accessDenied')
+            : t('shareModal.createError'),
         );
       }
     };
@@ -64,14 +66,17 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
     <Modal isOpen onClose={onClose}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 440 }}>
         <p style={{ ...text.heading, margin: 0 }}>
-          Share {obj.isFolder ? 'folder' : 'file'} “{displayName(obj.key)}”
+          {t('shareModal.title', {
+            type: obj.isFolder ? t('shareModal.folder') : t('shareModal.file'),
+            name: displayName(obj.key),
+          })}
         </p>
 
         {body}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button variant="secondary" type="button" onClick={onClose}>
-            Close
+            {t('actions.close')}
           </Button>
         </div>
       </div>

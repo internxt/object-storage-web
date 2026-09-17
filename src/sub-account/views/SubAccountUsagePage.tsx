@@ -1,4 +1,5 @@
 import { CSSProperties, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CalendarBlankIcon,
   DownloadSimpleIcon,
@@ -60,8 +61,8 @@ function fmtDate(iso: string): string {
   return dayjs(iso).format('DD-MMM-YYYY');
 }
 
-function exportCsv(records: UsageRecord[]) {
-  const header = 'Record date,Active storage (TB),Deleted storage (TB),Active objects\n';
+function exportCsv(records: UsageRecord[], headers: string[]) {
+  const header = `${headers.join(',')}\n`;
   const rows = records
     .map(r => `${r.date},${fmtTB(r.active)},${fmtTB(r.deleted)},${r.objects}`)
     .join('\n');
@@ -163,6 +164,7 @@ const InfoTooltip = ({ text: tooltipText, children }: { text: string; children: 
 // ─── UsageView ────────────────────────────────────────────────────────────────
 
 export const UsageView = () => {
+  const { t } = useTranslation('subaccount');
   const { entityId } = useSubAccount();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const {
@@ -173,27 +175,32 @@ export const UsageView = () => {
 
   const stats: StatItem[] = [
     {
-      label: 'Active storage',
+      label: t('usage.statActiveStorage'),
       value: fmtTB(totals.active),
       unit: 'TB',
-      hint: 'Billable data stored',
+      hint: t('usage.statActiveStorageHint'),
     },
     {
-      label: 'Deleted storage',
+      label: t('usage.statDeletedStorage'),
       value: fmtTB(totals.deleted),
       unit: 'TB',
-      hint: 'Deleted in the last 30 days',
+      hint: t('usage.statDeletedStorageHint'),
     },
     {
-      label: 'Active objects',
+      label: t('usage.statActiveObjects'),
       value: fmtObjects(totals.objects),
-      hint: `${totals.objects.toLocaleString('en-US')} objects total`,
+      hint: t('usage.statActiveObjectsHint', { count: totals.objects.toLocaleString('en-US') }),
     },
   ];
 
   const dateRangeLabel = `${dayjs(fromDate).format('DD-MMM-YYYY')} – ${dayjs(toDate).format('DD-MMM-YYYY')}`;
 
-  const HEADERS = ['Record date', 'Active storage (TB)', 'Deleted storage (TB)', 'Active objects'];
+  const HEADERS = [
+    t('usage.columnDate'),
+    t('usage.columnActiveStorage'),
+    t('usage.columnDeletedStorage'),
+    t('usage.columnActiveObjects'),
+  ];
 
   return (
     <div style={{
@@ -212,13 +219,13 @@ export const UsageView = () => {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ ...text.heading }}>
-              Account Usage
+              {t('usage.cardTitle')}
             </span>
-            <InfoTooltip text="Account Usage is calculated once per day. After this daily job completes, the UI will update with the latest data for the most recent day. New Accounts and new Buckets will not see data reported until the next day.">
+            <InfoTooltip text={t('usage.cardInfoTooltip')}>
               <InfoIcon
                 size={16}
                 color={T.gray50}
-                aria-label="Account Usage is calculated once per day. After this daily job completes, the UI will update with the latest data for the most recent day. New Accounts and new Buckets will not see data reported until the next day."
+                aria-label={t('usage.cardInfoTooltip')}
               />
             </InfoTooltip>
           </div>
@@ -241,7 +248,7 @@ export const UsageView = () => {
                   padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10,
                 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>From</label>
+                    <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>{t('usage.fromLabel')}</label>
                     <input
                       type="date" value={fromDate}
                       max={toDate}
@@ -251,7 +258,7 @@ export const UsageView = () => {
                     />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>To</label>
+                    <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>{t('usage.toLabel')}</label>
                     <input
                       type="date" value={toDate}
                       min={fromDate}
@@ -268,7 +275,7 @@ export const UsageView = () => {
                       cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
-                    Apply
+                    {t('usage.apply')}
                   </button>
                 </div>
               )}
@@ -276,12 +283,12 @@ export const UsageView = () => {
 
             {/* Export button */}
             <button
-              onClick={() => exportCsv(sorted)}
-              title="Export as CSV"
+              onClick={() => exportCsv(sorted, HEADERS)}
+              title={t('usage.exportTitle')}
               style={{ ...toolbarButtonStyle, fontWeight: 500 }}
             >
               <DownloadSimpleIcon size={16} />
-              Export
+              {t('usage.export')}
             </button>
           </div>
         </div>
@@ -301,12 +308,12 @@ export const UsageView = () => {
         {/* Rows */}
         {isLoading ? (
           <div style={{ padding: '40px 24px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
-            Loading usage data…
+            {t('usage.loading')}
           </div>
         ) : sorted.length === 0 ? (
           <div style={{ padding: '56px 24px', textAlign: 'center' }}>
-            <p style={{ fontSize: 14, fontWeight: 500, color: T.gray80, margin: 0 }}>No usage data for this period</p>
-            <p style={{ fontSize: 13, color: T.gray50, marginTop: 4 }}>Try expanding the date range.</p>
+            <p style={{ fontSize: 14, fontWeight: 500, color: T.gray80, margin: 0 }}>{t('usage.empty')}</p>
+            <p style={{ fontSize: 13, color: T.gray50, marginTop: 4 }}>{t('usage.emptyHint')}</p>
           </div>
         ) : (
           paged.map(r => <UsageRow key={r.date} record={r} />)

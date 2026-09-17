@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { S3Client } from '@aws-sdk/client-s3';
 import { XIcon, PlusIcon } from '@phosphor-icons/react';
 import { BucketPicker } from './BucketPicker';
-import { ALL_BUCKETS, BucketRule, AccessLevel, accessLevelLabel, ACCESS_LEVELS } from '../../services/iamPolicy.service';
+import { ALL_BUCKETS, BucketRule, AccessLevel, ACCESS_LEVELS } from '../../services/iamPolicy.service';
 
 interface BucketRulesBuilderProps {
   client: S3Client | null;
@@ -10,7 +11,9 @@ interface BucketRulesBuilderProps {
   onChange: (rules: BucketRule[]) => void;
 }
 
-const AccessLevelSelector = ({ value, onChange }: { value: AccessLevel; onChange: (accessLevel: AccessLevel) => void }) => (
+const AccessLevelSelector = ({ value, onChange }: { value: AccessLevel; onChange: (accessLevel: AccessLevel) => void }) => {
+  const { t } = useTranslation('subaccount');
+  return (
   <div className='flex gap-2'>
     {ACCESS_LEVELS.map((p) => (
       <button
@@ -21,13 +24,15 @@ const AccessLevelSelector = ({ value, onChange }: { value: AccessLevel; onChange
           value === p ? 'bg-gray-100 text-white' : 'bg-gray-10 text-gray-60'
         }`}
       >
-        {accessLevelLabel(p)}
+        {t(`permissions.accessLevel.${p}`)}
       </button>
     ))}
   </div>
-);
+  );
+};
 
 export const BucketRulesBuilder = ({ client, rules, onChange }: BucketRulesBuilderProps) => {
+  const { t } = useTranslation('subaccount');
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const usedBucketNames = useMemo(() => new Set(rules.map((r) => r.bucketName)), [rules]);
 
@@ -49,19 +54,19 @@ export const BucketRulesBuilder = ({ client, rules, onChange }: BucketRulesBuild
         className='self-start flex items-center gap-1 text-sm font-medium text-primary bg-transparent border-none cursor-pointer py-1'
       >
         <PlusIcon size={14} weight='bold' />
-        Add bucket
+        {t('permissions.addBucket')}
       </button>
 
       <BucketPicker client={client} isOpen={isPickerOpen} excludedNames={usedBucketNames} onSelect={addBucket} />
 
       {rules.length === 0 ? (
-        <p className='text-xs text-gray-60 m-0'>No buckets assigned yet. Add a bucket (or all buckets) to grant access.</p>
+        <p className='text-xs text-gray-60 m-0'>{t('permissions.noBucketsAssigned')}</p>
       ) : (
         rules.map((rule, index) => (
           <div key={rule.bucketName} className='border border-gray-20 rounded-lg p-3'>
             <div className='flex items-center justify-between mb-2'>
               <span className='text-sm font-medium text-gray-100'>
-                {rule.bucketName === ALL_BUCKETS ? 'All buckets' : rule.bucketName}
+                {rule.bucketName === ALL_BUCKETS ? t('permissions.allBuckets') : rule.bucketName}
               </span>
               <button
                 type='button'
