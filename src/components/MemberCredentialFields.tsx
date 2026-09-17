@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { AlertCircle } from 'lucide-react';
 import Input from './Input';
-import { T } from '../sub-account/tokens';
+import {
+  FieldErrorMessage,
+  PasswordRequirements,
+} from './FieldFeedback';
 import { passwordPolicyErrors } from '../utils/passwordPolicy';
 
 export const MIN_MEMBER_PASSWORD_LENGTH = 8;
@@ -22,26 +24,6 @@ export const memberPasswordError = (
     ? 'Password does not meet the requirements'
     : undefined;
 };
-
-export const PasswordRequirements = ({ errors }: { errors: string[] }) => (
-  <div className='p-2 bg-red/10 border border-red rounded-md mt-2'>
-    <div className='flex items-start gap-2'>
-      <AlertCircle className='w-4 h-4 text-red flex-shrink-0 mt-0.5' />
-      <div className='text-xs text-red-dark'>
-        <p className='font-medium mb-1'>Password must contain:</p>
-        <ul className='space-y-1'>
-          {errors.map((error) => (
-            <li key={error}>• {error}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  </div>
-);
-
-export const FieldError = ({ message }: { message: string }) => (
-  <p style={{ fontSize: 12, color: T.red, margin: '6px 0 0' }}>{message}</p>
-);
 
 export const MemberEmailField = ({
   value,
@@ -66,7 +48,7 @@ export const MemberEmailField = ({
         variant='email'
         accent={showError ? 'error' : undefined}
       />
-      {showError && <FieldError message={error} />}
+      {showError && <FieldErrorMessage message={error} />}
     </>
   );
 };
@@ -100,7 +82,7 @@ export const MemberPasswordField = ({
         accent={requirements.length > 0 ? 'error' : undefined}
       />
       {requirements.length > 0 && <PasswordRequirements errors={requirements} />}
-      {showError && <FieldError message={error} />}
+      {showError && <FieldErrorMessage message={error} />}
     </>
   );
 };

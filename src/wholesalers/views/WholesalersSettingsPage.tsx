@@ -22,10 +22,10 @@ import {
   MIN_MEMBER_PASSWORD_LENGTH,
   MemberEmailField,
   MemberPasswordField,
-  PasswordRequirements,
   memberEmailError,
   memberPasswordError,
 } from "../../components/MemberCredentialFields";
+import { PasswordRequirements } from "../../components/FieldFeedback";
 import { apiErrorMessage } from "../../utils/apiError";
 import { T, text, shadow } from "../../sub-account/tokens";
 

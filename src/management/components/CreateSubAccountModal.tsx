@@ -7,7 +7,7 @@ import { Copy, Check } from 'lucide-react'
 import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries'
 import { passwordPolicyErrors } from '../../utils/passwordPolicy'
-import { PasswordRequirements } from '../../components/MemberCredentialFields'
+import { PasswordRequirements } from '../../components/FieldFeedback'
 
 interface Props {
   isOpen: boolean

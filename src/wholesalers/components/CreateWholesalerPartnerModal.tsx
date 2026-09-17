@@ -4,7 +4,7 @@ import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { passwordPolicyErrors } from '../../utils/passwordPolicy';
-import { PasswordRequirements } from '../../components/MemberCredentialFields';
+import { PasswordRequirements } from '../../components/FieldFeedback';
 
 interface Props {
   isOpen: boolean;

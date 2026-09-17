@@ -19,10 +19,10 @@ import {
   MIN_MEMBER_PASSWORD_LENGTH,
   MemberEmailField,
   MemberPasswordField,
-  PasswordRequirements,
   memberEmailError,
   memberPasswordError,
 } from '../../components/MemberCredentialFields'
+import { PasswordRequirements } from '../../components/FieldFeedback'
 import Dialog from '../../components/Dialog'
 import { T, text, form, shadow } from '../../sub-account/tokens'
 import { usePartners } from '../context/partnersContext'
