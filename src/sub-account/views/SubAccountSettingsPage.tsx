@@ -673,7 +673,7 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
                       )}
                     </div>
                   </td>
-                  <td className='py-3.5 text-sm text-gray-80'>{event.actorEmail}</td>
+                  <td className='py-3.5 text-sm text-gray-80'>{event.actorEmail ?? '—'}</td>
                   <td className='py-3.5 text-sm text-gray-80 break-all'>{event.resourcePath ?? '—'}</td>
                   <td className='py-3.5 text-sm text-gray-80'>{event.ip ?? '—'}</td>
                   <td className='py-3.5 text-sm text-gray-80 whitespace-nowrap'>{formatDateTime(new Date(event.timestamp))}</td>

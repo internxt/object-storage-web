@@ -5,7 +5,7 @@ export type AuditEventType = 'opened' | 'downloaded' | 'deleted';
 export interface AuditEventItem {
   id: string;
   eventType: AuditEventType;
-  actorEmail: string;
+  actorEmail: string | null;
   resourcePath: string | null;
   ip: string | null;
   timestamp: string;

@@ -971,3 +971,9 @@
   Given an event has no IP or no resource path recorded
   When the admin browses the audit log
   Then those cells show a "—" placeholder instead of being empty
+
+#### Scenario: An event whose actor no longer exists
+  Given the member who performed an event has since been deleted
+  When the admin browses the audit log
+  Then the entry is still listed
+  And the actor cell shows a "—" placeholder instead of being empty
