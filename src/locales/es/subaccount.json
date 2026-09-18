@@ -194,7 +194,9 @@
       "passwordUpdated": "Contraseña actualizada",
       "passwordUpdateFailed": "No se pudo actualizar la contraseña",
       "emailUpdated": "Correo electrónico actualizado",
-      "emailUpdateFailed": "No se pudo actualizar el correo electrónico"
+      "emailUpdateFailed": "No se pudo actualizar el correo electrónico",
+      "passwordSameAsCurrent": "La nueva contraseña debe ser distinta de la actual",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden"
     },
     "members": {
       "sectionTitle": "Miembros",

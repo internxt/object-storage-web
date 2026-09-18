@@ -5,6 +5,7 @@ import Input from '../../components/Input'
 import Button from '../../components/Button'
 import notificationsService from '../../services/notifications.service'
 import { T, text, form } from '../../sub-account/tokens'
+import { passwordPolicyErrors } from '../../utils/passwordPolicy'
 
 interface Props {
   isOpen: boolean
@@ -12,16 +13,7 @@ interface Props {
   onSubmit: (newPassword: string) => Promise<void>
 }
 
-const validatePassword = (password: string): string[] => {
-  const errors: string[] = []
-  if (!password || password.length < 8) errors.push('At least 8 characters')
-  if (!/[a-z]/.test(password)) errors.push('At least one lowercase letter')
-  if (!/[A-Z]/.test(password)) errors.push('At least one uppercase letter')
-  if (!/\d/.test(password)) errors.push('At least one digit')
-  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password))
-    errors.push('At least one special character (!@#$%^&* etc)')
-  return errors
-}
+const MIN_PASSWORD_LENGTH = 8
 
 export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const [newPassword, setNewPassword] = useState('')
@@ -38,7 +30,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
     }
   }, [isOpen])
 
-  const policyErrors = validatePassword(newPassword)
+  const policyErrors = passwordPolicyErrors(newPassword, MIN_PASSWORD_LENGTH)
   const showPolicyErrors = touched && policyErrors.length > 0
   const canSubmit = policyErrors.length === 0 && newPassword === confirmPassword
 
@@ -78,6 +70,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
             }}
             placeholder="At least 8 characters"
             variant="password"
+            accent={showPolicyErrors ? 'error' : undefined}
             className="!text-sm"
           />
           {showPolicyErrors && (
@@ -128,6 +121,11 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
             onChange={setConfirmPassword}
             placeholder="Repeat new password"
             variant="password"
+            accent={
+              confirmPassword.length > 0 && newPassword !== confirmPassword
+                ? 'error'
+                : undefined
+            }
           />
         </div>
         {confirmPassword.length > 0 && newPassword !== confirmPassword && (

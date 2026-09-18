@@ -13,6 +13,7 @@ import { SectionCard, ReadField } from '../components/SettingsAtoms';
 import { AssignPermissionsModal } from '../components/permissions-manager/AssignPermissionsModal';
 import { PolicyDocument } from '../services/iamPolicy.service';
 import Dialog from '../../components/Dialog';
+import { ChangePasswordForm } from '../../components/ChangePasswordForm';
 import { Dropdown } from '../../components/Dropdown';
 import { formatDate } from '../../utils/formatDate';
 import { copyToClipboard } from '../../utils/copyToClipboard';
@@ -49,32 +50,6 @@ function avatarInitials(email: string): string {
 // ─── Shared atoms ────────────────────────────────────────────────────────────
 
 /** Password input with eye toggle */
-const PasswordInput = ({
-  label, placeholder = '', value, show, onChange, onToggle, noPaste = false,
-}: { label: string; placeholder?: string; value: string; show: boolean; onChange: (v: string) => void; onToggle: () => void; noPaste?: boolean }) => (
-  <div>
-    <p className='text-sm font-medium text-gray-100 mb-1.5'>{label}</p>
-    <div className='relative'>
-      <input
-        type={show ? 'text' : 'password'}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onPaste={noPaste ? (e) => e.preventDefault() : undefined}
-        className='w-full h-10 bg-gray-5 border border-gray-10 rounded-lg px-3 pr-10 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary'
-      />
-      <button
-        type='button'
-        onClick={onToggle}
-        className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-50 hover:text-gray-60'
-      >
-        {show ? <EyeIcon size={16} /> : <EyeSlashIcon size={16} />}
-      </button>
-    </div>
-  </div>
-);
-
-/** Square avatar — variant 'primary' (solid blue) or 'tint' (blue-tinted) */
 const AvatarSquare = ({ initials, variant }: { initials: string; variant: 'primary' | 'tint' }) => (
   <div className={`w-[132px] h-[132px] rounded-2xl flex items-center justify-center text-[48px] font-bold select-none shrink-0 ${
     variant === 'primary' ? 'bg-primary text-[color:var(--sub-account-primary-contrast,#FFFFFF)]' : 'bg-primary/[0.08] text-primary'
@@ -101,18 +76,14 @@ const Pill = ({ type }: { type: 'active' | 'primary' }) => {
 
 // ─── Profile Tab ──────────────────────────────────────────────────────────────
 
+const MIN_PASSWORD_LENGTH = 8;
+
 const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: string; role: string }) => {
   const { t } = useTranslation('subaccount');
   const [savedEmail, setSavedEmail] = useState('');
   const [email, setEmail] = useState('');
   const [memberCreatedAt, setMemberCreatedAt] = useState('');
   const [isSavingEmail, setIsSavingEmail] = useState(false);
-  const [oldPw, setOldPw] = useState('');
-  const [newPw, setNewPw] = useState('');
-  const [confirmPw, setConfirmPw] = useState('');
-  const [showOld, setShowOld] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     subAccountAxios.get<MemberItem[]>(`/sub-accounts/${entityId}/members`)
@@ -129,27 +100,6 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
 
   const initials = email ? avatarInitials(email) : '—';
   const canUpdate = email.trim().length > 0 && email !== savedEmail;
-  const [isSavingPw, setIsSavingPw] = useState(false);
-  const canUpdatePw = oldPw.length > 0 && newPw.length >= 8 && newPw === confirmPw;
-
-  const handleUpdatePassword = async () => {
-    if (!canUpdatePw) return;
-    setIsSavingPw(true);
-    try {
-      const { data } = await subAccountAxios.patch<{ token?: string }>(
-        `/sub-accounts/${entityId}/members/${memberId}`,
-        { oldPassword: oldPw, newPassword: newPw },
-      );
-      if (data?.token) subAccountAuthService.setToken(data.token);
-      notificationsService.success({ text: t('settings.profile.passwordUpdated') });
-      setOldPw(''); setNewPw(''); setConfirmPw('');
-    } catch (err: any) {
-      notificationsService.error({ text: err?.response?.data?.message ?? t('settings.profile.passwordUpdateFailed') });
-    } finally {
-      setIsSavingPw(false);
-    }
-  };
-
   const handleUpdateEmail = async () => {
     if (!canUpdate) return;
     setIsSavingEmail(true);
@@ -201,20 +151,29 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
       </SectionCard>
 
       <SectionCard title={t('settings.profile.changePasswordTitle')}>
-        <div className='flex flex-col gap-4'>
-          <PasswordInput label={t('settings.profile.oldPasswordLabel')} value={oldPw} show={showOld} onChange={setOldPw} onToggle={() => setShowOld(v => !v)} />
-          <PasswordInput label={t('settings.profile.newPasswordLabel')} placeholder={t('settings.profile.newPasswordPlaceholder')} value={newPw} show={showNew} onChange={setNewPw} onToggle={() => setShowNew(v => !v)} />
-          <PasswordInput label={t('settings.profile.confirmPasswordLabel')} placeholder={t('settings.profile.confirmPasswordPlaceholder')} value={confirmPw} show={showConfirm} onChange={setConfirmPw} onToggle={() => setShowConfirm(v => !v)} noPaste />
-          <div className='flex justify-end mt-1'>
-            <button
-              disabled={!canUpdatePw || isSavingPw}
-              className='h-10 px-4 bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-[color:var(--sub-account-primary-contrast,#FFFFFF)] rounded-lg text-sm font-medium transition-colors'
-              onClick={handleUpdatePassword}
-            >
-              {isSavingPw ? t('settings.profile.saving') : t('settings.profile.update')}
-            </button>
-          </div>
-        </div>
+        <ChangePasswordForm
+          minLength={MIN_PASSWORD_LENGTH}
+          labels={{
+            oldPassword: t('settings.profile.oldPasswordLabel'),
+            newPassword: t('settings.profile.newPasswordLabel'),
+            newPasswordPlaceholder: t('settings.profile.newPasswordPlaceholder'),
+            confirmPassword: t('settings.profile.confirmPasswordLabel'),
+            confirmPasswordPlaceholder: t('settings.profile.confirmPasswordPlaceholder'),
+            sameAsCurrent: t('settings.profile.passwordSameAsCurrent'),
+            mismatch: t('settings.profile.passwordsDoNotMatch'),
+            submit: t('settings.profile.update'),
+            saving: t('settings.profile.saving'),
+            success: t('settings.profile.passwordUpdated'),
+            failure: t('settings.profile.passwordUpdateFailed'),
+          }}
+          onSubmit={async (oldPassword, newPassword) => {
+            const { data } = await subAccountAxios.patch<{ token?: string }>(
+              `/sub-accounts/${entityId}/members/${memberId}`,
+              { oldPassword, newPassword },
+            );
+            if (data?.token) subAccountAuthService.setToken(data.token);
+          }}
+        />
       </SectionCard>
     </div>
   );
