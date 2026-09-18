@@ -15,8 +15,9 @@ import { PolicyDocument } from '../services/iamPolicy.service';
 import Dialog from '../../components/Dialog';
 import { ChangePasswordForm } from '../../components/ChangePasswordForm';
 import { Dropdown } from '../../components/Dropdown';
-import { formatDate } from '../../utils/formatDate';
+import { formatDate, formatDateTime } from '../../utils/formatDate';
 import { copyToClipboard } from '../../utils/copyToClipboard';
+import { auditService, AuditEventItem } from '../services/audit.service';
 
 // ─── Design tokens (from design spec)
 // surface-muted / input bg  → bg-gray-5   = #F3F3F8
@@ -31,7 +32,7 @@ import { copyToClipboard } from '../../utils/copyToClipboard';
 // success text/dot          → text-green / bg-green
 // success bg                → bg-green/[0.12]
 
-type Tab = 'profile' | 'members' | 'access-keys' | 'account';
+type Tab = 'profile' | 'members' | 'access-keys' | 'account' | 'audit';
 
 interface MemberItem {
   id: string;
@@ -511,6 +512,160 @@ const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberI
   );
 };
 
+// ─── Audit Log Tab ────────────────────────────────────────────────────────────
+
+const AUDIT_PAGE_SIZE = 50;
+
+const EMPTY_FILTERS = { from: '', to: '', actorEmail: '', resourcePath: '' };
+
+const FilterField = ({
+  label, type = 'text', value, placeholder, onChange,
+}: { label: string; type?: string; value: string; placeholder?: string; onChange: (v: string) => void }) => (
+  <div className='flex flex-col gap-1.5'>
+    <label className='text-xs font-medium text-gray-60'>{label}</label>
+    <input
+      type={type}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      className='h-9 bg-gray-5 border border-gray-10 rounded-lg px-3 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary'
+    />
+  </div>
+);
+
+const AuditTab = ({ entityId }: { entityId: string }) => {
+  const { t } = useTranslation('subaccount');
+  const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
+  const [events, setEvents] = useState<AuditEventItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!entityId) return;
+    fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entityId, appliedFilters, offset]);
+
+  const fetchEvents = async () => {
+    setIsLoading(true);
+    try {
+      const { from, to, actorEmail, resourcePath } = appliedFilters;
+      const response = await auditService.listAuditEvents(entityId, {
+        from: from ? new Date(`${from}T00:00:00`).toISOString() : undefined,
+        to: to ? new Date(`${to}T23:59:59.999`).toISOString() : undefined,
+        actorEmail: actorEmail || undefined,
+        resourcePath: resourcePath || undefined,
+        limit: AUDIT_PAGE_SIZE,
+        offset,
+      });
+      setEvents(response.events);
+      setTotal(response.total);
+    } catch {
+      notificationsService.error({ text: t('settings.audit.loadFailed') });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onApply = () => {
+    setOffset(0);
+    setAppliedFilters(draftFilters);
+  };
+
+  const onClear = () => {
+    setOffset(0);
+    setDraftFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
+  };
+
+  const rangeStart = total === 0 ? 0 : offset + 1;
+  const rangeEnd = Math.min(offset + AUDIT_PAGE_SIZE, total);
+
+  return (
+    <SectionCard title={t('settings.audit.title')}>
+      <p className='text-sm text-gray-60 mb-4'>{t('settings.audit.subtitle')}</p>
+
+      <div className='grid grid-cols-4 gap-3 mb-4'>
+        <FilterField label={t('settings.audit.filterFrom')} type='date' value={draftFilters.from} onChange={(v) => setDraftFilters({ ...draftFilters, from: v })} />
+        <FilterField label={t('settings.audit.filterTo')} type='date' value={draftFilters.to} onChange={(v) => setDraftFilters({ ...draftFilters, to: v })} />
+        <FilterField label={t('settings.audit.filterActor')} value={draftFilters.actorEmail} placeholder={t('settings.audit.filterActorPlaceholder')} onChange={(v) => setDraftFilters({ ...draftFilters, actorEmail: v })} />
+        <FilterField label={t('settings.audit.filterResource')} value={draftFilters.resourcePath} placeholder={t('settings.audit.filterResourcePlaceholder')} onChange={(v) => setDraftFilters({ ...draftFilters, resourcePath: v })} />
+      </div>
+
+      <div className='flex items-center gap-2 mb-4'>
+        <button onClick={onApply} className='h-9 px-4 rounded-lg bg-primary text-sm font-medium text-[color:var(--sub-account-primary-contrast,#FFFFFF)] hover:bg-blue-60 transition-colors'>
+          {t('settings.audit.applyFilters')}
+        </button>
+        <button onClick={onClear} className='h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 transition-colors'>
+          {t('settings.audit.clearFilters')}
+        </button>
+      </div>
+
+      {isLoading ? (
+        <p className='text-sm text-gray-50'>{t('settings.audit.loading')}</p>
+      ) : events.length === 0 ? (
+        <p className='text-sm text-gray-50'>{t('settings.audit.empty')}</p>
+      ) : (
+        <>
+          <table className='w-full'>
+            <thead>
+              <tr className='border-t border-b border-gray-10'>
+                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnEvent')}</th>
+                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnActor')}</th>
+                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnResource')}</th>
+                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnIp')}</th>
+                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnTimestamp')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((event) => (
+                <tr key={event.id} className='border-b border-gray-10/60'>
+                  <td className='py-3.5 text-sm text-gray-100'>
+                    <div className='flex items-center gap-2'>
+                      <span>{t(`settings.audit.eventType.${event.eventType}`)}</span>
+                      {event.status === 'incomplete' && (
+                        <span className='px-2 py-0.5 rounded-full text-xs font-medium bg-gray-5 text-gray-60' title={t('settings.audit.incompleteHint')}>
+                          {t('settings.audit.incomplete')}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className='py-3.5 text-sm text-gray-80'>{event.actorEmail ?? '—'}</td>
+                  <td className='py-3.5 text-sm text-gray-80 break-all'>{event.resourcePath ?? '—'}</td>
+                  <td className='py-3.5 text-sm text-gray-80'>{event.ip ?? '—'}</td>
+                  <td className='py-3.5 text-sm text-gray-80 whitespace-nowrap'>{formatDateTime(new Date(event.timestamp))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className='flex items-center justify-between mt-4'>
+            <p className='text-sm text-gray-60'>{t('settings.audit.pageRange', { start: rangeStart, end: rangeEnd, total })}</p>
+            <div className='flex items-center gap-2'>
+              <button
+                onClick={() => setOffset(Math.max(0, offset - AUDIT_PAGE_SIZE))}
+                disabled={offset === 0}
+                className='h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 disabled:opacity-40 transition-colors'
+              >
+                {t('settings.audit.previous')}
+              </button>
+              <button
+                onClick={() => setOffset(offset + AUDIT_PAGE_SIZE)}
+                disabled={rangeEnd >= total}
+                className='h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 disabled:opacity-40 transition-colors'
+              >
+                {t('settings.audit.next')}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </SectionCard>
+  );
+};
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const SubAccountSettingsPage = () => {
@@ -523,6 +678,7 @@ export const SubAccountSettingsPage = () => {
     { key: 'members', label: t('settings.tabMembers') },
     { key: 'access-keys', label: t('settings.tabAccessKeys') },
     { key: 'account', label: t('settings.tabAccount') },
+    ...(isAdmin ? [{ key: 'audit' as Tab, label: t('settings.tabAudit') }] : []),
   ];
 
   const role = (() => {
@@ -568,6 +724,7 @@ export const SubAccountSettingsPage = () => {
       {activeTab === 'members'     && entityId && memberId && <MembersTab    entityId={entityId} ssoEnabled={ssoEnabled} currentMemberId={memberId} />}
       {activeTab === 'access-keys' && entityId && memberId && <AccessKeysTab entityId={entityId} memberId={memberId} />}
       {activeTab === 'account'     && entityId && memberId && <AccountTab    entityId={entityId} memberId={memberId} isAdmin={isAdmin} />}
+      {activeTab === 'audit'       && entityId && isAdmin   && <AuditTab      entityId={entityId} />}
     </div>
   );
 };

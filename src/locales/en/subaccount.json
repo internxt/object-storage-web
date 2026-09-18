@@ -248,6 +248,37 @@
       "accountNumberLabel": "Storage account number",
       "createdAtLabel": "Created at",
       "active": "Active"
+    },
+    "tabAudit": "Audit log",
+    "audit": {
+      "title": "Audit log",
+      "subtitle": "Every access, download and revocation of a shared link, newest first.",
+      "loading": "Loading audit log…",
+      "empty": "No audit events match the current filters.",
+      "loadFailed": "Could not load the audit log. Please try again.",
+      "filterFrom": "From",
+      "filterTo": "To",
+      "filterActor": "Actor email",
+      "filterActorPlaceholder": "name@company.com",
+      "filterResource": "Resource path",
+      "filterResourcePlaceholder": "bucket/folder/file.pdf",
+      "applyFilters": "Apply filters",
+      "clearFilters": "Clear filters",
+      "columnEvent": "Event",
+      "columnActor": "Actor",
+      "columnResource": "Resource",
+      "columnIp": "IP",
+      "columnTimestamp": "Timestamp",
+      "eventType": {
+        "opened": "Opened",
+        "downloaded": "Downloaded",
+        "deleted": "Revoked"
+      },
+      "incomplete": "Incomplete",
+      "incompleteHint": "The action was recorded but never confirmed as finished.",
+      "pageRange": "{{start}}–{{end}} of {{total}}",
+      "previous": "Previous",
+      "next": "Next"
     }
   },
   "usage": {
