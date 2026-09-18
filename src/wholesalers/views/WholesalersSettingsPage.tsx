@@ -18,6 +18,14 @@ import { useWholesalers } from "../context/wholesalersContext";
 import { ConfirmActionModal } from "../../management/components/ConfirmActionModal";
 import notificationsService from "../../services/notifications.service";
 import { passwordPolicyErrors } from "../../utils/passwordPolicy";
+import {
+  MIN_MEMBER_PASSWORD_LENGTH,
+  MemberEmailField,
+  MemberPasswordField,
+  memberEmailError,
+  memberPasswordError,
+} from "../../components/MemberCredentialFields";
+import { PasswordRequirements } from "../../components/FieldFeedback";
 import { apiErrorMessage } from "../../utils/apiError";
 import { T, text, shadow } from "../../sub-account/tokens";
 
@@ -270,8 +278,6 @@ const TwoFactorCard = () => {
     </SectionCard>
   );
 };
-
-const MIN_MEMBER_PASSWORD_LENGTH = 8;
 
 const MemberActionsMenu = ({
   member,
@@ -574,13 +580,12 @@ const MembersCard = () => {
   };
 
   const isCreateValid =
-    createEmail.includes("@") &&
-    createPassword.length >= MIN_MEMBER_PASSWORD_LENGTH;
+    !memberEmailError(createEmail) && !memberPasswordError(createPassword);
   const isEditValid =
     !!editTarget &&
-    (editEmail !== editTarget.email || editPassword.length > 0) &&
-    (editPassword.length === 0 ||
-      editPassword.length >= MIN_MEMBER_PASSWORD_LENGTH);
+    !memberEmailError(editEmail) &&
+    !memberPasswordError(editPassword, true) &&
+    (editEmail !== editTarget.email || editPassword.length > 0);
 
   const paged = members.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
   const totalPages = Math.ceil(members.length / PER_PAGE);
@@ -750,21 +755,19 @@ const MembersCard = () => {
 
           <div>
             <p style={{ ...text.label, marginBottom: 6 }}>Email</p>
-            <Input
+            <MemberEmailField
               value={createEmail}
               onChange={setCreateEmail}
               placeholder="member@example.com"
-              variant="email"
             />
           </div>
 
           <div>
             <p style={{ ...text.label, marginBottom: 6 }}>Password</p>
-            <Input
+            <MemberPasswordField
               value={createPassword}
               onChange={setCreatePassword}
               placeholder={`Min. ${MIN_MEMBER_PASSWORD_LENGTH} characters`}
-              variant="password"
             />
           </div>
 
@@ -818,16 +821,16 @@ const MembersCard = () => {
 
           <div>
             <p style={{ ...text.label, marginBottom: 6 }}>Email</p>
-            <Input value={editEmail} onChange={setEditEmail} variant="email" />
+            <MemberEmailField value={editEmail} onChange={setEditEmail} />
           </div>
 
           <div>
             <p style={{ ...text.label, marginBottom: 6 }}>New password</p>
-            <Input
+            <MemberPasswordField
               value={editPassword}
               onChange={setEditPassword}
               placeholder="Leave empty to keep the current one"
-              variant="password"
+              optional
             />
           </div>
 
@@ -973,22 +976,7 @@ const ProfileTab = () => {
             )}
 
             {!sameAsCurrent && policyErrors.length > 0 && (
-              <ul
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                  margin: 0,
-                  padding: 0,
-                  listStyle: "none",
-                }}
-              >
-                {policyErrors.map((error) => (
-                  <li key={error} style={{ fontSize: 12, color: T.red }}>
-                    · {error}
-                  </li>
-                ))}
-              </ul>
+              <PasswordRequirements errors={policyErrors} />
             )}
 
             <PasswordField

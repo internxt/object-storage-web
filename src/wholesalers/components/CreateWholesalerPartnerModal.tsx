@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
-import { AlertCircle } from 'lucide-react';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
+import { passwordPolicyErrors } from '../../utils/passwordPolicy';
+import { PasswordRequirements } from '../../components/FieldFeedback';
 
 interface Props {
   isOpen: boolean;
@@ -13,27 +14,7 @@ interface Props {
 
 type FormValues = { name: string; email: string; password: string };
 
-const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
-  const errors: string[] = [];
-
-  if (!password || password.length < 8) {
-    errors.push('At least 8 characters');
-  }
-  if (!/[a-z]/.test(password)) {
-    errors.push('At least one lowercase letter');
-  }
-  if (!/[A-Z]/.test(password)) {
-    errors.push('At least one uppercase letter');
-  }
-  if (!/\d/.test(password)) {
-    errors.push('At least one digit');
-  }
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('At least one special character (!@#$%^&* etc)');
-  }
-
-  return { isValid: errors.length === 0, errors };
-};
+const MIN_PASSWORD_LENGTH = 8;
 
 export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +33,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
   const password = watch('password');
 
   useEffect(() => {
-    setPasswordErrors(password ? validatePassword(password).errors : []);
+    setPasswordErrors(password ? passwordPolicyErrors(password, MIN_PASSWORD_LENGTH) : []);
   }, [password]);
 
   const handleClose = () => {
@@ -77,7 +58,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
     }
   };
 
-  const isPasswordValid = password && validatePassword(password).isValid;
+  const isPasswordValid = password && passwordPolicyErrors(password, MIN_PASSWORD_LENGTH).length === 0;
   const isFormValid = isValid && isPasswordValid;
 
   return (
@@ -112,7 +93,8 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
                 {...register('password', {
                   required: 'Password is required',
                   validate: (value: string) =>
-                    validatePassword(value).isValid || 'Password does not meet the requirements',
+                    passwordPolicyErrors(value, MIN_PASSWORD_LENGTH).length === 0 ||
+                    'Password does not meet the requirements',
                 })}
                 type={showPassword ? 'text' : 'password'}
                 placeholder='••••••••'
@@ -132,19 +114,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
               </button>
             </div>
             {passwordErrors.length > 0 && touchedFields.password && (
-              <div className='p-2 bg-red/10 border border-red rounded-md mt-2'>
-                <div className='flex items-start gap-2'>
-                  <AlertCircle className='w-4 h-4 text-red flex-shrink-0 mt-0.5' />
-                  <div className='text-xs text-red-dark'>
-                    <p className='font-medium mb-1'>Password must contain:</p>
-                    <ul className='space-y-1'>
-                      {passwordErrors.map((err) => (
-                        <li key={err}>• {err}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              <PasswordRequirements errors={passwordErrors} />
             )}
           </Field>
 
