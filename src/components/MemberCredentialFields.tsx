@@ -79,7 +79,7 @@ export const MemberPasswordField = ({
         onBlur={() => setTouched(true)}
         placeholder={placeholder}
         variant='password'
-        accent={requirements.length > 0 ? 'error' : undefined}
+        accent={showError ? 'error' : undefined}
       />
       {requirements.length > 0 && <PasswordRequirements errors={requirements} />}
       {showError && <FieldErrorMessage message={error} />}
