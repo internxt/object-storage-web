@@ -250,7 +250,7 @@
     "tabAudit": "Auditoría",
     "audit": {
       "title": "Registro de auditoría",
-      "subtitle": "Cada acceso, descarga y revocación de un enlace compartido, del más reciente al más antiguo.",
+      "subtitle": "Cada creación, acceso, descarga y revocación de un enlace compartido, del más reciente al más antiguo.",
       "loading": "Cargando el registro de auditoría…",
       "empty": "Ningún evento coincide con los filtros aplicados.",
       "loadFailed": "No se ha podido cargar el registro de auditoría. Inténtalo de nuevo.",
@@ -268,6 +268,7 @@
       "columnIp": "IP",
       "columnTimestamp": "Fecha y hora",
       "eventType": {
+        "created": "Creado",
         "opened": "Abierto",
         "downloaded": "Descargado",
         "deleted": "Revocado"

@@ -250,7 +250,7 @@
     "tabAudit": "Audit log",
     "audit": {
       "title": "Audit log",
-      "subtitle": "Every access, download and revocation of a shared link, newest first.",
+      "subtitle": "Every creation, access, download and revocation of a shared link, newest first.",
       "loading": "Loading audit log…",
       "empty": "No audit events match the current filters.",
       "loadFailed": "Could not load the audit log. Please try again.",
@@ -268,6 +268,7 @@
       "columnIp": "IP",
       "columnTimestamp": "Timestamp",
       "eventType": {
+        "created": "Created",
         "opened": "Opened",
         "downloaded": "Downloaded",
         "deleted": "Revoked"
