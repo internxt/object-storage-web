@@ -556,8 +556,35 @@ const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberI
 // ─── Audit Log Tab ────────────────────────────────────────────────────────────
 
 const AUDIT_PAGE_SIZE = 50;
+const ELLIPSIS = '...';
+const RESOURCE_MAX_CHARS = 38;
 
 const EMPTY_FILTERS = { from: '', to: '', actorEmail: '', resourcePath: '' };
+
+const shortenResourcePath = (path: string): string => {
+  if (path.length <= RESOURCE_MAX_CHARS) return path;
+
+  const clip = (value: string) => `${value.slice(0, RESOURCE_MAX_CHARS - ELLIPSIS.length)}${ELLIPSIS}`;
+
+  const isFolder = path.endsWith('/');
+  const segments = path.replace(/\/+$/, '').split('/');
+  if (segments.length < 3) return clip(path);
+
+  const root = segments[0];
+  const name = `${segments[segments.length - 1]}${isFolder ? '/' : ''}`;
+  const fit = (budget: number) => (name.length > budget ? `${name.slice(0, budget - ELLIPSIS.length)}${ELLIPSIS}` : name);
+
+  const budget = RESOURCE_MAX_CHARS - root.length - ELLIPSIS.length - 2;
+  if (budget <= ELLIPSIS.length) return `${ELLIPSIS}/${fit(RESOURCE_MAX_CHARS - ELLIPSIS.length - 1)}`;
+
+  return `${root}/${ELLIPSIS}/${fit(budget)}`;
+};
+
+const TruncatedCell = ({ text, title, className }: { text: string; title?: string; className?: string }) => (
+  <div className={`truncate ${className ?? ''}`} title={title ?? text}>
+    {text}
+  </div>
+);
 
 const FilterField = ({
   label, type = 'text', value, placeholder, onChange,
@@ -650,33 +677,45 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
         <p className='text-sm text-gray-50'>{t('settings.audit.empty')}</p>
       ) : (
         <>
-          <table className='w-full'>
+          <table className='w-full table-fixed'>
             <thead>
               <tr className='border-t border-b border-gray-10'>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnEvent')}</th>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnActor')}</th>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnResource')}</th>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnIp')}</th>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnTimestamp')}</th>
+                <th className='w-[19%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnEvent')}</th>
+                <th className='w-[19%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnActor')}</th>
+                <th className='w-[28%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnResource')}</th>
+                <th className='w-[14%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnIp')}</th>
+                <th className='w-[20%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnTimestamp')}</th>
               </tr>
             </thead>
             <tbody>
               {events.map((event) => (
                 <tr key={event.id} className='border-b border-gray-10/60'>
-                  <td className='py-3.5 text-sm text-gray-100'>
-                    <div className='flex items-center gap-2'>
-                      <span>{t(`settings.audit.eventType.${event.eventType}`)}</span>
+                  <td className='py-3.5 pr-4 text-sm text-gray-100'>
+                    <div className='flex items-center gap-2 min-w-0'>
+                      <span className='truncate'>{t(`settings.audit.eventType.${event.eventType}`)}</span>
                       {event.status === 'incomplete' && (
-                        <span className='px-2 py-0.5 rounded-full text-xs font-medium bg-gray-5 text-gray-60' title={t('settings.audit.incompleteHint')}>
+                        <span className='shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-5 text-gray-60' title={t('settings.audit.incompleteHint')}>
                           {t('settings.audit.incomplete')}
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className='py-3.5 text-sm text-gray-80'>{event.actorEmail ?? '—'}</td>
-                  <td className='py-3.5 text-sm text-gray-80 break-all'>{event.resourcePath ?? '—'}</td>
-                  <td className='py-3.5 text-sm text-gray-80'>{event.ip ?? '—'}</td>
-                  <td className='py-3.5 text-sm text-gray-80 whitespace-nowrap'>{formatDateTime(new Date(event.timestamp))}</td>
+                  <td className='py-3.5 pr-4 text-sm text-gray-80'>
+                    <TruncatedCell text={event.actorEmail ?? '—'} />
+                  </td>
+                  <td className='py-3.5 pr-4 text-sm text-gray-80'>
+                    {event.resourcePath ? (
+                      <TruncatedCell text={shortenResourcePath(event.resourcePath)} title={event.resourcePath} />
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td className='py-3.5 pr-4 text-sm text-gray-80'>
+                    <TruncatedCell text={event.ip ?? '—'} />
+                  </td>
+                  <td className='py-3.5 text-sm text-gray-80'>
+                    <TruncatedCell text={formatDateTime(new Date(event.timestamp))} />
+                  </td>
                 </tr>
               ))}
             </tbody>
