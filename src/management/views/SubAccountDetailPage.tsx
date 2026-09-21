@@ -10,7 +10,9 @@ import notificationsService from '../../services/notifications.service';
 import { exportAsCSV } from '../../utils/exportUtils';
 import { StatusBadge } from '../../components/StatusBadge';
 
-type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'>;
+type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'> & {
+  updateSubAccountStorageQuota?: (id: string, limitTb: number | null) => Promise<void>;
+};
 
 interface SubAccountDetailPageProps {
   backPath?: string;
@@ -38,6 +40,93 @@ const DetailField = ({ label, value }: { label: string; value?: string | number 
   </div>
 );
 
+const MIN_STORAGE_QUOTA_TB = 1;
+// `type=number` accepts scientific notation and signs; a quota is always a whole number of TB.
+const BLOCKED_QUOTA_KEYS = ['e', 'E', '+', '-', '.', ','];
+
+const StorageQuotaCard = ({
+  quota,
+  used,
+  onSave,
+  onRemove,
+}: {
+  quota: number | null;
+  used: number;
+  onSave: (limitTb: number) => Promise<void>;
+  onRemove: () => Promise<void>;
+}) => {
+  const [value, setValue] = useState(quota != null ? String(quota) : '');
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => setValue(quota != null ? String(quota) : ''), [quota]);
+
+  const parsed = Number(value);
+  const isValid = /^\d+$/.test(value) && parsed >= MIN_STORAGE_QUOTA_TB;
+  const canSave = !busy && isValid && parsed !== quota;
+
+  const run = async (action: () => Promise<void>) => {
+    setBusy(true);
+    try {
+      await action();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className='bg-white rounded-xl shadow-sm p-5 flex flex-col gap-3'>
+      <div className='flex items-baseline justify-between gap-4 flex-wrap'>
+        <div>
+          <h2 className='text-sm font-semibold text-gray-900'>Storage Quota</h2>
+          <p className='text-xs text-gray-400 mt-0.5'>
+            {quota == null
+              ? 'No limit. This account can keep uploading without restriction.'
+              : `Limited to ${quota} TB. ${fmt(used, 2)} TB currently in use.`}
+          </p>
+        </div>
+        {quota != null && (
+          <button
+            disabled={busy}
+            onClick={() => run(onRemove)}
+            className='text-xs font-medium text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+          >
+            Remove limit
+          </button>
+        )}
+      </div>
+
+      <div className='flex items-center gap-2 flex-wrap'>
+        <input
+          type='number'
+          min={MIN_STORAGE_QUOTA_TB}
+          step={1}
+          value={value}
+          disabled={busy}
+          placeholder='No limit'
+          onKeyDown={(e) => {
+            if (BLOCKED_QUOTA_KEYS.includes(e.key)) e.preventDefault();
+          }}
+          onChange={(e) => {
+            if (/^\d*$/.test(e.target.value)) setValue(e.target.value);
+          }}
+          className='w-32 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400 disabled:bg-gray-50'
+        />
+        <span className='text-sm text-gray-700'>TB</span>
+        <button
+          disabled={!canSave}
+          onClick={() => run(() => onSave(parsed))}
+          className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+        >
+          {busy ? 'Saving…' : 'Save limit'}
+        </button>
+        {value !== '' && !isValid && (
+          <span className='text-xs text-red-600'>Enter a whole number of TB, {MIN_STORAGE_QUOTA_TB} or more</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const fmt = (n: number, decimals = 8) => n.toFixed(decimals);
 const fmtDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD-MMM-YYYY HH:mm') : s;
 const fmtChartDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD MMM') : s;
@@ -45,6 +134,7 @@ const fmtChartDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD MMM
 export const SubAccountDetailPage = ({ backPath = '/management/accounts', service = managementService }: SubAccountDetailPageProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { updateSubAccountStorageQuota: updateQuota } = service;
 
   const [account, setAccount] = useState<SubAccountDetail | null>(null);
   const [usages, setUsages] = useState<SubAccountUsage[]>([]);
@@ -111,6 +201,17 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
     }
   };
 
+
+  const applyQuotaChange = async (action: () => Promise<void>, storageQuotaTb: number | null, message: string) => {
+    try {
+      await action();
+      setAccount((current) => (current ? { ...current, storageQuotaTb } : current));
+      notificationsService.success({ text: message });
+    } catch (e: any) {
+      const reason = e.response?.data?.message ?? e.message;
+      notificationsService.error({ text: Array.isArray(reason) ? reason.join('. ') : reason });
+    }
+  };
 
   const totalPages = Math.ceil(totalUsages / PER_PAGE);
   const latestUsage = usages[0];
@@ -184,6 +285,17 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
           label='Customer Since'
         />
       </div>
+
+      {updateQuota && (
+        <StorageQuotaCard
+          quota={account.storageQuotaTb ?? null}
+          used={account.activeStorage}
+          onSave={(limitTb) =>
+            applyQuotaChange(() => updateQuota(id!, limitTb), limitTb, `Storage quota set to ${limitTb} TB`)
+          }
+          onRemove={() => applyQuotaChange(() => updateQuota(id!, null), null, 'Storage quota removed')}
+        />
+      )}
 
       {/* Tabs + content */}
       <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
