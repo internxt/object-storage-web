@@ -88,6 +88,17 @@ function getSsoEnabled(): boolean {
   }
 }
 
+function getAuditLogEnabled(): boolean {
+  const token = getToken();
+  if (!token) return false;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.auditLogEnabled === true;
+  } catch {
+    return false;
+  }
+}
+
 function getPartnerId(): string | null {
   const token = getToken();
   if (!token) return null;
@@ -120,6 +131,7 @@ export const subAccountAuthService = {
   getMemberId,
   getEntityId,
   getSsoEnabled,
+  getAuditLogEnabled,
   getPartnerId,
   getEntityCreatedAt,
   getEmail,

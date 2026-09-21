@@ -750,7 +750,7 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
 
 export const SubAccountSettingsPage = () => {
   const { t } = useTranslation('subaccount');
-  const { entityId, memberId, isAdmin, ssoEnabled } = useSubAccount();
+  const { entityId, memberId, isAdmin, ssoEnabled, auditLogEnabled } = useSubAccount();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
 
   const TABS: { key: Tab; label: string }[] = [
@@ -758,7 +758,7 @@ export const SubAccountSettingsPage = () => {
     { key: 'members', label: t('settings.tabMembers') },
     { key: 'access-keys', label: t('settings.tabAccessKeys') },
     { key: 'account', label: t('settings.tabAccount') },
-    ...(isAdmin ? [{ key: 'audit' as Tab, label: t('settings.tabAudit') }] : []),
+    ...(isAdmin && auditLogEnabled ? [{ key: 'audit' as Tab, label: t('settings.tabAudit') }] : []),
   ];
 
   const role = (() => {
@@ -804,7 +804,7 @@ export const SubAccountSettingsPage = () => {
       {activeTab === 'members'     && entityId && memberId && <MembersTab    entityId={entityId} ssoEnabled={ssoEnabled} currentMemberId={memberId} />}
       {activeTab === 'access-keys' && entityId && memberId && <AccessKeysTab entityId={entityId} memberId={memberId} />}
       {activeTab === 'account'     && entityId && memberId && <AccountTab    entityId={entityId} memberId={memberId} isAdmin={isAdmin} />}
-      {activeTab === 'audit'       && entityId && isAdmin   && <AuditTab      entityId={entityId} />}
+      {activeTab === 'audit'       && entityId && isAdmin && auditLogEnabled && <AuditTab entityId={entityId} />}
     </div>
   );
 };
