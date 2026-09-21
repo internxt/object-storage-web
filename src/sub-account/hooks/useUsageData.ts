@@ -12,10 +12,12 @@ export interface UsageRecord {
 interface WacmUsageItem {
   startTime: string;
   endTime: string;
-  activeStorage: number;
-  deletedStorage: number;
+  activeStorage: number;   // TB
+  deletedStorage: number;  // TB
   activeObjects: number;
 }
+
+const TB_TO_BYTES = 1e12;
 
 export const PAGE_SIZE_OPTIONS = [25, 50, 100];
 export const MAX_RANGE_MONTHS = 3;
@@ -78,8 +80,8 @@ export function useUsageData(entityId?: string | null) {
         if (cancelled) return;
         setRecords(data.map(u => ({
           date: u.startTime.slice(0, 10),
-          active: u.activeStorage,
-          deleted: u.deletedStorage,
+          active: u.activeStorage * TB_TO_BYTES,
+          deleted: u.deletedStorage * TB_TO_BYTES,
           objects: u.activeObjects,
         })));
       } catch {
