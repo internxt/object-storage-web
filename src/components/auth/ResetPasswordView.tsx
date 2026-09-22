@@ -1,7 +1,7 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { EyeIcon, EyeSlashIcon, WarningCircleIcon } from '@phosphor-icons/react';
-import { AuthPageLayout } from './AuthPageLayout';
+import { AuthPageLayout, type AuthPageBranding } from './AuthPageLayout';
 import { PASSWORD_MAX_LENGTH, validatePassword } from './passwordPolicy';
 import notificationsService from '../../services/notifications.service';
 
@@ -13,6 +13,7 @@ interface ResetPasswordViewProps {
   loginPath: string;
   forgotPasswordPath: string;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
+  branding?: AuthPageBranding;
 }
 
 const PasswordField = ({
@@ -63,6 +64,7 @@ export const ResetPasswordView = ({
   loginPath,
   forgotPasswordPath,
   resetPassword,
+  branding,
 }: ResetPasswordViewProps) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -90,6 +92,7 @@ export const ResetPasswordView = ({
     rightHeadline,
     rightDescription,
     rightFeaturePills,
+    branding,
   };
 
   const onSubmit = async (event: React.FormEvent) => {
@@ -124,7 +127,7 @@ export const ResetPasswordView = ({
           </p>
           <Link
             to={forgotPasswordPath}
-            className='w-full h-[52px] flex items-center justify-center rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:bg-[#006edb] text-white text-[15px] font-medium tracking-[-0.01em] no-underline transition-colors'
+            className='w-full h-[52px] flex items-center justify-center rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] no-underline transition-colors'
           >
             Request a new link
           </Link>
@@ -185,7 +188,7 @@ export const ResetPasswordView = ({
         <button
           type='submit'
           disabled={!canSubmit}
-          className='mt-1 w-full h-[52px] rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:bg-[#006edb] text-white text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+          className='mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
         >
           {isSubmitting ? 'Saving…' : 'Set new password'}
         </button>

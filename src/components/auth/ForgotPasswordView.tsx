@@ -4,7 +4,7 @@ import { BaseSyntheticEvent, useEffect, useState } from 'react';
 import { EnvelopeIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import TextInput from './TextInput';
 import { IFormValues } from '../PasswordInput';
-import { AuthPageLayout } from './AuthPageLayout';
+import { AuthPageLayout, type AuthPageBranding } from './AuthPageLayout';
 import { authInputClass } from './authStyles';
 import { CaptchaUnavailableError } from '../../services/captcha.service';
 
@@ -15,6 +15,7 @@ interface ForgotPasswordViewProps {
   rightFeaturePills: string[];
   loginPath: string;
   requestPasswordReset: (email: string) => Promise<void>;
+  branding?: AuthPageBranding;
 }
 
 export const ForgotPasswordView = ({
@@ -24,6 +25,7 @@ export const ForgotPasswordView = ({
   rightFeaturePills,
   loginPath,
   requestPasswordReset,
+  branding,
 }: ForgotPasswordViewProps) => {
   const [isSent, setIsSent] = useState(false);
   const [submitError, setSubmitError] = useState<string>();
@@ -75,9 +77,10 @@ export const ForgotPasswordView = ({
         rightHeadline={rightHeadline}
         rightDescription={rightDescription}
         rightFeaturePills={rightFeaturePills}
+        branding={branding}
       >
         <div className='flex flex-col gap-5'>
-          <EnvelopeIcon weight='thin' className='h-12 w-12 text-[#0071e3]' />
+          <EnvelopeIcon weight='thin' className='h-12 w-12 text-[color:var(--sub-account-primary,#0071e3)]' />
           <p className='text-[15px] text-gray-60 leading-relaxed'>
             If an account exists for that email, we&apos;ve sent a link to reset your password. The link expires in one
             hour.
@@ -95,6 +98,7 @@ export const ForgotPasswordView = ({
       rightHeadline={rightHeadline}
       rightDescription={rightDescription}
       rightFeaturePills={rightFeaturePills}
+      branding={branding}
     >
       <form className='flex flex-col gap-2.5' onSubmit={handleSubmit(onSubmit)}>
         <p className='px-1 pb-1 text-[15px] text-gray-60 leading-relaxed'>
@@ -123,7 +127,7 @@ export const ForgotPasswordView = ({
         <button
           type='submit'
           disabled={!isValid || isSubmitting}
-          className='mt-1 w-full h-[52px] rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:bg-[#006edb] text-white text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+          className='mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
         >
           {isSubmitting ? 'Sending…' : 'Send reset link'}
         </button>

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { captchaService } from '../../services/captcha.service';
+import { CaptchaUnavailableError, captchaService } from '../../services/captcha.service';
 import { subAccountSsoService } from './sub-account-sso.service';
 
 const TOKEN_KEY = 'subAccountToken';
@@ -36,12 +36,18 @@ async function logInWithSso(organizationName: string): Promise<void> {
 }
 
 async function requestPasswordReset(email: string): Promise<void> {
-  const captchaHeaders = await captchaService.getHeaders('ForgotPassword');
-  await axios.post(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/forgot-password`,
-    { email },
-    { headers: captchaHeaders },
-  );
+  const captchaHeaders = await captchaService.tryGetHeaders('ForgotPassword');
+
+  try {
+    await axios.post(
+      `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/forgot-password`,
+      { email },
+      { headers: captchaHeaders },
+    );
+  } catch (err) {
+    if (captchaService.isCaptchaRejection(err)) throw new CaptchaUnavailableError();
+    throw err;
+  }
 }
 
 async function resetPassword(token: string, newPassword: string): Promise<void> {
