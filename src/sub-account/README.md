@@ -911,3 +911,69 @@
   Then the Profile tab shows when this member/user was added to the sub-account
   And the Account tab shows when the sub-account itself was created
   And both fields being present at the same time is expected, since they represent different dates
+
+### Audit log tab (admin only)
+
+#### Scenario: Only admins can reach the audit log
+  Given the user is on the Settings page
+  When the user is not an admin
+  Then the "Audit log" tab is not listed
+  And a standard member requesting the audit log endpoint gets a 403
+
+#### Scenario: Browsing the audit log
+  Given the user is an admin on the Settings page
+  When the user opens the Audit log tab
+  Then they see one row per event with event type, actor email, resource path, IP and timestamp
+  And the newest events are listed first
+  And no action is offered on any individual entry
+
+#### Scenario: Filtering by date range
+  Given the user is on the Audit log tab
+  When the user sets a "From" and/or "To" date and applies the filters
+  Then only events within that range are listed
+  And the pagination restarts from the first page
+
+#### Scenario: The date range covers whole days
+  Given events recorded today
+  When the admin sets "To" to today's date and applies the filters
+  Then those events are still listed
+  And the range covers from the start to the end of the selected days, in the viewer's timezone
+
+#### Scenario: Filtering by actor or resource
+  Given the user is on the Audit log tab
+  When the user types part of an email in "Actor email" or part of a path in "Resource path"
+  And applies the filters
+  Then only matching entries are listed, matched partially and case-insensitively
+
+#### Scenario: Combining filters
+  Given the user is on the Audit log tab
+  When the user applies a date range, an actor email and a resource path at the same time
+  Then all conditions are applied together and only entries matching every one of them are listed
+
+#### Scenario: Clearing the filters
+  Given the user has applied one or more filters
+  When the user clicks "Clear filters"
+  Then every filter field is emptied
+  And the full log is listed again from the first page
+
+#### Scenario: Paginating the log
+  Given the audit log has more entries than one page
+  When the user clicks "Next"
+  Then the following page is listed and the range indicator updates
+  And "Previous" is disabled on the first page, and "Next" on the last one
+
+#### Scenario: An event that never completed
+  Given an action was recorded but never confirmed as finished
+  When the admin browses the audit log
+  Then that entry is still listed, marked as "Incomplete"
+
+#### Scenario: Events without IP or resource
+  Given an event has no IP or no resource path recorded
+  When the admin browses the audit log
+  Then those cells show a "—" placeholder instead of being empty
+
+#### Scenario: An event whose actor no longer exists
+  Given the member who performed an event has since been deleted
+  When the admin browses the audit log
+  Then the entry is still listed
+  And the actor cell shows a "—" placeholder instead of being empty

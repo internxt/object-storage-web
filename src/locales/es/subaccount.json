@@ -248,6 +248,38 @@
       "accountNumberLabel": "Número de cuenta de almacenamiento",
       "createdAtLabel": "Creada el",
       "active": "Activa"
+    },
+    "tabAudit": "Auditoría",
+    "audit": {
+      "title": "Registro de auditoría",
+      "subtitle": "Cada creación, acceso, descarga y revocación de un enlace compartido, del más reciente al más antiguo.",
+      "loading": "Cargando el registro de auditoría…",
+      "empty": "Ningún evento coincide con los filtros aplicados.",
+      "loadFailed": "No se ha podido cargar el registro de auditoría. Inténtalo de nuevo.",
+      "filterFrom": "Desde",
+      "filterTo": "Hasta",
+      "filterActor": "Email del actor",
+      "filterActorPlaceholder": "nombre@empresa.com",
+      "filterResource": "Ruta del recurso",
+      "filterResourcePlaceholder": "bucket/carpeta/fichero.pdf",
+      "applyFilters": "Aplicar filtros",
+      "clearFilters": "Limpiar filtros",
+      "columnEvent": "Evento",
+      "columnActor": "Actor",
+      "columnResource": "Recurso",
+      "columnIp": "IP",
+      "columnTimestamp": "Fecha y hora",
+      "eventType": {
+        "created": "Creado",
+        "opened": "Abierto",
+        "downloaded": "Descargado",
+        "deleted": "Revocado"
+      },
+      "incomplete": "Incompleto",
+      "incompleteHint": "La acción se registró pero nunca se confirmó como finalizada.",
+      "pageRange": "{{start}}–{{end}} de {{total}}",
+      "previous": "Anterior",
+      "next": "Siguiente"
     }
   },
   "usage": {
