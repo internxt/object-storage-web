@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '../../components/Modal';
-import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { T, text, form } from '../tokens';
+import {
+  MIN_MEMBER_PASSWORD_LENGTH,
+  MemberEmailField,
+  MemberPasswordField,
+  memberEmailError,
+  memberPasswordError,
+} from '../../components/MemberCredentialFields';
+import { text, form } from '../tokens';
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -27,7 +33,15 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
     }
   }, [isOpen]);
 
-  const canSubmit = !!email && (ssoEnabled || password.length >= 8);
+  const labels = {
+    emailRequired: t('addMemberModal.emailRequired'),
+    emailInvalid: t('addMemberModal.emailInvalid'),
+    passwordRequired: t('addMemberModal.passwordRequired'),
+    passwordPolicy: t('addMemberModal.passwordPolicy'),
+  };
+
+  const canSubmit =
+    !memberEmailError(email) && (ssoEnabled || !memberPasswordError(password));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,15 +58,25 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <label style={form.label}>{t('addMemberModal.emailLabel')}</label>
-          <Input value={email} onChange={setEmail} placeholder={t('addMemberModal.emailPlaceholder')} variant='email' />
+          <MemberEmailField
+            value={email}
+            onChange={setEmail}
+            placeholder={t('addMemberModal.emailPlaceholder')}
+            labels={labels}
+          />
         </div>
 
         {!ssoEnabled ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={form.label}>
-              {t('addMemberModal.passwordLabel')} <span style={{ color: T.red }}>*</span>
-            </label>
-            <Input value={password} onChange={setPassword} placeholder={t('addMemberModal.passwordPlaceholder')} variant='password' />
+            <label style={form.label}>{t('addMemberModal.passwordLabel')}</label>
+            <MemberPasswordField
+              value={password}
+              onChange={setPassword}
+              placeholder={t('addMemberModal.passwordPlaceholder', {
+                min: MIN_MEMBER_PASSWORD_LENGTH,
+              })}
+              labels={labels}
+            />
           </div>
         ) : (
           <p style={form.hint}>
