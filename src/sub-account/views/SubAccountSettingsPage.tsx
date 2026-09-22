@@ -685,9 +685,9 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
           <table className='w-full table-fixed'>
             <thead>
               <tr className='border-t border-b border-gray-10'>
-                <th className='w-[12%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnEvent')}</th>
+                <th className='w-[14%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnEvent')}</th>
                 <th className='w-[19%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnActor')}</th>
-                <th className='w-[35%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnResource')}</th>
+                <th className='w-[33%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnResource')}</th>
                 <th className='w-[14%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnIp')}</th>
                 <th className='w-[20%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnTimestamp')}</th>
               </tr>
@@ -696,8 +696,8 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
               {events.map((event) => (
                 <tr key={event.id} className='border-b border-gray-10/60'>
                   <td className='py-3.5 pr-4 text-sm text-gray-100'>
-                    <div className='flex items-center gap-2 min-w-0'>
-                      <span className='truncate'>{t(`settings.audit.eventType.${event.eventType}`)}</span>
+                    <div className='flex flex-wrap items-center gap-2'>
+                      <span className='whitespace-nowrap'>{t(`settings.audit.eventType.${event.eventType}`)}</span>
                       {event.status === 'incomplete' && (
                         <span className='shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-5 text-gray-60' title={t('settings.audit.incompleteHint')}>
                           {t('settings.audit.incomplete')}
