@@ -557,27 +557,32 @@ const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberI
 
 const AUDIT_PAGE_SIZE = 50;
 const ELLIPSIS = '...';
-const RESOURCE_MAX_CHARS = 38;
+const RESOURCE_MAX_CHARS = 31;
+const RESOURCE_MIN_ROOT_CHARS = 8;
 
 const EMPTY_FILTERS = { from: '', to: '', actorEmail: '', resourcePath: '' };
+
+const clip = (value: string, max: number) => `${value.slice(0, max - ELLIPSIS.length)}${ELLIPSIS}`;
 
 const shortenResourcePath = (path: string): string => {
   if (path.length <= RESOURCE_MAX_CHARS) return path;
 
-  const clip = (value: string) => `${value.slice(0, RESOURCE_MAX_CHARS - ELLIPSIS.length)}${ELLIPSIS}`;
-
   const isFolder = path.endsWith('/');
   const segments = path.replace(/\/+$/, '').split('/');
-  if (segments.length < 3) return clip(path);
+  if (segments.length === 1) return clip(path, RESOURCE_MAX_CHARS);
+
+  const name = `${segments[segments.length - 1]}${isFolder ? '/' : ''}`;
+  const prefix = `${ELLIPSIS}/`;
+  if (name.length > RESOURCE_MAX_CHARS - prefix.length) {
+    return `${prefix}${clip(name, RESOURCE_MAX_CHARS - prefix.length)}`;
+  }
+
+  const middle = segments.length > 2 ? `${ELLIPSIS}/` : '';
+  const rootBudget = RESOURCE_MAX_CHARS - name.length - middle.length - 1;
+  if (rootBudget < RESOURCE_MIN_ROOT_CHARS) return `${prefix}${name}`;
 
   const root = segments[0];
-  const name = `${segments[segments.length - 1]}${isFolder ? '/' : ''}`;
-  const fit = (budget: number) => (name.length > budget ? `${name.slice(0, budget - ELLIPSIS.length)}${ELLIPSIS}` : name);
-
-  const budget = RESOURCE_MAX_CHARS - root.length - ELLIPSIS.length - 2;
-  if (budget <= ELLIPSIS.length) return `${ELLIPSIS}/${fit(RESOURCE_MAX_CHARS - ELLIPSIS.length - 1)}`;
-
-  return `${root}/${ELLIPSIS}/${fit(budget)}`;
+  return `${root.length > rootBudget ? clip(root, rootBudget) : root}/${middle}${name}`;
 };
 
 const TruncatedCell = ({ text, title, className }: { text: string; title?: string; className?: string }) => (
@@ -680,9 +685,9 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
           <table className='w-full table-fixed'>
             <thead>
               <tr className='border-t border-b border-gray-10'>
-                <th className='w-[19%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnEvent')}</th>
+                <th className='w-[12%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnEvent')}</th>
                 <th className='w-[19%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnActor')}</th>
-                <th className='w-[28%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnResource')}</th>
+                <th className='w-[35%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnResource')}</th>
                 <th className='w-[14%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnIp')}</th>
                 <th className='w-[20%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnTimestamp')}</th>
               </tr>
