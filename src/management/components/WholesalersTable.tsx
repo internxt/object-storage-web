@@ -10,6 +10,10 @@ interface Props {
 const formatDate = (date?: string | null) =>
   date ? new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
+// Value already arrives in TB from the backend — only ever .toFixed() it here, never divide/multiply again.
+const formatStorage = (value: number) =>
+  value === 0 ? <span style={{ color: T.gray20 }}>0.0000</span> : value.toFixed(4);
+
 const linkStyle: React.CSSProperties = {
   fontSize: 14,
   color: T.primary,
@@ -22,6 +26,7 @@ const COLUMNS = [
   { header: 'Name', align: 'left' as const },
   { header: 'Email', align: 'left' as const },
   { header: 'Partners', align: 'right' as const },
+  { header: 'Active Storage (TB)', align: 'right' as const },
   { header: 'Created', align: 'left' as const },
   { header: 'Stripe', align: 'left' as const },
 ];
@@ -85,6 +90,9 @@ export const WholesalersTable = ({ wholesalers, isLoading }: Props) => {
                 </td>
                 <td style={{ padding: '14px 16px', textAlign: 'right', borderBottom: idx < wholesalers.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
                   <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>{w.partnersCount}</span>
+                </td>
+                <td style={{ padding: '14px 16px', textAlign: 'right', borderBottom: idx < wholesalers.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
+                  <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>{formatStorage(w.activeStorageTb)}</span>
                 </td>
                 <td style={{ padding: '14px 16px', borderBottom: idx < wholesalers.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
                   <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>{formatDate(w.createdAt)}</span>
