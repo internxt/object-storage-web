@@ -10,6 +10,7 @@ export interface Wholesaler {
   email: string;
   customerId: string | null;
   partnersCount: number;
+  activeStorageTb: number;
   createdAt: string;
 }
 
@@ -34,6 +35,7 @@ interface RawWholesaler {
   email: string;
   customerId?: string | null;
   partnersCount?: number;
+  activeStorageTb?: number;
   createdAt?: string;
 }
 
@@ -56,6 +58,8 @@ function mapWholesaler(raw: RawWholesaler): Wholesaler {
     email: raw.email,
     customerId: raw.customerId ?? null,
     partnersCount: raw.partnersCount ?? 0,
+    // Already in TB from the backend — do not divide/multiply again here.
+    activeStorageTb: raw.activeStorageTb ?? 0,
     createdAt: raw.createdAt ?? '',
   };
 }
