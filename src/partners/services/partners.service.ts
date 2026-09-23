@@ -32,7 +32,7 @@ interface DbSubAccount {
   id: string;
   storageProviderId: string;
   storageProvider: string;
-  status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
+  status: 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED';
   email: string | null;
   activeStorageBytes: number;
   deletedStorageBytes: number;
@@ -47,7 +47,10 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     id: raw.id,
     name: raw.id,
     email: raw.email ?? '',
-    status: raw.status === 'SUSPENDED' || raw.status === 'DELETED' ? raw.status : 'PAID_ACCOUNT',
+    status:
+      raw.status === 'SUSPENDED' || raw.status === 'PENDING_DELETION' || raw.status === 'DELETED'
+        ? raw.status
+        : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     storageQuotaTb: raw.storageQuotaTb ?? null,
@@ -75,6 +78,7 @@ async function getSubAccounts(params: {
   page?: number;
   perPage?: number;
   email?: string;
+  status?: 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED';
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }): Promise<{ subAccounts: SubAccount[]; total: number }> {
