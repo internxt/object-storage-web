@@ -108,7 +108,7 @@ const ActionsMenu = ({
     setConfirmAction(null)
   }
 
-  if (account.status === 'DELETED') return null
+  if (account.status === 'DELETED' || account.status === 'PENDING_DELETION') return null
 
   return (
     <div>
@@ -421,7 +421,19 @@ export const PartnersSubAccountsTable = ({
     },
     {
       header: 'Status',
-      cell: (acc) => <StatusBadge status={acc.status} />,
+      cell: (acc) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <StatusBadge status={acc.status} />
+          {acc.status === 'PENDING_DELETION' && (
+            <span
+              title="This account is scheduled for deletion and will be permanently removed in 1 day"
+              style={{ display: 'inline-flex', flexShrink: 0 }}
+            >
+              <InfoIcon size={14} color={T.gray50} />
+            </span>
+          )}
+        </div>
+      ),
     },
     ...(!readOnly
       ? [
