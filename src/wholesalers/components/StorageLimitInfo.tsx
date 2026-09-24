@@ -5,7 +5,7 @@ export const StorageLimitInfo = ({ popsFrom = 'top' }: { popsFrom?: 'top' | 'bot
   <Tooltip
     title="Max storage this partner can use. Uploads stop once it's reached."
     popsFrom={popsFrom}
-    className='text-xs normal-case tracking-normal font-normal'
+    className='z-10 text-xs normal-case tracking-normal font-normal'
   >
     <Info size={14} className='text-gray-40' />
   </Tooltip>
