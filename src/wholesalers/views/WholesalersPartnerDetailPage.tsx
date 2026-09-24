@@ -1,22 +1,41 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, HardDrives, Users } from '@phosphor-icons/react';
+import { ArrowLeft, Database, Gauge, HardDrives, PencilSimple, Users } from '@phosphor-icons/react';
 import { wholesalersService, WholesalerPartner, WholesalerPartnerUsageSummary } from '../services/wholesalers.service';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { DeletePartnerAction } from '../components/DeletePartnerAction';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useWholesalers } from '../context/wholesalersContext';
+import { IconButton } from '../../components/IconButton';
+import { StorageLimitInfo } from '../components/StorageLimitInfo';
+import { EditPartnerStorageLimitModal } from '../components/EditPartnerStorageLimitModal';
 
-const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
+const StatCard = ({
+  icon,
+  value,
+  label,
+  labelSuffix,
+  action,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+  labelSuffix?: React.ReactNode;
+  action?: React.ReactNode;
+}) => (
   <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>
     <div className='w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center flex-shrink-0'>
       {icon}
     </div>
     <div>
       <div className='text-lg font-bold text-gray-900'>{value}</div>
-      <div className='text-xs text-gray-400'>{label}</div>
+      <div className='flex items-center gap-1 text-xs text-gray-400'>
+        {label}
+        {labelSuffix}
+      </div>
     </div>
+    {action && <div className='ml-auto self-start'>{action}</div>}
   </div>
 );
 
@@ -32,6 +51,7 @@ export const WholesalersPartnerDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditingStorageLimit, setIsEditingStorageLimit] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -49,6 +69,15 @@ export const WholesalersPartnerDetailPage = () => {
       })
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleStorageLimitSave = async (storageLimitTB: number | null) => {
+    if (!partner) return;
+    await wholesalersService.updatePartnerStorageLimit(partner.id, storageLimitTB);
+    navigate(location.pathname, { replace: true, state: { partner: { ...partner, storageLimitTB } } });
+    notificationsService.success({
+      text: storageLimitTB == null ? 'Storage limit removed' : `Storage limit set to ${storageLimitTB} TB`,
+    });
+  };
 
   const handleDelete = async (partnerId: string) => {
     setIsDeleting(true);
@@ -100,7 +129,7 @@ export const WholesalersPartnerDetailPage = () => {
         )}
       </div>
 
-      <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         <StatCard
           icon={<Database size={20} weight='duotone' className='text-indigo-600' />}
           value={loading ? '…' : `${(usage?.activeStorageTb ?? 0).toFixed(4)} TB`}
@@ -116,7 +145,38 @@ export const WholesalersPartnerDetailPage = () => {
           value={loading ? '…' : String(usage?.totalSubAccounts ?? 0)}
           label='Sub-accounts'
         />
+        {partner && (
+          <StatCard
+            icon={<Gauge size={20} weight='duotone' className='text-indigo-600' />}
+            value={partner.storageLimitTB != null ? `${partner.storageLimitTB} TB` : 'No limit'}
+            label='Storage Limit'
+            labelSuffix={<StorageLimitInfo />}
+            action={
+              !isViewer &&
+              usage && (
+                <IconButton
+                  aria-label='Edit storage limit'
+                  title='Edit limit'
+                  className='text-gray-400 hover:text-gray-700 hover:bg-gray-50'
+                  onClick={() => setIsEditingStorageLimit(true)}
+                >
+                  <PencilSimple size={16} />
+                </IconButton>
+              )
+            }
+          />
+        )}
       </div>
+
+      {partner && usage && (
+        <EditPartnerStorageLimitModal
+          isOpen={isEditingStorageLimit}
+          onClose={() => setIsEditingStorageLimit(false)}
+          limit={partner.storageLimitTB ?? null}
+          usedTb={usage.activeStorageTb}
+          onSave={handleStorageLimitSave}
+        />
+      )}
     </div>
   );
 };

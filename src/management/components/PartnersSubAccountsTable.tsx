@@ -41,7 +41,7 @@ const formatStorage = (value?: number) => {
 
 const QUOTA_WARNING_PCT = 80;
 
-const StorageQuotaCell = ({ used, quota }: { used?: number; quota?: number | null }) => {
+export const StorageQuotaCell = ({ used, quota }: { used?: number; quota?: number | null }) => {
   if (quota == null) return <span style={{ fontSize: 13, color: T.gray50 }}>No limit</span>;
 
   const pct = quota > 0 ? ((used ?? 0) / quota) * 100 : 0;

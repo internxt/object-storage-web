@@ -197,8 +197,32 @@ export const PartnersSubAccountsPage = () => {
               <span style={{ ...metricStyle, color: ACCENT }}>
                 {usageSummary.activeStorageTb.toFixed(2)}
               </span>
-              <span style={unitStyle}>TB</span>
+              <span style={unitStyle}>
+                {usageSummary.storageLimitTB != null
+                  ? `TB of ${usageSummary.storageLimitTB} TB`
+                  : 'TB'}
+              </span>
             </div>
+            {usageSummary.storageLimitTB != null && (
+              <div
+                style={{
+                  width: '100%',
+                  height: 6,
+                  borderRadius: 999,
+                  background: T.gray15,
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${Math.min(100, (usageSummary.activeStorageTb / usageSummary.storageLimitTB) * 100)}%`,
+                    height: '100%',
+                    borderRadius: 999,
+                    background: ACCENT,
+                  }}
+                />
+              </div>
+            )}
           </div>
           <div
             style={{
