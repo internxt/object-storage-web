@@ -201,7 +201,7 @@
     "members": {
       "sectionTitle": "Miembros",
       "addMember": "Añadir miembro",
-      "ssoEnabledHint": "El inicio de sesión único está activado, así que no necesitas añadir miembros manualmente: cualquiera que inicie sesión con Microsoft y pertenezca a esta organización se añade automáticamente en su primer inicio de sesión.",
+      "ssoEnabledHint": "El inicio de sesión único está activado. Añade a los miembros con su correo de Microsoft antes de que inicien sesión: solo los miembros añadidos pueden acceder a esta organización.",
       "loading": "Cargando...",
       "empty": "Todavía no hay miembros.",
       "columnEmail": "Correo electrónico",
