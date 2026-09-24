@@ -201,7 +201,7 @@
     "members": {
       "sectionTitle": "Members",
       "addMember": "Add member",
-      "ssoEnabledHint": "Single sign-on is enabled, so you don't need to add members by hand, anyone who signs in with Microsoft and belongs to this organization is added automatically on their first login.",
+      "ssoEnabledHint": "Single sign-on is enabled. Add members by their Microsoft email before they sign in — only added members can access this organization.",
       "loading": "Loading...",
       "empty": "No members yet.",
       "columnEmail": "Email",
@@ -413,6 +413,7 @@
     "retainUntilLabel": "Retain Until:",
     "applying": "Applying…",
     "apply": "Apply",
+    "preview": "Preview",
     "downloadFile": "Download File",
     "copyPath": "Copy Path",
     "share": "Share",
