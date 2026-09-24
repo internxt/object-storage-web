@@ -4,6 +4,7 @@ import { DeletePartnerAction } from './DeletePartnerAction';
 import { useWholesalers } from '../context/wholesalersContext';
 import { StatusBadge } from '../../components/StatusBadge';
 import { T } from '../../sub-account/tokens';
+import { StorageQuotaCell } from '../../management/components/PartnersSubAccountsTable';
 
 interface Props {
   partners: WholesalerPartner[];
@@ -26,6 +27,7 @@ const COLUMNS = [
   { header: 'Email', align: 'left' as const },
   { header: 'Sub-accounts', align: 'right' as const },
   { header: 'Active Storage (TB)', align: 'right' as const },
+  { header: 'Storage Limit', align: 'left' as const },
   { header: 'Status', align: 'left' as const },
   { header: 'Created', align: 'left' as const },
   { header: '', align: 'right' as const },
@@ -97,6 +99,9 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, deleti
                 </td>
                 <td style={{ padding: '14px 16px', textAlign: 'right', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
                   <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>{formatStorage(p.activeStorageTb)}</span>
+                </td>
+                <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
+                  <StorageQuotaCell used={p.activeStorageTb} quota={p.storageLimitTB} />
                 </td>
                 <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
                   <StatusBadge status={p.status} />
