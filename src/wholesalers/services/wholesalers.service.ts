@@ -28,6 +28,7 @@ export interface WholesalerPartner {
   status: 'ACTIVE' | 'DELETED';
   activeStorageTb: number;
   subAccountsCount: number;
+  storageLimitTB: number | null;
   createdAt: string;
 }
 
@@ -40,8 +41,17 @@ async function getPartners(params: { page?: number; perPage?: number }): Promise
   return { partners: data.items ?? [], total: data.total ?? 0 };
 }
 
-async function createPartner(dto: { name: string; email: string; password: string }): Promise<void> {
+async function createPartner(dto: {
+  name: string;
+  email: string;
+  password: string;
+  storageLimitTB?: number;
+}): Promise<void> {
   await axios.post(`${API()}/partners`, dto, { headers: headers() });
+}
+
+async function updatePartnerStorageLimit(id: string, storageLimitTB: number | null): Promise<void> {
+  await axios.patch(`${API()}/partners/${id}/storage-limit`, { storageLimitTB }, { headers: headers() });
 }
 
 async function deletePartner(id: string): Promise<void> {
@@ -150,6 +160,7 @@ export const wholesalersService = {
   changePassword,
   getPartners,
   createPartner,
+  updatePartnerStorageLimit,
   deletePartner,
   getPartnerUsageSummary,
   createBillingPortalSession,

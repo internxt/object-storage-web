@@ -26,6 +26,7 @@ export interface PartnersUsageSummary {
   totalSubAccounts: number;
   activeStorageTb: number;
   deletedStorageTb: number;
+  storageLimitTB: number | null;
 }
 
 interface DbSubAccount {
