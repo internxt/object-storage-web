@@ -8,6 +8,7 @@ import { PasswordRequirements } from '../../components/FieldFeedback';
 import { Field, inputClass } from '../../components/FormField';
 import { Switch } from '../../components/Switch';
 import { storageLimitValidationError } from '../utils/storageLimit';
+import { apiErrorMessage } from '../../utils/apiError';
 
 interface Props {
   isOpen: boolean;
@@ -52,8 +53,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
       await onSubmit(isStorageLimitEnabled ? { ...data, storageLimitTB: Number(storageLimitTB) } : data);
       handleClose();
     } catch (err) {
-      const e = err as Error;
-      setError(e.message || 'Failed to create partner');
+      setError(apiErrorMessage(err, "We couldn't create the partner. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
