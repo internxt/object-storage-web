@@ -6,14 +6,16 @@ import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { passwordPolicyErrors } from '../../utils/passwordPolicy';
 import { PasswordRequirements } from '../../components/FieldFeedback';
 import { Field, inputClass } from '../../components/FormField';
+import { Switch } from '../../components/Switch';
+import { storageLimitValidationError } from '../utils/storageLimit';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (dto: { name: string; email: string; password: string }) => Promise<void>;
+  onSubmit: (dto: { name: string; email: string; password: string; storageLimitTB?: number }) => Promise<void>;
 }
 
-type FormValues = { name: string; email: string; password: string };
+type FormValues = { name: string; email: string; password: string; storageLimitTB: string };
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -21,12 +23,14 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string>();
   const [showPassword, setShowPassword] = useState(false);
+  const [isStorageLimitEnabled, setIsStorageLimitEnabled] = useState(false);
 
   const {
     register,
     handleSubmit,
     watch,
     reset,
+    unregister,
     formState: { errors, isValid },
   } = useForm<FormValues>({ mode: 'onChange' });
 
@@ -37,14 +41,15 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
     reset();
     setError(undefined);
     setShowPassword(false);
+    setIsStorageLimitEnabled(false);
     onClose();
   };
 
-  const onFormSubmit = async (data: FormValues) => {
+  const onFormSubmit = async ({ storageLimitTB, ...data }: FormValues) => {
     setIsSubmitting(true);
     setError(undefined);
     try {
-      await onSubmit(data);
+      await onSubmit(isStorageLimitEnabled ? { ...data, storageLimitTB: Number(storageLimitTB) } : data);
       handleClose();
     } catch (err) {
       const e = err as Error;
@@ -113,6 +118,27 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
               <PasswordRequirements errors={passwordErrors} />
             )}
           </Field>
+
+          <div className='flex flex-col gap-2'>
+            <Switch
+              label='Storage limit'
+              checked={isStorageLimitEnabled}
+              onChange={(checked) => {
+                setIsStorageLimitEnabled(checked);
+                if (!checked) unregister('storageLimitTB');
+              }}
+            />
+            {isStorageLimitEnabled && (
+              <Field label='Storage limit (TB)' error={errors.storageLimitTB?.message}>
+                <input
+                  {...register('storageLimitTB', { validate: (value) => storageLimitValidationError(value) ?? true })}
+                  inputMode='numeric'
+                  placeholder='1–10'
+                  className={inputClass(errors.storageLimitTB)}
+                />
+              </Field>
+            )}
+          </div>
 
           {error && <p className='text-sm text-red'>{error}</p>}
 
