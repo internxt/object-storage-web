@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { BaseSyntheticEvent, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { EnvelopeIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import TextInput from './TextInput';
 import { IFormValues } from '../PasswordInput';
@@ -27,6 +28,7 @@ export const ForgotPasswordView = ({
   requestPasswordReset,
   branding,
 }: ForgotPasswordViewProps) => {
+  const { t } = useTranslation('common');
   const [isSent, setIsSent] = useState(false);
   const [submitError, setSubmitError] = useState<string>();
 
@@ -54,8 +56,8 @@ export const ForgotPasswordView = ({
     } catch (err) {
       setSubmitError(
         err instanceof CaptchaUnavailableError
-          ? 'Verification could not be loaded. Disable your ad blocker and try again.'
-          : 'Something went wrong. Please try again.'
+          ? t('login.captchaUnavailableError')
+          : t('login.genericError')
       );
     }
   };
@@ -65,7 +67,7 @@ export const ForgotPasswordView = ({
       to={loginPath}
       className='self-start px-1 text-[13px] text-gray-60 no-underline hover:text-gray-100 transition-colors'
     >
-      Back to log in
+      {t('login.backToLogin')}
     </Link>
   );
 
@@ -73,7 +75,7 @@ export const ForgotPasswordView = ({
     return (
       <AuthPageLayout
         consoleTitle={consoleTitle}
-        title='Check your inbox'
+        title={t('login.forgotPasswordSentTitle')}
         rightHeadline={rightHeadline}
         rightDescription={rightDescription}
         rightFeaturePills={rightFeaturePills}
@@ -81,10 +83,7 @@ export const ForgotPasswordView = ({
       >
         <div className='flex flex-col gap-5'>
           <EnvelopeIcon weight='thin' className='h-12 w-12 text-[color:var(--sub-account-primary,#0071e3)]' />
-          <p className='text-[15px] text-gray-60 leading-relaxed'>
-            If an account exists for that email, we&apos;ve sent a link to reset your password. The link expires in one
-            hour.
-          </p>
+          <p className='text-[15px] text-gray-60 leading-relaxed'>{t('login.forgotPasswordSentMessage')}</p>
           {backToLogin}
         </div>
       </AuthPageLayout>
@@ -94,25 +93,23 @@ export const ForgotPasswordView = ({
   return (
     <AuthPageLayout
       consoleTitle={consoleTitle}
-      title='Reset your password'
+      title={t('login.forgotPasswordTitle')}
       rightHeadline={rightHeadline}
       rightDescription={rightDescription}
       rightFeaturePills={rightFeaturePills}
       branding={branding}
     >
       <form className='flex flex-col gap-2.5' onSubmit={handleSubmit(onSubmit)}>
-        <p className='px-1 pb-1 text-[15px] text-gray-60 leading-relaxed'>
-          Enter your email and we&apos;ll send you a link to set a new password.
-        </p>
+        <p className='px-1 pb-1 text-[15px] text-gray-60 leading-relaxed'>{t('login.forgotPasswordDescription')}</p>
 
         <TextInput
-          placeholder='Email'
+          placeholder={t('login.emailPlaceholder')}
           inputDataCy='emailInput'
           label='email'
           type='email'
           register={register}
           required={true}
-          minLength={{ value: 1, message: 'Email must not be empty' }}
+          minLength={{ value: 1, message: t('login.emailRequired') }}
           error={errors.email}
           className={authInputClass}
         />
@@ -129,7 +126,7 @@ export const ForgotPasswordView = ({
           disabled={!isValid || isSubmitting}
           className='mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
         >
-          {isSubmitting ? 'Sending…' : 'Send reset link'}
+          {isSubmitting ? t('login.sendingResetLink') : t('login.sendResetLink')}
         </button>
 
         {backToLogin}

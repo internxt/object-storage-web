@@ -28,12 +28,12 @@ export interface SubAccount {
   activeStorage: number
   deletedStorage: number
   storageUtilization?: number
-  storageQuotaTB?: number
+  storageQuotaTb?: number | null
   creationDate: string
   deletionDate?: string
   trialExpiration?: string
   mfa?: boolean
-  status: 'PAID_ACCOUNT' | 'SUSPENDED' | 'DELETED'
+  status: 'PAID_ACCOUNT' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED'
   recordDate: string
   customerId?: string | null
 }
@@ -67,7 +67,7 @@ interface DbSubAccount {
   name: string
   storageProviderId: string
   storageProvider: string
-  status: 'ACTIVE' | 'SUSPENDED' | 'DELETED'
+  status: 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED'
   email: string | null
   partnerId?: string | null
   partnerName?: string | null
@@ -87,7 +87,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     partnerId: raw.partnerId ?? null,
     partnerName: raw.partnerName ?? null,
     status:
-      raw.status === 'SUSPENDED' || raw.status === 'DELETED'
+      raw.status === 'SUSPENDED' || raw.status === 'PENDING_DELETION' || raw.status === 'DELETED'
         ? raw.status
         : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
@@ -165,6 +165,7 @@ export interface SubAccountDetail {
   trialExpiration: string | null
   partnerId?: string | null
   partnerName?: string | null
+  storageQuotaTb?: number | null
 }
 
 export interface SubAccountUsage {

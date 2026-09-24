@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   GlobeIcon,
   CaretDownIcon,
@@ -8,6 +9,83 @@ import {
 } from '@phosphor-icons/react';
 import { T, shadow } from '../tokens';
 import { BrandLogo } from '../../components/BrandLogo';
+
+const LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'es', label: 'Español' },
+] as const;
+
+const LanguageSelector = () => {
+  const { t, i18n } = useTranslation('subaccount');
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const currentLanguage = LANGUAGES.find((l) => l.code === i18n.language) ?? LANGUAGES[0];
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          height: 36, padding: '0 12px',
+          background: 'none', border: `1px solid ${T.gray20}`,
+          borderRadius: 8, cursor: 'pointer',
+          fontSize: 13, fontWeight: 500, color: T.gray60,
+        }}
+      >
+        <GlobeIcon size={15} aria-label={t('topBar.language')} />
+        {currentLanguage.label}
+        <CaretDownIcon size={13} />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          style={{
+            position: 'absolute', right: 0, top: 'calc(100% + 8px)',
+            width: 160, zIndex: 200,
+            background: T.white,
+            border: `1px solid ${T.gray20}`,
+            borderRadius: 12,
+            boxShadow: shadow.lg,
+            padding: 6,
+          }}
+        >
+          {LANGUAGES.map((language) => (
+            <button
+              key={language.code}
+              role="menuitem"
+              onClick={() => {
+                i18n.changeLanguage(language.code);
+                setOpen(false);
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', width: '100%', height: 36, padding: '0 10px',
+                background: language.code === currentLanguage.code ? T.gray5 : 'transparent',
+                border: 'none', borderRadius: 8, cursor: 'pointer',
+                fontSize: 13, fontWeight: 500, color: T.gray100, textAlign: 'left',
+              }}
+            >
+              {language.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,6 +115,7 @@ interface AvatarMenuProps {
 }
 
 const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
+  const { t } = useTranslation('subaccount');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -69,7 +148,7 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
           fontSize: 13, fontWeight: 600,
           flexShrink: 0,
         }}
-        title="Account menu"
+        title={t('topBar.accountMenu')}
       >
         {user.initials}
       </button>
@@ -103,7 +182,7 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
           {/* Settings */}
           <MenuItem
             icon={<GearSixIcon size={16} />}
-            label="Settings"
+            label={t('topBar.settings')}
             onClick={() => { setOpen(false); onSettings(); }}
           />
 
@@ -113,7 +192,7 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
           {/* Logout */}
           <MenuItem
             icon={<SignOutIcon size={16} />}
-            label="Log out"
+            label={t('topBar.logOut')}
             onClick={() => { setOpen(false); onLogout(); }}
             danger
           />
@@ -166,7 +245,9 @@ export const ConsoleTopBar = ({
   user,
   billing,
   logoUrl,
-}: ConsoleTopBarProps) => (
+}: ConsoleTopBarProps) => {
+  const { t } = useTranslation('subaccount');
+  return (
   <header style={{
     height: 56,
     background: T.white,
@@ -235,7 +316,7 @@ export const ConsoleTopBar = ({
               whiteSpace: 'nowrap', opacity: billing.loading ? 0.6 : 1,
             }}
           >
-            Billing
+            {t('topBar.billing')}
             <ArrowSquareOutIcon size={14} />
           </button>
         )}
@@ -247,20 +328,10 @@ export const ConsoleTopBar = ({
 
     {/* Right group */}
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      {/* Language selector */}
-      <button style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        height: 36, padding: '0 12px',
-        background: 'none', border: `1px solid ${T.gray20}`,
-        borderRadius: 8, cursor: 'pointer',
-        fontSize: 13, fontWeight: 500, color: T.gray60,
-      }}>
-        <GlobeIcon size={15} aria-label="Language" />
-        English
-        <CaretDownIcon size={13} />
-      </button>
+      <LanguageSelector />
 
       <AvatarMenu user={user} onSettings={onSettings} onLogout={onLogout} />
     </div>
   </header>
-);
+  );
+};

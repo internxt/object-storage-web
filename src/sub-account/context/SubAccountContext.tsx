@@ -5,6 +5,7 @@ interface SubAccountContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   ssoEnabled: boolean;
+  auditLogEnabled: boolean;
   memberId: string | null;
   entityId: string | null;
   partnerId: string | null;
@@ -28,6 +29,9 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
   const [ssoEnabled, setSsoEnabled] = useState(
     () => subAccountAuthService.getSsoEnabled(),
   );
+  const [auditLogEnabled, setAuditLogEnabled] = useState(
+    () => subAccountAuthService.getAuditLogEnabled(),
+  );
   const [memberId, setMemberId] = useState(
     () => subAccountAuthService.getMemberId(),
   );
@@ -48,6 +52,7 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(!!subAccountAuthService.getToken());
     setIsAdmin(subAccountAuthService.getRole() === 'admin');
     setSsoEnabled(subAccountAuthService.getSsoEnabled());
+    setAuditLogEnabled(subAccountAuthService.getAuditLogEnabled());
     setMemberId(subAccountAuthService.getMemberId());
     setEntityId(subAccountAuthService.getEntityId());
     setPartnerId(subAccountAuthService.getPartnerId());
@@ -71,6 +76,7 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
     setIsAdmin(false);
     setSsoEnabled(false);
+    setAuditLogEnabled(false);
     setMemberId(null);
     setEntityId(null);
     setPartnerId(null);
@@ -79,8 +85,8 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const value = useMemo(
-    () => ({ isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, partnerId, entityCreatedAt, email, logIn, logInWithSso, refreshClaims, logOut }),
-    [isAuthenticated, isAdmin, ssoEnabled, memberId, entityId, partnerId, entityCreatedAt, email],
+    () => ({ isAuthenticated, isAdmin, ssoEnabled, auditLogEnabled, memberId, entityId, partnerId, entityCreatedAt, email, logIn, logInWithSso, refreshClaims, logOut }),
+    [isAuthenticated, isAdmin, ssoEnabled, auditLogEnabled, memberId, entityId, partnerId, entityCreatedAt, email],
   );
 
   return <SubAccountContext.Provider value={value}>{children}</SubAccountContext.Provider>;

@@ -4,6 +4,7 @@ export interface CreateShareBody {
   bucket: string;
   key: string;
   isFolder: boolean;
+  expiresInHours: number;
   endpoint?: string;
   region?: string;
 }

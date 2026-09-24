@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Partner } from '../services/partners.service';
 import { ArrowUp, ArrowDown, ArrowSquareOut } from '@phosphor-icons/react';
+import { StatusBadge } from '../../components/StatusBadge';
 
 export type SortOrder = 'asc' | 'desc';
 
@@ -10,23 +11,6 @@ interface Props {
   sortOrder?: SortOrder;
   onSortActiveStorage?: (order: SortOrder) => void;
 }
-
-const StatusBadge = ({ status }: { status: Partner['status'] }) => {
-  const config = {
-    ACTIVE:  { bg: '#f0fdf4', border: '#bbf7d0', color: '#15803d', dot: '#22c55e', label: 'Active' },
-    DELETED: { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', dot: '#f87171', label: 'Deleted' },
-  }[status];
-
-  return (
-    <span
-      className='inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border tracking-wide'
-      style={{ background: config.bg, borderColor: config.border, color: config.color }}
-    >
-      <span className='w-1.5 h-1.5 rounded-full flex-shrink-0' style={{ background: config.dot }} />
-      {config.label}
-    </span>
-  );
-};
 
 const formatDate = (date?: string | null) =>
   date ? new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';

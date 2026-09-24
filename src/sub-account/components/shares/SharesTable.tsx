@@ -1,6 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { card } from '../../tokens';
 import { ShareListItem } from '../../services/share.service';
-import { COLUMNS, LABELS, toBodyState } from './constants';
+import { COLUMN_KEYS, toBodyState } from './constants';
 import { centeredMessage, headerCell, headerRow } from './styles';
 import { SharesCardHeader } from './SharesCardHeader';
 import { SharesEmptyState } from './SharesEmptyState';
@@ -23,6 +24,7 @@ export const SharesTable = ({
   onSearchChange,
   onRevoke,
 }: SharesTableProps) => {
+  const { t } = useTranslation('subaccount');
   const bodyState = toBodyState(isLoading, shares.length);
 
   return (
@@ -30,14 +32,14 @@ export const SharesTable = ({
       <SharesCardHeader totalCount={totalCount} search={search} onSearchChange={onSearchChange} />
 
       <div role="row" style={headerRow}>
-        {COLUMNS.map((column) => (
+        {COLUMN_KEYS.map((column) => (
           <span key={column.key} style={headerCell}>
-            {column.label}
+            {column.labelKey ? t(column.labelKey) : ''}
           </span>
         ))}
       </div>
 
-      {bodyState === 'loading' && <div style={centeredMessage}>{LABELS.loading}</div>}
+      {bodyState === 'loading' && <div style={centeredMessage}>{t('shares.loading')}</div>}
       {bodyState === 'empty' && <SharesEmptyState hasSearch={!!search} />}
       {bodyState === 'items' &&
         shares.map((share) => (

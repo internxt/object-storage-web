@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { T } from '../../sub-account/tokens';
 import { VersioningStatus } from '../../services/s3.service';
 
@@ -30,6 +31,7 @@ const Option = ({ title, description, selected, disabled, onSelect }: {
 );
 
 export const VersioningControl = ({ status, loading = false, disabled = false, onChange }: VersioningControlProps) => {
+  const { t } = useTranslation('subaccount');
   const enabled = status === 'Enabled';
   const unversioned = status === 'Unversioned';
   return (
@@ -37,22 +39,22 @@ export const VersioningControl = ({ status, loading = false, disabled = false, o
     <span style={{
       fontSize: 12, fontWeight: 500, color: T.gray60,
       letterSpacing: '0.04em', textTransform: 'uppercase',
-    }}>Versioning</span>
+    }}>{t('versioningControl.title')}</span>
     {loading && (
-      <span className="text-sm text-gray-50">Loading versioning status…</span>
+      <span className="text-sm text-gray-50">{t('versioningControl.loading')}</span>
     )}
     <Option
-      title={unversioned ? 'Unversioned' : 'Suspended'}
+      title={unversioned ? t('versioningControl.unversioned') : t('versioningControl.suspended')}
       description={unversioned
-        ? 'This is the default setting. After a bucket is versioned, versioning can be suspended but never be returned to an unversioned state.'
-        : 'Suspending versioning will suspend the creation of object versions for all operations but keeps any existing object versions.'}
+        ? t('versioningControl.unversionedDescription')
+        : t('versioningControl.suspendedDescription')}
       selected={!enabled}
       disabled={disabled || loading}
       onSelect={() => onChange(false)}
     />
     <Option
-      title="Enabled"
-      description="Versioning is a means of keeping multiple variants of an object in the same bucket. You can use versioning to preserve, retrieve, and restore every version of every object stored in your bucket. With versioning, you can easily recover from both unintended user actions and application failures."
+      title={t('versioningControl.enabled')}
+      description={t('versioningControl.enabledDescription')}
       selected={enabled}
       disabled={disabled || loading}
       onSelect={() => onChange(true)}

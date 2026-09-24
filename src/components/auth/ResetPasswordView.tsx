@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { EyeIcon, EyeSlashIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { AuthPageLayout, type AuthPageBranding } from './AuthPageLayout';
 import { PASSWORD_MAX_LENGTH, validatePassword } from './passwordPolicy';
@@ -66,6 +67,7 @@ export const ResetPasswordView = ({
   resetPassword,
   branding,
 }: ResetPasswordViewProps) => {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
@@ -76,7 +78,7 @@ export const ResetPasswordView = ({
   const [isLinkInvalid, setIsLinkInvalid] = useState(false);
   const [submitError, setSubmitError] = useState<string>();
 
-  const policyErrors = newPassword.length > 0 ? validatePassword(newPassword) : [];
+  const policyErrors = newPassword.length > 0 ? validatePassword(newPassword, t) : [];
   const meetsPolicy = newPassword.length > 0 && policyErrors.length === 0;
 
   const typedSoFar = newPassword.slice(0, confirmPassword.length);
@@ -104,14 +106,14 @@ export const ResetPasswordView = ({
 
     try {
       await resetPassword(token, newPassword);
-      notificationsService.success({ text: 'Your password has been updated. Log in to continue.' });
+      notificationsService.success({ text: t('login.passwordUpdatedNotification') });
       navigate(loginPath, { replace: true });
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 400) {
         setIsLinkInvalid(true);
       } else {
-        setSubmitError('Something went wrong. Please try again.');
+        setSubmitError(t('login.genericError'));
       }
     } finally {
       setIsSubmitting(false);
@@ -120,22 +122,20 @@ export const ResetPasswordView = ({
 
   if (!token || isLinkInvalid) {
     return (
-      <AuthPageLayout {...layoutProps} title='This link is no longer valid'>
+      <AuthPageLayout {...layoutProps} title={t('login.resetPasswordInvalidLinkTitle')}>
         <div className='flex flex-col gap-5'>
-          <p className='text-[15px] text-gray-60 leading-relaxed'>
-            Password reset links can only be used once and expire after one hour. Request a new one to continue.
-          </p>
+          <p className='text-[15px] text-gray-60 leading-relaxed'>{t('login.resetPasswordInvalidLinkMessage')}</p>
           <Link
             to={forgotPasswordPath}
             className='w-full h-[52px] flex items-center justify-center rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] no-underline transition-colors'
           >
-            Request a new link
+            {t('login.requestNewLink')}
           </Link>
           <Link
             to={loginPath}
             className='self-start px-1 text-[13px] text-gray-60 no-underline hover:text-gray-100 transition-colors'
           >
-            Back to log in
+            {t('login.backToLogin')}
           </Link>
         </div>
       </AuthPageLayout>
@@ -143,10 +143,10 @@ export const ResetPasswordView = ({
   }
 
   return (
-    <AuthPageLayout {...layoutProps} title='Set a new password'>
+    <AuthPageLayout {...layoutProps} title={t('login.resetPasswordTitle')}>
       <form className='flex flex-col gap-2.5' onSubmit={onSubmit}>
         <PasswordField
-          placeholder='New password'
+          placeholder={t('login.newPasswordPlaceholder')}
           value={newPassword}
           onChange={setNewPassword}
           hasError={policyErrors.length > 0}
@@ -164,7 +164,7 @@ export const ResetPasswordView = ({
         )}
 
         <PasswordField
-          placeholder='Confirm new password'
+          placeholder={t('login.confirmPasswordPlaceholder')}
           value={confirmPassword}
           onChange={setConfirmPassword}
           disabled={!meetsPolicy}
@@ -174,7 +174,7 @@ export const ResetPasswordView = ({
         {mismatch && (
           <div className='flex items-center gap-1.5 px-1'>
             <WarningCircleIcon weight='fill' className='h-3.5 w-3.5 text-red flex-shrink-0' />
-            <span className='text-[13px] text-red'>Passwords do not match</span>
+            <span className='text-[13px] text-red'>{t('login.passwordMismatch')}</span>
           </div>
         )}
 
@@ -190,14 +190,14 @@ export const ResetPasswordView = ({
           disabled={!canSubmit}
           className='mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
         >
-          {isSubmitting ? 'Saving…' : 'Set new password'}
+          {isSubmitting ? t('login.savingPassword') : t('login.setNewPassword')}
         </button>
 
         <Link
           to={loginPath}
           className='self-start px-1 text-[13px] text-gray-60 no-underline hover:text-gray-100 transition-colors'
         >
-          Back to log in
+          {t('login.backToLogin')}
         </Link>
       </form>
     </AuthPageLayout>

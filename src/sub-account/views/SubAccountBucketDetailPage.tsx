@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeftIcon,
   CaretRightIcon,
@@ -18,13 +19,16 @@ import {
   DownloadSimpleIcon,
   CopyIcon,
   LinkIcon,
+  EyeIcon,
 } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import { S3Object, s3Service, isAccessDeniedError, RetentionMode, VersioningStatus } from '../../services/s3.service';
 import { formatDateTime } from '../../utils/formatDate';
+import { getPreviewInfo, PreviewKind } from '../../utils/previewable';
 import notificationsService from '../../services/notifications.service';
 import { UploadModal } from '../../components/objects/UploadModal';
 import { FileDetailsPanel } from '../../components/objects/FileDetailsPanel';
+import { PreviewModal } from '../../components/objects/PreviewModal';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import Dialog from '../../components/Dialog';
@@ -73,6 +77,7 @@ function getFileIcon(name: string) {
 // ─── Design primitives ────────────────────────────────────────────────────────
 
 const Pill = ({ type }: { type: 'public' | 'private' }) => {
+  const { t } = useTranslation('subaccount');
   const pub = type === 'public';
   return (
     <span style={{
@@ -85,7 +90,7 @@ const Pill = ({ type }: { type: 'public' | 'private' }) => {
         width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
         background: pub ? T.primary : T.gray50,
       }} />
-      {pub ? 'Public' : 'Private'}
+      {pub ? t('bucketDetail.public') : t('bucketDetail.private')}
     </span>
   );
 };
@@ -107,16 +112,19 @@ const ReadField = ({ label, value, mono = false, fullWidth = false }:
   </div>
 );
 
-const ConfigError = ({ section }: { section: string }) => (
+const ConfigError = ({ section }: { section: string }) => {
+  const { t } = useTranslation('subaccount');
+  return (
   <div className="flex max-w-[480px] flex-col gap-2 rounded-xl border border-[#fecaca] bg-[#fef2f2] p-4">
     <span className="text-xs font-medium uppercase tracking-wider text-[var(--red,#E03131)]">
       {section}
     </span>
     <p className="m-0 text-[13px] leading-normal text-[var(--gray-60,#636367)]">
-      There was an error loading the configuration for this section. Please try again.
+      {t('bucketDetail.configErrorText')}
     </p>
   </div>
-);
+  );
+};
 
 // ─── Breadcrumb ───────────────────────────────────────────────────────────────
 
@@ -124,6 +132,7 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
   bucketName: string; prefix: string;
   onBuckets: () => void; onBucket: () => void; onSegment: (p: string) => void;
 }) => {
+  const { t } = useTranslation('subaccount');
   const parts = prefix ? prefix.split('/').filter(Boolean) : [];
 
   const crumb = (label: string, active: boolean, onClick?: () => void) => (
@@ -160,7 +169,7 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-      {crumb('Buckets', false, onBuckets)}
+      {crumb(t('bucketDetail.breadcrumbBuckets'), false, onBuckets)}
       {sep}
       {crumb(bucketName, parts.length === 0, parts.length ? onBucket : undefined)}
       {visibleParts.map(({ seg, i }, idx) => {
@@ -173,8 +182,8 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
                 <Dropdown
                   button={
                     <span
-                      aria-label="Show hidden folders"
-                      title="Show hidden folders"
+                      aria-label={t('bucketDetail.showHiddenFolders')}
+                      title={t('bucketDetail.showHiddenFolders')}
                       style={{
                         display: 'flex', alignItems: 'center', color: T.gray50, cursor: 'pointer',
                       }}
@@ -214,9 +223,11 @@ interface ObjectRowProps {
   onDelete: (obj: S3Object) => void;
   onCopyPath: (obj: S3Object) => void;
   onShare: (obj: S3Object) => void;
+  onPreview: (obj: S3Object) => void;
 }
 
-const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath, onShare }: ObjectRowProps) => {
+const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath, onShare, onPreview }: ObjectRowProps) => {
+  const { t } = useTranslation('subaccount');
   const [hovered, setHovered] = useState(false);
   const [triggerHovered, setTriggerHovered] = useState(false);
   const name = displayName(obj.key);
@@ -241,7 +252,7 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
           type="checkbox" checked={selected}
           onChange={e => onSelect(e.target.checked)}
           style={{ cursor: 'pointer', width: 16, height: 16 }}
-          aria-label={`Select ${name}`}
+          aria-label={t('bucketDetail.selectObject', { name })}
         />
       </div>
 
@@ -290,7 +301,7 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
           <Dropdown
             button={
               <span
-                aria-label="Object actions" title="Object actions"
+                aria-label={t('bucketDetail.objectActions')} title={t('bucketDetail.objectActions')}
                 onMouseEnter={() => setTriggerHovered(true)}
                 onMouseLeave={() => setTriggerHovered(false)}
                 style={{
@@ -304,22 +315,27 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
             }
             items={[
               ...(!obj.isFolder ? [{
-                label: 'Download',
+                label: t('bucketDetail.preview'),
+                icon: <EyeIcon size={15} />,
+                onClick: () => onPreview(obj),
+              }] : []),
+              ...(!obj.isFolder ? [{
+                label: t('bucketDetail.download'),
                 icon: <DownloadSimpleIcon size={15} />,
                 onClick: () => onDownload(obj),
               }] : []),
               {
-                label: 'Copy path',
+                label: t('bucketDetail.copyPath'),
                 icon: <CopyIcon size={15} />,
                 onClick: () => onCopyPath(obj),
               },
               {
-                label: 'Share',
+                label: t('bucketDetail.share'),
                 icon: <LinkIcon size={15} />,
                 onClick: () => onShare(obj),
               },
               {
-                label: 'Delete',
+                label: t('bucketDetail.delete'),
                 icon: <TrashIcon size={15} color="#E50B00" />,
                 onClick: () => onDelete(obj),
               },
@@ -334,7 +350,9 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
 // ─── EmptyState ───────────────────────────────────────────────────────────────
 
 const EmptyState = ({ searchQuery, onCreateFolder, onUpload }:
-  { searchQuery: string; onCreateFolder: () => void; onUpload: () => void }) => (
+  { searchQuery: string; onCreateFolder: () => void; onUpload: () => void }) => {
+  const { t } = useTranslation('subaccount');
+  return (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '56px 24px', gap: 12 }}>
     <div style={{
       width: 56, height: 56, borderRadius: '50%', background: T.gray10,
@@ -343,12 +361,12 @@ const EmptyState = ({ searchQuery, onCreateFolder, onUpload }:
       <FolderIcon size={28} color={T.gray50} />
     </div>
     <p style={{ fontSize: 15, fontWeight: 600, color: T.gray100, margin: 0 }}>
-      {searchQuery ? 'No matching objects' : 'This folder is empty'}
+      {searchQuery ? t('bucketDetail.noMatchingObjects') : t('bucketDetail.folderEmpty')}
     </p>
     <p style={{ fontSize: 13, color: T.gray50, margin: 0, textAlign: 'center', maxWidth: 300 }}>
       {searchQuery
-        ? `No objects matching "${searchQuery}". Try a different search term.`
-        : 'Upload files or create a folder to get started.'}
+        ? t('bucketDetail.noMatchingObjectsHint', { searchQuery })
+        : t('bucketDetail.folderEmptyHint')}
     </p>
     {!searchQuery && (
       <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
@@ -358,23 +376,25 @@ const EmptyState = ({ searchQuery, onCreateFolder, onUpload }:
           color: T.gray80, fontSize: 13, fontWeight: 500,
           cursor: 'pointer',
         }}>
-          <FolderPlusIcon size={15} /> Create folder
+          <FolderPlusIcon size={15} /> {t('bucketDetail.createFolder')}
         </button>
         <button onClick={onUpload} style={{
           display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
           border: 'none', borderRadius: 8, background: T.primary,
           color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer',
         }}>
-          <UploadSimpleIcon size={15} weight="bold" /> Upload files
+          <UploadSimpleIcon size={15} weight="bold" /> {t('bucketDetail.uploadFiles')}
         </button>
       </div>
     )}
   </div>
-);
+  );
+};
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export const SubAccountBucketDetailPage = () => {
+  const { t } = useTranslation('subaccount');
   const { bucketName } = useParams<{ bucketName: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -440,6 +460,11 @@ export const SubAccountBucketDetailPage = () => {
   const fileRetention = useFileRetention();
   const [fileToDelete, setFileToDelete] = useState<S3Object | null>(null);
   const [objectToShare, setObjectToShare] = useState<S3Object | null>(null);
+  const [previewTarget, setPreviewTarget] = useState<S3Object | null>(null);
+  const [previewKind, setPreviewKind] = useState<PreviewKind | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [isDeletingSingle, setIsDeletingSingle] = useState(false);
   const [isDeleteBucketOpen, setIsDeleteBucketOpen] = useState(false);
   const [isDeletingBucket, setIsDeletingBucket] = useState(false);
@@ -480,7 +505,7 @@ export const SubAccountBucketDetailPage = () => {
         if (cancelled) return;
         setVersioning(prev => ({ ...prev, isLoading: false }));
         setConfigStatus(prev => ({ ...prev, versioning: 'error' }));
-        notificationsService.error({ text: 'Could not load versioning status for this bucket. Please try again.' });
+        notificationsService.error({ text: t('bucketDetail.versioningLoadError') });
       });
 
     s3Service.getObjectLockConfig(c, bucketName)
@@ -492,7 +517,7 @@ export const SubAccountBucketDetailPage = () => {
       .catch(() => {
         if (cancelled) return;
         setConfigStatus(prev => ({ ...prev, objectLock: 'error' }));
-        notificationsService.error({ text: 'Could not load object locking configuration for this bucket. Please try again.' });
+        notificationsService.error({ text: t('bucketDetail.objectLockLoadError') });
       });
 
     s3Service.getBucketLogging(c, bucketName)
@@ -506,7 +531,7 @@ export const SubAccountBucketDetailPage = () => {
       .catch(() => {
         if (cancelled) return;
         setConfigStatus(prev => ({ ...prev, logging: 'error' }));
-        notificationsService.error({ text: 'Could not load logging configuration for this bucket. Please try again.' });
+        notificationsService.error({ text: t('bucketDetail.loggingLoadError') });
       });
 
     return () => { cancelled = true; };
@@ -532,10 +557,10 @@ export const SubAccountBucketDetailPage = () => {
         client, bucketName, mode, scale === 'days' ? value : undefined, scale === 'years' ? value : undefined,
       );
       setObjectLockConfig(prev => ({ ...prev, enabled: true, mode, days: scale === 'days' ? value : undefined, years: scale === 'years' ? value : undefined }));
-      notificationsService.success({ text: 'Object retention updated' });
+      notificationsService.success({ text: t('bucketDetail.objectRetentionUpdated') });
       setPendingRetention(null);
     } catch {
-      notificationsService.error({ text: 'Failed to update object retention' });
+      notificationsService.error({ text: t('bucketDetail.objectRetentionUpdateFailed') });
     } finally {
       setIsSavingBucketRetention(false);
     }
@@ -547,9 +572,9 @@ export const SubAccountBucketDetailPage = () => {
     try {
       await s3Service.clearObjectLockConfig(client, bucketName);
       setObjectLockConfig(prev => ({ ...prev, enabled: false }));
-      notificationsService.success({ text: 'Object retention disabled' });
+      notificationsService.success({ text: t('bucketDetail.objectRetentionDisabled') });
     } catch {
-      notificationsService.error({ text: 'Failed to disable object retention' });
+      notificationsService.error({ text: t('bucketDetail.objectRetentionDisableFailed') });
     } finally {
       setIsSavingBucketRetention(false);
     }
@@ -578,9 +603,9 @@ export const SubAccountBucketDetailPage = () => {
         selectedFile.versionId !== 'null' ? selectedFile.versionId : undefined,
       );
       fileRetention.setRetention({ mode, retainUntilDate });
-      notificationsService.success({ text: 'Object retention updated' });
+      notificationsService.success({ text: t('bucketDetail.objectRetentionUpdated') });
     } catch {
-      notificationsService.error({ text: 'Failed to update object retention' });
+      notificationsService.error({ text: t('bucketDetail.objectRetentionUpdateFailed') });
     } finally {
       fileRetention.setIsSaving(false);
     }
@@ -599,10 +624,10 @@ export const SubAccountBucketDetailPage = () => {
     try {
       await s3Service.setBucketVersioning(client, bucketName, next);
       setVersioning(prev => ({ ...prev, status: next ? 'Enabled' : 'Suspended', confirmation: null, isChanging: false }));
-      notificationsService.success({ text: `Versioning ${next ? 'enabled' : 'disabled'}` });
+      notificationsService.success({ text: next ? t('bucketDetail.versioningEnabled') : t('bucketDetail.versioningDisabled') });
     } catch {
       setVersioning(prev => ({ ...prev, isChanging: false }));
-      notificationsService.error({ text: 'Failed to update versioning' });
+      notificationsService.error({ text: t('bucketDetail.versioningUpdateFailed') });
     }
   };
 
@@ -616,9 +641,9 @@ export const SubAccountBucketDetailPage = () => {
         client, bucketName, loggingConfig.enabled, loggingConfig.targetBucket, loggingConfig.targetPrefix,
       );
       setPersistedLoggingConfig(loggingConfig);
-      notificationsService.success({ text: `Logging ${loggingConfig.enabled ? 'enabled' : 'disabled'}` });
+      notificationsService.success({ text: loggingConfig.enabled ? t('bucketDetail.loggingEnabled') : t('bucketDetail.loggingDisabled') });
     } catch {
-      notificationsService.error({ text: 'Failed to update logging' });
+      notificationsService.error({ text: t('bucketDetail.loggingUpdateFailed') });
     } finally {
       setIsSavingLogging(false);
     }
@@ -645,7 +670,7 @@ export const SubAccountBucketDetailPage = () => {
       }
     } catch (err) {
       const msg = isAccessDeniedError(err)
-        ? 'Insufficient permissions to list this location.'
+        ? t('bucketDetail.insufficientPermissions')
         : (err as Error).message;
       notificationsService.error({ text: msg });
     } finally {
@@ -715,13 +740,13 @@ export const SubAccountBucketDetailPage = () => {
       const url = await s3Service.getDownloadUrl(client, bucketName, obj.key, obj.versionId);
       window.location.href = url;
     } catch {
-      notificationsService.error({ text: 'Could not generate download link.' });
+      notificationsService.error({ text: t('bucketDetail.downloadLinkError') });
     }
   };
 
   const onCopyPath = (obj: S3Object) => {
     navigator.clipboard.writeText(obj.key);
-    notificationsService.success({ text: 'Path copied to clipboard' });
+    notificationsService.success({ text: t('bucketDetail.pathCopied') });
   };
 
   const onShowAllVersions = (obj: S3Object) => {
@@ -744,17 +769,37 @@ export const SubAccountBucketDetailPage = () => {
 
   const onShare = (obj: S3Object) => setObjectToShare(obj);
 
+  const onPreview = async (obj: S3Object) => {
+    const info = getPreviewInfo(obj.key);
+    setPreviewTarget(obj);
+    setPreviewKind(info?.kind ?? null);
+    setPreviewUrl(null);
+    setPreviewError(null);
+    if (!info || !client || !bucketName) return;
+    setIsPreviewLoading(true);
+    try {
+      const url = await s3Service.getPreviewUrl(client, bucketName, obj.key, obj.versionId);
+      setPreviewUrl(url);
+    } catch (err) {
+      setPreviewError(
+        isAccessDeniedError(err) ? "You don't have permission to preview this file." : 'Could not generate preview link.',
+      );
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
   const onConfirmDeleteSingle = async () => {
     if (!client || !bucketName || !fileToDelete) return;
     setIsDeletingSingle(true);
     try {
       await s3Service.deleteObject(client, bucketName, fileToDelete.key, fileToDelete.versionId);
-      notificationsService.success({ text: 'Object deleted' });
+      notificationsService.success({ text: t('bucketDetail.objectDeleted') });
       setFileToDelete(null);
       if (selectedFile?.key === fileToDelete.key) setSelectedFile(null);
       await loadObjects(client);
     } catch {
-      notificationsService.error({ text: 'Delete failed.' });
+      notificationsService.error({ text: t('bucketDetail.deleteFailed') });
     } finally {
       setIsDeletingSingle(false);
     }
@@ -781,11 +826,11 @@ export const SubAccountBucketDetailPage = () => {
         .filter(o => selectedVersions.has(versionRowId(o)))
         .map(o => ({ key: o.key, versionId: o.versionId }));
       await s3Service.deleteObjects(client, bucketName, items);
-      notificationsService.success({ text: `${selectedVersions.size} object(s) deleted` });
+      notificationsService.success({ text: t('bucketDetail.objectsDeleted', { count: selectedVersions.size }) });
       setIsDeleteDialogOpen(false);
       await loadObjects(client);
     } catch {
-      notificationsService.error({ text: 'Delete failed.' });
+      notificationsService.error({ text: t('bucketDetail.deleteFailed') });
     } finally {
       setIsDeletingSelected(false);
     }
@@ -796,13 +841,13 @@ export const SubAccountBucketDetailPage = () => {
     setIsCreatingFolder(true);
     try {
       await s3Service.uploadObject(client, bucketName, `${prefix}${folderName.trim()}/`, new File([''], ''));
-      notificationsService.success({ text: 'Folder created' });
+      notificationsService.success({ text: t('bucketDetail.folderCreated') });
       setIsCreateFolderOpen(false);
       setFolderName('');
       await loadObjects(client);
     } catch (err) {
       notificationsService.error({
-        text: isAccessDeniedError(err) ? 'You do not have enough access to this bucket.' : 'Could not create folder.',
+        text: isAccessDeniedError(err) ? t('bucketDetail.accessDenied') : t('bucketDetail.createFolderError'),
       });
     } finally {
       setIsCreatingFolder(false);
@@ -832,7 +877,7 @@ export const SubAccountBucketDetailPage = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <button
           onClick={() => navigate('/subaccount/buckets')}
-          aria-label="Back to buckets" title="Back to buckets"
+          aria-label={t('bucketDetail.backToBuckets')} title={t('bucketDetail.backToBuckets')}
           style={{
             width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
             border: `1px solid ${T.gray20}`, borderRadius: 8,
@@ -894,7 +939,7 @@ export const SubAccountBucketDetailPage = () => {
                   transition: 'color 120ms, border-color 120ms',
                 }}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab === 'objects' ? t('bucketDetail.tabObjects') : t('bucketDetail.tabProperties')}
               </button>
             ))}
           </div>
@@ -921,7 +966,7 @@ export const SubAccountBucketDetailPage = () => {
                     <button
                       onClick={() => setIsDeleteDialogOpen(true)}
                       disabled={isDeleteSelectedDisabled}
-                      title={isDeleteSelectedDisabled ? 'Non-empty folders cannot be deleted from this view' : undefined}
+                      title={isDeleteSelectedDisabled ? t('bucketDetail.deleteSelectedDisabledTitle') : undefined}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                         border: '1px solid #fca5a5', borderRadius: 8, background: '#fff5f5',
@@ -930,12 +975,12 @@ export const SubAccountBucketDetailPage = () => {
                         opacity: isDeleteSelectedDisabled ? 0.5 : 1,
                       }}
                     >
-                      <TrashIcon size={15} /> Delete ({selectedVersions.size})
+                      <TrashIcon size={15} /> {t('bucketDetail.deleteSelected', { count: selectedVersions.size })}
                     </button>
                   )}
                   <button
                     onClick={() => { setFolderName(''); setIsCreateFolderOpen(true); }}
-                    title="Create folder"
+                    title={t('bucketDetail.createFolder')}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                       border: `1px solid ${T.gray20}`, borderRadius: 8, background: '#fff',
@@ -943,11 +988,11 @@ export const SubAccountBucketDetailPage = () => {
                       cursor: 'pointer', whiteSpace: 'nowrap',
                     }}
                   >
-                    <FolderPlusIcon size={16} /> Create folder
+                    <FolderPlusIcon size={16} /> {t('bucketDetail.createFolder')}
                   </button>
                   <button
                     onClick={() => setIsUploadOpen(true)}
-                    title="Upload files"
+                    title={t('bucketDetail.uploadFiles')}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
                       border: 'none', borderRadius: 8, background: T.primary,
@@ -955,7 +1000,7 @@ export const SubAccountBucketDetailPage = () => {
                       cursor: 'pointer', whiteSpace: 'nowrap',
                     }}
                   >
-                    <UploadSimpleIcon size={16} weight="bold" /> Upload files
+                    <UploadSimpleIcon size={16} weight="bold" /> {t('bucketDetail.uploadFiles')}
                   </button>
                 </div>
               </div>
@@ -968,7 +1013,7 @@ export const SubAccountBucketDetailPage = () => {
                 <div style={{ width: 340 }}>
                   <Input
                     variant="search"
-                    placeholder="Search objects by prefix…"
+                    placeholder={t('bucketDetail.searchObjectsPlaceholder')}
                     value={searchQuery}
                     onChange={onSearchQueryChange}
                     onClear={() => onSearchQueryChange('')}
@@ -979,9 +1024,9 @@ export const SubAccountBucketDetailPage = () => {
                     fontSize: 13, color: T.gray50,
                     whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
                   }}>
-                    {displayObjects.length} {displayObjects.length === 1 ? 'object' : 'objects'}
+                    {t('bucketDetail.objectCount', { count: displayObjects.length })}
                   </span>
-                  <Switch label="Show Versions" checked={showVersions} onChange={onShowVersionsChange} />
+                  <Switch label={t('bucketDetail.showVersions')} checked={showVersions} onChange={onShowVersionsChange} />
                 </div>
               </div>
 
@@ -1009,12 +1054,12 @@ export const SubAccountBucketDetailPage = () => {
                     type="checkbox" checked={allSelected}
                     onChange={e => onSelectAll(e.target.checked)}
                     style={{ cursor: 'pointer', width: 16, height: 16 }}
-                    aria-label="Select all"
+                    aria-label={t('bucketDetail.selectAll')}
                   />
                 </div>
                 {(showVersions
-                  ? ['Name', 'Size', 'Last modified', 'Version ID', '']
-                  : ['Name', 'Size', 'Last modified', '']
+                  ? [t('bucketDetail.columnName'), t('bucketDetail.columnSize'), t('bucketDetail.columnLastModified'), t('bucketDetail.columnVersionId'), '']
+                  : [t('bucketDetail.columnName'), t('bucketDetail.columnSize'), t('bucketDetail.columnLastModified'), '']
                 ).map((h, i) => (
                   <span key={i} style={{
                     fontSize: 12, fontWeight: 500, color: T.gray60,
@@ -1026,7 +1071,7 @@ export const SubAccountBucketDetailPage = () => {
               {/* Rows / states */}
               {isLoading ? (
                 <div style={{ padding: '40px 20px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
-                  Loading objects…
+                  {t('bucketDetail.loadingObjects')}
                 </div>
               ) : displayObjects.length === 0 ? (
                 <EmptyState
@@ -1048,6 +1093,7 @@ export const SubAccountBucketDetailPage = () => {
                     onDelete={onDeleteSingle}
                     onCopyPath={onCopyPath}
                     onShare={onShare}
+                    onPreview={onPreview}
                   />
                 ))
               )}
@@ -1061,7 +1107,7 @@ export const SubAccountBucketDetailPage = () => {
                 <Loader
                   type="spinner"
                   size={32}
-                  text="Loading bucket configuration…"
+                  text={t('bucketDetail.loadingConfig')}
                   classNameContainer="flex flex-col items-center gap-3 text-[var(--gray-60,#636367)]"
                   classNameText="m-0 text-sm"
                 />
@@ -1069,13 +1115,13 @@ export const SubAccountBucketDetailPage = () => {
             ) : (
             <div className="flex flex-col gap-6 px-6 pt-6 pb-8">
               <div className="grid grid-cols-2 gap-x-8 gap-y-5">
-                <ReadField label="Bucket name" value={bucketName!} mono />
-                <ReadField label="Region" value={region} />
-                <ReadField label="Visibility" value={visibility === 'public' ? 'Public' : 'Private'} />
-                <ReadField label="Endpoint" value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
+                <ReadField label={t('bucketDetail.fieldBucketName')} value={bucketName!} mono />
+                <ReadField label={t('bucketDetail.fieldRegion')} value={region} />
+                <ReadField label={t('bucketDetail.fieldVisibility')} value={visibility === 'public' ? t('bucketDetail.public') : t('bucketDetail.private')} />
+                <ReadField label={t('bucketDetail.fieldEndpoint')} value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
                 <div className="col-span-full flex flex-wrap items-start gap-12">
                     {configStatus.versioning === 'error' ? (
-                      <ConfigError section="versioning" />
+                      <ConfigError section={t('bucketDetail.sectionVersioning')} />
                     ) : (
                       <VersioningControl
                         status={versioning.status}
@@ -1085,7 +1131,7 @@ export const SubAccountBucketDetailPage = () => {
                       />
                     )}
                     {configStatus.objectLock === 'error' ? (
-                      <ConfigError section="object locking" />
+                      <ConfigError section={t('bucketDetail.sectionObjectLock')} />
                     ) : (
                       <ObjectLockingControl
                         lockEnabledAtCreation={objectLockConfig.lockEnabledAtCreation}
@@ -1096,11 +1142,11 @@ export const SubAccountBucketDetailPage = () => {
                       />
                     )}
                     {configStatus.logging === 'error' ? (
-                      <ConfigError section="logging" />
+                      <ConfigError section={t('bucketDetail.sectionLogging')} />
                     ) : (
                       <div className="flex max-w-[480px] flex-col gap-3.5">
                         <span className="text-xs font-medium uppercase tracking-wider text-[var(--gray-60,#636367)]">
-                          Logging
+                          {t('bucketDetail.sectionLogging')}
                         </span>
                         <BucketLoggingSetup
                           enabled={loggingConfig.enabled}
@@ -1121,7 +1167,7 @@ export const SubAccountBucketDetailPage = () => {
                             loading={isSavingLogging}
                             onClick={onSaveLogging}
                           >
-                            Update
+                            {t('bucketDetail.loggingUpdate')}
                           </Button>
                         </div>
                       </div>
@@ -1132,16 +1178,16 @@ export const SubAccountBucketDetailPage = () => {
               {isAdmin && (
                 <div className="flex items-center justify-between gap-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] p-5">
                   <div>
-                    <p className="m-0 text-sm font-semibold text-[var(--gray-100,#18181B)]">Delete this bucket</p>
+                    <p className="m-0 text-sm font-semibold text-[var(--gray-100,#18181B)]">{t('bucketDetail.deleteBucketTitle')}</p>
                     <p className="mt-0.5 text-[13px] text-[var(--gray-60,#636367)]">
-                      Permanently delete this bucket and all of its contents. This action cannot be undone.
+                      {t('bucketDetail.deleteBucketDescription')}
                     </p>
                   </div>
                   <button
                     onClick={() => setIsDeleteBucketOpen(true)}
                     className="h-10 cursor-pointer whitespace-nowrap rounded-lg border-none bg-[var(--red,#E03131)] px-4 text-sm font-medium text-white"
                   >
-                    Delete bucket
+                    {t('bucketDetail.deleteBucketButton')}
                   </button>
                 </div>
               )}
@@ -1161,6 +1207,7 @@ export const SubAccountBucketDetailPage = () => {
             onDownload={onDownload}
             onCopyPath={onCopyPath}
             onShare={onShare}
+            onPreview={onPreview}
             onDelete={obj => { setSelectedFile(null); onDeleteSingle(obj); }}
             onShowAllVersions={onShowAllVersions}
             onSaveRetention={objectLockConfig.enabled ? onSaveFileRetention : undefined}
@@ -1184,13 +1231,13 @@ export const SubAccountBucketDetailPage = () => {
         onPrimaryAction={confirmVersioningChange}
         onSecondaryAction={cancelVersioningChange}
         isLoading={versioning.isChanging}
-        primaryAction="Confirm"
-        secondaryAction="Cancel"
+        primaryAction={t('actions.confirm')}
+        secondaryAction={t('actions.cancel')}
         primaryActionColor="primary"
-        title={versioning.confirmation ? 'Enable Versioning' : 'Suspend Versioning'}
+        title={versioning.confirmation ? t('bucketDetail.versioningConfirmEnableTitle') : t('bucketDetail.versioningConfirmSuspendTitle')}
         subtitle={versioning.confirmation
-          ? 'Versioning-enabled buckets store all versions of your object by default.\n\nAre you sure you want to enable versioning for the selected bucket?'
-          : 'Suspending versioning will suspend the creation of object versions for all operations but keeps any existing object versions.\n\nAre you sure you want to suspend versioning for the selected bucket?'}
+          ? t('bucketDetail.versioningConfirmEnableSubtitle')
+          : t('bucketDetail.versioningConfirmSuspendSubtitle')}
       />
 
       <RetentionConfirmModal
@@ -1209,11 +1256,11 @@ export const SubAccountBucketDetailPage = () => {
         onPrimaryAction={onDeleteSelected}
         onSecondaryAction={() => setIsDeleteDialogOpen(false)}
         isLoading={isDeletingSelected}
-        primaryAction="Delete"
-        secondaryAction="Cancel"
+        primaryAction={t('actions.delete')}
+        secondaryAction={t('actions.cancel')}
         primaryActionColor="danger"
-        title="Delete objects"
-        subtitle={`This will permanently delete ${selectedVersions.size} object(s). This action cannot be undone.`}
+        title={t('bucketDetail.deleteObjectsTitle')}
+        subtitle={t('bucketDetail.deleteObjectsSubtitle', { count: selectedVersions.size })}
       />
 
       <Dialog
@@ -1222,11 +1269,11 @@ export const SubAccountBucketDetailPage = () => {
         onPrimaryAction={onConfirmDeleteSingle}
         onSecondaryAction={() => setFileToDelete(null)}
         isLoading={isDeletingSingle}
-        primaryAction="Delete"
-        secondaryAction="Cancel"
+        primaryAction={t('actions.delete')}
+        secondaryAction={t('actions.cancel')}
         primaryActionColor="danger"
-        title="Delete object"
-        subtitle={`Permanently delete "${fileToDelete ? displayName(fileToDelete.key) : ''}"? This cannot be undone.`}
+        title={t('bucketDetail.deleteObjectTitle')}
+        subtitle={t('bucketDetail.deleteObjectSubtitle', { name: fileToDelete ? displayName(fileToDelete.key) : '' })}
       />
 
       <DeleteBucketConfirmModal
@@ -1235,6 +1282,16 @@ export const SubAccountBucketDetailPage = () => {
         isDeleting={isDeletingBucket}
         onConfirm={onConfirmDeleteBucket}
         onClose={() => !isDeletingBucket && setIsDeleteBucketOpen(false)}
+      />
+
+      <PreviewModal
+        isOpen={!!previewTarget}
+        fileName={previewTarget ? displayName(previewTarget.key) : ''}
+        kind={previewKind}
+        url={previewUrl}
+        isLoading={isPreviewLoading}
+        error={previewError}
+        onClose={() => setPreviewTarget(null)}
       />
 
       {objectToShare && bucketName && (
@@ -1250,14 +1307,14 @@ export const SubAccountBucketDetailPage = () => {
       <Modal isOpen={isCreateFolderOpen} onClose={() => !isCreatingFolder && setIsCreateFolderOpen(false)}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 400 }}>
           <p style={{ ...text.heading, margin: 0 }}>
-            Create folder
+            {t('bucketDetail.createFolderModalTitle')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label htmlFor="folder-name" style={{ ...text.label }}>
-              Folder name
+              {t('bucketDetail.folderNameLabel')}
             </label>
             <input
-              id="folder-name" type="text" placeholder="my-folder"
+              id="folder-name" type="text" placeholder={t('bucketDetail.folderNamePlaceholder')}
               value={folderName}
               onChange={e => setFolderName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && onCreateFolder()}
@@ -1267,10 +1324,10 @@ export const SubAccountBucketDetailPage = () => {
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
             <Button variant="secondary" type="button" onClick={() => setIsCreateFolderOpen(false)} disabled={isCreatingFolder}>
-              Cancel
+              {t('actions.cancel')}
             </Button>
             <Button type="button" disabled={!folderName.trim() || isCreatingFolder} loading={isCreatingFolder} onClick={onCreateFolder}>
-              Create
+              {t('actions.create')}
             </Button>
           </div>
         </div>

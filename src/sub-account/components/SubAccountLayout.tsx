@@ -1,5 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useSubAccount } from '../context/SubAccountContext';
 import { useSubAccountBranding } from '../context/SubAccountBrandingContext/useSubAccountBranding';
 import { ConsoleTopBar } from './ConsoleTopBar';
@@ -7,17 +8,6 @@ import { subAccountBillingService } from '../services/sub-account-billing.servic
 import notificationsService from '../../services/notifications.service';
 import { T } from '../tokens';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-
-const TABS_ADMIN = [
-  { key: '/subaccount/buckets', label: 'Buckets' },
-  { key: '/subaccount/usage',   label: 'Usage' },
-  { key: '/subaccount/shared',  label: 'Shared' },
-];
-
-const TABS_MEMBER = [
-  { key: '/subaccount/buckets', label: 'Buckets' },
-  { key: '/subaccount/shared', label: 'Shared' },
-];
 
 const toInitials = (email: string | null): string => {
   if (!email) return 'SA';
@@ -28,15 +18,25 @@ const toInitials = (email: string | null): string => {
 };
 
 export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
+  const { t } = useTranslation('subaccount');
   const { logOut, isAdmin, email, entityId, partnerId } = useSubAccount();
   const { branding, styles, isLoading } = useSubAccountBranding();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [billingLoading, setBillingLoading] = useState(false);
 
-  const tabs = isAdmin ? TABS_ADMIN : TABS_MEMBER;
+  const tabsAdmin = [
+    { key: '/subaccount/buckets', label: t('topBar.tabBuckets') },
+    { key: '/subaccount/usage', label: t('topBar.tabUsage') },
+    { key: '/subaccount/shared', label: t('topBar.tabShared') },
+  ];
+  const tabsMember = [
+    { key: '/subaccount/buckets', label: t('topBar.tabBuckets') },
+    { key: '/subaccount/shared', label: t('topBar.tabShared') },
+  ];
+  const tabs = isAdmin ? tabsAdmin : tabsMember;
 
-  const activeTab = tabs.find(t => pathname.startsWith(t.key))?.key ?? tabs[0].key;
+  const activeTab = tabs.find(tab => pathname.startsWith(tab.key))?.key ?? tabs[0].key;
 
   if (isLoading) return <SubAccountConsoleSkeleton />;
 
@@ -52,7 +52,7 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
       const { url } = await subAccountBillingService.createBillingPortalSession(entityId);
       window.open(url, '_blank');
     } catch {
-      notificationsService.error({ text: 'Failed to open billing portal' });
+      notificationsService.error({ text: t('topBar.billingOpenError') });
     } finally {
       setBillingLoading(false);
     }
@@ -64,7 +64,7 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
         tabs={tabs}
         activeTab={activeTab}
         onTab={(key) => navigate(key)}
-        consoleLabel="Cloud account"
+        consoleLabel={t('topBar.cloudAccount')}
         logoUrl={branding.logoUrl}
         onSettings={() => navigate('/subaccount/settings')}
         onLogout={handleLogOut}
@@ -79,9 +79,10 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
 };
 
 export function SubAccountConsoleSkeleton() {
+  const { t } = useTranslation('subaccount');
   return (
     <SkeletonTheme baseColor={T.gray15} highlightColor={T.gray10}>
-    <div aria-busy='true' aria-label='Loading console branding' className='min-h-screen' style={{ background: T.gray5 }}>
+    <div aria-busy='true' aria-label={t('shared.loadingBrandingAriaLabel')} className='min-h-screen' style={{ background: T.gray5 }}>
       <header className='h-14 px-8 flex items-center justify-between' style={{ background: T.white, borderBottom: `1px solid ${T.gray20}` }}>
         <Skeleton height={18} width={132} />
         <div className='flex items-center gap-6'>

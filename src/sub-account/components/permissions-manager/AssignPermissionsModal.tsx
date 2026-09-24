@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { WarningIcon } from '@phosphor-icons/react';
 import Modal from '../../../components/Modal';
 import Button from '../../../components/Button';
@@ -38,6 +39,7 @@ const Banner = ({ tone, children }: { tone: keyof typeof BANNER_STYLES; children
 };
 
 export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose, onAssign, onFetchPermissions }: AssignPermissionsModalProps) => {
+  const { t } = useTranslation('subaccount');
   const { entityId, memberId } = useSubAccount();
   const { client } = useSubAccountS3Client(isOpen ? entityId : null, isOpen ? memberId : null);
 
@@ -93,7 +95,7 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
       >
         <div className='shrink-0 flex items-start justify-between gap-4'>
           <div>
-            <p style={{ ...text.heading, margin: '0 0 2px' }}>Assign Permissions</p>
+            <p style={{ ...text.heading, margin: '0 0 2px' }}>{t('permissions.title')}</p>
             <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>{memberEmail}</p>
           </div>
           {!isFetching && !fetchError && (
@@ -102,26 +104,26 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
               onClick={() => (isAdvanced ? handleUseBuilder() : enterAdvanced())}
               className='shrink-0 text-sm font-medium text-primary bg-transparent border-none cursor-pointer py-1'
             >
-              {isAdvanced ? 'Use builder' : 'Advanced'}
+              {isAdvanced ? t('permissions.useBuilder') : t('permissions.advanced')}
             </button>
           )}
         </div>
 
         <Banner tone='warning'>
-          This only edits the "MemberBucketAccess" policy attached to this user. Other policies, if any, aren't shown here.
+          {t('permissions.banner')}
         </Banner>
 
         {isFetching ? (
           <Loader
             type='spinner'
             size={24}
-            text='Loading current permissions...'
+            text={t('permissions.loadingPermissions')}
             classNameContainer='flex flex-col items-center justify-center gap-2 py-6 text-gray-60'
             classNameText='text-xs text-gray-60 m-0'
             classNameLoader='text-gray-60'
           />
         ) : fetchError ? (
-          <Banner tone='error'>Couldn't load this user's permissions. Close and try again.</Banner>
+          <Banner tone='error'>{t('permissions.loadError')}</Banner>
         ) : isAdvanced ? (
           <PolicyJsonEditor value={jsonText} onChange={(jsonText) => patchEditor({ jsonText })} error={jsonError} />
         ) : (
@@ -130,10 +132,10 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
 
         <div className='shrink-0 flex justify-end gap-2 pt-1'>
           <Button variant='secondary' type='button' onClick={handleClose} disabled={isLoading}>
-            Cancel
+            {t('actions.cancel')}
           </Button>
           <Button type='submit' disabled={!canSubmit} loading={isLoading}>
-            Assign
+            {t('permissions.assign')}
           </Button>
         </div>
       </form>
@@ -143,11 +145,11 @@ export const AssignPermissionsModal = ({ isOpen, isLoading, memberEmail, onClose
         onClose={() => setConfirmBuilderOpen(false)}
         onPrimaryAction={confirmResetToBuilder}
         onSecondaryAction={() => setConfirmBuilderOpen(false)}
-        primaryAction='Reset'
-        secondaryAction='Cancel'
+        primaryAction={t('permissions.switchToBuilderReset')}
+        secondaryAction={t('actions.cancel')}
         primaryActionColor='danger'
-        title='Switch to builder?'
-        subtitle="This policy has custom rules the builder can't show. Switching will reset everything and start from an empty builder."
+        title={t('permissions.switchToBuilderTitle')}
+        subtitle={t('permissions.switchToBuilderSubtitle')}
       />
     </Modal>
   );

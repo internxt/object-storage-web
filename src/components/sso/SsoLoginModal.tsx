@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { WarningCircleIcon } from '@phosphor-icons/react';
 import Modal from '../Modal';
 import Input from '../Input';
@@ -25,9 +26,11 @@ interface SsoLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   logInWithSso: (organizationName: string) => Promise<void>;
+  resolvedConfig?: PublicSsoConfig;
 }
 
-export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalProps) => {
+export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }: SsoLoginModalProps) => {
+  const { t } = useTranslation('subaccount');
   const [organizationName, setOrganizationName] = useState('');
   const [resolution, setResolution] = useState<ResolutionState>({ kind: 'manual' });
   const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +54,13 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
       setResolution({ kind: 'manual' });
     };
 
+    // The caller already resolved the config for this hostname (e.g. the login
+    // page's own by-hostname check) — reuse it instead of looking it up again.
+    if (resolvedConfig) {
+      setResolution({ kind: 'auto', config: resolvedConfig });
+      return;
+    }
+
     // The shared console hostname has no custom-domain SSO association, so never
     // attempt the hostname lookup there — go straight to the manual flow.
     if (isSharedConsoleHostname()) {
@@ -71,7 +81,7 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
         if (attemptId !== attemptIdRef.current) return;
         startManual();
       });
-  }, [isOpen]);
+  }, [isOpen, resolvedConfig]);
 
   const canSubmit = resolution.kind === 'auto' ? !isLoading : !!organizationName.trim() && !isLoading;
 
@@ -102,25 +112,25 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
       if (err instanceof SsoNotConfiguredError) {
         setError({
           kind: 'warning',
-          message: 'SSO is not configured for this organization. Contact your administrator or sign in with email and password.',
+          message: t('sso.loginModal.notConfiguredError'),
         });
       } else if (err instanceof SsoMemberNotFoundError) {
         setError({
           kind: 'error',
-          message: `The Microsoft account ${err.azureEmail || 'used'} is not a member of this organization.`,
+          message: t('sso.loginModal.memberNotFoundError', { email: err.azureEmail || t('sso.loginModal.usedFallback') }),
         });
       } else if (err instanceof SsoPopupBlockedError) {
         setError({
           kind: 'error',
-          message: 'Your browser blocked the sign-in window. Allow pop-ups for this site and try again.',
+          message: t('sso.loginModal.popupBlockedError'),
         });
       } else if (err instanceof SsoCancelledError) {
         setError({
           kind: 'error',
-          message: 'The sign-in window was closed before completing. Try again.',
+          message: t('sso.loginModal.cancelledError'),
         });
       } else {
-        setError({ kind: 'error', message: 'Something went wrong while signing in with SSO. Try again.' });
+        setError({ kind: 'error', message: t('sso.loginModal.genericError') });
       }
     } finally {
       if (attemptId === attemptIdRef.current) setIsLoading(false);
@@ -131,19 +141,19 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
     <Modal isOpen={isOpen} onClose={onClose}>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
         <div>
-          <p style={{ ...text.heading, margin: 0 }}>Sign in with SSO</p>
+          <p style={{ ...text.heading, margin: 0 }}>{t('sso.loginModal.title')}</p>
           <p style={{ ...text.hint, margin: '6px 0 0' }}>
             {resolution.kind === 'auto' &&
-              `Continue with your Microsoft account to sign in to ${window.location.hostname}.`}
-            {resolution.kind === 'checking' && 'Checking your organization’s sign-in settings…'}
-            {resolution.kind === 'manual' && 'Enter your organization name to continue with your Microsoft account.'}
+              t('sso.loginModal.autoDescription', { hostname: window.location.hostname })}
+            {resolution.kind === 'checking' && t('sso.loginModal.checkingDescription')}
+            {resolution.kind === 'manual' && t('sso.loginModal.manualDescription')}
           </p>
         </div>
 
         {resolution.kind === 'manual' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={form.label}>Organization name</label>
-            <Input value={organizationName} onChange={setOrganizationName} placeholder='your-organization' autofocus />
+            <label style={form.label}>{t('sso.organizationNameLabel')}</label>
+            <Input value={organizationName} onChange={setOrganizationName} placeholder={t('sso.loginModal.organizationNamePlaceholder')} autofocus />
           </div>
         )}
 
@@ -162,10 +172,10 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso }: SsoLoginModalPr
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
           <Button variant='secondary' type='button' onClick={handleCancel}>
-            Cancel
+            {t('actions.cancel')}
           </Button>
           <Button type='submit' disabled={!canSubmit} loading={isLoading}>
-            Continue with Microsoft
+            {t('sso.loginModal.continueWithMicrosoft')}
           </Button>
         </div>
       </form>

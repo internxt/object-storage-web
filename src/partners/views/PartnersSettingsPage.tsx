@@ -2,22 +2,29 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import dayjs from 'dayjs'
 import {
-  EyeIcon,
-  EyeSlashIcon,
   PlusIcon,
   DownloadSimpleIcon,
   DotsThreeIcon,
 } from '@phosphor-icons/react'
 import { partnersService, PartnerMember } from '../services/partners.service'
 import { exportAsCSV } from '../../utils/exportUtils'
+import { ChangePasswordForm } from '../../components/ChangePasswordForm'
 import notificationsService from '../../services/notifications.service'
 import Modal from '../../components/Modal'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
+import {
+  MIN_MEMBER_PASSWORD_LENGTH,
+  MemberEmailField,
+  MemberPasswordField,
+  memberEmailError,
+  memberPasswordError,
+} from '../../components/MemberCredentialFields'
 import Dialog from '../../components/Dialog'
 import { T, text, form, shadow } from '../../sub-account/tokens'
 import { usePartners } from '../context/partnersContext'
 import { TwoFactorSetupForm } from '../components/TwoFactorSetupForm'
+import { BrandingTab } from '../components/BrandingTab'
 
 const Pill = ({ label, tone }: { label: string; tone: 'green' | 'gray' }) => (
   <span
@@ -68,60 +75,6 @@ const ReadField = ({ label, value }: { label: string; value: string }) => (
     </div>
   </div>
 )
-
-const PasswordField = ({
-  label,
-  placeholder = '',
-  value,
-  onChange,
-}: {
-  label: string
-  placeholder?: string
-  value: string
-  onChange: (v: string) => void
-}) => {
-  const [show, setShow] = useState(false)
-  return (
-    <div>
-      <p style={{ ...text.label, marginBottom: 6 }}>{label}</p>
-      <div style={{ position: 'relative' }}>
-        <input
-          type={show ? 'text' : 'password'}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            width: '100%',
-            height: 40,
-            background: T.gray5,
-            border: `1px solid ${T.gray20}`,
-            borderRadius: 8,
-            padding: '0 40px 0 12px',
-            fontSize: 14,
-            color: T.gray80,
-            outline: 'none',
-          }}
-        />
-        <button
-          type="button"
-          onClick={() => setShow((s) => !s)}
-          style={{
-            position: 'absolute',
-            right: 12,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            background: 'transparent',
-            border: 'none',
-            color: T.gray50,
-            cursor: 'pointer',
-          }}
-        >
-          {show ? <EyeIcon size={16} /> : <EyeSlashIcon size={16} />}
-        </button>
-      </div>
-    </div>
-  )
-}
 
 const AvatarSquare = ({ initials }: { initials: string }) => (
   <div
@@ -196,17 +149,6 @@ const SectionCard = ({
     <div style={{ marginTop: 16 }}>{children}</div>
   </div>
 )
-
-const validatePassword = (p: string) => {
-  const errs: string[] = []
-  if (p.length < 6) errs.push('At least 6 characters')
-  if (!/[a-z]/.test(p)) errs.push('At least one lowercase letter')
-  if (!/[A-Z]/.test(p)) errs.push('At least one uppercase letter')
-  if (!/\d/.test(p)) errs.push('At least one digit')
-  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(p))
-    errs.push('At least one special character')
-  return errs
-}
 
 const MAX_EXPORT_RANGE_DAYS = 40
 
@@ -327,11 +269,6 @@ const ProfileTab = () => {
     createdAt: string
   } | null>(null)
 
-  const [current, setCurrent] = useState('')
-  const [newPwd, setNewPwd] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [touched, setTouched] = useState({ newPwd: false, confirm: false })
-  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     partnersService
@@ -339,42 +276,6 @@ const ProfileTab = () => {
       .then(setProfile)
       .catch(() => {})
   }, [])
-
-  const policyErrors = touched.newPwd ? validatePassword(newPwd) : []
-  const sameAsCurrent =
-    touched.newPwd && newPwd.length > 0 && newPwd === current
-  const mismatch = touched.confirm && confirm.length > 0 && newPwd !== confirm
-  const isValid =
-    current.length > 0 &&
-    newPwd.length > 0 &&
-    confirm.length > 0 &&
-    validatePassword(newPwd).length === 0 &&
-    !sameAsCurrent &&
-    newPwd === confirm
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setTouched({ newPwd: true, confirm: true })
-    if (!isValid) return
-    setSaving(true)
-    try {
-      await partnersService.changePassword(current, newPwd)
-      notificationsService.success({ text: 'Password changed successfully' })
-      setCurrent('')
-      setNewPwd('')
-      setConfirm('')
-      setTouched({ newPwd: false, confirm: false })
-    } catch (err: any) {
-      notificationsService.error({
-        text:
-          err?.response?.status === 403
-            ? 'Current password is incorrect'
-            : 'Failed to change password',
-      })
-    } finally {
-      setSaving(false)
-    }
-  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -408,88 +309,7 @@ const ProfileTab = () => {
 
       {!isViewer && (
         <SectionCard title="Change password">
-          <form
-            onSubmit={handleChangePassword}
-            style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-          >
-            <PasswordField
-              label="Old password"
-              value={current}
-              onChange={setCurrent}
-            />
-            <PasswordField
-              label="New password"
-              placeholder="At least 6 characters"
-              value={newPwd}
-              onChange={(v) => {
-                setNewPwd(v)
-                setTouched((t) => ({ ...t, newPwd: true }))
-              }}
-            />
-            {sameAsCurrent && (
-              <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-                New password must differ from current
-              </p>
-            )}
-            {!sameAsCurrent && policyErrors.length > 0 && (
-              <ul
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                  margin: 0,
-                  padding: 0,
-                  listStyle: 'none',
-                }}
-              >
-                {policyErrors.map((e) => (
-                  <li key={e} style={{ fontSize: 12, color: T.red }}>
-                    · {e}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <PasswordField
-              label="Confirm new password"
-              placeholder="Repeat new password"
-              value={confirm}
-              onChange={(v) => {
-                setConfirm(v)
-                setTouched((t) => ({ ...t, confirm: true }))
-              }}
-            />
-            {mismatch && (
-              <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-                Passwords do not match
-              </p>
-            )}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                marginTop: 4,
-              }}
-            >
-              <button
-                type="submit"
-                disabled={saving || !isValid}
-                style={{
-                  height: 40,
-                  padding: '0 16px',
-                  background: T.primary,
-                  color: T.white,
-                  border: 'none',
-                  borderRadius: 8,
-                  cursor: saving || !isValid ? 'not-allowed' : 'pointer',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  opacity: saving || !isValid ? 0.4 : 1,
-                }}
-              >
-                {saving ? 'Saving…' : 'Change password'}
-              </button>
-            </div>
-          </form>
+          <ChangePasswordForm onSubmit={partnersService.changePassword} />
         </SectionCard>
       )}
     </div>
@@ -499,7 +319,7 @@ const ProfileTab = () => {
 // ─── Usage Tab ────────────────────────────────────────────────────────────────
 
 const UsageTab = () => {
-  const [profile, setProfile] = useState<{ createdAt: string } | null>(null)
+  const [profile, setProfile] = useState<{ createdAt: string; hasWholesaler?: boolean } | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [exportFrom, setExportFrom] = useState(() =>
     dayjs().startOf('month').format('YYYY-MM-DD'),
@@ -530,6 +350,16 @@ const UsageTab = () => {
     } finally {
       setIsExporting(false)
     }
+  }
+
+  if (profile?.hasWholesaler) {
+    return (
+      <SectionCard title="Export Usage" subtitle="Usage export is managed by your wholesaler">
+        <p style={{ fontSize: 14, color: T.gray50 }}>
+          Your usage is billed and reported through your wholesaler, so it isn't available here.
+        </p>
+      </SectionCard>
+    )
   }
 
   return (
@@ -883,6 +713,13 @@ const MembersTab = () => {
   const hasPrev = page > 0
   const hasNext = page < totalPages - 1
 
+  const isCreateValid =
+    !memberEmailError(createEmail) && !memberPasswordError(createPassword)
+  const isEditValid =
+    !memberEmailError(editEmail) &&
+    !memberPasswordError(editPassword, true) &&
+    (editEmail !== editTarget?.email || !!editPassword)
+
   return (
     <SectionCard
       title="Member Accounts"
@@ -1104,20 +941,18 @@ const MembersTab = () => {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Email</label>
-            <Input
+            <MemberEmailField
               value={createEmail}
               onChange={setCreateEmail}
               placeholder="member@example.com"
-              variant="email"
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Password</label>
-            <Input
+            <MemberPasswordField
               value={createPassword}
               onChange={setCreatePassword}
-              placeholder="Min. 8 characters"
-              variant="password"
+              placeholder={`Min. ${MIN_MEMBER_PASSWORD_LENGTH} characters`}
             />
           </div>
           <div
@@ -1138,9 +973,7 @@ const MembersTab = () => {
             </Button>
             <Button
               type="button"
-              disabled={
-                createLoading || !createEmail || createPassword.length < 8
-              }
+              disabled={createLoading || !isCreateValid}
               loading={createLoading}
               onClick={handleCreate}
             >
@@ -1165,15 +998,15 @@ const MembersTab = () => {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Email</label>
-            <Input value={editEmail} onChange={setEditEmail} variant="email" />
+            <MemberEmailField value={editEmail} onChange={setEditEmail} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>New password</label>
-            <Input
+            <MemberPasswordField
               value={editPassword}
               onChange={setEditPassword}
               placeholder="Leave blank to keep current"
-              variant="password"
+              optional
             />
           </div>
           <div
@@ -1194,12 +1027,7 @@ const MembersTab = () => {
             </Button>
             <Button
               type="button"
-              disabled={
-                editLoading ||
-                !editEmail ||
-                (editEmail === editTarget?.email && !editPassword) ||
-                (!!editPassword && editPassword.length < 8)
-              }
+              disabled={editLoading || !isEditValid}
               loading={editLoading}
               onClick={handleUpdate}
             >
@@ -1246,12 +1074,13 @@ const MembersTab = () => {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'profile' | 'usage' | 'members'
+type Tab = 'profile' | 'usage' | 'members' | 'branding'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'profile', label: 'Profile' },
   { key: 'usage', label: 'Usage' },
   { key: 'members', label: 'Members' },
+  { key: 'branding', label: 'Branding' },
 ]
 
 export const PartnersSettingsPage = () => {
@@ -1317,6 +1146,7 @@ export const PartnersSettingsPage = () => {
       {(isViewer || activeTab === 'profile') && <ProfileTab />}
       {!isViewer && activeTab === 'usage' && <UsageTab />}
       {!isViewer && activeTab === 'members' && <MembersTab />}
+      {!isViewer && activeTab === 'branding' && <BrandingTab />}
     </div>
   )
 }

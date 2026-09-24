@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { form } from '../../tokens';
 
 interface PolicyJsonEditorProps {
@@ -6,9 +7,11 @@ interface PolicyJsonEditorProps {
   error: boolean;
 }
 
-export const PolicyJsonEditor = ({ value, onChange, error }: PolicyJsonEditorProps) => (
+export const PolicyJsonEditor = ({ value, onChange, error }: PolicyJsonEditorProps) => {
+  const { t } = useTranslation('subaccount');
+  return (
   <div className='flex flex-col gap-1 min-h-0'>
-    <label className='shrink-0' style={form.label}>Policy JSON</label>
+    <label className='shrink-0' style={form.label}>{t('permissions.policyJsonLabel')}</label>
     <textarea
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -19,8 +22,9 @@ export const PolicyJsonEditor = ({ value, onChange, error }: PolicyJsonEditorPro
     />
     <p className='shrink-0' style={form.hint}>
       {error
-        ? 'Invalid JSON — must be an object with a "Statement" array.'
-        : 'Edit the raw IAM policy. The backend validates the actions on save.'}
+        ? t('permissions.policyJsonInvalid')
+        : t('permissions.policyJsonHint')}
     </p>
   </div>
-);
+  );
+};

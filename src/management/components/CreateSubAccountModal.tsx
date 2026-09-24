@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import Modal from '../../components/Modal'
 import Button from '../../components/Button'
 import { CreateSubAccountDto } from '../services/management.service'
-import { Copy, Check, AlertCircle } from 'lucide-react'
+import { Copy, Check } from 'lucide-react'
 import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries'
+import { passwordPolicyErrors } from '../../utils/passwordPolicy'
+import { PasswordRequirements } from '../../components/FieldFeedback'
+import { Field, inputClass } from '../../components/FormField'
 
 interface Props {
   isOpen: boolean
@@ -22,34 +25,7 @@ interface SuccessData {
   password: string
 }
 
-// Validación de password
-
-const validatePassword = (
-  password: string,
-): { isValid: boolean; errors: string[] } => {
-  const errors: string[] = []
-
-  if (!password || password.length < 8) {
-    errors.push('At least 8 characters')
-  }
-  if (!/[a-z]/.test(password)) {
-    errors.push('At least one lowercase letter')
-  }
-  if (!/[A-Z]/.test(password)) {
-    errors.push('At least one uppercase letter')
-  }
-  if (!/\d/.test(password)) {
-    errors.push('At least one digit')
-  }
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('At least one special character (!@#$%^&* etc)')
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors,
-  }
-}
+const MIN_PASSWORD_LENGTH = 8
 
 export const CreateSubAccountModal = ({
   isOpen,
@@ -64,7 +40,6 @@ export const CreateSubAccountModal = ({
   const [copiedField, setCopiedField] = useState<
     'email' | 'password' | 'url' | null
   >(null)
-  const [passwordErrors, setPasswordErrors] = useState<string[]>([])
   const [showPassword, setShowPassword] = useState(false)
 
   const {
@@ -72,26 +47,18 @@ export const CreateSubAccountModal = ({
     handleSubmit,
     watch,
     reset,
-    formState: { errors, isValid, touchedFields },
+    formState: { errors, isValid },
   } = useForm<FormValues>({ mode: 'onChange' })
 
   const password = watch('password')
-
-  // Validar password en tiempo real
-  useEffect(() => {
-    if (password) {
-      const validation = validatePassword(password)
-      setPasswordErrors(validation.errors)
-    } else {
-      setPasswordErrors([])
-    }
-  }, [password])
+  const passwordErrors = password
+    ? passwordPolicyErrors(password, MIN_PASSWORD_LENGTH)
+    : []
 
   const handleClose = () => {
     reset()
     setError(undefined)
     setSuccessData(null)
-    setPasswordErrors([])
     setShowPassword(false)
     onClose()
   }
@@ -132,7 +99,7 @@ export const CreateSubAccountModal = ({
     }
   }
 
-  const isPasswordValid = password && validatePassword(password).isValid
+  const isPasswordValid = !!password && passwordErrors.length === 0
   const isFormValid = isValid && isPasswordValid
 
   // Modal de éxito con credenciales
@@ -206,7 +173,7 @@ export const CreateSubAccountModal = ({
               <input
                 {...register('name', { required: 'Name is required' })}
                 placeholder="Account name"
-                className={inputClass}
+                className={inputClass(errors.name)}
               />
             </Field>
           )}
@@ -219,7 +186,7 @@ export const CreateSubAccountModal = ({
               })}
               type="email"
               placeholder="email@example.com"
-              className={inputClass}
+              className={inputClass(errors.email)}
             />
           </Field>
 
@@ -229,14 +196,12 @@ export const CreateSubAccountModal = ({
                 {...register('password', {
                   required: 'Password is required',
                   validate: (value: string) =>
-                    validatePassword(value).isValid ||
-                    'Password does not meet the requirements',
+                    passwordPolicyErrors(value, MIN_PASSWORD_LENGTH).length ===
+                      0 || 'Password does not meet the requirements',
                 })}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
-                className={`${inputClass} pr-10 ${
-                  passwordErrors.length > 0 ? 'border-red focus:ring-red' : ''
-                }`}
+                className={`${inputClass(passwordErrors.length > 0)} pr-10`}
               />
               <button
                 type="button"
@@ -251,20 +216,8 @@ export const CreateSubAccountModal = ({
                 )}
               </button>
             </div>
-            {passwordErrors.length > 0 && touchedFields.password && (
-              <div className="p-2 bg-red/10 border border-red rounded-md mt-2">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red flex-shrink-0 mt-0.5" />
-                  <div className="text-xs text-red-dark">
-                    <p className="font-medium mb-1">Password must contain:</p>
-                    <ul className="space-y-1">
-                      {passwordErrors.map((err) => (
-                        <li key={err}>• {err}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
+            {passwordErrors.length > 0 && (
+              <PasswordRequirements errors={passwordErrors} />
             )}
           </Field>
 
@@ -272,7 +225,7 @@ export const CreateSubAccountModal = ({
             <div className="relative">
               <select
                 {...register('country', { required: 'Country is required' })}
-                className={`${inputClass} appearance-none bg-white pr-8`}
+                className={`${inputClass(errors.country)} appearance-none bg-white pr-8`}
                 defaultValue=""
               >
                 <option value="" disabled>
@@ -296,7 +249,7 @@ export const CreateSubAccountModal = ({
                 required: 'Postal code is required',
               })}
               placeholder="12345"
-              className={inputClass}
+              className={inputClass(errors.postalCode)}
             />
           </Field>
 
@@ -324,25 +277,6 @@ export const CreateSubAccountModal = ({
     </Modal>
   )
 }
-
-const inputClass =
-  'w-full border border-gray-20 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary'
-
-const Field = ({
-  label,
-  error,
-  children,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-}) => (
-  <div className="flex flex-col gap-1">
-    <label className="text-sm font-medium text-gray-80">{label}</label>
-    {children}
-    {error && <span className="text-xs text-red">{error}</span>}
-  </div>
-)
 
 const CredentialField = ({
   label,

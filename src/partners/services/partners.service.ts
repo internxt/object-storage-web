@@ -32,10 +32,11 @@ interface DbSubAccount {
   id: string;
   storageProviderId: string;
   storageProvider: string;
-  status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
+  status: 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED';
   email: string | null;
   activeStorageBytes: number;
   deletedStorageBytes: number;
+  storageQuotaTb: number | null;
   createdAt: string;
 }
 
@@ -46,9 +47,13 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     id: raw.id,
     name: raw.id,
     email: raw.email ?? '',
-    status: raw.status === 'SUSPENDED' || raw.status === 'DELETED' ? raw.status : 'PAID_ACCOUNT',
+    status:
+      raw.status === 'SUSPENDED' || raw.status === 'PENDING_DELETION' || raw.status === 'DELETED'
+        ? raw.status
+        : 'PAID_ACCOUNT',
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
+    storageQuotaTb: raw.storageQuotaTb ?? null,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
     recordDate: '',
   };
@@ -61,6 +66,7 @@ export interface PartnerInfo {
   createdAt: string;
   automaticSubAccountCreationEnabled: boolean;
   twoFactorSetupRequired?: boolean;
+  hasWholesaler?: boolean;
 }
 
 async function getMe(): Promise<PartnerInfo> {
@@ -72,6 +78,7 @@ async function getSubAccounts(params: {
   page?: number;
   perPage?: number;
   email?: string;
+  status?: 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED';
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }): Promise<{ subAccounts: SubAccount[]; total: number }> {
@@ -105,6 +112,10 @@ async function deleteSubAccount(id: string): Promise<void> {
 
 async function changeSubAccountPassword(id: string, newPassword: string): Promise<void> {
   await axios.patch(`${API()}/sub-accounts/${id}/password`, { newPassword }, { headers: headers() });
+}
+
+async function updateSubAccountStorageQuota(id: string, limitTb: number | null): Promise<void> {
+  await axios.patch(`${API()}/sub-accounts/${id}/storage-quota`, { limitTb }, { headers: headers() });
 }
 
 async function getUsageSummary(): Promise<PartnersUsageSummary> {
@@ -209,6 +220,7 @@ export const partnersService = {
   reactivateSubAccount,
   deleteSubAccount,
   changeSubAccountPassword,
+  updateSubAccountStorageQuota,
   getUsageSummary,
   createBillingPortalSession,
   changePassword,

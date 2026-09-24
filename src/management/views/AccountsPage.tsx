@@ -65,7 +65,9 @@ export const AccountsPage = () => {
       const res = await managementService.getSubAccounts({
         page,
         perPage: PER_PAGE,
-        status: statusFilter as SubAccount['status'] | undefined || undefined,
+        status:
+          (statusFilter as Exclude<SubAccount['status'], 'PENDING_DELETION'> | undefined) ||
+          undefined,
         name: searchName || undefined,
         sortBy: activeStorageSortOrder ? 'activeStorage' : undefined,
         sortOrder: activeStorageSortOrder,

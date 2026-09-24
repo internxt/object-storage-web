@@ -10,6 +10,8 @@ import {
 import { partnersService } from '../services/partners.service'
 import notificationsService from '../../services/notifications.service'
 import { T, shadow } from '../../sub-account/tokens'
+import { useSubAccountBranding } from '../../sub-account/context/SubAccountBrandingContext/useSubAccountBranding'
+import { BrandLogo } from '../../components/BrandLogo'
 
 const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
   height: '100%',
@@ -144,6 +146,7 @@ const AvatarMenu = ({
 
 export const PartnersLayout = ({ children }: { children: ReactNode }) => {
   const { logOut, partnerInfo } = usePartners()
+  const { branding, styles } = useSubAccountBranding()
   const navigate = useNavigate()
   const [billingLoading, setBillingLoading] = useState(false)
 
@@ -172,6 +175,7 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
   return (
     <div
       style={{
+        ...styles,
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100vh',
@@ -193,10 +197,12 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img
-            src="/logo.svg"
-            alt="logo"
-            style={{ height: 14, filter: 'brightness(0)' }}
+          <BrandLogo
+            logoUrl={branding.logoUrl}
+            fallbackLogoUrl="/logo.svg"
+            fallbackAlt="Internxt"
+            darkenFallback
+            style={{ maxWidth: 132, height: 14 }}
           />
 
           <span
@@ -226,32 +232,34 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
             <NavLink to="/partners/sub-accounts" style={navLinkStyle}>
               Sub-Accounts
             </NavLink>
-            <button
-              onClick={openBilling}
-              disabled={billingLoading}
-              style={{
-                height: '100%',
-                padding: '0 14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                borderBottom: '2px solid transparent',
-                borderTop: 'none',
-                borderLeft: 'none',
-                borderRight: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                fontSize: 14,
-                fontWeight: 500,
-                fontFamily: 'inherit',
-                color: T.gray60,
-                whiteSpace: 'nowrap',
-                opacity: billingLoading ? 0.5 : 1,
-              }}
-            >
-              Billing
-              <ArrowSquareOutIcon size={14} />
-            </button>
+            {!partnerInfo?.hasWholesaler && (
+              <button
+                onClick={openBilling}
+                disabled={billingLoading}
+                style={{
+                  height: '100%',
+                  padding: '0 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  borderBottom: '2px solid transparent',
+                  borderTop: 'none',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  fontFamily: 'inherit',
+                  color: T.gray60,
+                  whiteSpace: 'nowrap',
+                  opacity: billingLoading ? 0.5 : 1,
+                }}
+              >
+                Billing
+                <ArrowSquareOutIcon size={14} />
+              </button>
+            )}
           </nav>
         </div>
 

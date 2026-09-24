@@ -16,6 +16,7 @@ import { AccountsPage } from './management/views/AccountsPage';
 import { SubAccountDetailPage } from './management/views/SubAccountDetailPage';
 import { PartnersPage } from './management/views/PartnersPage';
 import { PartnerDetailPage } from './management/views/PartnerDetailPage';
+import { WholesalersPage } from './management/views/WholesalersPage';
 import { ManagementAuthRoute } from './management/components/ManagementAuthRoute';
 import { PartnersProvider } from './partners/context/partnersContext';
 import { PartnersLoginPage } from './partners/views/PartnersLoginPage';
@@ -38,12 +39,19 @@ import { SubAccountResetPasswordPage } from './sub-account/views/SubAccountReset
 import { SharePage } from './views/SharePage';
 import { ShareAuthRoute } from './components/share/ShareAuthRoute';
 import { SubAccountBrandingProvider } from './sub-account/context/SubAccountBrandingContext/SubAccountBrandingContext';
+import { WholesalersProvider } from './wholesalers/context/wholesalersContext';
+import { WholesalersLoginPage } from './wholesalers/views/WholesalersLoginPage';
+import { WholesalersAuthRoute } from './wholesalers/components/WholesalersAuthRoute';
+import { WholesalersPartnersPage } from './wholesalers/views/WholesalersPartnersPage';
+import { WholesalersPartnerDetailPage } from './wholesalers/views/WholesalersPartnerDetailPage';
+import { WholesalersSettingsPage } from './wholesalers/views/WholesalersSettingsPage';
 
 const DEFAULT_LOGIN_PATH = '/subaccount/login';
 
 const LOGIN_PATH_BY_HOSTNAME: Record<string, string> = {
   'os.management.internxt.com': '/management/login',
   'os.partners.internxt.com': '/partners/login',
+  'os.wholesalers.internxt.com': '/wholesalers/login',
 };
 
 function getLoginPathForHost(): string {
@@ -55,6 +63,7 @@ export function App() {
     <UserProvider>
       <ManagementProvider>
         <PartnersProvider>
+          <WholesalersProvider>
           <SubAccountProvider>
           <SubAccountBrandingProvider>
             <Router>
@@ -81,6 +90,7 @@ export function App() {
                 <Route path='/management/accounts/:id' element={<SubAccountDetailPage />} />
                 <Route path='/management/partners' element={<PartnersPage />} />
                 <Route path='/management/partners/:id' element={<PartnerDetailPage />} />
+                <Route path='/management/wholesalers' element={<WholesalersPage />} />
               </Route>
               <Route path='/management' element={<Navigate to='/management/accounts' />} />
 
@@ -94,6 +104,19 @@ export function App() {
                 <Route path='/partners/sub-accounts/:id' element={<PartnersSubAccountDetailPage />} />
                 <Route path='/partners/settings' element={<PartnersSettingsPage />} />
               </Route>
+
+              {/* Wholesalers console — hidden behind a feature flag until the panel ships */}
+              {import.meta.env.VITE_ENABLE_WHOLESALER_PANEL === 'true' && (
+                <>
+                  <Route path='/wholesalers/login' element={<WholesalersLoginPage />} />
+                  <Route element={<WholesalersAuthRoute />}>
+                    <Route path='/wholesalers' element={<Navigate to='/wholesalers/partners' />} />
+                    <Route path='/wholesalers/partners' element={<WholesalersPartnersPage />} />
+                    <Route path='/wholesalers/partners/:id' element={<WholesalersPartnerDetailPage />} />
+                    <Route path='/wholesalers/settings' element={<WholesalersSettingsPage />} />
+                  </Route>
+                </>
+              )}
 
               {/* Sub-account console */}
               <Route path='/subaccount/login' element={<SubAccountLoginPage />} />
@@ -113,6 +136,7 @@ export function App() {
             </Router>
           </SubAccountBrandingProvider>
           </SubAccountProvider>
+          </WholesalersProvider>
         </PartnersProvider>
       </ManagementProvider>
     </UserProvider>

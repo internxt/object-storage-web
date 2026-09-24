@@ -36,4 +36,10 @@ export const shareService = {
     });
     return response.data.url;
   },
+  preview: async (token: string, key?: string): Promise<{ url: string; contentType: string }> => {
+    const response = await subAccountAxios.get<{ url: string; contentType: string }>(`/shares/${token}/preview`, {
+      params: { key },
+    });
+    return response.data;
+  },
 };
