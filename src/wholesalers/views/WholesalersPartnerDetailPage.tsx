@@ -1,56 +1,41 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, HardDrives, PencilSimple, Users } from '@phosphor-icons/react';
+import { ArrowLeft, Database, Gauge, HardDrives, PencilSimple, Users } from '@phosphor-icons/react';
 import { wholesalersService, WholesalerPartner, WholesalerPartnerUsageSummary } from '../services/wholesalers.service';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { DeletePartnerAction } from '../components/DeletePartnerAction';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useWholesalers } from '../context/wholesalersContext';
-import { StorageQuotaCell } from '../../management/components/PartnersSubAccountsTable';
+import { IconButton } from '../../components/IconButton';
 import { StorageLimitInfo } from '../components/StorageLimitInfo';
 import { EditPartnerStorageLimitModal } from '../components/EditPartnerStorageLimitModal';
 
-const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
+const StatCard = ({
+  icon,
+  value,
+  label,
+  labelSuffix,
+  action,
+}: {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+  labelSuffix?: React.ReactNode;
+  action?: React.ReactNode;
+}) => (
   <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>
     <div className='w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center flex-shrink-0'>
       {icon}
     </div>
     <div>
       <div className='text-lg font-bold text-gray-900'>{value}</div>
-      <div className='text-xs text-gray-400'>{label}</div>
-    </div>
-  </div>
-);
-
-const StorageLimitCard = ({
-  limit,
-  usedTb,
-  readOnly,
-  onEdit,
-}: {
-  limit: number | null;
-  usedTb?: number;
-  readOnly: boolean;
-  onEdit: () => void;
-}) => (
-  <div className='bg-white rounded-xl shadow-sm p-5 flex items-start justify-between gap-4 flex-wrap'>
-    <div className='flex flex-col gap-1'>
-      <div className='flex items-center gap-1.5'>
-        <h2 className='text-sm font-semibold text-gray-900'>Storage Limit</h2>
-        <StorageLimitInfo />
+      <div className='flex items-center gap-1 text-xs text-gray-400'>
+        {label}
+        {labelSuffix}
       </div>
-      {usedTb != null && <StorageQuotaCell used={usedTb} quota={limit} />}
     </div>
-    {!readOnly && usedTb != null && (
-      <button
-        onClick={onEdit}
-        className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors'
-      >
-        <PencilSimple size={14} />
-        Edit limit
-      </button>
-    )}
+    {action && <div className='ml-auto self-start'>{action}</div>}
   </div>
 );
 
@@ -144,7 +129,7 @@ export const WholesalersPartnerDetailPage = () => {
         )}
       </div>
 
-      <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         <StatCard
           icon={<Database size={20} weight='duotone' className='text-indigo-600' />}
           value={loading ? '…' : `${(usage?.activeStorageTb ?? 0).toFixed(4)} TB`}
@@ -160,16 +145,28 @@ export const WholesalersPartnerDetailPage = () => {
           value={loading ? '…' : String(usage?.totalSubAccounts ?? 0)}
           label='Sub-accounts'
         />
+        {partner && (
+          <StatCard
+            icon={<Gauge size={20} weight='duotone' className='text-indigo-600' />}
+            value={partner.storageLimitTB != null ? `${partner.storageLimitTB} TB` : 'No limit'}
+            label='Storage Limit'
+            labelSuffix={<StorageLimitInfo />}
+            action={
+              !isViewer &&
+              usage && (
+                <IconButton
+                  aria-label='Edit storage limit'
+                  title='Edit limit'
+                  className='text-gray-400 hover:text-gray-700 hover:bg-gray-50'
+                  onClick={() => setIsEditingStorageLimit(true)}
+                >
+                  <PencilSimple size={16} />
+                </IconButton>
+              )
+            }
+          />
+        )}
       </div>
-
-      {partner && (
-        <StorageLimitCard
-          limit={partner.storageLimitTB ?? null}
-          usedTb={usage?.activeStorageTb}
-          readOnly={isViewer}
-          onEdit={() => setIsEditingStorageLimit(true)}
-        />
-      )}
 
       {partner && usage && (
         <EditPartnerStorageLimitModal
