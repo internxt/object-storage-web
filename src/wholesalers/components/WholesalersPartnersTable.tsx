@@ -5,6 +5,7 @@ import { useWholesalers } from '../context/wholesalersContext';
 import { StatusBadge } from '../../components/StatusBadge';
 import { T } from '../../sub-account/tokens';
 import { StorageQuotaCell } from '../../management/components/PartnersSubAccountsTable';
+import { StorageLimitInfo } from './StorageLimitInfo';
 
 interface Props {
   partners: WholesalerPartner[];
@@ -27,7 +28,15 @@ const COLUMNS = [
   { header: 'Email', align: 'left' as const },
   { header: 'Sub-accounts', align: 'right' as const },
   { header: 'Active Storage (TB)', align: 'right' as const },
-  { header: 'Storage Limit', align: 'left' as const },
+  {
+    header: (
+      <span className='inline-flex items-center gap-1'>
+        Storage Limit
+        <StorageLimitInfo popsFrom='bottom' />
+      </span>
+    ),
+    align: 'left' as const,
+  },
   { header: 'Status', align: 'left' as const },
   { header: 'Created', align: 'left' as const },
   { header: '', align: 'right' as const },

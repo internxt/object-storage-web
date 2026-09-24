@@ -1,19 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, HardDrives, Users } from '@phosphor-icons/react';
+import { ArrowLeft, Database, HardDrives, PencilSimple, Users } from '@phosphor-icons/react';
 import { wholesalersService, WholesalerPartner, WholesalerPartnerUsageSummary } from '../services/wholesalers.service';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { DeletePartnerAction } from '../components/DeletePartnerAction';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useWholesalers } from '../context/wholesalersContext';
-import { Switch } from '../../components/Switch';
 import { StorageQuotaCell } from '../../management/components/PartnersSubAccountsTable';
-import {
-  belowUsageMessage,
-  storageLimitSaveErrorMessage,
-  storageLimitValidationError,
-} from '../utils/storageLimit';
+import { StorageLimitInfo } from '../components/StorageLimitInfo';
+import { EditPartnerStorageLimitModal } from '../components/EditPartnerStorageLimitModal';
 
 const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
   <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>
@@ -31,76 +27,32 @@ const StorageLimitCard = ({
   limit,
   usedTb,
   readOnly,
-  onSave,
+  onEdit,
 }: {
   limit: number | null;
   usedTb?: number;
   readOnly: boolean;
-  onSave: (storageLimitTB: number | null) => Promise<void>;
-}) => {
-  const [enabled, setEnabled] = useState(limit != null);
-  const [value, setValue] = useState(limit != null ? String(limit) : '');
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    setEnabled(limit != null);
-    setValue(limit != null ? String(limit) : '');
-  }, [limit]);
-
-  const validationError = enabled && value !== '' ? storageLimitValidationError(value) : undefined;
-  const nextLimit = enabled ? Number(value) : null;
-  const belowUsage = nextLimit != null && !validationError && usedTb != null && nextLimit < usedTb;
-  const hasChanges = enabled ? value !== '' && nextLimit !== limit : limit != null;
-  const canSave = !readOnly && !busy && hasChanges && !validationError && !belowUsage;
-
-  const save = async () => {
-    setBusy(true);
-    try {
-      await onSave(nextLimit);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className='bg-white rounded-xl shadow-sm p-5 flex flex-col gap-3'>
-      <div className='flex items-start justify-between gap-4 flex-wrap'>
-        <div className='flex flex-col gap-1'>
-          <h2 className='text-sm font-semibold text-gray-900'>Storage Limit</h2>
-          {usedTb != null && <StorageQuotaCell used={usedTb} quota={limit} />}
-        </div>
-        <Switch label='Limit storage' checked={enabled} disabled={readOnly || busy} onChange={setEnabled} />
+  onEdit: () => void;
+}) => (
+  <div className='bg-white rounded-xl shadow-sm p-5 flex items-start justify-between gap-4 flex-wrap'>
+    <div className='flex flex-col gap-1'>
+      <div className='flex items-center gap-1.5'>
+        <h2 className='text-sm font-semibold text-gray-900'>Storage Limit</h2>
+        <StorageLimitInfo />
       </div>
-
-      {!readOnly && (
-        <div className='flex items-center gap-2 flex-wrap'>
-          {enabled && (
-            <>
-              <input
-                inputMode='numeric'
-                value={value}
-                disabled={busy}
-                placeholder='1–10'
-                onChange={(e) => setValue(e.target.value)}
-                className='w-32 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400 disabled:bg-gray-50'
-              />
-              <span className='text-sm text-gray-700'>TB</span>
-            </>
-          )}
-          <button
-            disabled={!canSave}
-            onClick={save}
-            className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
-          >
-            {busy ? 'Saving…' : 'Save'}
-          </button>
-          {validationError && <span className='text-xs text-red-600'>{validationError}</span>}
-          {belowUsage && <span className='text-xs text-red-600'>{belowUsageMessage(usedTb)}</span>}
-        </div>
-      )}
+      {usedTb != null && <StorageQuotaCell used={usedTb} quota={limit} />}
     </div>
-  );
-};
+    {!readOnly && usedTb != null && (
+      <button
+        onClick={onEdit}
+        className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors'
+      >
+        <PencilSimple size={14} />
+        Edit limit
+      </button>
+    )}
+  </div>
+);
 
 export const WholesalersPartnerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -114,6 +66,7 @@ export const WholesalersPartnerDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditingStorageLimit, setIsEditingStorageLimit] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -134,15 +87,11 @@ export const WholesalersPartnerDetailPage = () => {
 
   const handleStorageLimitSave = async (storageLimitTB: number | null) => {
     if (!partner) return;
-    try {
-      await wholesalersService.updatePartnerStorageLimit(partner.id, storageLimitTB);
-      navigate(location.pathname, { replace: true, state: { partner: { ...partner, storageLimitTB } } });
-      notificationsService.success({
-        text: storageLimitTB == null ? 'Storage limit removed' : `Storage limit set to ${storageLimitTB} TB`,
-      });
-    } catch (err) {
-      notificationsService.error({ text: storageLimitSaveErrorMessage(err, usage?.activeStorageTb) });
-    }
+    await wholesalersService.updatePartnerStorageLimit(partner.id, storageLimitTB);
+    navigate(location.pathname, { replace: true, state: { partner: { ...partner, storageLimitTB } } });
+    notificationsService.success({
+      text: storageLimitTB == null ? 'Storage limit removed' : `Storage limit set to ${storageLimitTB} TB`,
+    });
   };
 
   const handleDelete = async (partnerId: string) => {
@@ -218,6 +167,16 @@ export const WholesalersPartnerDetailPage = () => {
           limit={partner.storageLimitTB ?? null}
           usedTb={usage?.activeStorageTb}
           readOnly={isViewer}
+          onEdit={() => setIsEditingStorageLimit(true)}
+        />
+      )}
+
+      {partner && usage && (
+        <EditPartnerStorageLimitModal
+          isOpen={isEditingStorageLimit}
+          onClose={() => setIsEditingStorageLimit(false)}
+          limit={partner.storageLimitTB ?? null}
+          usedTb={usage.activeStorageTb}
           onSave={handleStorageLimitSave}
         />
       )}

@@ -8,6 +8,7 @@ import { PasswordRequirements } from '../../components/FieldFeedback';
 import { Field, inputClass } from '../../components/FormField';
 import { Switch } from '../../components/Switch';
 import { storageLimitValidationError } from '../utils/storageLimit';
+import { StorageLimitInfo } from './StorageLimitInfo';
 import { apiErrorMessage } from '../../utils/apiError';
 
 interface Props {
@@ -120,14 +121,17 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
           </Field>
 
           <div className='flex flex-col gap-2'>
-            <Switch
-              label='Storage limit'
-              checked={isStorageLimitEnabled}
-              onChange={(checked) => {
-                setIsStorageLimitEnabled(checked);
-                if (!checked) unregister('storageLimitTB');
-              }}
-            />
+            <div className='flex items-center gap-1.5'>
+              <Switch
+                label='Storage limit'
+                checked={isStorageLimitEnabled}
+                onChange={(checked) => {
+                  setIsStorageLimitEnabled(checked);
+                  if (!checked) unregister('storageLimitTB');
+                }}
+              />
+              <StorageLimitInfo />
+            </div>
             {isStorageLimitEnabled && (
               <Field label='Storage limit (TB)' error={errors.storageLimitTB?.message}>
                 <input

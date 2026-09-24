@@ -13,7 +13,7 @@ export const storageLimitValidationError = (value: string): string | undefined =
   return undefined;
 };
 
-export const belowUsageMessage = (usedTb?: number): string =>
+const belowUsageMessage = (usedTb?: number): string =>
   usedTb == null
     ? "The limit can't be lower than the partner's current usage"
     : `The limit can't be lower than the partner's current usage (${usedTb.toFixed(2)} TB)`;
