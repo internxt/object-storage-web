@@ -104,6 +104,7 @@ export const SubAccountLoginPage = () => {
       branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
         mapLoginError={mapLoginError}
         hideLocalForm={ssoOnly}
+        forgotPasswordPath='/subaccount/forgot-password'
         ssoSlot={
           <button
             type='button'

@@ -1,4 +1,5 @@
 import { type CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BrandLogo } from '../BrandLogo';
 
 export interface AuthPageBranding {
@@ -25,6 +26,7 @@ export const AuthPageLayout = ({
   branding,
   children,
 }: AuthPageLayoutProps) => {
+  const { t } = useTranslation('common');
   const defaultLogoUrl = branding
     ? '/logo.svg'
     : 'https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png';
@@ -76,7 +78,7 @@ export const AuthPageLayout = ({
               <div className='ml-auto h-2 w-12 rounded-full bg-white/20' />
             </div>
             <div className='grid grid-cols-3 gap-2'>
-              {['Total Reserved', 'Used Storage', 'Remaining'].map((label) => (
+              {[t('login.mockTotalReserved'), t('login.mockUsedStorage'), t('login.mockRemaining')].map((label) => (
                 <div key={label} className='bg-white/10 rounded-xl p-3 flex flex-col gap-2'>
                   <div className='h-1.5 w-12 rounded-full bg-white/30' />
                   <div className='h-3 w-16 rounded-full bg-white/50' />

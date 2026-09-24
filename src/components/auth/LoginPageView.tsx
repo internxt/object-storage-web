@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   BaseSyntheticEvent,
   type CSSProperties,
@@ -39,6 +39,7 @@ interface LoginPageViewProps {
   mapLoginError?: (error: unknown) => string | undefined
   supportsTwoFactor?: boolean
   hideLocalForm?: boolean
+  forgotPasswordPath?: string
 }
 
 export const LoginPageView = ({
@@ -54,6 +55,7 @@ export const LoginPageView = ({
   mapLoginError,
   supportsTwoFactor,
   hideLocalForm,
+  forgotPasswordPath,
 }: LoginPageViewProps) => {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
@@ -197,6 +199,15 @@ export const LoginPageView = ({
                 error={errors.password}
                 className={inputClass}
               />
+
+              {forgotPasswordPath && (
+                <Link
+                  to={forgotPasswordPath}
+                  className="self-end px-1 text-[13px] text-gray-60 no-underline hover:text-gray-900 transition-colors"
+                >
+                  {t('login.forgotPassword')}
+                </Link>
+              )}
 
               {twoFactorRequired && (
                 <input
