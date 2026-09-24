@@ -16,6 +16,7 @@ export const PartnersLoginPage = () => {
       logIn={logIn}
       redirectTo='/partners/sub-accounts'
       branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
+      forgotPasswordPath='/partners/forgot-password'
       supportsTwoFactor
     />
   );
