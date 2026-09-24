@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   DotsThreeVerticalIcon,
   EyeIcon,
@@ -115,6 +116,7 @@ interface BucketRowProps {
 }
 
 const BucketRow = ({ bucket, regionName, onOpen, onDelete }: BucketRowProps) => {
+  const { t } = useTranslation('subaccount');
   const [isRowHovered, setIsRowHovered] = useState(false);
   const [isTriggerHovered, setIsTriggerHovered] = useState(false);
 
@@ -184,8 +186,8 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete }: BucketRowProps) => 
           <Dropdown
             button={
               <span
-                aria-label="Bucket actions"
-                title="Bucket actions"
+                aria-label={t('buckets.bucketActionsLabel')}
+                title={t('buckets.bucketActionsLabel')}
                 onMouseEnter={() => setIsTriggerHovered(true)}
                 onMouseLeave={() => setIsTriggerHovered(false)}
                 style={{
@@ -204,12 +206,12 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete }: BucketRowProps) => 
             }
             items={[
               {
-                label: 'View',
+                label: t('buckets.view'),
                 icon: <EyeIcon size={16} color={T.gray60} />,
                 onClick: onOpen,
               },
               {
-                label: 'Delete bucket',
+                label: t('buckets.deleteBucket'),
                 icon: <TrashIcon size={16} color="#E50B00" />,
                 onClick: onDelete,
               },
@@ -235,8 +237,6 @@ interface BucketsTableProps {
   onCreateOpen: () => void;
 }
 
-const TABLE_HEADERS = ['Name', 'Region', 'Created', ''];
-
 const BucketsTable = ({
   buckets,
   totalCount,
@@ -247,7 +247,10 @@ const BucketsTable = ({
   onOpen,
   onDelete,
   onCreateOpen,
-}: BucketsTableProps) => (
+}: BucketsTableProps) => {
+  const { t } = useTranslation('subaccount');
+  const TABLE_HEADERS = [t('buckets.columnName'), t('buckets.columnRegion'), t('buckets.columnCreated'), ''];
+  return (
   <div
     style={{
       background: '#fff',
@@ -268,16 +271,16 @@ const BucketsTable = ({
       }}
     >
       <div>
-        <p style={{ fontSize: 16, fontWeight: 600, color: T.gray100 }}>Buckets</p>
+        <p style={{ fontSize: 16, fontWeight: 600, color: T.gray100 }}>{t('buckets.title')}</p>
         <p style={{ fontSize: 13, color: T.gray50, marginTop: 2 }}>
-          {totalCount} {totalCount === 1 ? 'bucket' : 'buckets'} total
+          {t('buckets.totalCount', { count: totalCount })}
         </p>
       </div>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
         <div style={{ width: 280 }}>
           <Input
             variant="search"
-            placeholder="Search buckets..."
+            placeholder={t('buckets.searchPlaceholder')}
             value={search}
             maxLength={63}
             onChange={onSearchChange}
@@ -290,7 +293,7 @@ const BucketsTable = ({
           className="flex items-center gap-2 h-10 px-[18px] bg-[var(--primary,#0066FF)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] border-none rounded-lg cursor-pointer text-sm font-medium whitespace-nowrap"
         >
           <PlusIcon size={18} weight="bold" />
-          Create bucket
+          {t('buckets.createBucket')}
         </button>
       </div>
     </div>
@@ -326,14 +329,14 @@ const BucketsTable = ({
     {/* Body */}
     {isLoading ? (
       <div style={{ padding: '40px 24px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
-        Loading buckets…
+        {t('buckets.loading')}
       </div>
     ) : buckets.length === 0 ? (
       <div style={{ padding: '56px 24px', textAlign: 'center' }}>
-        <p style={{ fontSize: 14, fontWeight: 500, color: T.gray80 }}>No buckets found</p>
+        <p style={{ fontSize: 14, fontWeight: 500, color: T.gray80 }}>{t('buckets.noBucketsFound')}</p>
         {search && (
           <p style={{ fontSize: 13, color: T.gray50, marginTop: 4 }}>
-            Try a different search term
+            {t('buckets.tryDifferentSearch')}
           </p>
         )}
       </div>
@@ -352,7 +355,8 @@ const BucketsTable = ({
       })
     )}
   </div>
-);
+  );
+};
 
 // ─── CreateBucketModal ────────────────────────────────────────────────────────
 
@@ -376,6 +380,7 @@ const INITIAL_FORM_STATE = {
 const CreateBucketModal = ({
   isOpen, onClose, regions, credentials, bucketNames, onCreated,
 }: CreateBucketModalProps) => {
+  const { t } = useTranslation('subaccount');
   const [formState, setFormState] = useState(INITIAL_FORM_STATE);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -410,7 +415,7 @@ const CreateBucketModal = ({
     try {
       if (await s3Service.bucketExists(regionClient, bucketName)) {
         notificationsService.error({
-          text: 'The requested bucket name is not available. The bucket namespace is shared by all users of the system. Please select a different name and try again.',
+          text: t('buckets.createModal.bucketNameTakenError'),
         });
         return;
       }
@@ -455,16 +460,16 @@ const CreateBucketModal = ({
   return (
     <Modal isOpen={isOpen} onClose={() => !isCreating && onClose()}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 400 }}>
-        <p style={{ ...text.heading }}>Create Bucket</p>
+        <p style={{ ...text.heading }}>{t('buckets.createModal.title')}</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label htmlFor="new-bucket-name" style={{ ...text.label }}>
-            Bucket name
+            {t('buckets.createModal.bucketNameLabel')}
           </label>
           <input
             id="new-bucket-name"
             type="text"
-            placeholder="my-bucket"
+            placeholder={t('buckets.createModal.bucketNamePlaceholder')}
             value={bucketName}
             onChange={(e) => updateForm({ bucketName: e.target.value })}
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
@@ -472,13 +477,13 @@ const CreateBucketModal = ({
             style={inputStyle}
           />
           <p style={{ ...form.hint, marginTop: 0, color: bucketName && !isValidBucketName(bucketName) ? T.red : form.hint.color }}>
-            3-63 characters, lowercase letters, numbers, dots and hyphens. Must start and end with a letter or number.
+            {t('buckets.createModal.bucketNameHint')}
           </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label htmlFor="new-bucket-region" style={{ ...text.label }}>
-            Region
+            {t('buckets.createModal.regionLabel')}
           </label>
           <select
             id="new-bucket-region"
@@ -496,18 +501,17 @@ const CreateBucketModal = ({
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ ...text.label }}>Bucket Versioning</span>
+            <span style={{ ...text.label }}>{t('buckets.createModal.versioningLabel')}</span>
             <Switch checked={versioningEnabled} onChange={onToggleVersioning} disabled={isCreating} />
           </div>
           <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
-            When versioning is enabled, you can then retrieve and restore any previous version of an object in the
-            bucket. Note: versions of objects are added to your total data storage costs.
+            {t('buckets.createModal.versioningHint')}
           </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ ...text.label }}>Object Locking</span>
+            <span style={{ ...text.label }}>{t('buckets.createModal.objectLockLabel')}</span>
             <Switch
               checked={objectLockEnabled}
               onChange={(enabled) => updateForm({ objectLockEnabled: enabled })}
@@ -516,11 +520,9 @@ const CreateBucketModal = ({
           </div>
           <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
             {!versioningEnabled
-              ? '(Versioning must be enabled) '
+              ? t('buckets.createModal.objectLockVersioningRequired')
               : ''}
-            Enabling Object lock will allow you to prevent objects from being overwritten or deleted for a fixed
-            amount of time. Toggling this box will permanently enable Object lock functionality for the duration of
-            the bucket's existence.
+            {t('buckets.createModal.objectLockHint')}
           </p>
         </div>
 
@@ -537,7 +539,7 @@ const CreateBucketModal = ({
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <Button variant="secondary" type="button" onClick={onClose} disabled={isCreating}>
-            Cancel
+            {t('actions.cancel')}
           </Button>
           <Button
             type="button"
@@ -545,7 +547,7 @@ const CreateBucketModal = ({
             loading={isCreating}
             onClick={handleCreate}
           >
-            Create
+            {t('actions.create')}
           </Button>
         </div>
       </div>
@@ -556,6 +558,7 @@ const CreateBucketModal = ({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const SubAccountBucketsPage = () => {
+  const { t } = useTranslation('subaccount');
   const navigate = useNavigate();
   const { entityId, memberId } = useSubAccount();
   const { client, credentials } = useSubAccountS3Client(entityId, memberId);
@@ -662,12 +665,12 @@ export const SubAccountBucketsPage = () => {
 
   const stats: StatItem[] = [
     {
-      label: 'Buckets',
+      label: t('buckets.title'),
       value: String(allBuckets.length),
-      hint: `In ${regionCount} ${regionCount === 1 ? 'region' : 'regions'}`,
+      hint: t('buckets.statBucketsHint', { count: regionCount }),
     },
-    { label: 'Objects stored', value: '—', hint: 'Across all buckets' },
-    { label: 'Used storage', value: '—', hint: 'Active data' },
+    { label: t('buckets.statObjectsStored'), value: '—', hint: t('buckets.statObjectsStoredHint') },
+    { label: t('buckets.statUsedStorage'), value: '—', hint: t('buckets.statUsedStorageHint') },
   ];
 
   const handleOpen = (bucket: BucketRecord) => {

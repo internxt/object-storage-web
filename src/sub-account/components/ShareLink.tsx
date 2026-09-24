@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CheckIcon, CopyIcon } from '@phosphor-icons/react';
 import Button from '../../components/Button';
 import { copyToClipboard } from '../../utils/copyToClipboard';
@@ -13,6 +14,7 @@ interface ShareLinkProps {
 }
 
 export const ShareLink = ({ url, isFolder }: ShareLinkProps) => {
+  const { t } = useTranslation('subaccount');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -24,13 +26,13 @@ export const ShareLink = ({ url, isFolder }: ShareLinkProps) => {
   const onCopy = async () => {
     await copyToClipboard(url);
     setCopied(true);
-    notificationsService.success({ text: 'Link copied to clipboard' });
+    notificationsService.success({ text: t('shareLink.linkCopied') });
   };
 
   return (
     <>
       <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
-        Anyone with this link can {isFolder ? 'browse and download the contents of this folder' : 'download this file'}.
+        {isFolder ? t('shareLink.descriptionFolder') : t('shareLink.descriptionFile')}
       </p>
       <div style={{ display: 'flex', gap: 8 }}>
         <input
@@ -46,7 +48,7 @@ export const ShareLink = ({ url, isFolder }: ShareLinkProps) => {
         />
         <Button type="button" onClick={onCopy}>
           {copied ? <CheckIcon size={15} /> : <CopyIcon size={15} />}
-          <span>{copied ? 'Copied' : 'Copy'}</span>
+          <span>{copied ? t('shareLink.copied') : t('shareLink.copy')}</span>
         </Button>
       </div>
     </>

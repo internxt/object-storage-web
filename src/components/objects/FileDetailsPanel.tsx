@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { XIcon, DownloadSimpleIcon, CopyIcon, TrashIcon, CheckCircleIcon, PencilSimpleIcon, LinkIcon } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
+import { XIcon, DownloadSimpleIcon, CopyIcon, TrashIcon, CheckCircleIcon, PencilSimpleIcon, LinkIcon, EyeIcon } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -24,6 +25,7 @@ interface FileDetailsPanelProps {
   onDownload: (obj: S3Object) => void;
   onCopyPath: (obj: S3Object) => void;
   onShare?: (obj: S3Object) => void;
+  onPreview?: (obj: S3Object) => void;
   onDelete: (obj: S3Object) => void;
   onShowAllVersions: (obj: S3Object) => void;
   onSaveRetention?: (mode: RetentionMode, retainUntilDate: Date) => Promise<void>;
@@ -59,8 +61,9 @@ const RetentionOption = ({ title, description, badge, selected, warning, onSelec
 );
 
 export const FileDetailsPanel = ({
-  obj, retention, isSavingRetention = false, onClose, onDownload, onCopyPath, onShare, onDelete, onShowAllVersions, onSaveRetention,
+  obj, retention, isSavingRetention = false, onClose, onDownload, onCopyPath, onShare, onPreview, onDelete, onShowAllVersions, onSaveRetention,
 }: FileDetailsPanelProps) => {
+  const { t } = useTranslation('subaccount');
   const filename = obj.key.split('/').filter(Boolean).pop() ?? obj.key;
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const tzAbbr = new Intl.DateTimeFormat('en', { timeZoneName: 'shortOffset', timeZone: tz })
@@ -93,7 +96,7 @@ export const FileDetailsPanel = ({
   return (
     <div className='flex flex-col h-full w-80 border-l border-gray-20 bg-white'>
       <div className='flex items-center justify-between px-6 py-4 border-b border-gray-20'>
-        <p className='font-semibold text-gray-100'>File Details</p>
+        <p className='font-semibold text-gray-100'>{t('fileDetailsPanel.title')}</p>
         <button type='button' onClick={onClose} className='text-gray-40 hover:text-gray-60'>
           <XIcon size={18} />
         </button>
@@ -101,37 +104,37 @@ export const FileDetailsPanel = ({
 
       <div className='flex flex-col gap-5 px-6 py-5 flex-1 overflow-y-auto'>
         <div className='flex flex-col gap-1'>
-          <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>File Name</p>
+          <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>{t('fileDetailsPanel.fileName')}</p>
           <p className='text-sm text-gray-100 break-all'>{filename}</p>
         </div>
 
         <div className='flex flex-col gap-1'>
-          <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>File Size</p>
+          <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>{t('fileDetailsPanel.fileSize')}</p>
           <p className='text-sm text-gray-100'>{prettyBytes(obj.size)}</p>
         </div>
 
         <div className='flex flex-col gap-1'>
-          <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>Last Modified</p>
+          <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>{t('fileDetailsPanel.lastModified')}</p>
           <p className='text-sm text-gray-100'>
             {dayjs(obj.lastModified).format('DD-MMM-YYYY hh:mm A')} ({tzAbbr})
           </p>
         </div>
 
         <div className='flex flex-col gap-1'>
-          <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>Path</p>
+          <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>{t('fileDetailsPanel.path')}</p>
           <p className='text-sm text-gray-50 break-all'>{obj.key}</p>
         </div>
 
         <div className='flex flex-col gap-1'>
           <div className='flex items-center justify-between'>
-            <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>Version ID</p>
+            <p className='text-xs text-gray-50 font-medium uppercase tracking-wide'>{t('fileDetailsPanel.versionId')}</p>
             {!obj.isFolder && (
               <button
                 type='button'
                 onClick={() => onShowAllVersions(obj)}
                 className='text-xs text-primary hover:underline'
               >
-                Show all versions
+                {t('fileDetailsPanel.showAllVersions')}
               </button>
             )}
           </div>
@@ -145,55 +148,58 @@ export const FileDetailsPanel = ({
             <div className='flex items-center justify-between'>
               <p className='text-xs text-gray-50 font-medium uppercase tracking-wide flex items-center gap-1.5'>
                 {retention?.mode && <CheckCircleIcon size={14} weight='fill' className='text-green' />}
-                Object Locking
+                {t('fileDetailsPanel.objectLocking')}
               </p>
               {onSaveRetention && (
                 <button type='button' onClick={openEdit} className='text-xs text-primary hover:underline flex items-center gap-1'>
-                  <PencilSimpleIcon size={12} /> Edit
+                  <PencilSimpleIcon size={12} /> {t('fileDetailsPanel.edit')}
                 </button>
               )}
             </div>
             {retention?.mode && retention.retainUntilDate ? (
               <>
-                <p className='text-sm text-gray-100'>Mode: {retention.mode}</p>
+                <p className='text-sm text-gray-100'>{t('fileDetailsPanel.mode', { mode: retention.mode })}</p>
                 <p className='text-sm text-gray-100'>
-                  Retain Until: {dayjs(retention.retainUntilDate).format('DD-MMM-YYYY hh:mm A')} ({tzAbbr})
+                  {t('fileDetailsPanel.retainUntil', {
+                    date: dayjs(retention.retainUntilDate).format('DD-MMM-YYYY hh:mm A'),
+                    tz: tzAbbr,
+                  })}
                 </p>
               </>
             ) : (
-              <p className='text-xs text-gray-50'>Not locked</p>
+              <p className='text-xs text-gray-50'>{t('fileDetailsPanel.notLocked')}</p>
             )}
           </div>
         )}
 
         {isEditing && (
           <div className='flex flex-col gap-4 pt-1 border-t border-gray-10'>
-            <p className='text-sm font-semibold text-gray-100 pt-4'>Object Locking</p>
+            <p className='text-sm font-semibold text-gray-100 pt-4'>{t('fileDetailsPanel.objectLocking')}</p>
 
             <RetentionOption
-              title='Enable Governance Mode'
-              badge={retention?.mode === RetentionMode.GOVERNANCE ? 'Enabled' : undefined}
-              description='Objects placed in Governance Mode remain immutable until after they have reached the retain until date, unless a user has specific IAM permissions to alter the settings.'
+              title={t('fileDetailsPanel.enableGovernanceMode')}
+              badge={retention?.mode === RetentionMode.GOVERNANCE ? t('fileDetailsPanel.enabledBadge') : undefined}
+              description={t('fileDetailsPanel.governanceDescription')}
               selected={editChoice === RetentionMode.GOVERNANCE}
               onSelect={() => setEditChoice(RetentionMode.GOVERNANCE)}
             />
             <RetentionOption
-              title='Compliance Mode'
-              badge={retention?.mode === RetentionMode.COMPLIANCE ? 'Enabled' : undefined}
-              description='Objects placed in Compliance Mode remain immutable until after they have reached the retain until date. This cannot be reversed for any reason, by any user, regardless of user permissions.'
+              title={t('fileDetailsPanel.complianceMode')}
+              badge={retention?.mode === RetentionMode.COMPLIANCE ? t('fileDetailsPanel.enabledBadge') : undefined}
+              description={t('fileDetailsPanel.complianceDescription')}
               selected={editChoice === RetentionMode.COMPLIANCE}
               onSelect={() => setEditChoice(RetentionMode.COMPLIANCE)}
             />
             <RetentionOption
-              title='None'
-              description='This is only used if an Object Locking Configuration exists.'
+              title={t('fileDetailsPanel.none')}
+              description={t('fileDetailsPanel.noneDescription')}
               selected={editChoice === 'NONE'}
               warning={isLockedCompliance}
               onSelect={() => setEditChoice('NONE')}
             />
 
             <div className='flex items-center justify-between gap-3'>
-              <label className='text-sm text-gray-80 whitespace-nowrap'>Retain Until:</label>
+              <label className='text-sm text-gray-80 whitespace-nowrap'>{t('fileDetailsPanel.retainUntilLabel')}</label>
               <input
                 type='date'
                 value={editDate}
@@ -214,7 +220,7 @@ export const FileDetailsPanel = ({
             disabled={isSavingRetention}
             className='px-4 py-2 text-sm border border-gray-30 rounded-md text-gray-80 hover:bg-gray-5 transition-colors disabled:opacity-50'
           >
-            Cancel
+            {t('actions.cancel')}
           </button>
           <button
             type='button'
@@ -222,18 +228,28 @@ export const FileDetailsPanel = ({
             disabled={!canApply || isSavingRetention}
             className='px-4 py-2 text-sm rounded-md bg-gray-100 text-white hover:opacity-90 transition-colors disabled:opacity-50'
           >
-            {isSavingRetention ? 'Applying…' : 'Apply'}
+            {isSavingRetention ? t('fileDetailsPanel.applying') : t('fileDetailsPanel.apply')}
           </button>
         </div>
       ) : (
         <div className='flex flex-col border-t border-gray-10'>
+          {onPreview && (
+            <button
+              type='button'
+              onClick={() => onPreview(obj)}
+              className='flex items-center gap-3 px-6 py-3.5 text-sm text-gray-80 hover:bg-gray-5 transition-colors'
+            >
+              <EyeIcon size={18} className='text-gray-50' />
+              {t('fileDetailsPanel.preview')}
+            </button>
+          )}
           <button
             type='button'
             onClick={() => onDownload(obj)}
             className='flex items-center gap-3 px-6 py-3.5 text-sm text-gray-80 hover:bg-gray-5 transition-colors'
           >
             <DownloadSimpleIcon size={18} className='text-gray-50' />
-            Download File
+            {t('fileDetailsPanel.downloadFile')}
           </button>
           <button
             type='button'
@@ -241,7 +257,7 @@ export const FileDetailsPanel = ({
             className='flex items-center gap-3 px-6 py-3.5 text-sm text-gray-80 hover:bg-gray-5 transition-colors'
           >
             <CopyIcon size={18} className='text-gray-50' />
-            Copy Path
+            {t('fileDetailsPanel.copyPath')}
           </button>
           {onShare && (
             <button
@@ -250,7 +266,7 @@ export const FileDetailsPanel = ({
               className='flex items-center gap-3 px-6 py-3.5 text-sm text-gray-80 hover:bg-gray-5 transition-colors'
             >
               <LinkIcon size={18} className='text-gray-50' />
-              Share
+              {t('fileDetailsPanel.share')}
             </button>
           )}
           <button
@@ -259,7 +275,7 @@ export const FileDetailsPanel = ({
             className='flex items-center gap-3 px-6 py-3.5 text-sm text-red hover:bg-gray-5 transition-colors'
           >
             <TrashIcon size={18} />
-            Delete File
+            {t('fileDetailsPanel.deleteFile')}
           </button>
         </div>
       )}

@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileIcon, FolderIcon, TrashIcon } from '@phosphor-icons/react';
 import { IconButton } from '../../../components/IconButton';
 import { formatDateTime } from '../../../utils/formatDate';
 import { displayName } from '../../../utils/displayName';
 import { T, text } from '../../tokens';
 import { ShareListItem } from '../../services/share.service';
-import { LABELS, shareResourcePath, shareTypeLabel } from './constants';
+import { NO_VALUE, shareResourcePath, shareTypeLabelKey } from './constants';
 import { bodyRow, ellipsis, iconTile } from './styles';
 
 interface ShareRowProps {
@@ -14,6 +15,7 @@ interface ShareRowProps {
 }
 
 export const ShareRow = ({ share, onRevoke }: ShareRowProps) => {
+  const { t } = useTranslation('subaccount');
   const [isRowHovered, setIsRowHovered] = useState(false);
   const Icon = share.isFolder ? FolderIcon : FileIcon;
   const path = shareResourcePath(share);
@@ -37,14 +39,14 @@ export const ShareRow = ({ share, onRevoke }: ShareRowProps) => {
         </div>
       </div>
 
-      <span style={{ ...text.body, ...ellipsis }}>{share.creator || LABELS.noValue}</span>
+      <span style={{ ...text.body, ...ellipsis }}>{share.creator || NO_VALUE}</span>
 
-      <span style={text.body}>{shareTypeLabel(share)}</span>
+      <span style={text.body}>{t(shareTypeLabelKey(share))}</span>
 
       <span style={{ ...text.body, color: T.gray60 }}>{formatDateTime(new Date(share.createdAt))}</span>
       <span style={{ display: 'flex', justifyContent: 'center' }}>
         {isRowHovered && (
-          <IconButton title={LABELS.revokeTitle} onClick={onRevoke} style={{ color: T.gray60 }}>
+          <IconButton title={t('shares.revokeTitle')} onClick={onRevoke} style={{ color: T.gray60 }}>
             <TrashIcon size={16} />
           </IconButton>
         )}

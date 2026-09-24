@@ -1,0 +1,25 @@
+{
+  "login": {
+    "welcomeBack": "Bienvenido de nuevo",
+    "emailPlaceholder": "Correo electrónico",
+    "passwordPlaceholder": "Contraseña",
+    "emailRequired": "El correo electrónico no puede estar vacío",
+    "passwordRequired": "La contraseña no puede estar vacía",
+    "twoFactorCodePlaceholder": "Código de 6 dígitos",
+    "invalidCode": "Código no válido",
+    "invalidCredentials": "Credenciales no válidas",
+    "or": "o",
+    "signingIn": "Iniciando sesión…",
+    "verify": "Verificar",
+    "logIn": "Iniciar sesión",
+    "mockTotalReserved": "Total reservado",
+    "mockUsedStorage": "Almacenamiento usado",
+    "mockRemaining": "Restante"
+  },
+  "pagination": {
+    "perPage": "{{count}} por página",
+    "page": "Página {{number}}",
+    "previousPage": "Página anterior",
+    "nextPage": "Página siguiente"
+  }
+}

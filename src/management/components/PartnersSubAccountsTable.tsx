@@ -8,9 +8,7 @@ import { ConfirmActionModal } from './ConfirmActionModal'
 import { ChangePasswordModal } from './ChangePasswordModal'
 import { PartnerInfo } from '../../partners/services/partners.service'
 import { T, shadow } from '../../sub-account/tokens'
-
-// TODO: flip back to true once the delete-sub-account backend PR is merged
-const SHOW_DELETE_ACTION = false
+import { StatusBadge } from '../../components/StatusBadge'
 
 interface Props {
   subAccounts: SubAccount[]
@@ -41,63 +39,25 @@ const formatStorage = (value?: number) => {
   return value.toFixed(4)
 }
 
-const StatusBadge = ({ status }: { status: SubAccount['status'] }) => {
-  if (!status) return null
-  const config = {
-    PAID_ACCOUNT: {
-      bg: '#f0fdf4',
-      border: '#bbf7d0',
-      color: '#15803d',
-      dot: '#22c55e',
-      label: 'Paid',
-    },
-    SUSPENDED: {
-      bg: '#f4f4f5',
-      border: '#d4d4d8',
-      color: '#52525b',
-      dot: '#a1a1aa',
-      label: 'Suspended',
-    },
-    DELETED: {
-      bg: '#fef2f2',
-      border: '#fecaca',
-      color: '#b91c1c',
-      dot: '#f87171',
-      label: 'Deleted',
-    },
-  }[status]
-  if (!config)
-    return <span style={{ fontSize: 12, color: T.gray50 }}>{status}</span>
+const QUOTA_WARNING_PCT = 80;
+
+const StorageQuotaCell = ({ used, quota }: { used?: number; quota?: number | null }) => {
+  if (quota == null) return <span style={{ fontSize: 13, color: T.gray50 }}>No limit</span>;
+
+  const pct = quota > 0 ? ((used ?? 0) / quota) * 100 : 0;
+  const color = pct >= 100 ? T.red : pct >= QUOTA_WARNING_PCT ? '#d97706' : T.primary;
+
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: '0.02em',
-        padding: '4px 10px',
-        borderRadius: 999,
-        border: '1px solid',
-        background: config.bg,
-        borderColor: config.border,
-        color: config.color,
-      }}
-    >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: '50%',
-          flexShrink: 0,
-          background: config.dot,
-        }}
-      />
-      {config.label}
-    </span>
-  )
-}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 104 }}>
+      <div style={{ width: '100%', height: 6, borderRadius: 999, background: T.gray15, overflow: 'hidden' }}>
+        <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', borderRadius: 999, background: color }} />
+      </div>
+      <span style={{ fontSize: 12, color: T.gray50, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+        {(used ?? 0).toFixed(2)} / {quota} TB · <span style={{ color, fontWeight: 500 }}>{pct.toFixed(0)}%</span>
+      </span>
+    </div>
+  );
+};
 
 const ActionsMenu = ({
   account,
@@ -148,7 +108,7 @@ const ActionsMenu = ({
     setConfirmAction(null)
   }
 
-  if (account.status === 'DELETED') return null
+  if (account.status === 'DELETED' || account.status === 'PENDING_DELETION') return null
 
   return (
     <div>
@@ -296,39 +256,34 @@ const ActionsMenu = ({
                 </button>
               )}
 
-              {/* TODO: re-enable once the delete-sub-account backend PR is merged */}
-              {SHOW_DELETE_ACTION && (
-                <>
-                  <div
-                    style={{ height: 1, background: T.gray15, margin: '4px 0' }}
-                  />
-                  <button
-                    onClick={() => {
-                      setConfirmAction('delete')
-                      setOpen(false)
-                    }}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '8px 16px',
-                      fontSize: 14,
-                      color: T.red,
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#fef2f2'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent'
-                    }}
-                  >
-                    Delete
-                  </button>
-                </>
-              )}
+              <div
+                style={{ height: 1, background: T.gray15, margin: '4px 0' }}
+              />
+              <button
+                onClick={() => {
+                  setConfirmAction('delete')
+                  setOpen(false)
+                }}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 16px',
+                  fontSize: 14,
+                  color: T.red,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#fef2f2'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                Delete
+              </button>
             </div>
           </>,
           document.body,
@@ -453,6 +408,10 @@ export const PartnersSubAccountsTable = ({
       ),
     },
     {
+      header: 'Storage Quota',
+      cell: (acc) => <StorageQuotaCell used={acc.activeStorage} quota={acc.storageQuotaTb} />,
+    },
+    {
       header: 'Created',
       cell: (acc) => (
         <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>
@@ -462,7 +421,19 @@ export const PartnersSubAccountsTable = ({
     },
     {
       header: 'Status',
-      cell: (acc) => <StatusBadge status={acc.status} />,
+      cell: (acc) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <StatusBadge status={acc.status} />
+          {acc.status === 'PENDING_DELETION' && (
+            <span
+              title="This account is scheduled for deletion and will be permanently removed in 1 day"
+              style={{ display: 'inline-flex', flexShrink: 0 }}
+            >
+              <InfoIcon size={14} color={T.gray50} />
+            </span>
+          )}
+        </div>
+      ),
     },
     ...(!readOnly
       ? [

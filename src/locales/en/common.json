@@ -1,0 +1,25 @@
+{
+  "login": {
+    "welcomeBack": "Welcome back",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "emailRequired": "Email must not be empty",
+    "passwordRequired": "Password must not be empty",
+    "twoFactorCodePlaceholder": "6-digit code",
+    "invalidCode": "Invalid code",
+    "invalidCredentials": "Invalid credentials",
+    "or": "or",
+    "signingIn": "Signing in…",
+    "verify": "Verify",
+    "logIn": "Log in",
+    "mockTotalReserved": "Total Reserved",
+    "mockUsedStorage": "Used Storage",
+    "mockRemaining": "Remaining"
+  },
+  "pagination": {
+    "perPage": "{{count}} per page",
+    "page": "Page {{number}}",
+    "previousPage": "Previous page",
+    "nextPage": "Next page"
+  }
+}

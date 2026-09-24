@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { WarningCircleIcon } from '@phosphor-icons/react';
 import Modal from '../Modal';
 import Input from '../Input';
@@ -22,6 +23,7 @@ interface ConfigureSsoModalProps {
 }
 
 export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose, onConfigured }: ConfigureSsoModalProps) => {
+  const { t } = useTranslation('subaccount');
   const [organizationName, setOrganizationName] = useState('');
   const [tenantId, setTenantId] = useState('');
   const [clientId, setClientId] = useState('');
@@ -58,11 +60,11 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
     } catch (err) {
       const code = getSsoErrorCode(err);
       if (code === SSO_ERROR_CODES.ORGANIZATION_NAME_TAKEN) {
-        setOrgNameError('This organization name is already in use');
+        setOrgNameError(t('sso.configureModal.organizationNameTaken'));
       } else if (code === SSO_ERROR_CODES.SSO_ALREADY_CONFIGURED) {
-        setSubmitError('SSO is already configured for this account.');
+        setSubmitError(t('sso.configureModal.alreadyConfiguredError'));
       } else {
-        setSubmitError('Failed to save the SSO configuration. Try again.');
+        setSubmitError(t('sso.configureModal.saveFailedError'));
       }
     } finally {
       setIsLoading(false);
@@ -73,43 +75,43 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
     <Modal isOpen={isOpen} onClose={onClose}>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
         <div>
-          <p style={{ ...text.heading, margin: 0 }}>Configure SSO</p>
+          <p style={{ ...text.heading, margin: 0 }}>{t('sso.configureModal.title')}</p>
           <p style={{ ...text.hint, margin: '6px 0 0' }}>
-            Connect this account to Microsoft Entra ID (Azure AD) so members sign in with their Microsoft account.
+            {t('sso.configureModal.description')}
           </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={form.label}>Organization name</label>
+          <label style={form.label}>{t('sso.organizationNameLabel')}</label>
           <Input
             value={organizationName}
             onChange={(v) => setOrganizationName(v.toLowerCase())}
-            placeholder='your-organization'
+            placeholder={t('sso.configureModal.organizationNamePlaceholder')}
             accent={orgNameError ? 'error' : undefined}
             message={orgNameError}
           />
           <p style={form.hint}>
-            Members will enter this name when signing in with SSO. Lowercase letters, numbers and hyphens (3-63 characters).
+            {t('sso.configureModal.organizationNameHint')}
           </p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={form.label}>Provider</label>
+          <label style={form.label}>{t('sso.providerLabel')}</label>
           <select value='azure-ad' disabled style={{ ...form.select, color: T.gray60 }}>
-            <option value='azure-ad'>Microsoft Entra ID (Azure AD)</option>
+            <option value='azure-ad'>{t('sso.providerValue')}</option>
           </select>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={form.label}>Directory (tenant) ID</label>
-          <Input value={tenantId} onChange={setTenantId} placeholder='00000000-0000-0000-0000-000000000000' />
+          <label style={form.label}>{t('sso.tenantIdLabel')}</label>
+          <Input value={tenantId} onChange={setTenantId} placeholder={t('sso.configureModal.directoryIdPlaceholder')} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={form.label}>Application (client) ID</label>
-          <Input value={clientId} onChange={setClientId} placeholder='00000000-0000-0000-0000-000000000000' />
+          <label style={form.label}>{t('sso.clientIdLabel')}</label>
+          <Input value={clientId} onChange={setClientId} placeholder={t('sso.configureModal.directoryIdPlaceholder')} />
           <p style={form.hint}>
-            In your Azure app registration, add a Single-page application redirect URI:{' '}
+            {t('sso.configureModal.redirectUriHint')}{' '}
             <span style={{ fontFamily: 'monospace' }}>{`${window.location.origin}/subaccount/login`}</span>
           </p>
         </div>
@@ -118,7 +120,7 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', borderRadius: 8, background: '#FFF7E6', color: '#8A5A00' }}>
             <WarningCircleIcon size={18} weight='fill' style={{ flexShrink: 0, marginTop: 1 }} />
             <span style={{ fontSize: 13, lineHeight: 1.45 }}>
-              This account already has members. Once SSO is enabled, their passwords will stop working and they will have to sign in with SSO.
+              {t('sso.configureModal.hasOtherMembersWarning')}
             </span>
           </div>
         )}
@@ -131,7 +133,7 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
             style={{ marginTop: 2 }}
           />
           <span style={{ ...text.body, fontSize: 13 }}>
-            I understand SSO settings cannot be modified after saving.
+            {t('sso.configureModal.acknowledgeCheckbox')}
           </span>
         </label>
 
@@ -144,10 +146,10 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
           <Button variant='secondary' type='button' onClick={onClose} disabled={isLoading}>
-            Cancel
+            {t('actions.cancel')}
           </Button>
           <Button type='submit' disabled={!canSubmit} loading={isLoading}>
-            Save configuration
+            {t('sso.configureModal.save')}
           </Button>
         </div>
       </form>

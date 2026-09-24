@@ -1,19 +1,68 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { broadcastResponseToMainFrame } from '@azure/msal-browser/redirect-bridge';
 import { LoginPageView } from '../../components/auth/LoginPageView';
 import Skeleton from 'react-loading-skeleton';
 import { useSubAccount } from '../context/SubAccountContext';
 import { useSubAccountBranding } from '../context/SubAccountBrandingContext/useSubAccountBranding';
-import { subAccountConsoleBranding } from '../console-branding';
+import { isSharedConsoleHostname } from '../context/SubAccountBrandingContext/service';
 
 import { SsoLoginModal } from '../../components/sso/SsoLoginModal';
-import { SSO_ERROR_CODES, getSsoErrorCode } from '../services/sub-account-sso.service';
+import {
+  PublicSsoConfig,
+  SSO_ERROR_CODES,
+  getSsoErrorCode,
+  subAccountSsoService,
+} from '../services/sub-account-sso.service';
+
+const SSO_HOSTNAME_LOOKUP_TIMEOUT_MS = 4000;
+
+type SsoHostnameLookup =
+  | { status: 'checking' }
+  | { status: 'configured'; config: PublicSsoConfig }
+  | { status: 'not-configured' };
 
 export const SubAccountLoginPage = () => {
+  const { t } = useTranslation('subaccount');
   const { isAuthenticated, logIn, logInWithSso } = useSubAccount();
   const { branding, isLoading, styles } = useSubAccountBranding();
+  const isCustomDomain = !isSharedConsoleHostname();
 
   const [isSsoModalOpen, setIsSsoModalOpen] = useState(false);
+  const [ssoHostnameLookup, setSsoHostnameLookup] = useState<SsoHostnameLookup>(
+    isSharedConsoleHostname() ? { status: 'not-configured' } : { status: 'checking' },
+  );
+
+  useEffect(() => {
+    if (isSharedConsoleHostname()) return;
+
+    let settled = false;
+    const timeoutId = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      setSsoHostnameLookup({ status: 'not-configured' });
+    }, SSO_HOSTNAME_LOOKUP_TIMEOUT_MS);
+
+    subAccountSsoService
+      .getConfigByHostname(window.location.hostname)
+      .then((config) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        setSsoHostnameLookup({ status: 'configured', config });
+      })
+      .catch(() => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        setSsoHostnameLookup({ status: 'not-configured' });
+      });
+
+    return () => {
+      settled = true;
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
   useEffect(() => {
     // This page doubles as the MSAL popup's redirect target. Only forward the
@@ -29,29 +78,39 @@ export const SubAccountLoginPage = () => {
 
   const mapLoginError = (error: unknown): string | undefined => {
     if (getSsoErrorCode(error) === SSO_ERROR_CODES.SSO_REQUIRED) {
-      return "This account uses single sign-on. Use 'Sign in with SSO' below.";
+      return t('login.ssoRequiredError');
     }
     return undefined;
   };
 
-  if (isLoading) return <SubAccountLoginSkeleton />;
+  if (isLoading || ssoHostnameLookup.status === 'checking') return <SubAccountLoginSkeleton />;
+
+  const ssoOnly = ssoHostnameLookup.status === 'configured';
 
   return (
     <>
       <LoginPageView
-        {...subAccountConsoleBranding}
+        consoleTitle={t('login.consoleTitle')}
+        rightHeadline={isCustomDomain ? undefined : <>{t('login.rightHeadlineLine1')}<br />{t('login.rightHeadlineLine2')}</>}
+        rightDescription={isCustomDomain ? undefined : t('login.rightDescription')}
+        rightFeaturePills={isCustomDomain ? undefined : [
+          t('login.featurePillBucketManagement'),
+          t('login.featurePillObjectStorage'),
+          t('login.featurePillTeamPermissions'),
+        ]}
         isAuthenticated={isAuthenticated}
         logIn={logIn}
         redirectTo='/subaccount/buckets'
-        branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
+      branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
         mapLoginError={mapLoginError}
+        hideLocalForm={ssoOnly}
         ssoSlot={
           <button
             type='button'
             onClick={() => setIsSsoModalOpen(true)}
             className='w-full h-[52px] rounded-xl bg-[#f5f5f7] hover:bg-[#ebebed] text-gray-900 text-[15px] font-medium tracking-[-0.01em] transition-colors'
           >
-            Sign in with SSO
+            {t('login.signInWithSso')}
           </button>
         }
       />
@@ -59,14 +118,16 @@ export const SubAccountLoginPage = () => {
         isOpen={isSsoModalOpen}
         onClose={() => setIsSsoModalOpen(false)}
         logInWithSso={logInWithSso}
+        resolvedConfig={ssoOnly ? ssoHostnameLookup.config : undefined}
       />
     </>
   );
 };
 
 function SubAccountLoginSkeleton() {
+  const { t } = useTranslation('subaccount');
   return (
-    <div aria-busy='true' aria-label='Loading console branding' className='flex w-screen min-h-screen' style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' }}>
+    <div aria-busy='true' aria-label={t('shared.loadingBrandingAriaLabel')} className='flex w-screen min-h-screen' style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' }}>
       <div className='relative flex flex-col w-full lg:max-w-[520px] min-h-screen bg-white px-10 lg:px-16 py-10 flex-shrink-0'>
         <Skeleton height={28} width={180} />
         <div className='flex flex-col flex-1 justify-center max-w-[320px] gap-8'>

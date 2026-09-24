@@ -1,5 +1,5 @@
 import { CSSProperties } from 'react';
-import { DownloadSimpleIcon, FileIcon, FolderIcon } from '@phosphor-icons/react';
+import { DownloadSimpleIcon, EyeIcon, FileIcon, FolderIcon } from '@phosphor-icons/react';
 import prettyBytes from 'pretty-bytes';
 import { IconButton } from '../IconButton';
 import { ShareListItem } from '../../services/share.service';
@@ -7,7 +7,7 @@ import { displayName } from '../../utils/displayName';
 import { T } from '../../sub-account/tokens';
 
 const rowStyle: CSSProperties = {
-  display: 'grid', gridTemplateColumns: '24px 1fr 100px 40px', alignItems: 'center', gap: 10,
+  display: 'grid', gridTemplateColumns: '24px 1fr 100px 40px 40px', alignItems: 'center', gap: 10,
   padding: '0 24px', height: 48, borderBottom: `1px solid ${T.gray15}`,
 };
 
@@ -23,9 +23,10 @@ interface ObjectRowProps {
   obj: ShareListItem;
   onOpen: () => void;
   onDownload: () => void;
+  onPreview: () => void;
 }
 
-export const ObjectRow = ({ obj, onOpen, onDownload }: ObjectRowProps) => {
+export const ObjectRow = ({ obj, onOpen, onDownload, onPreview }: ObjectRowProps) => {
   if (obj.isFolder) {
     return (
       <button
@@ -53,6 +54,9 @@ export const ObjectRow = ({ obj, onOpen, onDownload }: ObjectRowProps) => {
         {displayName(obj.key)}
       </span>
       <span style={sizeStyle}>{prettyBytes(obj.size)}</span>
+      <IconButton aria-label={`Preview ${displayName(obj.key)}`} onClick={onPreview} style={{ color: T.gray60 }}>
+        <EyeIcon size={16} />
+      </IconButton>
       <IconButton aria-label={`Download ${displayName(obj.key)}`} onClick={onDownload} style={{ color: T.gray60 }}>
         <DownloadSimpleIcon size={16} />
       </IconButton>

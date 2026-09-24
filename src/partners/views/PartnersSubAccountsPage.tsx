@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { MagnifyingGlass, CaretLeft, CaretRight } from '@phosphor-icons/react'
+import {
+  MagnifyingGlass,
+  CaretLeft,
+  CaretRight,
+  FunnelSimple,
+} from '@phosphor-icons/react'
 import {
   partnersService,
   PartnersUsageSummary,
@@ -11,10 +16,17 @@ import { SortOrder } from '../../management/components/SubAccountsTable'
 import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal'
 import notificationsService from '../../services/notifications.service'
 import { usePartners } from '../context/partnersContext'
-import { T, card } from '../../sub-account/tokens'
+import { T, card, shadow } from '../../sub-account/tokens'
 
 const ACCENT = '#6366f1'
 const POSITIVE = '#10b981'
+
+const STATUS_OPTIONS = [
+  { label: 'All', value: '' },
+  { label: 'Active', value: 'ACTIVE' },
+  { label: 'Suspended', value: 'SUSPENDED' },
+  { label: 'Pending deletion', value: 'PENDING_DELETION' },
+] as const
 
 const labelStyle = {
   fontSize: 10,
@@ -44,6 +56,8 @@ export const PartnersSubAccountsPage = () => {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
   const [searchEmail, setSearchEmail] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [activeStorageSortOrder, setActiveStorageSortOrder] = useState<
@@ -57,7 +71,7 @@ export const PartnersSubAccountsPage = () => {
 
   useEffect(() => {
     fetchSubAccounts()
-  }, [page, activeStorageSortOrder])
+  }, [page, statusFilter, activeStorageSortOrder])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -82,6 +96,12 @@ export const PartnersSubAccountsPage = () => {
         page,
         perPage: PER_PAGE,
         email: searchEmail || undefined,
+        status: (statusFilter || undefined) as
+          | 'ACTIVE'
+          | 'SUSPENDED'
+          | 'PENDING_DELETION'
+          | 'DELETED'
+          | undefined,
         sortBy: activeStorageSortOrder ? 'activeStorage' : undefined,
         sortOrder: activeStorageSortOrder,
       })
@@ -126,6 +146,7 @@ export const PartnersSubAccountsPage = () => {
       await partnersService.deleteSubAccount(id)
       notificationsService.success({ text: 'Account deleted' })
       fetchSubAccounts()
+      fetchUsageSummary()
     } catch (err) {
       notificationsService.error({ text: (err as Error).message })
     } finally {
@@ -292,6 +313,92 @@ export const PartnersSubAccountsPage = () => {
                 border: 'none',
               }}
             />
+          </div>
+
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setFilterMenuOpen((o) => !o)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                height: 40,
+                padding: '0 12px',
+                border: `1px solid ${statusFilter ? T.primary : T.gray20}`,
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 500,
+                background: statusFilter ? T.primaryBg : T.white,
+                color: statusFilter ? T.primary : T.gray60,
+              }}
+            >
+              <FunnelSimple size={14} />
+              {statusFilter
+                ? STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label
+                : 'Filter'}
+            </button>
+            {filterMenuOpen && (
+              <>
+                <div
+                  style={{ position: 'fixed', inset: 0, zIndex: 10 }}
+                  onClick={() => setFilterMenuOpen(false)}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 'calc(100% + 4px)',
+                    background: T.white,
+                    border: `1px solid ${T.gray20}`,
+                    borderRadius: 8,
+                    boxShadow: shadow.lg,
+                    width: 192,
+                    zIndex: 20,
+                    overflow: 'hidden',
+                  }}
+                >
+                  {STATUS_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setStatusFilter(opt.value)
+                        setPage(0)
+                        setFilterMenuOpen(false)
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 16px',
+                        fontSize: 14,
+                        border: 'none',
+                        cursor: 'pointer',
+                        background:
+                          statusFilter === opt.value ? T.primaryBg : 'transparent',
+                        color: statusFilter === opt.value ? T.primary : T.gray80,
+                        fontWeight: statusFilter === opt.value ? 500 : 400,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (statusFilter !== opt.value)
+                          e.currentTarget.style.background = T.gray5
+                      }}
+                      onMouseLeave={(e) => {
+                        if (statusFilter !== opt.value)
+                          e.currentTarget.style.background = 'transparent'
+                      }}
+                    >
+                      {opt.label}
+                      {statusFilter === opt.value && (
+                        <span style={{ color: T.primary }}>✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 

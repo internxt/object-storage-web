@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TrashIcon, LockKeyIcon, EyeIcon, EyeSlashIcon, GearIcon, InfoIcon, DotsThreeVerticalIcon, CaretDownIcon, PencilSimpleIcon, PlusIcon } from '@phosphor-icons/react';
 import subAccountAxios from '../core/sub-account-axios';
 import { subAccountS3CredentialsService, S3Credentials } from '../services/sub-account-s3-credentials.service';
@@ -12,9 +13,11 @@ import { SectionCard, ReadField } from '../components/SettingsAtoms';
 import { AssignPermissionsModal } from '../components/permissions-manager/AssignPermissionsModal';
 import { PolicyDocument } from '../services/iamPolicy.service';
 import Dialog from '../../components/Dialog';
+import { ChangePasswordForm } from '../../components/ChangePasswordForm';
 import { Dropdown } from '../../components/Dropdown';
-import { formatDate } from '../../utils/formatDate';
+import { formatDate, formatDateTime } from '../../utils/formatDate';
 import { copyToClipboard } from '../../utils/copyToClipboard';
+import { auditService, AuditEventItem } from '../services/audit.service';
 
 // ─── Design tokens (from design spec)
 // surface-muted / input bg  → bg-gray-5   = #F3F3F8
@@ -29,7 +32,7 @@ import { copyToClipboard } from '../../utils/copyToClipboard';
 // success text/dot          → text-green / bg-green
 // success bg                → bg-green/[0.12]
 
-type Tab = 'profile' | 'members' | 'access-keys' | 'account';
+type Tab = 'profile' | 'members' | 'access-keys' | 'account' | 'audit';
 
 interface MemberItem {
   id: string;
@@ -37,13 +40,6 @@ interface MemberItem {
   role: string;
   createdAt: string;
 }
-
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'profile',     label: 'Profile'     },
-  { key: 'members',     label: 'Members'     },
-  { key: 'access-keys', label: 'Access Keys' },
-  { key: 'account',     label: 'Account'     },
-];
 
 function avatarInitials(email: string): string {
   const local = email.split('@')[0] ?? '';
@@ -55,32 +51,6 @@ function avatarInitials(email: string): string {
 // ─── Shared atoms ────────────────────────────────────────────────────────────
 
 /** Password input with eye toggle */
-const PasswordInput = ({
-  label, placeholder = '', value, show, onChange, onToggle, noPaste = false,
-}: { label: string; placeholder?: string; value: string; show: boolean; onChange: (v: string) => void; onToggle: () => void; noPaste?: boolean }) => (
-  <div>
-    <p className='text-sm font-medium text-gray-100 mb-1.5'>{label}</p>
-    <div className='relative'>
-      <input
-        type={show ? 'text' : 'password'}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onPaste={noPaste ? (e) => e.preventDefault() : undefined}
-        className='w-full h-10 bg-gray-5 border border-gray-10 rounded-lg px-3 pr-10 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary'
-      />
-      <button
-        type='button'
-        onClick={onToggle}
-        className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-50 hover:text-gray-60'
-      >
-        {show ? <EyeIcon size={16} /> : <EyeSlashIcon size={16} />}
-      </button>
-    </div>
-  </div>
-);
-
-/** Square avatar — variant 'primary' (solid blue) or 'tint' (blue-tinted) */
 const AvatarSquare = ({ initials, variant }: { initials: string; variant: 'primary' | 'tint' }) => (
   <div className={`w-[132px] h-[132px] rounded-2xl flex items-center justify-center text-[48px] font-bold select-none shrink-0 ${
     variant === 'primary' ? 'bg-primary text-[color:var(--sub-account-primary-contrast,#FFFFFF)]' : 'bg-primary/[0.08] text-primary'
@@ -90,32 +60,31 @@ const AvatarSquare = ({ initials, variant }: { initials: string; variant: 'prima
 );
 
 /** Active / Primary pill */
-const Pill = ({ type }: { type: 'active' | 'primary' }) =>
-  type === 'active' ? (
+const Pill = ({ type }: { type: 'active' | 'primary' }) => {
+  const { t } = useTranslation('subaccount');
+  return type === 'active' ? (
     <span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green'>
       <span className='w-1.5 h-1.5 rounded-full bg-green shrink-0' />
-      Active
+      {t('settings.accessKeys.active')}
     </span>
   ) : (
     <span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/[0.08] text-primary'>
       <span className='w-1.5 h-1.5 rounded-full bg-primary shrink-0' />
-      Primary
+      {t('settings.accessKeys.primary')}
     </span>
   );
+};
 
 // ─── Profile Tab ──────────────────────────────────────────────────────────────
 
+const MIN_PASSWORD_LENGTH = 8;
+
 const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: string; role: string }) => {
+  const { t } = useTranslation('subaccount');
   const [savedEmail, setSavedEmail] = useState('');
   const [email, setEmail] = useState('');
   const [memberCreatedAt, setMemberCreatedAt] = useState('');
   const [isSavingEmail, setIsSavingEmail] = useState(false);
-  const [oldPw, setOldPw] = useState('');
-  const [newPw, setNewPw] = useState('');
-  const [confirmPw, setConfirmPw] = useState('');
-  const [showOld, setShowOld] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     subAccountAxios.get<MemberItem[]>(`/sub-accounts/${entityId}/members`)
@@ -132,36 +101,15 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
 
   const initials = email ? avatarInitials(email) : '—';
   const canUpdate = email.trim().length > 0 && email !== savedEmail;
-  const [isSavingPw, setIsSavingPw] = useState(false);
-  const canUpdatePw = oldPw.length > 0 && newPw.length >= 8 && newPw === confirmPw;
-
-  const handleUpdatePassword = async () => {
-    if (!canUpdatePw) return;
-    setIsSavingPw(true);
-    try {
-      const { data } = await subAccountAxios.patch<{ token?: string }>(
-        `/sub-accounts/${entityId}/members/${memberId}`,
-        { oldPassword: oldPw, newPassword: newPw },
-      );
-      if (data?.token) subAccountAuthService.setToken(data.token);
-      notificationsService.success({ text: 'Password updated' });
-      setOldPw(''); setNewPw(''); setConfirmPw('');
-    } catch (err: any) {
-      notificationsService.error({ text: err?.response?.data?.message ?? 'Failed to update password' });
-    } finally {
-      setIsSavingPw(false);
-    }
-  };
-
   const handleUpdateEmail = async () => {
     if (!canUpdate) return;
     setIsSavingEmail(true);
     try {
       await subAccountAxios.patch(`/sub-accounts/${entityId}/members/${memberId}`, { email: email.trim() });
       setSavedEmail(email.trim());
-      notificationsService.success({ text: 'Email updated' });
+      notificationsService.success({ text: t('settings.profile.emailUpdated') });
     } catch (err: any) {
-      notificationsService.error({ text: err?.response?.data?.message ?? 'Failed to update email' });
+      notificationsService.error({ text: err?.response?.data?.message ?? t('settings.profile.emailUpdateFailed') });
     } finally {
       setIsSavingEmail(false);
     }
@@ -170,7 +118,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
   return (
     <div className='flex flex-col gap-5'>
       <SectionCard
-        title='Profile'
+        title={t('settings.profile.sectionTitle')}
         action={
           <button
             disabled={!canUpdate || isSavingEmail}
@@ -178,7 +126,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
             onClick={handleUpdateEmail}
           >
             <PencilSimpleIcon size={14} />
-            {isSavingEmail ? 'Saving…' : 'Update'}
+            {isSavingEmail ? t('settings.profile.saving') : t('settings.profile.update')}
           </button>
         }
       >
@@ -189,7 +137,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
           </div>
           <div className='flex-1 flex flex-col gap-4'>
             <div>
-              <p className='text-sm font-medium text-gray-100 mb-1.5'>Email</p>
+              <p className='text-sm font-medium text-gray-100 mb-1.5'>{t('settings.profile.emailLabel')}</p>
               <input
                 type='email'
                 value={email}
@@ -197,27 +145,36 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
                 className='w-full h-10 bg-gray-5 border border-gray-10 rounded-lg px-3 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary'
               />
             </div>
-            <ReadField label='Member role' value={role} />
-            <ReadField label='Created at' value={memberCreatedAt} />
+            <ReadField label={t('settings.profile.memberRoleLabel')} value={role} />
+            <ReadField label={t('settings.profile.createdAtLabel')} value={memberCreatedAt} />
           </div>
         </div>
       </SectionCard>
 
-      <SectionCard title='Change password'>
-        <div className='flex flex-col gap-4'>
-          <PasswordInput label='Old password' value={oldPw} show={showOld} onChange={setOldPw} onToggle={() => setShowOld(v => !v)} />
-          <PasswordInput label='New password' placeholder='At least 8 characters' value={newPw} show={showNew} onChange={setNewPw} onToggle={() => setShowNew(v => !v)} />
-          <PasswordInput label='Confirm password' placeholder='Repeat new password' value={confirmPw} show={showConfirm} onChange={setConfirmPw} onToggle={() => setShowConfirm(v => !v)} noPaste />
-          <div className='flex justify-end mt-1'>
-            <button
-              disabled={!canUpdatePw || isSavingPw}
-              className='h-10 px-4 bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed text-[color:var(--sub-account-primary-contrast,#FFFFFF)] rounded-lg text-sm font-medium transition-colors'
-              onClick={handleUpdatePassword}
-            >
-              {isSavingPw ? 'Saving…' : 'Update'}
-            </button>
-          </div>
-        </div>
+      <SectionCard title={t('settings.profile.changePasswordTitle')}>
+        <ChangePasswordForm
+          minLength={MIN_PASSWORD_LENGTH}
+          labels={{
+            oldPassword: t('settings.profile.oldPasswordLabel'),
+            newPassword: t('settings.profile.newPasswordLabel'),
+            newPasswordPlaceholder: t('settings.profile.newPasswordPlaceholder'),
+            confirmPassword: t('settings.profile.confirmPasswordLabel'),
+            confirmPasswordPlaceholder: t('settings.profile.confirmPasswordPlaceholder'),
+            sameAsCurrent: t('settings.profile.passwordSameAsCurrent'),
+            mismatch: t('settings.profile.passwordsDoNotMatch'),
+            submit: t('settings.profile.update'),
+            saving: t('settings.profile.saving'),
+            success: t('settings.profile.passwordUpdated'),
+            failure: t('settings.profile.passwordUpdateFailed'),
+          }}
+          onSubmit={async (oldPassword, newPassword) => {
+            const { data } = await subAccountAxios.patch<{ token?: string }>(
+              `/sub-accounts/${entityId}/members/${memberId}`,
+              { oldPassword, newPassword },
+            );
+            if (data?.token) subAccountAuthService.setToken(data.token);
+          }}
+        />
       </SectionCard>
     </div>
   );
@@ -226,6 +183,7 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
 // ─── Members Tab ──────────────────────────────────────────────────────────────
 
 const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: string; ssoEnabled: boolean; currentMemberId: string }) => {
+  const { t } = useTranslation('subaccount');
   const [members, setMembers]             = useState<MemberItem[]>([]);
   const [isLoading, setIsLoading]         = useState(false);
   const [isAddMemberOpen, setIsAddMemberOpen]   = useState(false);
@@ -253,7 +211,7 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
       const res = await subAccountAxios.get<MemberItem[]>(`/sub-accounts/${entityId}/members`);
       setMembers(res.data);
     } catch {
-      notificationsService.error({ text: 'Failed to load members' });
+      notificationsService.error({ text: t('settings.members.loadFailed') });
     } finally {
       setIsLoading(false);
     }
@@ -263,11 +221,11 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
     setIsAddingMember(true);
     try {
       await subAccountAxios.post(`/sub-accounts/${entityId}/members`, { email, password, role });
-      notificationsService.success({ text: 'Member added' });
+      notificationsService.success({ text: t('settings.members.memberAdded') });
       setIsAddMemberOpen(false);
       await fetchMembers();
     } catch (err: any) {
-      notificationsService.error({ text: err?.response?.data?.message ?? 'Failed to add member' });
+      notificationsService.error({ text: err?.response?.data?.message ?? t('settings.members.addMemberFailed') });
     } finally {
       setIsAddingMember(false);
     }
@@ -278,11 +236,11 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
     setDeletingMemberId(memberToDelete.id);
     try {
       await subAccountAxios.delete(`/sub-accounts/${entityId}/members/${memberToDelete.id}`);
-      notificationsService.success({ text: 'Member removed' });
+      notificationsService.success({ text: t('settings.members.memberRemoved') });
       setMemberToDelete(null);
       await fetchMembers();
     } catch {
-      notificationsService.error({ text: 'Failed to remove member' });
+      notificationsService.error({ text: t('settings.members.removeMemberFailed') });
     } finally {
       setDeletingMemberId(null);
     }
@@ -293,10 +251,10 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
     setIsAssigningPermission(true);
     try {
       await subAccountAxios.put(`/sub-accounts/${entityId}/members/${permissionMember.id}/permissions`, { statement: policy.Statement });
-      notificationsService.success({ text: 'Permissions updated' });
+      notificationsService.success({ text: t('settings.members.permissionsUpdated') });
       setPermissionMember(null);
     } catch {
-      notificationsService.error({ text: 'Failed to update permissions' });
+      notificationsService.error({ text: t('settings.members.permissionsUpdateFailed') });
     } finally {
       setIsAssigningPermission(false);
     }
@@ -317,34 +275,33 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
 
   return (
     <SectionCard
-      title='Members'
+      title={t('settings.members.sectionTitle')}
       action={
         <button
           onClick={() => setIsAddMemberOpen(true)}
           className='inline-flex items-center gap-2 h-10 px-4 bg-primary hover:bg-primary-dark text-[color:var(--sub-account-primary-contrast,#FFFFFF)] rounded-lg text-sm font-medium transition-colors'
         >
           <PlusIcon size={14} weight='bold' />
-          Add member
+          {t('settings.members.addMember')}
         </button>
       }
     >
       {ssoConfigured && (
         <p className='text-sm text-gray-60 mb-4'>
-          Single sign-on is enabled, so you don't need to add members by hand, anyone who signs in with Microsoft
-          and belongs to this organization is added automatically on their first login.
+          {t('settings.members.ssoEnabledHint')}
         </p>
       )}
       {isLoading ? (
-        <p className='text-sm text-gray-50'>Loading...</p>
+        <p className='text-sm text-gray-50'>{t('settings.members.loading')}</p>
       ) : members.length === 0 ? (
-        <p className='text-sm text-gray-50'>No members yet.</p>
+        <p className='text-sm text-gray-50'>{t('settings.members.empty')}</p>
       ) : (
         <table className='w-full'>
           <thead>
             <tr className='border-t border-b border-gray-10'>
-              <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>Email</th>
-              <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>Role</th>
-              <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>Added</th>
+              <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.members.columnEmail')}</th>
+              <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.members.columnRole')}</th>
+              <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.members.columnAdded')}</th>
               <th className='w-[88px]' />
             </tr>
           </thead>
@@ -360,18 +317,18 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
                   </div>
                 </td>
                 <td className='py-3.5 text-sm text-gray-80'>
-                  {m.role ? m.role.charAt(0).toUpperCase() + m.role.slice(1) : 'Standard'}
+                  {m.role ? m.role.charAt(0).toUpperCase() + m.role.slice(1) : t('settings.members.roleStandard')}
                 </td>
                 <td className='py-3.5 text-sm text-gray-80'>
                   {m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '—'}
                 </td>
                 <td className='py-3.5'>
                   <div className='flex items-center gap-1 justify-end'>
-                    <button onClick={() => setPermissionMember(m)} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-gray-80 transition-colors' title='Assign permissions'>
+                    <button onClick={() => setPermissionMember(m)} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-gray-80 transition-colors' title={t('settings.members.assignPermissions')}>
                       <LockKeyIcon size={16} />
                     </button>
                     {m.id !== currentMemberId && (
-                      <button onClick={() => setMemberToDelete(m)} disabled={deletingMemberId === m.id} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-red disabled:opacity-40 transition-colors' title='Remove member'>
+                      <button onClick={() => setMemberToDelete(m)} disabled={deletingMemberId === m.id} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-red disabled:opacity-40 transition-colors' title={t('settings.members.removeMember')}>
                         <TrashIcon size={16} />
                       </button>
                     )}
@@ -390,8 +347,8 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
       <Dialog
         isOpen={!!memberToDelete} onClose={() => setMemberToDelete(null)}
         onPrimaryAction={onDeleteMember} onSecondaryAction={() => setMemberToDelete(null)}
-        isLoading={!!deletingMemberId} primaryAction='Remove' secondaryAction='Cancel' primaryActionColor='danger'
-        title='Remove member' subtitle={`This will remove ${memberToDelete?.email} from this sub-account. Their IAM credentials will be deleted.`}
+        isLoading={!!deletingMemberId} primaryAction={t('settings.members.removeMember')} secondaryAction={t('actions.cancel')} primaryActionColor='danger'
+        title={t('settings.members.removeMemberConfirmTitle')} subtitle={t('settings.members.removeMemberConfirmSubtitle', { email: memberToDelete?.email })}
       />
     </SectionCard>
   );
@@ -400,6 +357,7 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
 // ─── Access Keys Tab ──────────────────────────────────────────────────────────
 
 const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: string }) => {
+  const { t } = useTranslation('subaccount');
   const [credentials, setCredentials] = useState<S3Credentials | null>(null);
   const [isLoading, setIsLoading]     = useState(false);
   const [revealed, setRevealed]       = useState(false);
@@ -410,9 +368,9 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
     setIsLoading(true);
     subAccountS3CredentialsService.getCredentials(entityId, memberId)
       .then(setCredentials)
-      .catch(() => notificationsService.error({ text: 'Failed to load S3 credentials' }))
+      .catch(() => notificationsService.error({ text: t('settings.accessKeys.loadFailed') }))
       .finally(() => setIsLoading(false));
-  }, [entityId, memberId]);
+  }, [entityId, memberId, t]);
 
   const onRegenerate = async () => {
     setIsRegenerating(true);
@@ -421,9 +379,9 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
       setCredentials(newCreds);
       setRevealed(false);
       setConfirmOpen(false);
-      notificationsService.success({ text: 'Access keys regenerated' });
+      notificationsService.success({ text: t('settings.accessKeys.regenerated') });
     } catch {
-      notificationsService.error({ text: 'Failed to regenerate access keys' });
+      notificationsService.error({ text: t('settings.accessKeys.regenerateFailed') });
     } finally {
       setIsRegenerating(false);
     }
@@ -433,7 +391,7 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
     <div className='bg-surface border border-gray-10 rounded-xl p-6' style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-2'>
-          <h2 className='text-base font-semibold text-gray-100'>Access Keys</h2>
+          <h2 className='text-base font-semibold text-gray-100'>{t('settings.accessKeys.title')}</h2>
           <InfoIcon size={15} className='text-gray-50' />
         </div>
         <Dropdown
@@ -441,32 +399,32 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
           button={
             <div className='inline-flex items-center gap-2 h-8 px-3 bg-surface border border-gray-100/10 text-gray-80 rounded-lg text-sm font-medium hover:bg-gray-1 cursor-pointer select-none whitespace-nowrap transition-colors'>
               <GearIcon size={14} />
-              Manage Access Keys
+              {t('settings.accessKeys.manage')}
               <CaretDownIcon size={12} />
             </div>
           }
-          items={[{ label: 'Regenerate', onClick: () => setConfirmOpen(true) }]}
+          items={[{ label: t('settings.accessKeys.regenerate'), onClick: () => setConfirmOpen(true) }]}
         />
       </div>
 
       <div className='mt-4'>
         {isLoading ? (
-          <p className='text-sm text-gray-50 pt-5'>Loading...</p>
+          <p className='text-sm text-gray-50 pt-5'>{t('settings.accessKeys.loading')}</p>
         ) : !credentials ? (
-          <p className='text-sm text-gray-50 pt-5'>No credentials available.</p>
+          <p className='text-sm text-gray-50 pt-5'>{t('settings.accessKeys.empty')}</p>
         ) : (
           <table className='w-full'>
             <thead>
               <tr className='border-t border-b border-gray-10'>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60 w-[1.2fr]'>Name</th>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>Key</th>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>Created On</th>
+                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60 w-[1.2fr]'>{t('settings.accessKeys.columnName')}</th>
+                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.accessKeys.columnKey')}</th>
+                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.accessKeys.columnCreatedOn')}</th>
                 <th className='w-[120px]' />
               </tr>
             </thead>
             <tbody>
               <tr className='border-b border-gray-10/60'>
-                <td className='py-3.5 text-sm font-medium text-gray-100'>Root Access Key</td>
+                <td className='py-3.5 text-sm font-medium text-gray-100'>{t('settings.accessKeys.rootAccessKey')}</td>
                 <td className='py-3.5'>
                   <div className='flex items-center gap-2'>
                     <span className='font-mono text-sm text-gray-80'>
@@ -485,8 +443,8 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
                       width='w-44'
                       button={<button className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-80 hover:text-gray-100 transition-colors'><DotsThreeVerticalIcon size={17} /></button>}
                       items={[
-                        { label: 'Copy Access Key', onClick: async () => { await copyToClipboard(credentials.accessKeyId); notificationsService.success({ text: 'Access Key ID copied' }); } },
-                        { label: 'Copy Secret Key', onClick: async () => { await copyToClipboard(credentials.secretAccessKey); notificationsService.success({ text: 'Secret Key copied' }); } },
+                        { label: t('settings.accessKeys.copyAccessKey'), onClick: async () => { await copyToClipboard(credentials.accessKeyId); notificationsService.success({ text: t('settings.accessKeys.accessKeyCopied') }); } },
+                        { label: t('settings.accessKeys.copySecretKey'), onClick: async () => { await copyToClipboard(credentials.secretAccessKey); notificationsService.success({ text: t('settings.accessKeys.secretKeyCopied') }); } },
                       ]}
                     />
                   </div>
@@ -499,8 +457,8 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
       <Dialog
         isOpen={confirmOpen} onClose={() => setConfirmOpen(false)}
         onPrimaryAction={onRegenerate} onSecondaryAction={() => setConfirmOpen(false)}
-        isLoading={isRegenerating} primaryAction='Regenerate' secondaryAction='Cancel' primaryActionColor='danger'
-        title='Regenerate access keys' subtitle='This will invalidate the current keys immediately. Any integration using them will stop working until updated.'
+        isLoading={isRegenerating} primaryAction={t('settings.accessKeys.regenerate')} secondaryAction={t('actions.cancel')} primaryActionColor='danger'
+        title={t('settings.accessKeys.regenerateConfirmTitle')} subtitle={t('settings.accessKeys.regenerateConfirmSubtitle')}
       />
     </div>
   );
@@ -509,6 +467,7 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
 // ─── Account Tab ──────────────────────────────────────────────────────────────
 
 const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberId: string; isAdmin?: boolean }) => {
+  const { t } = useTranslation('subaccount');
   const { entityCreatedAt, refreshClaims } = useSubAccount();
   const [email, setEmail] = useState('');
 
@@ -526,16 +485,16 @@ const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberI
 
   return (
     <div className='flex flex-col gap-6'>
-      <SectionCard title='Account Information'>
+      <SectionCard title={t('settings.account.sectionTitle')}>
         <div className='flex gap-8'>
           <div className='flex flex-col items-center gap-3'>
             <AvatarSquare initials={initials} variant='tint' />
             <Pill type='active' />
           </div>
           <div className='flex-1 flex flex-col gap-4'>
-            <ReadField label='Account email' value={email} />
-            <ReadField label='Storage account number' value={entityId} mono />
-            <ReadField label='Created at' value={createdAt} />
+            <ReadField label={t('settings.account.emailLabel')} value={email} />
+            <ReadField label={t('settings.account.accountNumberLabel')} value={entityId} mono />
+            <ReadField label={t('settings.account.createdAtLabel')} value={createdAt} />
           </div>
         </div>
       </SectionCard>
@@ -553,11 +512,218 @@ const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberI
   );
 };
 
+// ─── Audit Log Tab ────────────────────────────────────────────────────────────
+
+const AUDIT_PAGE_SIZE = 50;
+const ELLIPSIS = '...';
+const RESOURCE_MAX_CHARS = 31;
+const RESOURCE_MIN_ROOT_CHARS = 8;
+
+const EMPTY_FILTERS = { from: '', to: '', actorEmail: '', resourcePath: '' };
+
+const clip = (value: string, max: number) => `${value.slice(0, max - ELLIPSIS.length)}${ELLIPSIS}`;
+
+const shortenResourcePath = (path: string): string => {
+  if (path.length <= RESOURCE_MAX_CHARS) return path;
+
+  const isFolder = path.endsWith('/');
+  const segments = path.replace(/\/+$/, '').split('/');
+  if (segments.length === 1) return clip(path, RESOURCE_MAX_CHARS);
+
+  const name = `${segments[segments.length - 1]}${isFolder ? '/' : ''}`;
+  const prefix = `${ELLIPSIS}/`;
+  if (name.length > RESOURCE_MAX_CHARS - prefix.length) {
+    return `${prefix}${clip(name, RESOURCE_MAX_CHARS - prefix.length)}`;
+  }
+
+  const middle = segments.length > 2 ? `${ELLIPSIS}/` : '';
+  const rootBudget = RESOURCE_MAX_CHARS - name.length - middle.length - 1;
+  if (rootBudget < RESOURCE_MIN_ROOT_CHARS) return `${prefix}${name}`;
+
+  const root = segments[0];
+  return `${root.length > rootBudget ? clip(root, rootBudget) : root}/${middle}${name}`;
+};
+
+const TruncatedCell = ({ text, title, className }: { text: string; title?: string; className?: string }) => (
+  <div className={`truncate ${className ?? ''}`} title={title ?? text}>
+    {text}
+  </div>
+);
+
+const FilterField = ({
+  label, type = 'text', value, placeholder, onChange,
+}: { label: string; type?: string; value: string; placeholder?: string; onChange: (v: string) => void }) => (
+  <div className='flex flex-col gap-1.5'>
+    <label className='text-xs font-medium text-gray-60'>{label}</label>
+    <input
+      type={type}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      className='h-9 bg-gray-5 border border-gray-10 rounded-lg px-3 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary'
+    />
+  </div>
+);
+
+const AuditTab = ({ entityId }: { entityId: string }) => {
+  const { t } = useTranslation('subaccount');
+  const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
+  const [events, setEvents] = useState<AuditEventItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!entityId) return;
+    fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entityId, appliedFilters, offset]);
+
+  const fetchEvents = async () => {
+    setIsLoading(true);
+    try {
+      const { from, to, actorEmail, resourcePath } = appliedFilters;
+      const response = await auditService.listAuditEvents(entityId, {
+        from: from ? new Date(`${from}T00:00:00`).toISOString() : undefined,
+        to: to ? new Date(`${to}T23:59:59.999`).toISOString() : undefined,
+        actorEmail: actorEmail || undefined,
+        resourcePath: resourcePath || undefined,
+        limit: AUDIT_PAGE_SIZE,
+        offset,
+      });
+      setEvents(response.events);
+      setTotal(response.total);
+    } catch {
+      notificationsService.error({ text: t('settings.audit.loadFailed') });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onApply = () => {
+    setOffset(0);
+    setAppliedFilters(draftFilters);
+  };
+
+  const onClear = () => {
+    setOffset(0);
+    setDraftFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
+  };
+
+  const rangeStart = total === 0 ? 0 : offset + 1;
+  const rangeEnd = Math.min(offset + AUDIT_PAGE_SIZE, total);
+
+  return (
+    <SectionCard title={t('settings.audit.title')}>
+      <p className='text-sm text-gray-60 mb-4'>{t('settings.audit.subtitle')}</p>
+
+      <div className='grid grid-cols-4 gap-3 mb-4'>
+        <FilterField label={t('settings.audit.filterFrom')} type='date' value={draftFilters.from} onChange={(v) => setDraftFilters({ ...draftFilters, from: v })} />
+        <FilterField label={t('settings.audit.filterTo')} type='date' value={draftFilters.to} onChange={(v) => setDraftFilters({ ...draftFilters, to: v })} />
+        <FilterField label={t('settings.audit.filterActor')} value={draftFilters.actorEmail} placeholder={t('settings.audit.filterActorPlaceholder')} onChange={(v) => setDraftFilters({ ...draftFilters, actorEmail: v })} />
+        <FilterField label={t('settings.audit.filterResource')} value={draftFilters.resourcePath} placeholder={t('settings.audit.filterResourcePlaceholder')} onChange={(v) => setDraftFilters({ ...draftFilters, resourcePath: v })} />
+      </div>
+
+      <div className='flex items-center gap-2 mb-4'>
+        <button onClick={onApply} className='h-9 px-4 rounded-lg bg-primary text-sm font-medium text-[color:var(--sub-account-primary-contrast,#FFFFFF)] hover:bg-blue-60 transition-colors'>
+          {t('settings.audit.applyFilters')}
+        </button>
+        <button onClick={onClear} className='h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 transition-colors'>
+          {t('settings.audit.clearFilters')}
+        </button>
+      </div>
+
+      {isLoading ? (
+        <p className='text-sm text-gray-50'>{t('settings.audit.loading')}</p>
+      ) : events.length === 0 ? (
+        <p className='text-sm text-gray-50'>{t('settings.audit.empty')}</p>
+      ) : (
+        <>
+          <table className='w-full table-fixed'>
+            <thead>
+              <tr className='border-t border-b border-gray-10'>
+                <th className='w-[14%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnEvent')}</th>
+                <th className='w-[19%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnActor')}</th>
+                <th className='w-[33%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnResource')}</th>
+                <th className='w-[14%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnIp')}</th>
+                <th className='w-[20%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnTimestamp')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((event) => (
+                <tr key={event.id} className='border-b border-gray-10/60'>
+                  <td className='py-3.5 pr-4 text-sm text-gray-100'>
+                    <div className='flex flex-wrap items-center gap-2'>
+                      <span className='whitespace-nowrap'>{t(`settings.audit.eventType.${event.eventType}`)}</span>
+                      {event.status === 'incomplete' && (
+                        <span className='shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-5 text-gray-60' title={t('settings.audit.incompleteHint')}>
+                          {t('settings.audit.incomplete')}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className='py-3.5 pr-4 text-sm text-gray-80'>
+                    <TruncatedCell text={event.actorEmail ?? '—'} />
+                  </td>
+                  <td className='py-3.5 pr-4 text-sm text-gray-80'>
+                    {event.resourcePath ? (
+                      <TruncatedCell text={shortenResourcePath(event.resourcePath)} title={event.resourcePath} />
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td className='py-3.5 pr-4 text-sm text-gray-80'>
+                    <TruncatedCell text={event.ip ?? '—'} />
+                  </td>
+                  <td className='py-3.5 text-sm text-gray-80'>
+                    <TruncatedCell text={formatDateTime(new Date(event.timestamp))} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className='flex items-center justify-between mt-4'>
+            <p className='text-sm text-gray-60'>{t('settings.audit.pageRange', { start: rangeStart, end: rangeEnd, total })}</p>
+            <div className='flex items-center gap-2'>
+              <button
+                onClick={() => setOffset(Math.max(0, offset - AUDIT_PAGE_SIZE))}
+                disabled={offset === 0}
+                className='h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 disabled:opacity-40 transition-colors'
+              >
+                {t('settings.audit.previous')}
+              </button>
+              <button
+                onClick={() => setOffset(offset + AUDIT_PAGE_SIZE)}
+                disabled={rangeEnd >= total}
+                className='h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 disabled:opacity-40 transition-colors'
+              >
+                {t('settings.audit.next')}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </SectionCard>
+  );
+};
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export const SubAccountSettingsPage = () => {
-  const { entityId, memberId, isAdmin, ssoEnabled } = useSubAccount();
+  const { t } = useTranslation('subaccount');
+  const { entityId, memberId, isAdmin, ssoEnabled, auditLogEnabled } = useSubAccount();
   const [activeTab, setActiveTab] = useState<Tab>('profile');
+
+  const TABS: { key: Tab; label: string }[] = [
+    { key: 'profile', label: t('settings.tabProfile') },
+    { key: 'members', label: t('settings.tabMembers') },
+    { key: 'access-keys', label: t('settings.tabAccessKeys') },
+    { key: 'account', label: t('settings.tabAccount') },
+    ...(isAdmin && auditLogEnabled ? [{ key: 'audit' as Tab, label: t('settings.tabAudit') }] : []),
+  ];
 
   const role = (() => {
     try {
@@ -574,8 +740,8 @@ export const SubAccountSettingsPage = () => {
     <div className='max-w-[920px] mx-auto px-8 py-8 flex flex-col gap-6'>
       {/* Page header */}
       <div>
-        <h1 className='text-2xl font-semibold text-gray-100'>Settings</h1>
-        <p className='text-sm text-gray-60 mt-1.5'>Manage your profile, team, access keys and account.</p>
+        <h1 className='text-2xl font-semibold text-gray-100'>{t('settings.title')}</h1>
+        <p className='text-sm text-gray-60 mt-1.5'>{t('settings.subtitle')}</p>
       </div>
 
       {/* Tab bar */}
@@ -602,6 +768,7 @@ export const SubAccountSettingsPage = () => {
       {activeTab === 'members'     && entityId && memberId && <MembersTab    entityId={entityId} ssoEnabled={ssoEnabled} currentMemberId={memberId} />}
       {activeTab === 'access-keys' && entityId && memberId && <AccessKeysTab entityId={entityId} memberId={memberId} />}
       {activeTab === 'account'     && entityId && memberId && <AccountTab    entityId={entityId} memberId={memberId} isAdmin={isAdmin} />}
+      {activeTab === 'audit'       && entityId && isAdmin && auditLogEnabled && <AuditTab entityId={entityId} />}
     </div>
   );
 };
