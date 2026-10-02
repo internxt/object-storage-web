@@ -7,6 +7,8 @@ import { useWholesalers } from '../context/wholesalersContext';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { T, card } from '../../sub-account/tokens';
+import { ExportButton } from '../../components/ExportButton';
+import { exportPartners } from '../services/partnersExport';
 
 const PER_PAGE = 20;
 
@@ -71,20 +73,23 @@ export const WholesalersPartnersPage = () => {
               <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{total} partners total</p>
             )}
           </div>
-          {!isViewer && (
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                height: 40, padding: '0 18px',
-                background: T.primary, color: T.white,
-                border: 'none', borderRadius: 8, cursor: 'pointer',
-                fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
-              }}
-            >
-              Create Partner
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ExportButton onExport={exportPartners} disabled={total === 0} />
+            {!isViewer && (
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  height: 40, padding: '0 18px',
+                  background: T.primary, color: T.white,
+                  border: 'none', borderRadius: 8, cursor: 'pointer',
+                  fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
+                }}
+              >
+                Create Partner
+              </button>
+            )}
+          </div>
         </div>
 
         <WholesalersPartnersTable
