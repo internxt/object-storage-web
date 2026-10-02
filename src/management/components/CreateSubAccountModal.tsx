@@ -9,13 +9,15 @@ import { COUNTRIES, getFlagEmoji } from '../../utils/countries'
 import { passwordPolicyErrors } from '../../utils/passwordPolicy'
 import { PasswordRequirements } from '../../components/FieldFeedback'
 import { Field, inputClass } from '../../components/FormField'
+import { requiredNameRules } from '../../utils/clientName'
 
 interface Props {
   isOpen: boolean
   onClose: () => void
   onSubmit: (dto: CreateSubAccountDto) => Promise<void>
   consoleUrl: string
-  showNameField?: boolean
+  nameLabel?: string
+  namePlaceholder?: string
 }
 
 type FormValues = CreateSubAccountDto & { confirmPassword?: string }
@@ -32,7 +34,8 @@ export const CreateSubAccountModal = ({
   onClose,
   onSubmit,
   consoleUrl,
-  showNameField = true,
+  nameLabel = 'Name',
+  namePlaceholder = 'Account name',
 }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string>()
@@ -168,15 +171,13 @@ export const CreateSubAccountModal = ({
           onSubmit={handleSubmit(onFormSubmit)}
           className="flex flex-col gap-3"
         >
-          {showNameField && (
-            <Field label="Name" error={errors.name?.message}>
-              <input
-                {...register('name', { required: 'Name is required' })}
-                placeholder="Account name"
-                className={inputClass(errors.name)}
-              />
-            </Field>
-          )}
+          <Field label={nameLabel} error={errors.name?.message}>
+            <input
+              {...register('name', requiredNameRules(nameLabel))}
+              placeholder={namePlaceholder}
+              className={inputClass(errors.name)}
+            />
+          </Field>
 
           <Field label="Email" error={errors.email?.message}>
             <input

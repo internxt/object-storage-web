@@ -4,7 +4,8 @@ import { ArrowLeft, Database, HardDrives, Users } from '@phosphor-icons/react';
 import { wholesalersService, WholesalerPartner, WholesalerPartnerUsageSummary } from '../services/wholesalers.service';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
-import { DeletePartnerAction } from '../components/DeletePartnerAction';
+import { PartnerActions } from '../components/PartnerActions';
+import { EditClientNameButton } from '../../components/EditClientNameModal';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useWholesalers } from '../context/wholesalersContext';
 
@@ -63,6 +64,12 @@ export const WholesalersPartnerDetailPage = () => {
     }
   };
 
+  const handleRename = async (current: WholesalerPartner, name: string) => {
+    await wholesalersService.updatePartnerName(current.id, name);
+    // The page reads the partner from router state, so the new name has to be written back there.
+    navigate(location.pathname, { replace: true, state: { partner: { ...current, name } } });
+  };
+
   if (notFound) {
     navigate('/wholesalers/partners');
     return null;
@@ -80,7 +87,10 @@ export const WholesalersPartnerDetailPage = () => {
         </button>
         <div>
           <div className='flex items-center gap-3'>
-            <h1 className='text-lg font-bold text-gray-900'>{partner?.name ?? 'Partner'}</h1>
+            <h1 className='text-lg font-bold text-gray-900'>{partner ? (partner.name ?? '—') : 'Partner'}</h1>
+            {partner && !isViewer && partner.status !== 'DELETED' && (
+              <EditClientNameButton currentName={partner.name} onSubmit={(name) => handleRename(partner, name)} />
+            )}
             {partner && <StatusBadge status={partner.status} />}
           </div>
           {partner?.email && <p className='text-sm text-gray-400 mt-0.5'>{partner.email}</p>}
@@ -90,7 +100,7 @@ export const WholesalersPartnerDetailPage = () => {
             fresh history entry (a pasted URL, a new tab) there is nothing to delete. */}
         {partner && !isViewer && (
           <div style={{ marginLeft: 'auto' }}>
-            <DeletePartnerAction
+            <PartnerActions
               partner={partner}
               isDeleting={isDeleting}
               onDelete={handleDelete}
