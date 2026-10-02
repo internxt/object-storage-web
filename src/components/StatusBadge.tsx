@@ -1,4 +1,5 @@
 import { T } from '../sub-account/tokens';
+import { STATUS_LABELS } from '../utils/statusLabel';
 
 type Tone = 'green' | 'red' | 'gray' | 'amber';
 
@@ -9,21 +10,21 @@ const TONES: Record<Tone, { bg: string; border: string; color: string; dot: stri
   amber: { bg: '#fffbeb', border: '#fde68a', color: '#b45309', dot: '#f59e0b' },
 };
 
-const STATUSES: Record<string, { tone: Tone; label: string }> = {
-  ACTIVE: { tone: 'green', label: 'Active' },
-  PAID_ACCOUNT: { tone: 'green', label: 'Paid' },
-  SUSPENDED: { tone: 'gray', label: 'Suspended' },
-  PENDING_DELETION: { tone: 'amber', label: 'Pending deletion' },
-  DELETED: { tone: 'red', label: 'Deleted' },
+const STATUS_TONES: Record<string, Tone> = {
+  ACTIVE: 'green',
+  PAID_ACCOUNT: 'green',
+  SUSPENDED: 'gray',
+  PENDING_DELETION: 'amber',
+  DELETED: 'red',
 };
 
 export const StatusBadge = ({ status }: { status?: string | null }) => {
   if (!status) return null;
 
-  const config = STATUSES[status];
-  if (!config) return <span style={{ fontSize: 12, color: T.gray50 }}>{status}</span>;
+  const label = STATUS_LABELS[status];
+  if (!label) return <span style={{ fontSize: 12, color: T.gray50 }}>{status}</span>;
 
-  const tone = TONES[config.tone];
+  const tone = TONES[STATUS_TONES[status]];
 
   return (
     <span
@@ -43,7 +44,7 @@ export const StatusBadge = ({ status }: { status?: string | null }) => {
       }}
     >
       <span style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: tone.dot }} />
-      {config.label}
+      {label}
     </span>
   );
 };
