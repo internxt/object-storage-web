@@ -3,20 +3,30 @@ import { createPortal } from 'react-dom';
 import { DotsThree, Trash } from '@phosphor-icons/react';
 import { WholesalerPartner } from '../services/wholesalers.service';
 import { ConfirmActionModal } from '../../management/components/ConfirmActionModal';
+import { EditClientNameModal } from '../../components/EditClientNameModal';
 import { T, shadow } from '../../sub-account/tokens';
 
-export const DeletePartnerAction = ({
+const menuItemStyle: React.CSSProperties = {
+  display: 'block', width: '100%', textAlign: 'left',
+  padding: '8px 16px', fontSize: 14,
+  background: 'transparent', border: 'none', cursor: 'pointer',
+};
+
+export const PartnerActions = ({
   partner,
   isDeleting,
   onDelete,
+  onRename,
   variant = 'menu',
 }: {
   partner: WholesalerPartner;
   isDeleting: boolean;
   onDelete: (id: string) => void;
+  onRename?: (id: string, name: string) => Promise<void>;
   variant?: 'menu' | 'button';
 }) => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, right: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -126,16 +136,32 @@ export const DeletePartnerAction = ({
                 boxShadow: shadow.lg, minWidth: 144, zIndex: 50, overflow: 'hidden', padding: '4px 0',
               }}
             >
+              {onRename && (
+                <>
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      setIsRenameOpen(true);
+                    }}
+                    style={{ ...menuItemStyle, color: T.gray80 }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = T.gray5;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    Edit name
+                  </button>
+                  <div style={{ height: 1, background: T.gray15, margin: '4px 0' }} />
+                </>
+              )}
               <button
                 onClick={() => {
                   setIsMenuOpen(false);
                   setIsConfirmOpen(true);
                 }}
-                style={{
-                  display: 'block', width: '100%', textAlign: 'left',
-                  padding: '8px 16px', fontSize: 14,
-                  color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer',
-                }}
+                style={{ ...menuItemStyle, color: '#ef4444' }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = '#fef2f2';
                 }}
@@ -151,6 +177,14 @@ export const DeletePartnerAction = ({
         )}
 
       {confirmModal}
+      {onRename && (
+        <EditClientNameModal
+          isOpen={isRenameOpen}
+          currentName={partner.name}
+          onClose={() => setIsRenameOpen(false)}
+          onSubmit={(name) => onRename(partner.id, name)}
+        />
+      )}
     </div>
   );
 };

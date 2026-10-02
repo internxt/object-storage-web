@@ -6,6 +6,7 @@ import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { passwordPolicyErrors } from '../../utils/passwordPolicy';
 import { PasswordRequirements } from '../../components/FieldFeedback';
 import { Field, inputClass } from '../../components/FormField';
+import { requiredNameRules } from '../../utils/clientName';
 
 interface Props {
   isOpen: boolean;
@@ -63,10 +64,10 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
         <h2 className='text-lg font-semibold text-gray-100'>Create Partner</h2>
 
         <form onSubmit={handleSubmit(onFormSubmit)} className='flex flex-col gap-3'>
-          <Field label='Name' error={errors.name?.message}>
+          <Field label='Client name' error={errors.name?.message}>
             <input
-              {...register('name', { required: 'Name is required' })}
-              placeholder='Partner name'
+              {...register('name', requiredNameRules())}
+              placeholder='Client name'
               className={inputClass(errors.name)}
             />
           </Field>

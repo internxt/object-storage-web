@@ -44,6 +44,10 @@ async function createPartner(dto: { name: string; email: string; password: strin
   await axios.post(`${API()}/partners`, dto, { headers: headers() });
 }
 
+async function updatePartnerName(id: string, name: string): Promise<void> {
+  await axios.patch(`${API()}/partners/${id}`, { name }, { headers: headers() });
+}
+
 async function deletePartner(id: string): Promise<void> {
   await axios.delete(`${API()}/partners/${id}`, { headers: headers() });
 }
@@ -150,6 +154,7 @@ export const wholesalersService = {
   changePassword,
   getPartners,
   createPartner,
+  updatePartnerName,
   deletePartner,
   getPartnerUsageSummary,
   createBillingPortalSession,

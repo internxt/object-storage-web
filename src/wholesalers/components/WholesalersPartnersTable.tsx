@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { WholesalerPartner } from '../services/wholesalers.service';
-import { DeletePartnerAction } from './DeletePartnerAction';
+import { PartnerActions } from './PartnerActions';
 import { useWholesalers } from '../context/wholesalersContext';
 import { StatusBadge } from '../../components/StatusBadge';
 import { T } from '../../sub-account/tokens';
@@ -9,6 +9,7 @@ interface Props {
   partners: WholesalerPartner[];
   isLoading: boolean;
   onDelete: (id: string) => void;
+  onRename: (id: string, name: string) => Promise<void>;
   deletingPartnerId: string | null;
 }
 
@@ -22,7 +23,7 @@ const formatStorage = (value?: number) => {
 };
 
 const COLUMNS = [
-  { header: 'Name', align: 'left' as const },
+  { header: 'Client Name', align: 'left' as const },
   { header: 'Email', align: 'left' as const },
   { header: 'Sub-accounts', align: 'right' as const },
   { header: 'Active Storage (TB)', align: 'right' as const },
@@ -31,7 +32,7 @@ const COLUMNS = [
   { header: '', align: 'right' as const },
 ];
 
-export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, deletingPartnerId }: Props) => {
+export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, onRename, deletingPartnerId }: Props) => {
   const navigate = useNavigate();
   const { isViewer } = useWholesalers();
 
@@ -106,7 +107,12 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, deleti
                 </td>
                 <td style={{ padding: '14px 16px', textAlign: 'right', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
                   {!isViewer && (
-                    <DeletePartnerAction partner={p} isDeleting={deletingPartnerId === p.id} onDelete={onDelete} />
+                    <PartnerActions
+                      partner={p}
+                      isDeleting={deletingPartnerId === p.id}
+                      onDelete={onDelete}
+                      onRename={onRename}
+                    />
                   )}
                 </td>
               </tr>

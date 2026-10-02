@@ -34,6 +34,7 @@ interface DbSubAccount {
   storageProvider: string;
   status: 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED';
   email: string | null;
+  name: string | null;
   activeStorageBytes: number;
   deletedStorageBytes: number;
   storageQuotaTb: number | null;
@@ -45,7 +46,7 @@ const BYTES_TO_TB = 1 / 1_000_000_000_000;
 function mapDbSubAccount(raw: DbSubAccount): SubAccount {
   return {
     id: raw.id,
-    name: raw.id,
+    name: raw.name ?? null,
     email: raw.email ?? '',
     status:
       raw.status === 'SUSPENDED' || raw.status === 'PENDING_DELETION' || raw.status === 'DELETED'
@@ -77,7 +78,7 @@ async function getMe(): Promise<PartnerInfo> {
 async function getSubAccounts(params: {
   page?: number;
   perPage?: number;
-  email?: string;
+  search?: string;
   status?: 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED';
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
@@ -89,6 +90,7 @@ async function getSubAccounts(params: {
 }
 
 async function createSubAccount(dto: {
+  name: string;
   email: string;
   password: string;
   country?: string;
@@ -96,6 +98,10 @@ async function createSubAccount(dto: {
   companyVatId?: string;
 }): Promise<void> {
   await axios.post(`${API()}/sub-accounts`, dto, { headers: headers() });
+}
+
+async function updateSubAccountName(id: string, name: string): Promise<void> {
+  await axios.patch(`${API()}/sub-accounts/${id}`, { name }, { headers: headers() });
 }
 
 async function suspendSubAccount(id: string): Promise<void> {
@@ -216,6 +222,7 @@ export const partnersService = {
   getSubAccountById,
   getSubAccountUsages,
   createSubAccount,
+  updateSubAccountName,
   suspendSubAccount,
   reactivateSubAccount,
   deleteSubAccount,
