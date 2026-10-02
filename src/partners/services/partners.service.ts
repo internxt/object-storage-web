@@ -75,14 +75,18 @@ async function getMe(): Promise<PartnerInfo> {
   return response.data;
 }
 
-async function getSubAccounts(params: {
-  page?: number;
-  perPage?: number;
+export type SubAccountStatusFilter = 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED';
+
+export interface SubAccountsQuery {
   search?: string;
-  status?: 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED';
+  status?: SubAccountStatusFilter;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
-}): Promise<{ subAccounts: SubAccount[]; total: number }> {
+}
+
+async function getSubAccounts(
+  params: SubAccountsQuery & { page?: number; perPage?: number },
+): Promise<{ subAccounts: SubAccount[]; total: number }> {
   const response = await axios.get(`${API()}/sub-accounts`, { headers: headers(), params });
   const data = response.data;
   const rawItems: DbSubAccount[] = data.items ?? [];

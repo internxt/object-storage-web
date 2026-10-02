@@ -8,7 +8,10 @@ import {
 import {
   partnersService,
   PartnersUsageSummary,
+  SubAccountsQuery,
+  SubAccountStatusFilter,
 } from '../services/partners.service'
+import { exportSubAccounts } from '../services/subAccountsExport'
 import { resolveConsoleUrl } from '../../utils/consoleUrl'
 import {
   CreateSubAccountDto,
@@ -20,6 +23,7 @@ import { CreateSubAccountModal } from '../../management/components/CreateSubAcco
 import notificationsService from '../../services/notifications.service'
 import { usePartners } from '../context/partnersContext'
 import { T, card, shadow } from '../../sub-account/tokens'
+import { ExportButton } from '../../components/ExportButton'
 
 const ACCENT = '#6366f1'
 const POSITIVE = '#10b981'
@@ -59,7 +63,7 @@ export const PartnersSubAccountsPage = () => {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<SubAccountStatusFilter | ''>('')
   const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -92,21 +96,20 @@ export const PartnersSubAccountsPage = () => {
       notificationsService.error({ text: (err as Error).message })
     }
   }
+  const currentQuery = (): SubAccountsQuery => ({
+    search: search || undefined,
+    status: statusFilter || undefined,
+    sortBy: activeStorageSortOrder ? 'activeStorage' : undefined,
+    sortOrder: activeStorageSortOrder,
+  })
+
   const fetchSubAccounts = async () => {
     setIsLoading(true)
     try {
       const res = await partnersService.getSubAccounts({
+        ...currentQuery(),
         page,
         perPage: PER_PAGE,
-        search: search || undefined,
-        status: (statusFilter || undefined) as
-          | 'ACTIVE'
-          | 'SUSPENDED'
-          | 'PENDING_DELETION'
-          | 'DELETED'
-          | undefined,
-        sortBy: activeStorageSortOrder ? 'activeStorage' : undefined,
-        sortOrder: activeStorageSortOrder,
       })
       setSubAccounts(res.subAccounts)
       setTotal(res.total)
@@ -255,28 +258,34 @@ export const PartnersSubAccountsPage = () => {
               </p>
             )}
           </div>
-          {!isViewer && (
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                height: 40,
-                padding: '0 18px',
-                background: T.primary,
-                color: T.white,
-                border: 'none',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: 14,
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Create Sub-Account
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ExportButton
+              onExport={() => exportSubAccounts(currentQuery())}
+              disabled={total === 0}
+            />
+            {!isViewer && (
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  height: 40,
+                  padding: '0 18px',
+                  background: T.primary,
+                  color: T.white,
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Create Sub-Account
+              </button>
+            )}
+          </div>
         </div>
 
         <div
