@@ -499,8 +499,6 @@ export const PartnersSubAccountsPage = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreate}
         consoleUrl={consoleUrl}
-        nameLabel="Client name"
-        namePlaceholder="Client name"
       />
     </div>
   )

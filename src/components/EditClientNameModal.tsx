@@ -41,23 +41,23 @@ export const EditClientNameModal = ({ isOpen, currentName, onClose, onSubmit }: 
     setError(undefined);
     try {
       await onSubmit(name);
-      notificationsService.success({ text: 'Client name updated' });
+      notificationsService.success({ text: 'Name updated' });
       onClose();
     } catch (err) {
-      setError(apiErrorMessage(err, 'Failed to update the client name'));
+      setError(apiErrorMessage(err, 'Failed to update the name'));
     }
   };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth='max-w-md'>
       <div className='flex flex-col gap-4'>
-        <h2 className='text-lg font-semibold text-gray-100'>Edit client name</h2>
+        <h2 className='text-lg font-semibold text-gray-100'>Edit name</h2>
 
         <form onSubmit={handleSubmit(onFormSubmit)} className='flex flex-col gap-3'>
-          <Field label='Client name' error={errors.name?.message}>
+          <Field label='Name' error={errors.name?.message}>
             <input
               {...register('name', requiredNameRules())}
-              placeholder='Client name'
+              placeholder='Name'
               autoFocus
               className={inputClass(errors.name)}
             />
@@ -93,8 +93,8 @@ export const EditClientNameButton = ({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        aria-label='Edit client name'
-        title='Edit client name'
+        aria-label='Edit name'
+        title='Edit name'
         className='p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors'
       >
         <PencilSimple size={16} />

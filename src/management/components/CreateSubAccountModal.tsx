@@ -16,8 +16,6 @@ interface Props {
   onClose: () => void
   onSubmit: (dto: CreateSubAccountDto) => Promise<void>
   consoleUrl: string
-  nameLabel?: string
-  namePlaceholder?: string
 }
 
 type FormValues = CreateSubAccountDto & { confirmPassword?: string }
@@ -34,8 +32,6 @@ export const CreateSubAccountModal = ({
   onClose,
   onSubmit,
   consoleUrl,
-  nameLabel = 'Name',
-  namePlaceholder = 'Account name',
 }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string>()
@@ -171,10 +167,10 @@ export const CreateSubAccountModal = ({
           onSubmit={handleSubmit(onFormSubmit)}
           className="flex flex-col gap-3"
         >
-          <Field label={nameLabel} error={errors.name?.message}>
+          <Field label="Name" error={errors.name?.message}>
             <input
-              {...register('name', requiredNameRules(nameLabel))}
-              placeholder={namePlaceholder}
+              {...register('name', requiredNameRules())}
+              placeholder="Account name"
               className={inputClass(errors.name)}
             />
           </Field>

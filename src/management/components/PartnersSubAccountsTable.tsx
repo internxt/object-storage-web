@@ -393,13 +393,24 @@ export const PartnersSubAccountsTable = ({
 
   const columns: ColumnDef[] = [
     {
-      header: 'Client Name',
+      header: 'ID',
       cell: (acc) => (
         <span
           onClick={() => navigate(`/partners/sub-accounts/${acc.id}`)}
-          title="Open account"
-          style={{ ...linkStyle, fontSize: 14 }}
+          style={{
+            ...linkStyle,
+            fontFamily: 'monospace',
+            letterSpacing: '-0.01em',
+          }}
         >
+          {acc.id.slice(0, 8)}…{acc.id.slice(-4)}
+        </span>
+      ),
+    },
+    {
+      header: 'Name',
+      cell: (acc) => (
+        <span style={{ fontSize: 14, color: acc.name ? T.gray80 : T.gray50 }}>
           {acc.name ?? '—'}
         </span>
       ),

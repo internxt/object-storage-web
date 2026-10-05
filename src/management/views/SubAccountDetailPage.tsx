@@ -461,7 +461,7 @@ export const SubAccountDetailPage = ({
           <div className='p-6 flex flex-col gap-6'>
             {/* Read-only info */}
             <div className='grid grid-cols-2 gap-x-10 gap-y-4 lg:grid-cols-4 pb-5 border-b border-gray-100'>
-              {showClientName && <DetailField label='Client Name' value={account.name} />}
+              {showClientName && <DetailField label='Name' value={account.name} />}
               <DetailField label='Account ID' value={id} />
               <DetailField label='Status' value={account.status} />
               <DetailField label='Creation Date' value={account.creationDate ? dayjs(account.creationDate).format('DD-MMM-YYYY') : null} />

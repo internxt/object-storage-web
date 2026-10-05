@@ -23,7 +23,7 @@ const formatStorage = (value?: number) => {
 };
 
 const COLUMNS = [
-  { header: 'Client Name', align: 'left' as const },
+  { header: 'Name', align: 'left' as const },
   { header: 'Email', align: 'left' as const },
   { header: 'Sub-accounts', align: 'right' as const },
   { header: 'Active Storage (TB)', align: 'right' as const },
@@ -88,7 +88,7 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, onRena
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
                 <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
-                  <span style={{ fontSize: 14, color: T.gray80 }}>{p.name ?? <span style={{ color: T.gray20 }}>—</span>}</span>
+                  <span style={{ fontSize: 14, color: T.gray80 }}>{p.name ?? <span style={{ color: T.gray50 }}>—</span>}</span>
                 </td>
                 <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
                   <span style={{ fontSize: 14, color: T.gray60 }}>{p.email ?? <span style={{ color: T.gray20 }}>—</span>}</span>

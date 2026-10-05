@@ -64,10 +64,10 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
         <h2 className='text-lg font-semibold text-gray-100'>Create Partner</h2>
 
         <form onSubmit={handleSubmit(onFormSubmit)} className='flex flex-col gap-3'>
-          <Field label='Client name' error={errors.name?.message}>
+          <Field label='Name' error={errors.name?.message}>
             <input
               {...register('name', requiredNameRules())}
-              placeholder='Client name'
+              placeholder='Partner name'
               className={inputClass(errors.name)}
             />
           </Field>
