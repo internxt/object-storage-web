@@ -9,6 +9,7 @@ import {
   partnersService,
   PartnersUsageSummary,
 } from '../services/partners.service'
+import { exportSubAccountsUsage } from '../services/subAccountsExport'
 import { resolveConsoleUrl } from '../../utils/consoleUrl'
 import {
   CreateSubAccountDto,
@@ -20,6 +21,7 @@ import { CreateSubAccountModal } from '../../management/components/CreateSubAcco
 import notificationsService from '../../services/notifications.service'
 import { usePartners } from '../context/partnersContext'
 import { T, card, shadow } from '../../sub-account/tokens'
+import { ExportButton } from '../../components/ExportButton'
 
 const ACCENT = '#6366f1'
 const POSITIVE = '#10b981'
@@ -67,6 +69,7 @@ export const PartnersSubAccountsPage = () => {
     SortOrder | undefined
   >('desc')
   const [pendingAccountId, setPendingAccountId] = useState<string | null>(null)
+  const [exportableCount, setExportableCount] = useState<number | null>(null)
 
   useEffect(() => {
     fetchUsageSummary()
@@ -85,6 +88,10 @@ export const PartnersSubAccountsPage = () => {
   }, [search])
 
   const fetchUsageSummary = async () => {
+    partnersService
+      .getSubAccounts({ page: 0, perPage: 1 })
+      .then((res) => setExportableCount(res.total))
+      .catch(() => setExportableCount(null))
     try {
       const data = await partnersService.getUsageSummary()
       setUsageSummary(data)
@@ -255,28 +262,38 @@ export const PartnersSubAccountsPage = () => {
               </p>
             )}
           </div>
-          {!isViewer && (
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                height: 40,
-                padding: '0 18px',
-                background: T.primary,
-                color: T.white,
-                border: 'none',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: 14,
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Create Sub-Account
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ExportButton
+              onExport={exportSubAccountsUsage}
+              successText={(count) =>
+                `Exported usage for ${count} ${count === 1 ? 'sub-account' : 'sub-accounts'}`
+              }
+              title="Last 30 days of usage (.xlsx)"
+              disabled={!exportableCount}
+            />
+            {!isViewer && (
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  height: 40,
+                  padding: '0 18px',
+                  background: T.primary,
+                  color: T.white,
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Create Sub-Account
+              </button>
+            )}
+          </div>
         </div>
 
         <div
