@@ -10,7 +10,10 @@ import {
   PartnersUsageSummary,
 } from '../services/partners.service'
 import { resolveConsoleUrl } from '../../utils/consoleUrl'
-import { SubAccount } from '../../management/services/management.service'
+import {
+  CreateSubAccountDto,
+  SubAccount,
+} from '../../management/services/management.service'
 import { PartnersSubAccountsTable } from '../../management/components/PartnersSubAccountsTable'
 import { SortOrder } from '../../management/components/SubAccountsTable'
 import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal'
@@ -55,7 +58,7 @@ export const PartnersSubAccountsPage = () => {
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
-  const [searchEmail, setSearchEmail] = useState('')
+  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -79,7 +82,7 @@ export const PartnersSubAccountsPage = () => {
       fetchSubAccounts()
     }, 300)
     return () => clearTimeout(timer)
-  }, [searchEmail])
+  }, [search])
 
   const fetchUsageSummary = async () => {
     try {
@@ -95,7 +98,7 @@ export const PartnersSubAccountsPage = () => {
       const res = await partnersService.getSubAccounts({
         page,
         perPage: PER_PAGE,
-        email: searchEmail || undefined,
+        search: search || undefined,
         status: (statusFilter || undefined) as
           | 'ACTIVE'
           | 'SUSPENDED'
@@ -159,9 +162,14 @@ export const PartnersSubAccountsPage = () => {
     notificationsService.success({ text: 'Password changed' })
   }
 
-  const handleCreate = async (
-    dto: Parameters<typeof partnersService.createSubAccount>[0],
-  ) => {
+  const handleRename = async (id: string, name: string) => {
+    await partnersService.updateSubAccountName(id, name)
+    setSubAccounts((current) =>
+      current.map((acc) => (acc.id === id ? { ...acc, name } : acc)),
+    )
+  }
+
+  const handleCreate = async (dto: CreateSubAccountDto) => {
     await partnersService.createSubAccount(dto)
     notificationsService.success({ text: 'Sub-account created' })
     setPage(0)
@@ -300,9 +308,9 @@ export const PartnersSubAccountsPage = () => {
             <input
               type="text"
               autoComplete="off"
-              placeholder="Search by email…"
-              value={searchEmail}
-              onChange={(e) => setSearchEmail(e.target.value)}
+              placeholder="Search by name or email…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               style={{
                 fontSize: 14,
                 padding: '8px 0',
@@ -409,6 +417,7 @@ export const PartnersSubAccountsPage = () => {
           onReactivate={handleReactivate}
           onDelete={handleDelete}
           onChangePassword={handleChangePassword}
+          onRename={handleRename}
           isLoading={isLoading}
           pendingAccountId={pendingAccountId}
           sortOrder={activeStorageSortOrder}
@@ -490,7 +499,6 @@ export const PartnersSubAccountsPage = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreate}
         consoleUrl={consoleUrl}
-        showNameField={false}
       />
     </div>
   )

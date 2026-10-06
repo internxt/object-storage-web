@@ -6,6 +6,7 @@ import { SubAccount } from '../services/management.service'
 import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable'
 import { ConfirmActionModal } from './ConfirmActionModal'
 import { ChangePasswordModal } from './ChangePasswordModal'
+import { EditClientNameModal } from '../../components/EditClientNameModal'
 import { PartnerInfo } from '../../partners/services/partners.service'
 import { T, shadow } from '../../sub-account/tokens'
 import { StatusBadge } from '../../components/StatusBadge'
@@ -17,6 +18,7 @@ interface Props {
   onReactivate: (id: string) => void
   onDelete: (id: string) => void
   onChangePassword: (id: string, newPassword: string) => Promise<void>
+  onRename: (id: string, name: string) => Promise<void>
   isLoading: boolean
   pendingAccountId?: string | null
   sortOrder?: SortOrder
@@ -66,6 +68,7 @@ const ActionsMenu = ({
   onReactivate,
   onDelete,
   onChangePassword,
+  onRename,
 }: {
   account: SubAccount
   canChangePassword: boolean
@@ -73,6 +76,7 @@ const ActionsMenu = ({
   onReactivate: (id: string) => void
   onDelete: (id: string) => void
   onChangePassword: (id: string, newPassword: string) => Promise<void>
+  onRename: (id: string, name: string) => Promise<void>
 }) => {
   const [open, setOpen] = useState(false)
   const [coords, setCoords] = useState({ top: 0, right: 0 })
@@ -80,6 +84,7 @@ const ActionsMenu = ({
     'suspend' | 'reactivate' | 'delete' | null
   >(null)
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
+  const [renameOpen, setRenameOpen] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
 
   const handleOpen = () => {
@@ -156,6 +161,31 @@ const ActionsMenu = ({
                 padding: '4px 0',
               }}
             >
+              <button
+                onClick={() => {
+                  setRenameOpen(true)
+                  setOpen(false)
+                }}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 16px',
+                  fontSize: 14,
+                  color: T.gray80,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = T.gray5
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                Edit name
+              </button>
               <div
                 style={{
                   display: 'flex',
@@ -320,6 +350,12 @@ const ActionsMenu = ({
         onClose={() => setChangePasswordOpen(false)}
         onSubmit={(newPassword) => onChangePassword(account.id, newPassword)}
       />
+      <EditClientNameModal
+        isOpen={renameOpen}
+        currentName={account.name}
+        onClose={() => setRenameOpen(false)}
+        onSubmit={(name) => onRename(account.id, name)}
+      />
     </div>
   )
 }
@@ -331,6 +367,7 @@ export const PartnersSubAccountsTable = ({
   onReactivate,
   onDelete,
   onChangePassword,
+  onRename,
   isLoading,
   pendingAccountId,
   sortOrder,
@@ -356,7 +393,7 @@ export const PartnersSubAccountsTable = ({
 
   const columns: ColumnDef[] = [
     {
-      header: 'Name',
+      header: 'ID',
       cell: (acc) => (
         <span
           onClick={() => navigate(`/partners/sub-accounts/${acc.id}`)}
@@ -367,6 +404,14 @@ export const PartnersSubAccountsTable = ({
           }}
         >
           {acc.id.slice(0, 8)}…{acc.id.slice(-4)}
+        </span>
+      ),
+    },
+    {
+      header: 'Name',
+      cell: (acc) => (
+        <span style={{ fontSize: 14, color: acc.name ? T.gray80 : T.gray50 }}>
+          {acc.name ?? '—'}
         </span>
       ),
     },
@@ -461,6 +506,7 @@ export const PartnersSubAccountsTable = ({
                   onReactivate={onReactivate}
                   onDelete={onDelete}
                   onChangePassword={onChangePassword}
+                  onRename={onRename}
                 />
               ),
           },

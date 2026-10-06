@@ -50,6 +50,11 @@ export const WholesalersPartnersPage = () => {
     }
   };
 
+  const handleRename = async (id: string, name: string) => {
+    await wholesalersService.updatePartnerName(id, name);
+    setPartners((current) => current.map((p) => (p.id === id ? { ...p, name } : p)));
+  };
+
   const totalPages = Math.ceil(total / PER_PAGE);
   const hasPrev = page > 0;
   const hasNext = page < totalPages - 1;
@@ -86,6 +91,7 @@ export const WholesalersPartnersPage = () => {
           partners={partners}
           isLoading={isLoading}
           onDelete={handleDelete}
+          onRename={handleRename}
           deletingPartnerId={deletingPartnerId}
         />
 

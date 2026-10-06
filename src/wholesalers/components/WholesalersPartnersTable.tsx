@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { WholesalerPartner } from '../services/wholesalers.service';
-import { DeletePartnerAction } from './DeletePartnerAction';
+import { PartnerActions } from './PartnerActions';
 import { useWholesalers } from '../context/wholesalersContext';
 import { StatusBadge } from '../../components/StatusBadge';
 import { T } from '../../sub-account/tokens';
@@ -9,6 +9,7 @@ interface Props {
   partners: WholesalerPartner[];
   isLoading: boolean;
   onDelete: (id: string) => void;
+  onRename: (id: string, name: string) => Promise<void>;
   deletingPartnerId: string | null;
 }
 
@@ -31,7 +32,7 @@ const COLUMNS = [
   { header: '', align: 'right' as const },
 ];
 
-export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, deletingPartnerId }: Props) => {
+export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, onRename, deletingPartnerId }: Props) => {
   const navigate = useNavigate();
   const { isViewer } = useWholesalers();
 
@@ -87,7 +88,7 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, deleti
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
                 <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
-                  <span style={{ fontSize: 14, color: T.gray80 }}>{p.name ?? <span style={{ color: T.gray20 }}>—</span>}</span>
+                  <span style={{ fontSize: 14, color: T.gray80 }}>{p.name ?? <span style={{ color: T.gray50 }}>—</span>}</span>
                 </td>
                 <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
                   <span style={{ fontSize: 14, color: T.gray60 }}>{p.email ?? <span style={{ color: T.gray20 }}>—</span>}</span>
@@ -106,7 +107,12 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, deleti
                 </td>
                 <td style={{ padding: '14px 16px', textAlign: 'right', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
                   {!isViewer && (
-                    <DeletePartnerAction partner={p} isDeleting={deletingPartnerId === p.id} onDelete={onDelete} />
+                    <PartnerActions
+                      partner={p}
+                      isDeleting={deletingPartnerId === p.id}
+                      onDelete={onDelete}
+                      onRename={onRename}
+                    />
                   )}
                 </td>
               </tr>

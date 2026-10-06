@@ -9,14 +9,17 @@ import { managementService, SubAccountDetail, SubAccountUsage } from '../service
 import notificationsService from '../../services/notifications.service';
 import { exportAsCSV } from '../../utils/exportUtils';
 import { StatusBadge } from '../../components/StatusBadge';
+import { EditClientNameButton } from '../../components/EditClientNameModal';
 
 type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'> & {
   updateSubAccountStorageQuota?: (id: string, limitTb: number | null) => Promise<void>;
+  updateSubAccountName?: (id: string, name: string) => Promise<void>;
 };
 
 interface SubAccountDetailPageProps {
   backPath?: string;
   service?: SubAccountService;
+  showClientName?: boolean;
 }
 
 const PER_PAGE = 20;
@@ -131,10 +134,14 @@ const fmt = (n: number, decimals = 8) => n.toFixed(decimals);
 const fmtDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD-MMM-YYYY HH:mm') : s;
 const fmtChartDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD MMM') : s;
 
-export const SubAccountDetailPage = ({ backPath = '/management/accounts', service = managementService }: SubAccountDetailPageProps) => {
+export const SubAccountDetailPage = ({
+  backPath = '/management/accounts',
+  service = managementService,
+  showClientName = false,
+}: SubAccountDetailPageProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { updateSubAccountStorageQuota: updateQuota } = service;
+  const { updateSubAccountStorageQuota: updateQuota, updateSubAccountName: updateName } = service;
 
   const [account, setAccount] = useState<SubAccountDetail | null>(null);
   const [usages, setUsages] = useState<SubAccountUsage[]>([]);
@@ -213,6 +220,11 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
     }
   };
 
+  const handleRename = async (update: (id: string, name: string) => Promise<void>, name: string) => {
+    await update(id!, name);
+    setAccount((current) => (current ? { ...current, name } : current));
+  };
+
   const totalPages = Math.ceil(totalUsages / PER_PAGE);
   const latestUsage = usages[0];
 
@@ -253,7 +265,12 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
         </button>
         <div>
           <div className='flex items-center gap-3'>
-            <h1 className='text-lg font-bold text-gray-900 font-mono'>{String(account.id)}</h1>
+            <h1 className={`text-lg font-bold text-gray-900${showClientName ? '' : ' font-mono'}`}>
+              {showClientName ? (account.name ?? '—') : account.id}
+            </h1>
+            {updateName && account.status !== 'DELETED' && (
+              <EditClientNameButton currentName={account.name ?? null} onSubmit={(name) => handleRename(updateName, name)} />
+            )}
             <StatusBadge status={account.status} />
           </div>
           {account.contactEmail && (
@@ -444,6 +461,7 @@ export const SubAccountDetailPage = ({ backPath = '/management/accounts', servic
           <div className='p-6 flex flex-col gap-6'>
             {/* Read-only info */}
             <div className='grid grid-cols-2 gap-x-10 gap-y-4 lg:grid-cols-4 pb-5 border-b border-gray-100'>
+              {showClientName && <DetailField label='Name' value={account.name} />}
               <DetailField label='Account ID' value={id} />
               <DetailField label='Status' value={account.status} />
               <DetailField label='Creation Date' value={account.creationDate ? dayjs(account.creationDate).format('DD-MMM-YYYY') : null} />

@@ -20,7 +20,7 @@ axios.interceptors.response.use(
 
 export interface SubAccount {
   id: string
-  name: string
+  name: string | null
   email: string
   channelAccount?: string
   partnerId?: string | null
@@ -44,7 +44,7 @@ export interface SubAccountsResponse {
 }
 
 export interface CreateSubAccountDto {
-  name?: string
+  name: string
   email: string
   password: string
   country: string
@@ -157,6 +157,7 @@ async function getUsagesSummary(): Promise<UsagesSummary | null> {
 export interface SubAccountDetail {
   id: string
   contactEmail: string | null
+  name?: string | null
   status: 'ACTIVE' | 'SUSPENDED' | 'DELETED'
   creationDate: string
   activeStorage: number
