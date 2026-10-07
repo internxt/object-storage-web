@@ -9,9 +9,10 @@ interface Props {
   successText: (count: number) => string;
   title: string;
   disabled?: boolean;
+  variant?: 'primary' | 'secondary';
 }
 
-export const ExportButton = ({ onExport, successText, title, disabled = false }: Props) => {
+export const ExportButton = ({ onExport, successText, title, disabled = false, variant = 'secondary' }: Props) => {
   const [isExporting, setIsExporting] = useState(false);
 
   const handleClick = async () => {
@@ -28,7 +29,7 @@ export const ExportButton = ({ onExport, successText, title, disabled = false }:
 
   return (
     <span title={title}>
-      <Button variant='secondary' className='!text-sm' onClick={handleClick} disabled={disabled} loading={isExporting}>
+      <Button variant={variant} className='!text-sm' onClick={handleClick} disabled={disabled} loading={isExporting}>
         {!isExporting && <DownloadSimpleIcon size={16} />}
         <span>{isExporting ? 'Exporting…' : 'Export'}</span>
       </Button>

@@ -16,6 +16,7 @@ import {
   XLSXWorkbook,
 } from '../../utils/exportUtils';
 import { statusLabel } from '../../utils/statusLabel';
+import { ExportDateRange } from '../../components/ExportDateRangeModal';
 
 const SUMMARY_COLUMNS: XLSXColumn<SubAccountUsageItem>[] = [
   { header: 'Name', value: (acc) => acc.name ?? '', width: 30 },
@@ -69,8 +70,8 @@ const buildWorkbook = ({ from, to, items }: SubAccountsUsageReport): XLSXWorkboo
   };
 };
 
-export const exportSubAccountsUsage = async (): Promise<number> => {
-  const report = partnersService.getSubAccountsUsage();
+export const exportSubAccountsUsage = async (range: ExportDateRange): Promise<number> => {
+  const report = partnersService.getSubAccountsUsage(range);
   await exportAsXLSX(report.then(buildWorkbook));
   return (await report).items.length;
 };

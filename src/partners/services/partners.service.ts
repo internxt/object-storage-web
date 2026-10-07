@@ -222,8 +222,11 @@ export interface SubAccountsUsageReport {
   items: SubAccountUsageItem[];
 }
 
-async function getSubAccountsUsage(): Promise<SubAccountsUsageReport> {
-  const response = await axios.get<SubAccountsUsageReport>(`${API()}/usages/sub-accounts`, { headers: headers() });
+async function getSubAccountsUsage(params: { from: string; to: string }): Promise<SubAccountsUsageReport> {
+  const response = await axios.get<SubAccountsUsageReport>(`${API()}/usages/sub-accounts`, {
+    headers: headers(),
+    params,
+  });
   const report = response.data;
   return { ...report, items: report.items.map((item) => ({ ...item, status: toConsoleStatus(item.status) })) };
 }
