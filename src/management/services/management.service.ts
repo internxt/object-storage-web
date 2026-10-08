@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { managementAuthService } from './management-auth.service'
+import { toConsoleStatus } from '../../utils/statusLabel'
 
 const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/management`
 const headers = () => managementAuthService.getAuthHeaders()
@@ -86,10 +87,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     email: raw.email ?? '',
     partnerId: raw.partnerId ?? null,
     partnerName: raw.partnerName ?? null,
-    status:
-      raw.status === 'SUSPENDED' || raw.status === 'PENDING_DELETION' || raw.status === 'DELETED'
-        ? raw.status
-        : 'PAID_ACCOUNT',
+    status: toConsoleStatus(raw.status),
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',

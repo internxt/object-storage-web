@@ -2,6 +2,7 @@ import axios from 'axios';
 import { partnersAuthService } from './partners-auth.service';
 import { SubAccount } from '../../management/services/management.service';
 import notificationsService from '../../services/notifications.service';
+import { toConsoleStatus } from '../../utils/statusLabel';
 
 const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners`;
 const headers = () => partnersAuthService.getAuthHeaders();
@@ -48,10 +49,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     id: raw.id,
     name: raw.name ?? null,
     email: raw.email ?? '',
-    status:
-      raw.status === 'SUSPENDED' || raw.status === 'PENDING_DELETION' || raw.status === 'DELETED'
-        ? raw.status
-        : 'PAID_ACCOUNT',
+    status: toConsoleStatus(raw.status),
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     storageQuotaTb: raw.storageQuotaTb ?? null,
@@ -183,6 +181,56 @@ async function exportDailyUsage(params?: { startDate?: string; endDate?: string 
   return response.data;
 }
 
+export interface SubAccountUsageSummary {
+  avgActiveStorageTb: number;
+  avgDeletedStorageTb: number;
+  peakActiveStorageTb: number;
+  storageWroteTb: number;
+  storageReadTb: number;
+  egressGb: number;
+  ingressGb: number;
+  apiCalls: number;
+  activeObjectsLastDay: number | null;
+  daysWithData: number;
+}
+
+export interface SubAccountDailyUsage {
+  date: string;
+  activeStorageTb: number;
+  deletedStorageTb: number;
+  storageWroteTb: number;
+  storageReadTb: number;
+  activeObjects: number | null;
+  deletedObjects: number | null;
+  egressGb: number;
+  ingressGb: number;
+  apiCalls: number;
+}
+
+export interface SubAccountUsageItem {
+  id: string;
+  name: string | null;
+  email: string;
+  status: SubAccount['status'];
+  summary: SubAccountUsageSummary;
+  daily: SubAccountDailyUsage[];
+}
+
+export interface SubAccountsUsageReport {
+  from: string;
+  to: string;
+  items: SubAccountUsageItem[];
+}
+
+async function getSubAccountsUsage(params: { from: string; to: string }): Promise<SubAccountsUsageReport> {
+  const response = await axios.get<SubAccountsUsageReport>(`${API()}/usages/sub-accounts`, {
+    headers: headers(),
+    params,
+  });
+  const report = response.data;
+  return { ...report, items: report.items.map((item) => ({ ...item, status: toConsoleStatus(item.status) })) };
+}
+
 async function createBillingPortalSession(): Promise<{ url: string }> {
   const response = await axios.post<{ url: string }>(
     `${API()}/billing-portal`,
@@ -229,6 +277,7 @@ export const partnersService = {
   changeSubAccountPassword,
   updateSubAccountStorageQuota,
   getUsageSummary,
+  getSubAccountsUsage,
   createBillingPortalSession,
   changePassword,
   listMembers,

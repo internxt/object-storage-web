@@ -4,11 +4,13 @@ import {
   CaretLeft,
   CaretRight,
   FunnelSimple,
+  DownloadSimpleIcon,
 } from '@phosphor-icons/react'
 import {
   partnersService,
   PartnersUsageSummary,
 } from '../services/partners.service'
+import { exportSubAccountsUsage } from '../services/subAccountsExport'
 import { resolveConsoleUrl } from '../../utils/consoleUrl'
 import {
   CreateSubAccountDto,
@@ -20,8 +22,11 @@ import { CreateSubAccountModal } from '../../management/components/CreateSubAcco
 import notificationsService from '../../services/notifications.service'
 import { usePartners } from '../context/partnersContext'
 import { T, card, shadow } from '../../sub-account/tokens'
+import Button from '../../components/Button'
+import { ExportDateRangeModal } from '../../components/ExportDateRangeModal'
 
 const ACCENT = '#6366f1'
+const SUB_ACCOUNTS_EXPORT_MAX_DAYS = 50
 const POSITIVE = '#10b981'
 
 const STATUS_OPTIONS = [
@@ -63,10 +68,12 @@ export const PartnersSubAccountsPage = () => {
   const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [activeStorageSortOrder, setActiveStorageSortOrder] = useState<
     SortOrder | undefined
   >('desc')
   const [pendingAccountId, setPendingAccountId] = useState<string | null>(null)
+  const [exportableCount, setExportableCount] = useState<number | null>(null)
 
   useEffect(() => {
     fetchUsageSummary()
@@ -85,6 +92,10 @@ export const PartnersSubAccountsPage = () => {
   }, [search])
 
   const fetchUsageSummary = async () => {
+    partnersService
+      .getSubAccounts({ page: 0, perPage: 1 })
+      .then((res) => setExportableCount(res.total))
+      .catch(() => setExportableCount(null))
     try {
       const data = await partnersService.getUsageSummary()
       setUsageSummary(data)
@@ -255,28 +266,41 @@ export const PartnersSubAccountsPage = () => {
               </p>
             )}
           </div>
-          {!isViewer && (
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                height: 40,
-                padding: '0 18px',
-                background: T.primary,
-                color: T.white,
-                border: 'none',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: 14,
-                fontWeight: 500,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Create Sub-Account
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span title="Export usage for a date range (.xlsx)">
+              <Button
+                variant="secondary"
+                className="!text-sm"
+                onClick={() => setIsExportModalOpen(true)}
+                disabled={!exportableCount}
+              >
+                <DownloadSimpleIcon size={16} />
+                <span>Export</span>
+              </Button>
+            </span>
+            {!isViewer && (
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  height: 40,
+                  padding: '0 18px',
+                  background: T.primary,
+                  color: T.white,
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Create Sub-Account
+              </button>
+            )}
+          </div>
         </div>
 
         <div
@@ -494,6 +518,17 @@ export const PartnersSubAccountsPage = () => {
         </div>
       </div>
 
+      <ExportDateRangeModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onExport={exportSubAccountsUsage}
+        successText={(count) =>
+          `Exported usage for ${count} ${count === 1 ? 'sub-account' : 'sub-accounts'}`
+        }
+        title="Export sub-account usage"
+        description={`Choose the date range to include in the .xlsx (up to ${SUB_ACCOUNTS_EXPORT_MAX_DAYS} days).`}
+        maxRangeDays={SUB_ACCOUNTS_EXPORT_MAX_DAYS}
+      />
       <CreateSubAccountModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
