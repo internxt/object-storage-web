@@ -63,6 +63,16 @@ async function getPartnerUsageSummary(id: string): Promise<WholesalerPartnerUsag
   return response.data;
 }
 
+export interface WholesalerUsageSummary {
+  totalPartners: number;
+  activeStorageTb: number;
+}
+
+async function getUsageSummary(): Promise<WholesalerUsageSummary> {
+  const response = await axios.get(`${API()}/usages/summary`, { headers: headers() });
+  return response.data;
+}
+
 async function createBillingPortalSession(): Promise<{ url: string }> {
   const response = await axios.post<{ url: string }>(
     `${API()}/billing-portal`,
@@ -157,5 +167,6 @@ export const wholesalersService = {
   updatePartnerName,
   deletePartner,
   getPartnerUsageSummary,
+  getUsageSummary,
   createBillingPortalSession,
 };
