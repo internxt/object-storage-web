@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
-import { wholesalersService, WholesalerPartner } from '../services/wholesalers.service';
+import { wholesalersService, WholesalerPartner, WholesalerUsageSummary } from '../services/wholesalers.service';
 import { WholesalersPartnersTable } from '../components/WholesalersPartnersTable';
 import { CreateWholesalerPartnerModal } from '../components/CreateWholesalerPartnerModal';
 import { useWholesalers } from '../context/wholesalersContext';
@@ -9,9 +9,29 @@ import { apiErrorMessage } from '../../utils/apiError';
 import { T, card } from '../../sub-account/tokens';
 
 const PER_PAGE = 20;
+const ACCENT = '#6366f1';
+const POSITIVE = '#10b981';
+
+const labelStyle = {
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.14em',
+  color: T.gray60,
+};
+
+const metricStyle = {
+  fontSize: 48,
+  fontWeight: 600,
+  letterSpacing: '-0.02em',
+  lineHeight: 1,
+};
+
+const unitStyle = { fontSize: 20, fontWeight: 500, color: T.gray50 };
 
 export const WholesalersPartnersPage = () => {
   const { isViewer } = useWholesalers();
+  const [usageSummary, setUsageSummary] = useState<WholesalerUsageSummary | null>(null);
   const [partners, setPartners] = useState<WholesalerPartner[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -20,8 +40,21 @@ export const WholesalersPartnersPage = () => {
   const [deletingPartnerId, setDeletingPartnerId] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchUsageSummary();
+  }, []);
+
+  useEffect(() => {
     fetchPartners();
   }, [page]);
+
+  const fetchUsageSummary = async () => {
+    try {
+      const data = await wholesalersService.getUsageSummary();
+      setUsageSummary(data);
+    } catch (err) {
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load usage summary') });
+    }
+  };
 
   const fetchPartners = async () => {
     setIsLoading(true);
@@ -43,6 +76,7 @@ export const WholesalersPartnersPage = () => {
       await wholesalersService.deletePartner(id);
       notificationsService.success({ text: 'Partner deleted' });
       fetchPartners();
+      fetchUsageSummary();
     } catch (err) {
       notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete partner') });
     } finally {
@@ -63,6 +97,29 @@ export const WholesalersPartnersPage = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {usageSummary && (
+        <div style={{ ...card, borderRadius: 16, display: 'flex' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, padding: '28px 40px' }}>
+            <p style={labelStyle}>Active Storage</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ ...metricStyle, color: ACCENT }}>{usageSummary.activeStorageTb.toFixed(2)}</span>
+              <span style={unitStyle}>TB</span>
+            </div>
+          </div>
+          <div
+            style={{
+              display: 'flex', flexDirection: 'column', gap: 8, flex: 1,
+              padding: '28px 40px', borderLeft: `1px solid ${T.gray20}`,
+            }}
+          >
+            <p style={labelStyle}>Partners</p>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ ...metricStyle, color: POSITIVE }}>{usageSummary.totalPartners}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ ...card, borderRadius: 16, padding: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
@@ -145,6 +202,7 @@ export const WholesalersPartnersPage = () => {
           notificationsService.success({ text: 'Partner created' });
           setPage(0);
           fetchPartners();
+          fetchUsageSummary();
         }}
       />
     </div>
