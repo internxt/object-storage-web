@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, HardDrives, Users } from '@phosphor-icons/react';
+import { ArrowLeft } from '@phosphor-icons/react';
 import { wholesalersService, WholesalerPartner, WholesalerPartnerUsageSummary } from '../services/wholesalers.service';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
@@ -8,18 +8,35 @@ import { PartnerActions } from '../components/PartnerActions';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useWholesalers } from '../context/wholesalersContext';
+import { T, card, shadow, text } from '../../sub-account/tokens';
 
-const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
-  <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>
-    <div className='w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center flex-shrink-0'>
-      {icon}
-    </div>
-    <div>
-      <div className='text-lg font-bold text-gray-900'>{value}</div>
-      <div className='text-xs text-gray-400'>{label}</div>
-    </div>
-  </div>
-);
+const ACCENT = '#6366f1';
+const POSITIVE = '#10b981';
+
+const labelStyle = {
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.14em',
+  color: T.gray60,
+};
+
+const metricStyle = {
+  fontSize: 48,
+  fontWeight: 600,
+  letterSpacing: '-0.02em',
+  lineHeight: 1,
+};
+
+const unitStyle = { fontSize: 20, fontWeight: 500, color: T.gray50 };
+
+const columnStyle = {
+  display: 'flex',
+  flexDirection: 'column' as const,
+  gap: 8,
+  flex: 1,
+  padding: '28px 40px',
+};
 
 export const WholesalersPartnerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -76,24 +93,30 @@ export const WholesalersPartnerDetailPage = () => {
   }
 
   return (
-    <div className='flex flex-col gap-5'>
-      <div className='flex items-start gap-4'>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
         <button
           onClick={() => navigate('/wholesalers/partners')}
-          className='flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm hover:bg-gray-50 transition-colors flex-shrink-0'
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            height: 36, padding: '0 12px',
+            fontSize: 14, fontWeight: 500, color: T.gray80,
+            border: `1px solid ${T.gray20}`, borderRadius: 8,
+            background: T.white, boxShadow: shadow.sm, cursor: 'pointer', flexShrink: 0,
+          }}
         >
           <ArrowLeft size={14} />
           Back
         </button>
         <div>
-          <div className='flex items-center gap-3'>
-            <h1 className='text-lg font-bold text-gray-900'>{partner ? (partner.name ?? '—') : 'Partner'}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <h1 style={{ ...text.heading, margin: 0 }}>{partner ? (partner.name ?? '—') : 'Partner'}</h1>
             {partner && !isViewer && partner.status !== 'DELETED' && (
               <EditClientNameButton currentName={partner.name} onSubmit={(name) => handleRename(partner, name)} />
             )}
             {partner && <StatusBadge status={partner.status} />}
           </div>
-          {partner?.email && <p className='text-sm text-gray-400 mt-0.5'>{partner.email}</p>}
+          {partner?.email && <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{partner.email}</p>}
         </div>
 
         {/* The partner arrives in the router state and there is no endpoint to fetch it by id, so on a
@@ -110,22 +133,33 @@ export const WholesalersPartnerDetailPage = () => {
         )}
       </div>
 
-      <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
-        <StatCard
-          icon={<Database size={20} weight='duotone' className='text-indigo-600' />}
-          value={loading ? '…' : `${(usage?.activeStorageTb ?? 0).toFixed(4)} TB`}
-          label='Active Storage'
-        />
-        <StatCard
-          icon={<HardDrives size={20} weight='duotone' className='text-indigo-600' />}
-          value={loading ? '…' : `${(usage?.deletedStorageTb ?? 0).toFixed(4)} TB`}
-          label='Deleted Storage'
-        />
-        <StatCard
-          icon={<Users size={20} weight='duotone' className='text-indigo-600' />}
-          value={loading ? '…' : String(usage?.totalSubAccounts ?? 0)}
-          label='Sub-accounts'
-        />
+      <div style={{ ...card, borderRadius: 16, display: 'flex' }}>
+        <div style={columnStyle}>
+          <p style={labelStyle}>Active Storage</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ ...metricStyle, color: ACCENT }}>
+              {loading ? '…' : (usage?.activeStorageTb ?? 0).toFixed(4)}
+            </span>
+            {!loading && <span style={unitStyle}>TB</span>}
+          </div>
+        </div>
+        <div style={{ ...columnStyle, borderLeft: `1px solid ${T.gray20}` }}>
+          <p style={labelStyle}>Deleted Storage</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ ...metricStyle, color: T.gray80 }}>
+              {loading ? '…' : (usage?.deletedStorageTb ?? 0).toFixed(4)}
+            </span>
+            {!loading && <span style={unitStyle}>TB</span>}
+          </div>
+        </div>
+        <div style={{ ...columnStyle, borderLeft: `1px solid ${T.gray20}` }}>
+          <p style={labelStyle}>Sub-accounts</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ ...metricStyle, color: POSITIVE }}>
+              {loading ? '…' : String(usage?.totalSubAccounts ?? 0)}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
