@@ -23,7 +23,6 @@ const SUMMARY_COLUMNS: XLSXColumn<SubAccountUsageItem>[] = [
   { header: 'Account Email', value: (acc) => acc.email, width: 36 },
   { header: 'Status', value: (acc) => statusLabel(acc.status), width: 18 },
   { header: 'Storage Quota (TB)', value: (acc) => acc.storageQuotaTb ?? 'No limit', numFmt: XLSX_COUNT_FORMAT, width: 20 },
-  { header: 'Current Active Storage (TB)', value: (acc) => acc.currentActiveStorageTb, numFmt: XLSX_DECIMAL_FORMAT, width: 28 },
   { header: 'Avg Active Storage (TB)', value: (acc) => acc.summary.avgActiveStorageTb, numFmt: XLSX_DECIMAL_FORMAT, width: 24 },
   { header: 'Avg Deleted Storage (TB)', value: (acc) => acc.summary.avgDeletedStorageTb, numFmt: XLSX_DECIMAL_FORMAT, width: 24 },
   { header: 'Peak Active Storage (TB)', value: (acc) => acc.summary.peakActiveStorageTb, numFmt: XLSX_DECIMAL_FORMAT, width: 24 },

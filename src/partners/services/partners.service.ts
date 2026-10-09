@@ -213,7 +213,6 @@ export interface SubAccountUsageItem {
   email: string;
   status: SubAccount['status'];
   storageQuotaTb: number | null;
-  currentActiveStorageTb: number;
   summary: SubAccountUsageSummary;
   daily: SubAccountDailyUsage[];
 }
