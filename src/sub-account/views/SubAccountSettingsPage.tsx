@@ -10,6 +10,7 @@ import { AddMemberModal } from '../components/AddMemberModal';
 import { SsoSection } from '../../components/sso/SsoSection';
 import { subAccountSsoService } from '../services/sub-account-sso.service';
 import { SectionCard, ReadField } from '../components/SettingsAtoms';
+import { PublicSharingSection } from '../components/PublicSharingSection';
 import { AssignPermissionsModal } from '../components/permissions-manager/AssignPermissionsModal';
 import { PolicyDocument } from '../services/iamPolicy.service';
 import Dialog from '../../components/Dialog';
@@ -498,6 +499,7 @@ const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberI
           </div>
         </div>
       </SectionCard>
+      {isAdmin && <PublicSharingSection entityId={entityId} />}
       {isAdmin && (
         <SsoSection
           entityId={entityId}
@@ -665,7 +667,9 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
                     </div>
                   </td>
                   <td className='py-3.5 pr-4 text-sm text-gray-80'>
-                    <TruncatedCell text={event.actorEmail ?? '—'} />
+                    <TruncatedCell
+                      text={event.actorEmail ?? (event.anonymous ? t('settings.audit.anonymousActor') : '—')}
+                    />
                   </td>
                   <td className='py-3.5 pr-4 text-sm text-gray-80'>
                     {event.resourcePath ? (

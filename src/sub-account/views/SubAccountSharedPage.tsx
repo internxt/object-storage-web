@@ -6,6 +6,7 @@ import Dialog from '../../components/Dialog';
 import { Pagination } from '../../components/Pagination';
 import { useSubAccount } from '../context/SubAccountContext';
 import { shareService, ShareListItem } from '../services/share.service';
+import { subAccountSettingsService } from '../services/sub-account-settings.service';
 import { SharesTable } from '../components/shares/SharesTable';
 import { shareResourcePath } from '../components/shares/constants';
 
@@ -14,9 +15,11 @@ const DEFAULT_PAGE_SIZE = 100;
 
 export const SubAccountSharedPage = () => {
   const { t } = useTranslation('subaccount');
-  const { entityId } = useSubAccount();
+  const { entityId, memberId, isAdmin } = useSubAccount();
 
   const [shares, setShares] = useState<ShareListItem[]>([]);
+  const [isPublicSharingEnabled, setIsPublicSharingEnabled] = useState(false);
+  const [togglingShareId, setTogglingShareId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [pageNumber, setPageNumber] = useState(1);
@@ -49,7 +52,29 @@ export const SubAccountSharedPage = () => {
         notificationsService.error({ text: apiErrorMessage(err, t('shares.loadError')) });
       })
       .finally(() => setIsLoading(false));
+    subAccountSettingsService
+      .getSettings(entityId)
+      .then((settings) => setIsPublicSharingEnabled(settings.publicSharingEnabled))
+      .catch(() => setIsPublicSharingEnabled(false));
   }, [entityId, t]);
+
+  const canToggleVisibility = (share: ShareListItem) =>
+    isPublicSharingEnabled && (isAdmin || share.memberId === memberId);
+
+  const toggleVisibility = async (share: ShareListItem) => {
+    if (!entityId || togglingShareId) return;
+    const isPublic = !share.isPublic;
+    setTogglingShareId(share.id);
+    try {
+      await shareService.updateShareVisibility(entityId, share.id, isPublic);
+      setShares((prev) => prev.map((item) => (item.id === share.id ? { ...item, isPublic } : item)));
+      notificationsService.success({ text: t(isPublic ? 'shares.madePublic' : 'shares.madeMembersOnly') });
+    } catch (err) {
+      notificationsService.error({ text: apiErrorMessage(err, t('shares.visibilityError')) });
+    } finally {
+      setTogglingShareId(null);
+    }
+  };
 
   const onSearchChange = (value: string) => {
     setSearch(value);
@@ -104,6 +129,8 @@ export const SubAccountSharedPage = () => {
         search={search}
         onSearchChange={onSearchChange}
         onRevoke={setShareToRevoke}
+        canToggleVisibility={canToggleVisibility}
+        onToggleVisibility={toggleVisibility}
       />
       <Pagination
         pageSize={pageSize}

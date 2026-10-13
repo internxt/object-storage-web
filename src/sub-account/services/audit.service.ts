@@ -1,11 +1,12 @@
 import subAccountAxios from '../core/sub-account-axios';
 
-export type AuditEventType = 'created' | 'opened' | 'downloaded' | 'deleted';
+export type AuditEventType = 'created' | 'opened' | 'downloaded' | 'previewed' | 'deleted';
 
 export interface AuditEventItem {
   id: string;
   eventType: AuditEventType;
   actorEmail: string | null;
+  anonymous?: boolean;
   resourcePath: string | null;
   ip: string | null;
   timestamp: string;

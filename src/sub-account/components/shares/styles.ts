@@ -40,6 +40,17 @@ export const iconTile: CSSProperties = {
   justifyContent: 'center',
 };
 
+export const accessPill = (isPublic: boolean): CSSProperties => ({
+  ...text.caption,
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '2px 10px',
+  borderRadius: 999,
+  whiteSpace: 'nowrap',
+  background: isPublic ? T.primaryBg : T.gray10,
+  color: isPublic ? T.primary : T.gray60,
+});
+
 export const centeredMessage: CSSProperties = {
   padding: '40px 24px',
   textAlign: 'center',

@@ -7,6 +7,7 @@ export interface CreateShareBody {
   expiresInHours: number;
   endpoint?: string;
   region?: string;
+  isPublic?: boolean;
 }
 
 export interface CreateShareResponse {
@@ -19,6 +20,7 @@ export interface ShareListItem {
   bucket: string;
   objectKey: string;
   isFolder: boolean;
+  isPublic: boolean;
   createdAt: string;
   creator: string;
 }
@@ -34,5 +36,8 @@ export const shareService = {
   },
   revokeShare: async (entityId: string, shareId: string): Promise<void> => {
     await subAccountAxios.delete(`/sub-accounts/${entityId}/shares/${shareId}`);
+  },
+  updateShareVisibility: async (entityId: string, shareId: string, isPublic: boolean): Promise<void> => {
+    await subAccountAxios.patch(`/sub-accounts/${entityId}/shares/${shareId}`, { isPublic });
   },
 };
