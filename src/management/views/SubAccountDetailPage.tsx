@@ -44,6 +44,7 @@ const DetailField = ({ label, value }: { label: string; value?: string | number 
 );
 
 const MIN_STORAGE_QUOTA_TB = 1;
+const MAX_STORAGE_QUOTA_TB = 500;
 // `type=number` accepts scientific notation and signs; a quota is always a whole number of TB.
 const BLOCKED_QUOTA_KEYS = ['e', 'E', '+', '-', '.', ','];
 
@@ -64,7 +65,7 @@ const StorageQuotaCard = ({
   useEffect(() => setValue(quota != null ? String(quota) : ''), [quota]);
 
   const parsed = Number(value);
-  const isValid = /^\d+$/.test(value) && parsed >= MIN_STORAGE_QUOTA_TB;
+  const isValid = /^\d+$/.test(value) && parsed >= MIN_STORAGE_QUOTA_TB && parsed <= MAX_STORAGE_QUOTA_TB;
   const canSave = !busy && isValid && parsed !== quota;
 
   const run = async (action: () => Promise<void>) => {
@@ -102,6 +103,7 @@ const StorageQuotaCard = ({
         <input
           type='number'
           min={MIN_STORAGE_QUOTA_TB}
+          max={MAX_STORAGE_QUOTA_TB}
           step={1}
           value={value}
           disabled={busy}
@@ -123,7 +125,7 @@ const StorageQuotaCard = ({
           {busy ? 'Saving…' : 'Save limit'}
         </button>
         {value !== '' && !isValid && (
-          <span className='text-xs text-red-600'>Enter a whole number of TB, {MIN_STORAGE_QUOTA_TB} or more</span>
+          <span className='text-xs text-red-600'>Enter a whole number of TB between {MIN_STORAGE_QUOTA_TB} and {MAX_STORAGE_QUOTA_TB}</span>
         )}
       </div>
     </div>
