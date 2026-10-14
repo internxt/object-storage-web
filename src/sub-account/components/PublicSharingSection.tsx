@@ -5,20 +5,18 @@ import { Switch } from '../../components/Switch';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { subAccountSettingsService } from '../services/sub-account-settings.service';
+import { usePublicSharingEnabled } from '../hooks/usePublicSharingEnabled';
 import { SectionCard } from './SettingsAtoms';
 
 export const PublicSharingSection = ({ entityId }: { entityId: string }) => {
   const { t } = useTranslation('subaccount');
-  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const { isEnabled, setIsEnabled, hasLoadFailed } = usePublicSharingEnabled(entityId);
   const [isSaving, setIsSaving] = useState(false);
   const [isConfirmingDisable, setIsConfirmingDisable] = useState(false);
 
   useEffect(() => {
-    subAccountSettingsService
-      .getSettings(entityId)
-      .then((settings) => setIsEnabled(settings.publicSharingEnabled))
-      .catch(() => notificationsService.error({ text: t('settings.account.publicSharingLoadFailed') }));
-  }, [entityId, t]);
+    if (hasLoadFailed) notificationsService.error({ text: t('settings.account.publicSharingLoadFailed') });
+  }, [hasLoadFailed, t]);
 
   const save = async (publicSharingEnabled: boolean) => {
     setIsSaving(true);

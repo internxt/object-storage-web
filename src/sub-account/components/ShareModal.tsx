@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HttpStatusCode } from 'axios';
 import Modal from '../../components/Modal';
@@ -6,7 +6,7 @@ import Button from '../../components/Button';
 import Loader from '../../components/Loader';
 import { S3Object } from '../../services/s3.service';
 import { shareService } from '../services/share.service';
-import { subAccountSettingsService } from '../services/sub-account-settings.service';
+import { usePublicSharingEnabled } from '../hooks/usePublicSharingEnabled';
 import { useSubAccount } from '../context/SubAccountContext';
 import { displayName } from '../../utils/displayName';
 import { hasApiErrorStatus } from '../../utils/apiError';
@@ -55,7 +55,7 @@ const AccessOption = ({ title, hint, selected, onSelect }: {
 export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModalProps) => {
   const { t } = useTranslation('subaccount');
   const { entityId } = useSubAccount();
-  const [isPublicSharingEnabled, setIsPublicSharingEnabled] = useState(false);
+  const isPublicSharingEnabled = usePublicSharingEnabled(entityId).isEnabled === true;
   const [isPublic, setIsPublic] = useState(false);
   const [duration, setDuration] = useState<DurationPreset>('24h');
   const [customDays, setCustomDays] = useState('1');
@@ -63,14 +63,6 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
   const [creating, setCreating] = useState(false);
   const [url, setUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!entityId) return;
-    subAccountSettingsService
-      .getSettings(entityId)
-      .then((settings) => setIsPublicSharingEnabled(settings.publicSharingEnabled))
-      .catch(() => setIsPublicSharingEnabled(false));
-  }, [entityId]);
 
   const handleCreate = async () => {
     if (!entityId) return;
@@ -85,17 +77,17 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
     }
     setValidationError(null);
     setCreating(true);
+    const requestPublic = isPublicSharingEnabled && isPublic;
     try {
       const share = await shareService.createShare(entityId, {
         bucket, key: obj.key, isFolder: obj.isFolder, endpoint, region, expiresInHours,
-        isPublic: isPublicSharingEnabled && isPublic,
+        isPublic: requestPublic,
       });
       setUrl(`${window.location.origin}/share/${share.token}`);
     } catch (err) {
       const isForbidden = hasApiErrorStatus(err, HttpStatusCode.Forbidden);
       const isBadRequest = hasApiErrorStatus(err, HttpStatusCode.BadRequest);
-      // The setting can be turned off while the dialog is open; the server then refuses a public link with 403.
-      const isPublicRefused = isForbidden && isPublicSharingEnabled && isPublic;
+      const isPublicRefused = isForbidden && requestPublic;
       setError(
         isPublicRefused
           ? t('shareModal.publicDisabledError')

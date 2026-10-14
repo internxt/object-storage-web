@@ -2,7 +2,6 @@ import subAccountAxios from '../core/sub-account-axios';
 
 export interface SubAccountSettings {
   publicSharingEnabled: boolean;
-  auditLogEnabled: boolean;
 }
 
 export const subAccountSettingsService = {
@@ -12,7 +11,7 @@ export const subAccountSettingsService = {
   },
   updateSettings: async (
     entityId: string,
-    body: Partial<Pick<SubAccountSettings, 'publicSharingEnabled'>>,
+    body: { publicSharingEnabled?: boolean },
   ): Promise<SubAccountSettings> => {
     const response = await subAccountAxios.patch<SubAccountSettings>(`/sub-accounts/${entityId}/settings`, body);
     return response.data;

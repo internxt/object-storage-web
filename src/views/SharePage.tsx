@@ -9,14 +9,9 @@ import { Breadcrumb, ROOT_SEGMENT_INDEX } from '../components/share/Breadcrumb';
 import { CenteredMessage } from '../components/share/CenteredMessage';
 import { FolderListing } from '../components/share/FolderListing';
 import { PreviewModal } from '../components/objects/PreviewModal';
+import { BrandLogo } from '../components/BrandLogo';
 import { useObjectPagination } from '../sub-account/hooks/useObjectPagination';
-import {
-  publicShareService,
-  shareService,
-  ShareDataSource,
-  ShareListItem,
-  ShareMetadata,
-} from '../services/share.service';
+import { publicShareService, shareService, ShareListItem, ShareMetadata } from '../services/share.service';
 import { useSubAccount } from '../sub-account/context/SubAccountContext';
 import { getBrandingStyles, mapToBranding } from '../sub-account/context/SubAccountBrandingContext/service';
 import { hasApiErrorStatus } from '../utils/apiError';
@@ -28,18 +23,11 @@ const PAGE_VERTICAL_PADDING = 48;
 
 const isFolderShare = (meta: ShareMetadata) => meta.type === 'folder';
 
-type ShareMode = 'public' | 'member';
-
-const DATA_SOURCE: Record<ShareMode, ShareDataSource> = {
-  public: publicShareService,
-  member: shareService,
-};
-
 export const SharePage = () => {
   const { token } = useParams<{ token: string }>();
   const location = useLocation();
   const { isAuthenticated } = useSubAccount();
-  const [mode, setMode] = useState<ShareMode | null>(null);
+  const [isPublicShare, setIsPublicShare] = useState(false);
   const [metadata, setMetadata] = useState<ShareMetadata | null>(null);
   const [isNotFound, setIsNotFound] = useState(false);
   const [isAccessDenied, setIsAccessDenied] = useState(false);
@@ -53,10 +41,10 @@ export const SharePage = () => {
     state: pagination, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
   } = useObjectPagination();
 
-  const dataSource = mode ? DATA_SOURCE[mode] : null;
+  const dataSource = isPublicShare ? publicShareService : shareService;
 
   const onShareError = (err: unknown) => {
-    if (mode === 'member' && hasApiErrorStatus(err, HttpStatusCode.Forbidden)) {
+    if (hasApiErrorStatus(err, HttpStatusCode.Forbidden)) {
       setMetadata(null);
       setObjects([]);
       setCurrentPrefix(null);
@@ -77,18 +65,18 @@ export const SharePage = () => {
     setCurrentPrefix(null);
     setIsNotFound(false);
     setIsAccessDenied(false);
-    setMode(null);
+    setIsPublicShare(false);
     resetPagination();
 
-    const showShare = (meta: ShareMetadata, shareMode: ShareMode) => {
-      setMode(shareMode);
+    const showShare = (meta: ShareMetadata, isPublic: boolean) => {
+      setIsPublicShare(isPublic);
       setMetadata(meta);
       if (isFolderShare(meta)) setCurrentPrefix(meta.prefix ?? '');
     };
 
     const fetchMetadata = async () => {
       try {
-        showShare(await publicShareService.getMetadata(token), 'public');
+        showShare(await publicShareService.getMetadata(token), true);
         return;
       } catch {
         if (!isAuthenticated) {
@@ -97,14 +85,9 @@ export const SharePage = () => {
         }
       }
       try {
-        showShare(await shareService.getMetadata(token), 'member');
+        showShare(await shareService.getMetadata(token), false);
       } catch (err) {
-        setMode('member');
-        if (hasApiErrorStatus(err, HttpStatusCode.Forbidden)) {
-          setIsAccessDenied(true);
-          return;
-        }
-        if (!hasApiErrorStatus(err, HttpStatusCode.Unauthorized)) setIsNotFound(true);
+        onShareError(err);
       }
     };
     fetchMetadata();
@@ -112,7 +95,7 @@ export const SharePage = () => {
   }, [token]);
 
   const loadList = async (prefix: string, cursor?: string) => {
-    if (!token || !dataSource) return;
+    if (!token) return;
     setIsListLoading(true);
     try {
       const result = await dataSource.list(token, prefix, cursor);
@@ -141,7 +124,7 @@ export const SharePage = () => {
   };
 
   const onDownload = async (key?: string) => {
-    if (!token || !dataSource) return;
+    if (!token) return;
     try {
       const url = await dataSource.download(token, key);
       const anchor = document.createElement('a');
@@ -153,7 +136,7 @@ export const SharePage = () => {
   };
 
   const onPreview = async (key?: string) => {
-    if (!token || !dataSource) return;
+    if (!token) return;
     const fileName = key ? displayName(key) : (metadata?.name ?? '');
     setPreview({ fileName, kind: null, url: null, isLoading: true, error: null });
     try {
@@ -184,7 +167,7 @@ export const SharePage = () => {
     openFolder(`${sharedRoot}${path}/`);
   };
 
-  const branding = mode === 'public' ? mapToBranding(metadata?.branding) : null;
+  const branding = mapToBranding(metadata?.branding);
   const brandingStyles = branding?.primaryColor ? getBrandingStyles(branding.primaryColor) : undefined;
 
   let body: React.ReactNode;
@@ -196,9 +179,15 @@ export const SharePage = () => {
         subtitle="This shared link is not available to your account. Ask the owner to share it with you."
       />
     );
-  } else if (isNotFound && !isAuthenticated) {
+  } else if (isNotFound) {
     const returnTo = encodeURIComponent(location.pathname + location.search);
-    body = (
+    body = isAuthenticated ? (
+      <CenteredMessage
+        icon={<LinkBreakIcon size={28} color={T.gray50} />}
+        title="This link doesn't exist"
+        subtitle="The share link is invalid, was revoked or is no longer available."
+      />
+    ) : (
       <CenteredMessage
         icon={<LinkBreakIcon size={28} color={T.gray50} />}
         title="This link isn't available"
@@ -208,14 +197,6 @@ export const SharePage = () => {
             Members: log in
           </Link>
         )}
-      />
-    );
-  } else if (isNotFound) {
-    body = (
-      <CenteredMessage
-        icon={<LinkBreakIcon size={28} color={T.gray50} />}
-        title="This link doesn't exist"
-        subtitle="The share link is invalid, was revoked or is no longer available."
       />
     );
   } else if (!metadata) {
@@ -289,10 +270,11 @@ export const SharePage = () => {
             <p style={{ fontSize: 12, color: T.gray50, margin: 0 }}>Shared via Internxt Object Storage</p>
           </div>
           {branding?.logoUrl && (
-            <img
-              src={branding.logoUrl}
-              alt=""
-              style={{ marginLeft: 'auto', flexShrink: 0, maxHeight: 32, maxWidth: 160, objectFit: 'contain' }}
+            <BrandLogo
+              logoUrl={branding.logoUrl}
+              fallbackLogoUrl=''
+              fallbackAlt=''
+              style={{ marginLeft: 'auto', flexShrink: 0, maxHeight: 32, maxWidth: 160, objectPosition: 'right' }}
             />
           )}
         </div>

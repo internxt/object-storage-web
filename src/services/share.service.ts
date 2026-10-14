@@ -1,17 +1,12 @@
 import axios, { AxiosInstance } from 'axios';
 import subAccountAxios from '../sub-account/core/sub-account-axios';
-
-export interface ShareBranding {
-  logoUrl: string | null;
-  primaryColor: string | null;
-}
+import { SubAccountBranding } from '../sub-account/services/sub-account-branding.service';
 
 export interface ShareMetadata {
   type: 'file' | 'folder';
   name: string;
-  bucket?: string;
   prefix?: string;
-  branding?: ShareBranding;
+  branding?: SubAccountBranding;
 }
 
 export interface ShareListItem {

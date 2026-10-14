@@ -407,10 +407,10 @@ export const SubAccountBucketDetailPage = () => {
   const regionRef = useRef(searchParams.get('region'));
 
   const resolvedEndpoint = endpointRef.current ?? (credentials ? new URL(credentials.endpoint).host : undefined);
-  const resolvedRegion = regionRef.current ?? credentials?.region ?? undefined;
+  const resolvedRegion = regionRef.current ?? credentials?.region;
 
   const client = useMemo(() => {
-    if (!credentials || !resolvedEndpoint) return null;
+    if (!credentials) return null;
     return new S3Client({
       endpoint: `https://${resolvedEndpoint}`,
       region: resolvedRegion ?? 'us-east-1',

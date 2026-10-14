@@ -289,10 +289,13 @@
       "columnTimestamp": "Timestamp",
       "eventType": {
         "created": "Created",
+        "created_public": "Created (public)",
         "opened": "Opened",
         "downloaded": "Downloaded",
         "previewed": "Previewed",
-        "deleted": "Revoked"
+        "deleted": "Revoked",
+        "made_public": "Made public",
+        "made_private": "Made members-only"
       },
       "anonymousActor": "Anonymous (public link)",
       "incomplete": "Incomplete",

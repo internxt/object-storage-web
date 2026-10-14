@@ -658,7 +658,7 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
                 <tr key={event.id} className='border-b border-gray-10/60'>
                   <td className='py-3.5 pr-4 text-sm text-gray-100'>
                     <div className='flex flex-wrap items-center gap-2'>
-                      <span className='whitespace-nowrap'>{t(`settings.audit.eventType.${event.eventType}`)}</span>
+                      <span className='min-w-0 break-words'>{t(`settings.audit.eventType.${event.eventType}`)}</span>
                       {event.status === 'incomplete' && (
                         <span className='shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-5 text-gray-60' title={t('settings.audit.incompleteHint')}>
                           {t('settings.audit.incomplete')}
