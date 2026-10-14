@@ -21,6 +21,7 @@ interface DbSubAccount {
   activeStorageBytes: number;
   deletedStorageBytes: number;
   storageQuotaTb: number | null;
+  usageAlertTb: number | null;
   createdAt: string;
 }
 
@@ -35,6 +36,7 @@ function mapDbSubAccount(raw: DbSubAccount): SubAccount {
     activeStorage: (raw.activeStorageBytes ?? 0) * BYTES_TO_TB,
     deletedStorage: (raw.deletedStorageBytes ?? 0) * BYTES_TO_TB,
     storageQuotaTb: raw.storageQuotaTb ?? null,
+    usageAlertTb: raw.usageAlertTb ?? null,
     creationDate: raw.createdAt ? new Date(raw.createdAt).toISOString() : '',
     recordDate: '',
   };
@@ -102,6 +104,10 @@ async function changeSubAccountPassword(id: string, newPassword: string): Promis
 
 async function updateSubAccountStorageQuota(id: string, limitTb: number | null): Promise<void> {
   await partnersAxios.patch(`${API}/sub-accounts/${id}/storage-quota`, { limitTb });
+}
+
+async function updateSubAccountUsageAlert(id: string, usageAlertTb: number | null): Promise<void> {
+  await axios.patch(`${API()}/sub-accounts/${id}/usage-alert`, { usageAlertTb }, { headers: headers() });
 }
 
 async function getUsageSummary(): Promise<PartnersUsageSummary> {
@@ -196,6 +202,7 @@ export interface SubAccountUsageItem {
   email: string;
   status: SubAccount['status'];
   storageQuotaTb: number | null;
+  usageAlertTb: number | null;
   summary: SubAccountUsageSummary;
   daily: SubAccountDailyUsage[];
 }
@@ -258,6 +265,7 @@ export const partnersService = {
   deleteSubAccount,
   changeSubAccountPassword,
   updateSubAccountStorageQuota,
+  updateSubAccountUsageAlert,
   getUsageSummary,
   getSubAccountsUsage,
   createBillingPortalSession,
