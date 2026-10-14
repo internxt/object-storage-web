@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { ArrowLeft, Database, Package, CaretLeft, CaretRight, DownloadSimple } from '@phosphor-icons/react';
+import { ArrowLeft, Database, Package, CaretLeft, CaretRight, DownloadSimple, WarningIcon } from '@phosphor-icons/react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
@@ -11,9 +11,11 @@ import { exportAsCSV } from '../../utils/exportUtils';
 import { StatusBadge } from '../../components/StatusBadge';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
 import { apiErrorMessage } from '../../utils/apiError';
+import { getStorageLimitStatus } from '../../utils/storageLimits';
 
 type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'> & {
   updateSubAccountStorageQuota?: (id: string, limitTb: number | null) => Promise<void>;
+  updateSubAccountUsageAlert?: (id: string, usageAlertTb: number | null) => Promise<void>;
   updateSubAccountName?: (id: string, name: string) => Promise<void>;
 };
 
@@ -48,26 +50,92 @@ const MIN_STORAGE_QUOTA_TB = 1;
 const MAX_STORAGE_QUOTA_TB = 500;
 // `type=number` accepts scientific notation and signs; a quota is always a whole number of TB.
 const BLOCKED_QUOTA_KEYS = ['e', 'E', '+', '-', '.', ','];
+const QUOTA_INPUT = /^\d*$/;
+const USAGE_ALERT_INPUT = /^\d*(\.\d{0,2})?$/;
 
-const StorageQuotaCard = ({
-  quota,
-  used,
+const WARNING_TONES = {
+  alert: {
+    box: 'bg-amber-50 border-amber-200',
+    icon: 'text-amber-600',
+    title: 'text-amber-900',
+    body: 'text-amber-800',
+    heading: 'Usage alert reached',
+    note: 'New uploads will be blocked once the storage quota is reached.',
+  },
+  quota: {
+    box: 'bg-red-50 border-red-200',
+    icon: 'text-red-600',
+    title: 'text-red-900',
+    body: 'text-red-800',
+    heading: 'Storage quota reached',
+    note: 'New uploads are blocked. Existing data can still be read, downloaded and deleted.',
+  },
+};
+
+const UsageAlertWarning = ({ used, usageAlert, quota }: { used: number; usageAlert: number | null; quota: number | null }) => {
+  const { alertReached, quotaReached } = getStorageLimitStatus(used, quota, usageAlert);
+  if (!alertReached) return null;
+  const tone = WARNING_TONES[quotaReached ? 'quota' : 'alert'];
+
+  return (
+    <div role='alert' className={`rounded-xl border p-4 flex items-start gap-3 ${tone.box}`}>
+      <WarningIcon size={20} weight='fill' className={`flex-shrink-0 mt-0.5 ${tone.icon}`} />
+      <div className='flex flex-col gap-0.5'>
+        <span className={`text-sm font-semibold ${tone.title}`}>{tone.heading}</span>
+        <span className={`text-xs ${tone.body}`}>
+          {fmt(used, 2)} TB in use · usage alert {usageAlert} TB · storage quota {quota != null ? `${quota} TB` : 'not set'}.{' '}
+          {tone.note}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+const LimitEditor = ({
+  title,
+  description,
+  limit,
+  placeholder,
+  min,
+  max,
+  step,
+  inputPattern,
+  blockedKeys = [],
+  decimal = false,
+  validate,
+  saveLabel,
+  removeLabel,
+  removeBlockedReason,
+  disabled = false,
   onSave,
   onRemove,
 }: {
-  quota: number | null;
-  used: number;
-  onSave: (limitTb: number) => Promise<void>;
+  title: React.ReactNode;
+  description: string;
+  limit: number | null;
+  placeholder: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  inputPattern: RegExp;
+  blockedKeys?: string[];
+  decimal?: boolean;
+  validate: (value: string, parsed: number) => string | null;
+  saveLabel: string;
+  removeLabel: string;
+  removeBlockedReason?: string;
+  disabled?: boolean;
+  onSave: (value: number) => Promise<void>;
   onRemove: () => Promise<void>;
 }) => {
-  const [value, setValue] = useState(quota != null ? String(quota) : '');
+  const [value, setValue] = useState(limit != null ? String(limit) : '');
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => setValue(quota != null ? String(quota) : ''), [quota]);
+  useEffect(() => setValue(limit != null ? String(limit) : ''), [limit]);
 
   const parsed = Number(value);
-  const isValid = /^\d+$/.test(value) && parsed >= MIN_STORAGE_QUOTA_TB && parsed <= MAX_STORAGE_QUOTA_TB;
-  const canSave = !busy && isValid && parsed !== quota;
+  const error = value !== '' ? validate(value, parsed) : null;
+  const canSave = !busy && value !== '' && error == null && parsed !== limit;
 
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -79,41 +147,39 @@ const StorageQuotaCard = ({
   };
 
   return (
-    <div className='bg-white rounded-xl shadow-sm p-5 flex flex-col gap-3'>
-      <div className='flex items-baseline justify-between gap-4 flex-wrap'>
-        <div>
-          <h2 className='text-sm font-semibold text-gray-900'>Storage Quota</h2>
-          <p className='text-xs text-gray-400 mt-0.5'>
-            {quota == null
-              ? 'No limit. This account can keep uploading without restriction.'
-              : `Limited to ${quota} TB. ${fmt(used, 2)} TB currently in use.`}
-          </p>
+    <>
+      <div className='flex items-baseline justify-between gap-4'>
+        <div className='min-w-0'>
+          {title}
+          <p className='text-xs text-gray-400 mt-0.5'>{description}</p>
         </div>
-        {quota != null && (
+        {limit != null && (
           <button
-            disabled={busy}
+            disabled={busy || removeBlockedReason != null}
+            title={removeBlockedReason}
             onClick={() => run(onRemove)}
-            className='text-xs font-medium text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+            className='shrink-0 whitespace-nowrap text-xs font-medium text-gray-600 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
           >
-            Remove limit
+            {removeLabel}
           </button>
         )}
       </div>
 
       <div className='flex items-center gap-2 flex-wrap'>
         <input
-          type='number'
-          min={MIN_STORAGE_QUOTA_TB}
-          max={MAX_STORAGE_QUOTA_TB}
-          step={1}
+          type={decimal ? 'text' : 'number'}
+          inputMode={decimal ? 'decimal' : undefined}
+          min={min}
+          max={max}
+          step={step}
           value={value}
-          disabled={busy}
-          placeholder='No limit'
+          disabled={busy || disabled}
+          placeholder={placeholder}
           onKeyDown={(e) => {
-            if (BLOCKED_QUOTA_KEYS.includes(e.key)) e.preventDefault();
+            if (blockedKeys.includes(e.key)) e.preventDefault();
           }}
           onChange={(e) => {
-            if (/^\d*$/.test(e.target.value)) setValue(e.target.value);
+            if (inputPattern.test(e.target.value)) setValue(e.target.value);
           }}
           className='w-32 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400 disabled:bg-gray-50'
         />
@@ -123,15 +189,96 @@ const StorageQuotaCard = ({
           onClick={() => run(() => onSave(parsed))}
           className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
         >
-          {busy ? 'Saving…' : 'Save limit'}
+          {busy ? 'Saving…' : saveLabel}
         </button>
-        {value !== '' && !isValid && (
-          <span className='text-xs text-red'>Enter a whole number of TB between {MIN_STORAGE_QUOTA_TB} and {MAX_STORAGE_QUOTA_TB}</span>
-        )}
+        {error && <span className='text-xs text-red'>{error}</span>}
       </div>
-    </div>
+    </>
   );
 };
+
+const usageAlertDescription = (usageAlert: number | null, quota: number | null) => {
+  if (usageAlert != null) {
+    return `A warning shows when usage reaches ${usageAlert} TB. Uploads keep working until the storage quota.`;
+  }
+  if (quota == null) return 'Set a storage quota first. The usage alert must be below it.';
+  return 'Not set. Show a warning in the console when usage reaches this level, before the storage quota.';
+};
+
+const StorageLimitsCard = ({
+  quota,
+  used,
+  usageAlert,
+  onSaveQuota,
+  onRemoveQuota,
+  onSaveUsageAlert,
+  onRemoveUsageAlert,
+}: {
+  quota: number | null;
+  used: number;
+  usageAlert: number | null;
+  onSaveQuota: (limitTb: number) => Promise<void>;
+  onRemoveQuota: () => Promise<void>;
+  onSaveUsageAlert?: (usageAlertTb: number) => Promise<void>;
+  onRemoveUsageAlert?: () => Promise<void>;
+}) => (
+  <div className='bg-white rounded-xl shadow-sm p-5 grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-0'>
+    <div className='flex flex-col gap-3 lg:pr-8'>
+      <LimitEditor
+        title={<h2 className='text-sm font-semibold text-gray-900'>Storage Quota</h2>}
+        description={
+          quota == null
+            ? 'No limit. This account can keep uploading without restriction.'
+            : `Limited to ${quota} TB. ${fmt(used, 2)} TB currently in use.`
+        }
+        limit={quota}
+        placeholder='No limit'
+        min={MIN_STORAGE_QUOTA_TB}
+        max={MAX_STORAGE_QUOTA_TB}
+        step={1}
+        inputPattern={QUOTA_INPUT}
+        blockedKeys={BLOCKED_QUOTA_KEYS}
+        validate={(value, parsed) => {
+          if (!/^\d+$/.test(value) || parsed < MIN_STORAGE_QUOTA_TB || parsed > MAX_STORAGE_QUOTA_TB) {
+            return `Enter a whole number of TB between ${MIN_STORAGE_QUOTA_TB} and ${MAX_STORAGE_QUOTA_TB}`;
+          }
+          if (usageAlert != null && parsed <= usageAlert) {
+            return `The storage quota must be above the usage alert (${usageAlert} TB). Lower the usage alert first.`;
+          }
+          return null;
+        }}
+        saveLabel='Save limit'
+        removeLabel='Remove limit'
+        removeBlockedReason={usageAlert != null ? 'Remove the usage alert first' : undefined}
+        onSave={onSaveQuota}
+        onRemove={onRemoveQuota}
+      />
+    </div>
+
+    {onSaveUsageAlert && onRemoveUsageAlert && (
+      <div className='flex flex-col gap-3 pt-6 border-t border-gray-100 lg:pt-0 lg:pl-8 lg:border-t-0 lg:border-l'>
+        <LimitEditor
+          title={<h3 className='text-sm font-semibold text-gray-900'>Usage Alert</h3>}
+          description={usageAlertDescription(usageAlert, quota)}
+          limit={usageAlert}
+          placeholder='Not set'
+          inputPattern={USAGE_ALERT_INPUT}
+          decimal
+          validate={(_value, parsed) => {
+            if (!(parsed > 0)) return 'Enter a number of TB greater than 0';
+            if (quota == null || parsed >= quota) return 'The usage alert must be below the storage quota';
+            return null;
+          }}
+          saveLabel='Save usage alert'
+          removeLabel='Remove usage alert'
+          disabled={quota == null && usageAlert == null}
+          onSave={onSaveUsageAlert}
+          onRemove={onRemoveUsageAlert}
+        />
+      </div>
+    )}
+  </div>
+);
 
 const fmt = (n: number, decimals = 8) => n.toFixed(decimals);
 const fmtDate = (s: string) => dayjs(s).isValid() ? dayjs(s).format('DD-MMM-YYYY HH:mm') : s;
@@ -144,7 +291,11 @@ export const SubAccountDetailPage = ({
 }: SubAccountDetailPageProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { updateSubAccountStorageQuota: updateQuota, updateSubAccountName: updateName } = service;
+  const {
+    updateSubAccountStorageQuota: updateQuota,
+    updateSubAccountUsageAlert: updateUsageAlert,
+    updateSubAccountName: updateName,
+  } = service;
 
   const [account, setAccount] = useState<SubAccountDetail | null>(null);
   const [usages, setUsages] = useState<SubAccountUsage[]>([]);
@@ -212,13 +363,17 @@ export const SubAccountDetailPage = ({
   };
 
 
-  const applyQuotaChange = async (action: () => Promise<void>, storageQuotaTb: number | null, message: string) => {
+  const applyLimitChange = async (
+    action: () => Promise<void>,
+    change: Partial<Pick<SubAccountDetail, 'storageQuotaTb' | 'usageAlertTb'>>,
+    message: string,
+  ) => {
     try {
       await action();
-      setAccount((current) => (current ? { ...current, storageQuotaTb } : current));
+      setAccount((current) => (current ? { ...current, ...change } : current));
       notificationsService.success({ text: message });
     } catch (e) {
-      notificationsService.error({ text: apiErrorMessage(e, 'Failed to update the storage quota') });
+      notificationsService.error({ text: apiErrorMessage(e, 'The change could not be saved.') });
     }
   };
 
@@ -248,6 +403,9 @@ export const SubAccountDetailPage = ({
   }
 
   if (!account) return null;
+
+  const quota = account.storageQuotaTb ?? null;
+  const usageAlert = account.usageAlertTb ?? null;
 
   const tabClass = (t: typeof tab) =>
     `px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
@@ -305,14 +463,28 @@ export const SubAccountDetailPage = ({
         />
       </div>
 
+      <UsageAlertWarning used={account.activeStorage} usageAlert={usageAlert} quota={quota} />
+
       {updateQuota && (
-        <StorageQuotaCard
-          quota={account.storageQuotaTb ?? null}
+        <StorageLimitsCard
+          quota={quota}
           used={account.activeStorage}
-          onSave={(limitTb) =>
-            applyQuotaChange(() => updateQuota(id!, limitTb), limitTb, `Storage quota set to ${limitTb} TB`)
+          usageAlert={usageAlert}
+          onSaveQuota={(limitTb) =>
+            applyLimitChange(() => updateQuota(id!, limitTb), { storageQuotaTb: limitTb }, `Storage quota set to ${limitTb} TB`)
           }
-          onRemove={() => applyQuotaChange(() => updateQuota(id!, null), null, 'Storage quota removed')}
+          onRemoveQuota={() =>
+            applyLimitChange(() => updateQuota(id!, null), { storageQuotaTb: null }, 'Storage quota removed')
+          }
+          onSaveUsageAlert={
+            updateUsageAlert &&
+            ((usageAlertTb) =>
+              applyLimitChange(() => updateUsageAlert(id!, usageAlertTb), { usageAlertTb }, `Usage alert set to ${usageAlertTb} TB`))
+          }
+          onRemoveUsageAlert={
+            updateUsageAlert &&
+            (() => applyLimitChange(() => updateUsageAlert(id!, null), { usageAlertTb: null }, 'Usage alert removed'))
+          }
         />
       )}
 

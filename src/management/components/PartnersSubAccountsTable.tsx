@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { DotsThree, InfoIcon } from '@phosphor-icons/react'
+import { DotsThree, InfoIcon, WarningIcon } from '@phosphor-icons/react'
 import { SubAccount } from '../services/management.service'
 import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable'
 import { ConfirmActionModal } from './ConfirmActionModal'
@@ -10,6 +10,7 @@ import { EditClientNameModal } from '../../components/EditClientNameModal'
 import { PartnerInfo } from '../../partners/services/partners.service'
 import { T, shadow } from '../../sub-account/tokens'
 import { StatusBadge } from '../../components/StatusBadge'
+import { getStorageLimitStatus } from '../../utils/storageLimits'
 
 interface Props {
   subAccounts: SubAccount[]
@@ -41,21 +42,37 @@ const formatStorage = (value?: number) => {
   return value.toFixed(4)
 }
 
-const QUOTA_WARNING_PCT = 80;
-
-const StorageQuotaCell = ({ used, quota }: { used?: number; quota?: number | null }) => {
+const StorageQuotaCell = ({
+  used,
+  quota,
+  usageAlert,
+}: {
+  used?: number;
+  quota?: number | null;
+  usageAlert?: number | null;
+}) => {
   if (quota == null) return <span style={{ fontSize: 13, color: T.gray50 }}>No limit</span>;
 
-  const pct = quota > 0 ? ((used ?? 0) / quota) * 100 : 0;
-  const color = pct >= 100 ? T.red : pct >= QUOTA_WARNING_PCT ? '#d97706' : T.primary;
+  const usedTb = used ?? 0;
+  const { pct, quotaReached, alertReached, warning } = getStorageLimitStatus(usedTb, quota, usageAlert ?? null);
+  const color = quotaReached ? T.red : warning ? '#d97706' : T.primary;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 104 }}>
       <div style={{ width: '100%', height: 6, borderRadius: 999, background: T.gray15, overflow: 'hidden' }}>
         <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', borderRadius: 999, background: color }} />
       </div>
-      <span style={{ fontSize: 12, color: T.gray50, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-        {(used ?? 0).toFixed(2)} / {quota} TB · <span style={{ color, fontWeight: 500 }}>{pct.toFixed(0)}%</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.gray50, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+        {usedTb.toFixed(2)} / {quota} TB · <span style={{ color, fontWeight: 500 }}>{pct.toFixed(0)}%</span>
+        {alertReached && (
+          <span
+            title={`${quotaReached ? 'Storage quota reached' : 'Usage alert reached'}: ${usedTb.toFixed(2)} TB used, usage alert ${usageAlert} TB, storage quota ${quota} TB`}
+            aria-label='Usage alert reached'
+            style={{ display: 'inline-flex', flexShrink: 0 }}
+          >
+            <WarningIcon size={14} weight='fill' color={color} />
+          </span>
+        )}
       </span>
     </div>
   );
@@ -454,7 +471,7 @@ export const PartnersSubAccountsTable = ({
     },
     {
       header: 'Storage Quota',
-      cell: (acc) => <StorageQuotaCell used={acc.activeStorage} quota={acc.storageQuotaTb} />,
+      cell: (acc) => <StorageQuotaCell used={acc.activeStorage} quota={acc.storageQuotaTb} usageAlert={acc.usageAlertTb} />,
     },
     {
       header: 'Created',
