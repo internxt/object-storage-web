@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { useEffect, useRef, useState } from 'react';
+import { CaretLeft, CaretRight, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import { partnersService, Partner, PartnersSummary } from '../services/partners.service';
 import { PartnersTable, SortOrder } from '../components/PartnersTable';
 import { CreatePartnerModal } from '../components/CreatePartnerModal';
@@ -22,14 +22,25 @@ export const PartnersPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState<SortOrder | undefined>('desc');
   const [showDeleted, setShowDeleted] = useState(false);
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const latestRequestId = useRef(0);
 
   useEffect(() => {
     fetchSummary();
   }, []);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(0);
+      setDebouncedSearch(search.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     fetchPartners();
-  }, [page, sortOrder, showDeleted]);
+  }, [page, sortOrder, showDeleted, debouncedSearch]);
 
   const fetchSummary = async () => {
     try {
@@ -42,6 +53,7 @@ export const PartnersPage = () => {
   };
 
   const fetchPartners = async () => {
+    const requestId = ++latestRequestId.current;
     setIsLoading(true);
     try {
       const res = await partnersService.getPartners({
@@ -50,14 +62,17 @@ export const PartnersPage = () => {
         sortBy: sortOrder ? 'activeStorage' : undefined,
         sortOrder,
         includeDeleted: showDeleted,
+        search: debouncedSearch || undefined,
       });
+      if (requestId !== latestRequestId.current) return;
       setPartners(res.partners);
       setTotal(res.total);
     } catch (err) {
+      if (requestId !== latestRequestId.current) return;
       const e = err as Error;
       notificationsService.error({ text: e.message });
     } finally {
-      setIsLoading(false);
+      if (requestId === latestRequestId.current) setIsLoading(false);
     }
   };
 
@@ -154,6 +169,17 @@ export const PartnersPage = () => {
               Create Partner
             </button>
           </div>
+        </div>
+
+        <div className='flex items-center gap-2 mb-4 px-3 max-w-sm border border-gray-200 rounded-lg bg-white'>
+          <MagnifyingGlassIcon size={15} className='text-gray-400 shrink-0' />
+          <input
+            type='text'
+            placeholder='Search by name or email…'
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className='flex-1 py-2 text-sm text-gray-700 bg-transparent outline-none border-none'
+          />
         </div>
 
         <PartnersTable
