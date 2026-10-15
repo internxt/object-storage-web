@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
+import { apiErrorMessage } from '../../utils/apiError';
 
 interface Props {
   isOpen: boolean;
@@ -36,8 +37,7 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
       await onSubmit(data);
       handleClose();
     } catch (err) {
-      const e = err as Error;
-      setError(e.message || 'Failed to create partner');
+      setError(apiErrorMessage(err, 'Failed to create partner'));
     } finally {
       setIsSubmitting(false);
     }
