@@ -9,6 +9,7 @@ import notificationsService from '../../services/notifications.service';
 import { authService } from '../../services/auth.service';
 import Button from '../../components/Button';
 import { useState } from 'react';
+import { apiErrorMessage } from '../../utils/apiError';
 
 const AvatarComponent = () => (
   <div className='flex flex-col gap-2 w-max'>
@@ -65,9 +66,8 @@ const ChangePasswordSection = () => {
       });
       reset();
     } catch (error) {
-      const err = error as Error;
       notificationsService.error({
-        text: err.message,
+        text: apiErrorMessage(error, 'Failed to change password'),
       });
     } finally {
       setIsChangingPassword(false);
@@ -111,7 +111,7 @@ const ChangePasswordSection = () => {
                 minLength={8}
               />
               {fieldState.error && (
-                <p className='text-red-500'>{fieldState.error.message}</p>
+                <p className='text-red'>{fieldState.error.message}</p>
               )}
             </>
           )}

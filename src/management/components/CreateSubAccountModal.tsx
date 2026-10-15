@@ -250,7 +250,7 @@ export const CreateSubAccountModal = ({
             />
           </Field>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red">{error}</p>}
 
           <div className="flex justify-end gap-3 pt-2">
             <Button

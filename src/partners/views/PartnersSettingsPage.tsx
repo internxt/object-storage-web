@@ -25,6 +25,7 @@ import { T, text, form, shadow } from '../../sub-account/tokens'
 import { usePartners } from '../context/partnersContext'
 import { TwoFactorSetupForm } from '../components/TwoFactorSetupForm'
 import { BrandingTab } from '../components/BrandingTab'
+import { apiErrorMessage } from '../../utils/apiError'
 
 const Pill = ({ label, tone }: { label: string; tone: 'green' | 'gray' }) => (
   <span
@@ -346,7 +347,7 @@ const UsageTab = () => {
         `partner_usage_export_${exportFrom}_to_${exportTo}`,
       )
     } catch (err) {
-      notificationsService.error({ text: (err as Error).message })
+      notificationsService.error({ text: apiErrorMessage(err, 'Export failed') })
     } finally {
       setIsExporting(false)
     }
@@ -628,8 +629,8 @@ const MembersTab = () => {
     setLoading(true)
     try {
       setMembers(await partnersService.listMembers())
-    } catch (e: any) {
-      notificationsService.error({ text: e.message })
+    } catch (e) {
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to load members') })
     } finally {
       setLoading(false)
     }
@@ -648,8 +649,8 @@ const MembersTab = () => {
       setCreateEmail('')
       setCreatePassword('')
       fetch()
-    } catch (e: any) {
-      notificationsService.error({ text: e.message })
+    } catch (e) {
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to create member') })
     } finally {
       setCreateLoading(false)
     }
@@ -666,8 +667,8 @@ const MembersTab = () => {
       notificationsService.success({ text: 'Member updated' })
       setEditTarget(null)
       fetch()
-    } catch (e: any) {
-      notificationsService.error({ text: e.message })
+    } catch (e) {
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to update member') })
     } finally {
       setEditLoading(false)
     }
@@ -681,8 +682,8 @@ const MembersTab = () => {
       notificationsService.success({ text: 'Member deleted' })
       setDeleteTarget(null)
       fetch()
-    } catch (e: any) {
-      notificationsService.error({ text: e.message })
+    } catch (e) {
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to delete member') })
     } finally {
       setDeleteLoading(false)
     }
@@ -701,8 +702,8 @@ const MembersTab = () => {
       })
       setTfaTarget(null)
       fetch()
-    } catch (e: any) {
-      notificationsService.error({ text: e.message })
+    } catch (e) {
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to update the member 2FA') })
     } finally {
       setTfaLoading(false)
     }

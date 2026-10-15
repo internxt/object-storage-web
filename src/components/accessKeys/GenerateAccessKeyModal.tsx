@@ -18,6 +18,7 @@ import {
 } from '../../services/access-keys.service';
 import { getAccessPermissionFormatted } from '../../utils/getAccessKeyPermissionFormatted';
 import Button from '../Button';
+import { apiErrorMessage } from '../../utils/apiError';
 
 interface CreateAccessKeyModal {
   isCreateAccessKeyModalOpen: boolean;
@@ -58,10 +59,8 @@ export const GenerateAccessKeysModal = ({
           );
         })
         .catch((err) => {
-          const error = err as Error;
-
           notificationsService.error({
-            text: error.message,
+            text: apiErrorMessage(err, 'Failed to load regions'),
           });
 
           onClose();

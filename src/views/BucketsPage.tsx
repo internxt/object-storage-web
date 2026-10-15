@@ -17,6 +17,7 @@ import { isValidBucketName } from '../utils/isBucketNameValid';
 import Button from '../components/Button';
 import { Pagination } from '../components/ui/Pagination';
 import Input from '../components/Input';
+import { apiErrorMessage } from '../utils/apiError';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -77,10 +78,8 @@ export const BucketsPage = () => {
       const userBuckets = await bucketsService.getBuckets();
       setBuckets(userBuckets);
     } catch (err) {
-      const error = err as Error;
-
       notificationsService.error({
-        text: error.message,
+        text: apiErrorMessage(err, 'Failed to load buckets'),
       });
     } finally {
       setIsLoading(false);
@@ -100,10 +99,8 @@ export const BucketsPage = () => {
       await getBuckets();
       onCloseCreateBucketModal();
     } catch (err) {
-      const error = err as Error;
-
       notificationsService.error({
-        text: error.message,
+        text: apiErrorMessage(err, 'Failed to create bucket'),
       });
     } finally {
       setIsCreatingBucket(false);

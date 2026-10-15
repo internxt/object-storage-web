@@ -10,6 +10,7 @@ import notificationsService from '../../services/notifications.service';
 import { exportAsCSV } from '../../utils/exportUtils';
 import { StatusBadge } from '../../components/StatusBadge';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
+import { apiErrorMessage } from '../../utils/apiError';
 
 type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'> & {
   updateSubAccountStorageQuota?: (id: string, limitTb: number | null) => Promise<void>;
@@ -125,7 +126,7 @@ const StorageQuotaCard = ({
           {busy ? 'Saving…' : 'Save limit'}
         </button>
         {value !== '' && !isValid && (
-          <span className='text-xs text-red-600'>Enter a whole number of TB between {MIN_STORAGE_QUOTA_TB} and {MAX_STORAGE_QUOTA_TB}</span>
+          <span className='text-xs text-red'>Enter a whole number of TB between {MIN_STORAGE_QUOTA_TB} and {MAX_STORAGE_QUOTA_TB}</span>
         )}
       </div>
     </div>
@@ -163,7 +164,7 @@ export const SubAccountDetailPage = ({
       .then((data) => {
         setAccount(data);
       })
-      .catch((e) => notificationsService.error({ text: e.message }))
+      .catch((e) => notificationsService.error({ text: apiErrorMessage(e, 'Failed to load account') }))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -178,8 +179,8 @@ export const SubAccountDetailPage = ({
       const sorted = res.items.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
       setUsages(sorted);
       setTotalUsages(res.totalItems);
-    } catch (e: any) {
-      notificationsService.error({ text: e.message });
+    } catch (e) {
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to load usages') });
     } finally {
       setUsagesLoading(false);
     }
@@ -203,8 +204,8 @@ export const SubAccountDetailPage = ({
       const headers: (keyof SubAccountUsage)[] = ['id', 'startTime', 'endTime', 'activeStorage', 'deletedStorage', 'storageWrote', 'storageRead', 'activeObjects', 'deletedObjects', 'egress', 'ingress', 'apiCalls'];
       const data = all.map((u) => Object.fromEntries(headers.map((h) => [h, u[h] ?? ''])));
       exportAsCSV(data, numericFields, filename);
-    } catch (e: any) {
-      notificationsService.error({ text: e.message });
+    } catch (e) {
+      notificationsService.error({ text: apiErrorMessage(e, 'Export failed') });
     } finally {
       setExporting(false);
     }
@@ -216,9 +217,8 @@ export const SubAccountDetailPage = ({
       await action();
       setAccount((current) => (current ? { ...current, storageQuotaTb } : current));
       notificationsService.success({ text: message });
-    } catch (e: any) {
-      const reason = e.response?.data?.message ?? e.message;
-      notificationsService.error({ text: Array.isArray(reason) ? reason.join('. ') : reason });
+    } catch (e) {
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to update the storage quota') });
     }
   };
 

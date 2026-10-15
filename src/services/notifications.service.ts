@@ -25,6 +25,7 @@ const notificationsService = {
   },
   error: ({ text, duration = 3000 }: ToastShowProps) => {
     toast.error(text, {
+      toastId: text,
       hideProgressBar: true,
       autoClose: duration,
       position: 'bottom-center',

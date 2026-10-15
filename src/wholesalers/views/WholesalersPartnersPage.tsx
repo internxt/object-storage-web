@@ -63,8 +63,7 @@ export const WholesalersPartnersPage = () => {
       setPartners(res.partners);
       setTotal(res.total);
     } catch (err) {
-      const e = err as Error;
-      notificationsService.error({ text: e.message });
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load partners') });
     } finally {
       setIsLoading(false);
     }

@@ -226,9 +226,9 @@ export const LoginPageView = ({
                 <div className="flex items-center gap-1.5 px-1">
                   <WarningCircle
                     weight="fill"
-                    className="h-3.5 w-3.5 text-red-500 flex-shrink-0"
+                    className="h-3.5 w-3.5 text-red flex-shrink-0"
                   />
-                  <span className="text-[13px] text-red-500">{loginError}</span>
+                  <span className="text-[13px] text-red">{loginError}</span>
                 </div>
               )}
 

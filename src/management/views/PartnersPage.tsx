@@ -5,6 +5,7 @@ import { PartnersTable, SortOrder } from '../components/PartnersTable';
 import { CreatePartnerModal } from '../components/CreatePartnerModal';
 import notificationsService from '../../services/notifications.service';
 import { T } from '../../sub-account/tokens';
+import { apiErrorMessage } from '../../utils/apiError';
 
 const PER_PAGE = 20;
 
@@ -36,8 +37,7 @@ export const PartnersPage = () => {
       const data = await partnersService.getPartnersSummary();
       setSummary(data);
     } catch (err) {
-      const e = err as Error;
-      notificationsService.error({ text: e.message });
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load partners summary') });
     }
   };
 
@@ -54,8 +54,7 @@ export const PartnersPage = () => {
       setPartners(res.partners);
       setTotal(res.total);
     } catch (err) {
-      const e = err as Error;
-      notificationsService.error({ text: e.message });
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load partners') });
     } finally {
       setIsLoading(false);
     }

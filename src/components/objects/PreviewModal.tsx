@@ -31,7 +31,7 @@ export const PreviewModal = ({ isOpen, fileName, kind, url, isLoading, error, on
         )}
 
         {!isLoading && kind !== null && error && (
-          <p className='text-sm text-red-500 text-center py-16'>{error}</p>
+          <p className='text-sm text-red text-center py-16'>{error}</p>
         )}
 
         {!isLoading && kind !== null && !error && url && kind === 'image' && (

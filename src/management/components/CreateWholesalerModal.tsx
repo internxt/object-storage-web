@@ -127,7 +127,7 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
             />
           </Field>
 
-          {error && <p className='text-sm text-red-600'>{error}</p>}
+          {error && <p className='text-sm text-red'>{error}</p>}
 
           <div className='flex justify-end gap-3 pt-2'>
             <Button variant='secondary' type='button' onClick={handleClose} disabled={isSubmitting}>
@@ -158,6 +158,6 @@ const Field = ({
   <div className='flex flex-col gap-1'>
     <label className='text-sm font-medium text-gray-700'>{label}</label>
     {children}
-    {error && <span className='text-xs text-red-600'>{error}</span>}
+    {error && <span className='text-xs text-red'>{error}</span>}
   </div>
 );
