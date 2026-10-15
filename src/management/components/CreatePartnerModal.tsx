@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
+import { Field, inputClass } from '../../components/FormField';
+import { requiredNameRules } from '../../utils/clientName';
 
 interface Props {
   isOpen: boolean;
@@ -21,7 +23,7 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
     handleSubmit,
     reset,
     formState: { errors, isValid },
-  } = useForm<FormValues>({ mode: 'onChange' });
+  } = useForm<FormValues>({ mode: 'all' });
 
   const handleClose = () => {
     reset();
@@ -51,9 +53,9 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
         <form onSubmit={handleSubmit(onFormSubmit)} className='flex flex-col gap-3'>
           <Field label='Name' error={errors.name?.message}>
             <input
-              {...register('name', { required: 'Name is required' })}
+              {...register('name', requiredNameRules())}
               placeholder='Partner name'
-              className={inputClass}
+              className={inputClass(errors.name)}
             />
           </Field>
 
@@ -65,7 +67,7 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
               })}
               type='email'
               placeholder='contact@example.com'
-              className={inputClass}
+              className={inputClass(errors.email)}
             />
           </Field>
 
@@ -74,7 +76,7 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
               {...register('password', { required: 'Password is required' })}
               type='password'
               placeholder='••••••••'
-              className={inputClass}
+              className={inputClass(errors.password)}
             />
           </Field>
 
@@ -82,7 +84,7 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
             <div className='relative'>
               <select
                 {...register('country', { required: 'Country is required' })}
-                className={`${inputClass} appearance-none bg-white pr-8`}
+                className={`${inputClass(errors.country)} appearance-none bg-white pr-8`}
                 defaultValue=''
               >
                 <option value='' disabled>
@@ -104,7 +106,7 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
             <input
               {...register('postalCode', { required: 'Postal code is required' })}
               placeholder='12345'
-              className={inputClass}
+              className={inputClass(errors.postalCode)}
             />
           </Field>
 
@@ -123,22 +125,3 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
     </Modal>
   );
 };
-
-const inputClass =
-  'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
-
-const Field = ({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) => (
-  <div className='flex flex-col gap-1'>
-    <label className='text-sm font-medium text-gray-700'>{label}</label>
-    {children}
-    {error && <span className='text-xs text-red-600'>{error}</span>}
-  </div>
-);
