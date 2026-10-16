@@ -13,6 +13,7 @@ import Dialog from '../../components/Dialog';
 import { GenerateAccessKeysModal } from '../../components/accessKeys/GenerateAccessKeyModal';
 import { PreviewGeneratedAccessKeysModal } from '../../components/accessKeys/PreviewGeneratedAccessKeysModal';
 import { copyToClipboard } from '../../utils/copyToClipboard';
+import { apiErrorMessage } from '../../utils/apiError';
 
 const TABLE_HEADERS = [
   {
@@ -84,10 +85,8 @@ export const AccessKeys = () => {
       const accessKeys = await accessKeysService.getAccessKeys();
       setAccessKeys(accessKeys);
     } catch (error) {
-      const err = error as Error;
-
       notificationsService.error({
-        text: err.message,
+        text: apiErrorMessage(error, 'Failed to load access keys'),
       });
     } finally {
       setIsLoading(false);
@@ -141,10 +140,8 @@ export const AccessKeys = () => {
       onCloseGenerateNewKeysDialog();
       onPreviewGeneratedKeysModalOpen(newAccessKey);
     } catch (error) {
-      const err = error as Error;
-
       notificationsService.error({
-        text: err.message,
+        text: apiErrorMessage(error, 'Failed to create access key'),
       });
     } finally {
       setIsGeneratingAccessKeys(false);
@@ -167,10 +164,8 @@ export const AccessKeys = () => {
       await getAccessKeys();
       onCloseDeleteBucketModal();
     } catch (error) {
-      const err = error as Error;
-
       notificationsService.error({
-        text: err.message,
+        text: apiErrorMessage(error, 'Failed to delete access key'),
       });
     } finally {
       setIsDeletingAccessKey(false);

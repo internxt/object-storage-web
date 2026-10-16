@@ -18,6 +18,7 @@ import {
 } from '../../utils/bucketUsageTransforms';
 import Modal from '../Modal';
 import { Skeleton } from '../ui/skeleton';
+import { apiErrorMessage } from '../../utils/apiError';
 
 interface BucketUsageModalProps {
   isOpen: boolean;
@@ -62,8 +63,7 @@ export const BucketUsageModal = ({
       );
       setUsageData(data);
     } catch (err) {
-      const error = err as Error;
-      setError(error.message);
+      setError(apiErrorMessage(err, 'Failed to load bucket usage'));
     } finally {
       setIsLoading(false);
     }
@@ -81,8 +81,7 @@ export const BucketUsageModal = ({
       );
       setUsageData(data);
     } catch (err) {
-      const error = err as Error;
-      setError(error.message);
+      setError(apiErrorMessage(err, 'Failed to load bucket usage'));
     } finally {
       setIsLoading(false);
     }
@@ -170,8 +169,8 @@ export const BucketUsageModal = ({
         </div>
 
         {error && (
-          <div className='flex items-center justify-center p-4 bg-red-50 border border-red-200 rounded-md'>
-            <p className='text-red-700'>{error}</p>
+          <div className='flex items-center justify-center p-4 bg-red/10 border border-red rounded-md'>
+            <p className='text-red'>{error}</p>
           </div>
         )}
 

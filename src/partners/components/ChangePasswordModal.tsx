@@ -107,7 +107,7 @@ export const ChangePasswordModal = ({ isOpen, onClose }: Props) => {
               hasError={policyErrors.length > 0 || isSameAsCurrent}
             />
             {isSameAsCurrent && (
-              <p className='text-xs text-red-500 mt-0.5'>New password must be different from the current one</p>
+              <p className='text-xs text-red mt-0.5'>New password must be different from the current one</p>
             )}
             {!isSameAsCurrent && policyErrors.length > 0 && (
               <ul className='mt-1 flex flex-col gap-0.5'>

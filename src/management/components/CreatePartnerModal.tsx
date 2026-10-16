@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
+import { apiErrorMessage } from '../../utils/apiError';
 import { Field, inputClass } from '../../components/FormField';
 import { requiredNameRules } from '../../utils/clientName';
 
@@ -38,8 +39,7 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
       await onSubmit(data);
       handleClose();
     } catch (err) {
-      const e = err as Error;
-      setError(e.message || 'Failed to create partner');
+      setError(apiErrorMessage(err, 'Failed to create partner'));
     } finally {
       setIsSubmitting(false);
     }
@@ -110,7 +110,7 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
             />
           </Field>
 
-          {error && <p className='text-sm text-red-600'>{error}</p>}
+          {error && <p className='text-sm text-red'>{error}</p>}
 
           <div className='flex justify-end gap-3 pt-2'>
             <Button variant='secondary' type='button' onClick={handleClose} disabled={isSubmitting}>

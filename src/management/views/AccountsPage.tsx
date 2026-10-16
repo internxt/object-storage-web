@@ -8,6 +8,7 @@ import { CreateSubAccountModal } from '../components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
 import { T, card, shadow } from '../../sub-account/tokens';
 import { resolveConsoleUrl } from '../../utils/consoleUrl';
+import { apiErrorMessage } from '../../utils/apiError';
 
 const PER_PAGE = 20;
 const STATUS_OPTIONS = [
@@ -54,8 +55,7 @@ export const AccountsPage = () => {
       setUsagesData(data);
       setTopClient(top.subAccounts[0] ?? null);
     } catch (err) {
-      const e = err as Error;
-      notificationsService.error({ text: e.message });
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load usage summary') });
     }
   };
 
@@ -75,8 +75,7 @@ export const AccountsPage = () => {
       setSubAccounts(res.subAccounts ?? []);
       setTotalSubAccounts(res.total ?? 0);
     } catch (err) {
-      const e = err as Error;
-      notificationsService.error({ text: e.message });
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load accounts') });
     } finally {
       setIsSubAccountsLoading(false);
     }
@@ -93,8 +92,7 @@ export const AccountsPage = () => {
       notificationsService.success({ text: 'Account suspended' });
       fetchSubAccounts();
     } catch (err) {
-      const e = err as Error;
-      notificationsService.error({ text: e.message });
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to suspend account') });
     } finally {
       setPendingAccountId(null);
     }
@@ -107,8 +105,7 @@ export const AccountsPage = () => {
       notificationsService.success({ text: 'Account reactivated' });
       fetchSubAccounts();
     } catch (err) {
-      const e = err as Error;
-      notificationsService.error({ text: e.message });
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to reactivate account') });
     } finally {
       setPendingAccountId(null);
     }

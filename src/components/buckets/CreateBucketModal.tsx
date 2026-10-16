@@ -9,6 +9,7 @@ import notificationsService from '../../services/notifications.service';
 import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion';
 import { isValidBucketName } from '../../utils/isBucketNameValid';
 import Button from '../Button';
+import { apiErrorMessage } from '../../utils/apiError';
 
 interface DeleteBucketModalProps {
   isCreateBucketOpened: boolean;
@@ -43,10 +44,8 @@ export const CreateBucketModal = ({
           );
         })
         .catch((err) => {
-          const error = err as Error;
-
           notificationsService.error({
-            text: error.message,
+            text: apiErrorMessage(err, 'Failed to load regions'),
           });
 
           onClose();

@@ -242,11 +242,11 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
                     </div>
                   )}
                   {f.status === 'error' && (
-                    <p className='text-red-500 text-xs'>{f.error}</p>
+                    <p className='text-red text-xs'>{f.error}</p>
                   )}
                 </div>
                 {f.status === 'done' && <CheckCircle size={18} className='text-green-500 shrink-0' />}
-                {f.status === 'error' && <Warning size={18} className='text-red-500 shrink-0' />}
+                {f.status === 'error' && <Warning size={18} className='text-red shrink-0' />}
                 {f.status === 'pending' && (
                   <button onClick={() => removeFile(i)} className='shrink-0 hover:text-red-500'>
                     <X size={16} />

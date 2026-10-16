@@ -24,6 +24,7 @@ import { usePartners } from '../context/partnersContext'
 import { T, card, shadow } from '../../sub-account/tokens'
 import Button from '../../components/Button'
 import { ExportDateRangeModal } from '../../components/ExportDateRangeModal'
+import { apiErrorMessage } from '../../utils/apiError'
 
 const ACCENT = '#6366f1'
 const SUB_ACCOUNTS_EXPORT_MAX_DAYS = 50
@@ -100,7 +101,7 @@ export const PartnersSubAccountsPage = () => {
       const data = await partnersService.getUsageSummary()
       setUsageSummary(data)
     } catch (err) {
-      notificationsService.error({ text: (err as Error).message })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load usage summary') })
     }
   }
   const fetchSubAccounts = async () => {
@@ -122,7 +123,7 @@ export const PartnersSubAccountsPage = () => {
       setSubAccounts(res.subAccounts)
       setTotal(res.total)
     } catch (err) {
-      notificationsService.error({ text: (err as Error).message })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load accounts') })
     } finally {
       setIsLoading(false)
     }
@@ -135,7 +136,7 @@ export const PartnersSubAccountsPage = () => {
       notificationsService.success({ text: 'Account suspended' })
       fetchSubAccounts()
     } catch (err) {
-      notificationsService.error({ text: (err as Error).message })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to suspend account') })
     } finally {
       setPendingAccountId(null)
     }
@@ -148,7 +149,7 @@ export const PartnersSubAccountsPage = () => {
       notificationsService.success({ text: 'Account reactivated' })
       fetchSubAccounts()
     } catch (err) {
-      notificationsService.error({ text: (err as Error).message })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to reactivate account') })
     } finally {
       setPendingAccountId(null)
     }
@@ -162,7 +163,7 @@ export const PartnersSubAccountsPage = () => {
       fetchSubAccounts()
       fetchUsageSummary()
     } catch (err) {
-      notificationsService.error({ text: (err as Error).message })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete account') })
     } finally {
       setPendingAccountId(null)
     }

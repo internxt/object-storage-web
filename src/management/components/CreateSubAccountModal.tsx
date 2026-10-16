@@ -10,6 +10,7 @@ import { passwordPolicyErrors } from '../../utils/passwordPolicy'
 import { PasswordRequirements } from '../../components/FieldFeedback'
 import { Field, inputClass } from '../../components/FormField'
 import { requiredNameRules } from '../../utils/clientName'
+import { apiErrorMessage } from '../../utils/apiError'
 
 interface Props {
   isOpen: boolean
@@ -91,8 +92,7 @@ export const CreateSubAccountModal = ({
         password: data.password,
       })
     } catch (err) {
-      const e = err as Error
-      setError(e.message || 'Failed to create sub-account')
+      setError(apiErrorMessage(err, 'Failed to create sub-account'))
     } finally {
       setIsSubmitting(false)
     }
@@ -250,7 +250,7 @@ export const CreateSubAccountModal = ({
             />
           </Field>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red">{error}</p>}
 
           <div className="flex justify-end gap-3 pt-2">
             <Button

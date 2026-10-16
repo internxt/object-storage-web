@@ -9,6 +9,7 @@ import { CaretLeft, CaretRight, Export } from '@phosphor-icons/react';
 import notificationsService from '../services/notifications.service';
 import { ExportModal } from '../components/usage/ExportModal';
 import { exportUsageData } from '../utils/exportUtils';
+import { apiErrorMessage } from '../utils/apiError';
 
 const TABLE_HEADERS = [
   {
@@ -106,9 +107,8 @@ export const UsagePage = () => {
       setUsageData(usage);
       setCurrentDateRange({ startDate, endDate });
     } catch (error) {
-      const err = error as Error;
       notificationsService.error({
-        text: err.message,
+        text: apiErrorMessage(error, 'Failed to load usage'),
       });
       setTableBodyState('empty');
     }
@@ -118,9 +118,8 @@ export const UsagePage = () => {
     try {
       await getUsage(startDate, endDate);
     } catch (error) {
-      const err = error as Error;
       notificationsService.error({
-        text: err.message,
+        text: apiErrorMessage(error, 'Failed to load usage'),
       });
     }
   };

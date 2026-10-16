@@ -5,6 +5,7 @@ import { WholesalersTable } from '../components/WholesalersTable';
 import { CreateWholesalerModal } from '../components/CreateWholesalerModal';
 import notificationsService from '../../services/notifications.service';
 import { T, card } from '../../sub-account/tokens';
+import { apiErrorMessage } from '../../utils/apiError';
 
 const PER_PAGE = 20;
 
@@ -26,8 +27,7 @@ export const WholesalersPage = () => {
       setWholesalers(res.wholesalers);
       setTotal(res.total);
     } catch (err) {
-      const e = err as Error;
-      notificationsService.error({ text: e.message });
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load wholesalers') });
     } finally {
       setIsLoading(false);
     }

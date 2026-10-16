@@ -4,6 +4,9 @@ import { Eye, EyeSlash } from '@phosphor-icons/react';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
+import { apiErrorMessage } from '../../utils/apiError';
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, validatePassword } from '../../components/auth/passwordPolicy';
+import { PasswordRequirements } from '../../components/FieldFeedback';
 import { Field, inputClass } from '../../components/FormField';
 import { requiredNameRules } from '../../utils/clientName';
 
@@ -29,9 +32,14 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const {
     register,
     handleSubmit,
+    watch,
     reset,
     formState: { errors, isValid },
   } = useForm<FormValues>({ mode: 'all' });
+
+  const password = watch('password');
+  const passwordErrors = password ? validatePassword(password) : [];
+  const isPasswordValid = !!password && passwordErrors.length === 0;
 
   const handleClose = () => {
     reset();
@@ -47,8 +55,7 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
       await onSubmit(data);
       handleClose();
     } catch (err) {
-      const e = err as Error;
-      setError(e.message || 'Failed to create wholesaler');
+      setError(apiErrorMessage(err, 'Failed to create wholesaler'));
     } finally {
       setIsSubmitting(false);
     }
@@ -83,7 +90,11 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
           <Field label='Password' error={errors.password?.message}>
             <div className='relative'>
               <input
-                {...register('password', { required: 'Password is required' })}
+                {...register('password', {
+                  required: 'Password is required',
+                  validate: (value: string) =>
+                    validatePassword(value).length === 0 || 'Password does not meet the requirements',
+                })}
                 type={showPassword ? 'text' : 'password'}
                 placeholder='••••••••'
                 className={`${inputClass(errors.password)} pr-10`}
@@ -97,6 +108,16 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
                 {showPassword ? <Eye size={16} /> : <EyeSlash size={16} />}
               </button>
             </div>
+            {passwordErrors.length > 0 ? (
+              <PasswordRequirements errors={passwordErrors} />
+            ) : (
+              !password && (
+                <span className='text-xs text-gray-500'>
+                  {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters, with uppercase and lowercase letters, a
+                  digit and a special character.
+                </span>
+              )
+            )}
           </Field>
 
           <Field label='Country' error={errors.country?.message}>
@@ -129,13 +150,13 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
             />
           </Field>
 
-          {error && <p className='text-sm text-red-600'>{error}</p>}
+          {error && <p className='text-sm text-red'>{error}</p>}
 
           <div className='flex justify-end gap-3 pt-2'>
             <Button variant='secondary' type='button' onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type='submit' disabled={!isValid || isSubmitting} loading={isSubmitting}>
+            <Button type='submit' disabled={!isValid || !isPasswordValid || isSubmitting} loading={isSubmitting}>
               Create
             </Button>
           </div>

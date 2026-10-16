@@ -19,6 +19,7 @@ import { Dropdown } from '../../components/Dropdown';
 import { formatDate, formatDateTime } from '../../utils/formatDate';
 import { copyToClipboard } from '../../utils/copyToClipboard';
 import { auditService, AuditEventItem } from '../services/audit.service';
+import { apiErrorMessage } from '../../utils/apiError';
 
 // ─── Design tokens (from design spec)
 // surface-muted / input bg  → bg-gray-5   = #F3F3F8
@@ -109,8 +110,8 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
       await subAccountAxios.patch(`/sub-accounts/${entityId}/members/${memberId}`, { email: email.trim() });
       setSavedEmail(email.trim());
       notificationsService.success({ text: t('settings.profile.emailUpdated') });
-    } catch (err: any) {
-      notificationsService.error({ text: err?.response?.data?.message ?? t('settings.profile.emailUpdateFailed') });
+    } catch (err) {
+      notificationsService.error({ text: apiErrorMessage(err, t('settings.profile.emailUpdateFailed')) });
     } finally {
       setIsSavingEmail(false);
     }
@@ -225,8 +226,8 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
       notificationsService.success({ text: t('settings.members.memberAdded') });
       setIsAddMemberOpen(false);
       await fetchMembers();
-    } catch (err: any) {
-      notificationsService.error({ text: err?.response?.data?.message ?? t('settings.members.addMemberFailed') });
+    } catch (err) {
+      notificationsService.error({ text: apiErrorMessage(err, t('settings.members.addMemberFailed')) });
     } finally {
       setIsAddingMember(false);
     }

@@ -4,6 +4,7 @@ import notificationsService from '../../services/notifications.service'
 import { LoadingRowSkeleton } from '../../components/LoadingSkeleton'
 import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion'
 import { Separator } from '../../components/Separator'
+import { apiErrorMessage } from '../../utils/apiError'
 
 const TABLE_COLUMNS_COUNT = 3
 
@@ -20,9 +21,8 @@ export const Regions = () => {
         setRegions(regions)
       })
       .catch((err) => {
-        const error = err as Error
         notificationsService.error({
-          text: error.message,
+          text: apiErrorMessage(err, 'Failed to load regions'),
         })
       })
       .finally(() => {

@@ -4,6 +4,7 @@ import notificationsService from '../../services/notifications.service'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
 import { T, form } from '../../sub-account/tokens'
+import { apiErrorMessage } from '../../utils/apiError'
 
 interface TwoFactorSetupFormProps {
   onComplete: () => void
@@ -21,7 +22,7 @@ export const TwoFactorSetupForm = ({ onComplete, onCancel }: TwoFactorSetupFormP
       .getTwoFactorSetup()
       .then(setSetupData)
       .catch((err) => {
-        notificationsService.error({ text: (err as Error).message })
+        notificationsService.error({ text: apiErrorMessage(err, 'Failed to load the setup information') })
         setLoadError(true)
       })
   }, [])

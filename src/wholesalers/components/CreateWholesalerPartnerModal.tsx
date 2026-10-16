@@ -7,6 +7,7 @@ import { passwordPolicyErrors } from '../../utils/passwordPolicy';
 import { PasswordRequirements } from '../../components/FieldFeedback';
 import { Field, inputClass } from '../../components/FormField';
 import { requiredNameRules } from '../../utils/clientName';
+import { apiErrorMessage } from '../../utils/apiError';
 
 interface Props {
   isOpen: boolean;
@@ -48,8 +49,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
       await onSubmit(data);
       handleClose();
     } catch (err) {
-      const e = err as Error;
-      setError(e.message || 'Failed to create partner');
+      setError(apiErrorMessage(err, 'Failed to create partner'));
     } finally {
       setIsSubmitting(false);
     }

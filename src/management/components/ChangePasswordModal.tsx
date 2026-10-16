@@ -6,6 +6,7 @@ import Button from '../../components/Button'
 import notificationsService from '../../services/notifications.service'
 import { T, text, form } from '../../sub-account/tokens'
 import { passwordPolicyErrors } from '../../utils/passwordPolicy'
+import { apiErrorMessage } from '../../utils/apiError'
 
 interface Props {
   isOpen: boolean
@@ -41,7 +42,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
       await onSubmit(newPassword)
       onClose()
     } catch (err) {
-      notificationsService.error({ text: (err as Error).message })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to change password') })
     } finally {
       setIsSaving(false)
     }
