@@ -10,7 +10,7 @@ import { EditClientNameModal } from '../../components/EditClientNameModal'
 import { PartnerInfo } from '../../partners/services/partners.service'
 import { T, shadow } from '../../sub-account/tokens'
 import { StatusBadge } from '../../components/StatusBadge'
-import { getStorageLimitStatus } from '../../utils/storageLimits'
+import { getStorageLimitStatus, STORAGE_LIMIT_LABELS, toStorageLimit } from '../../utils/storageLimits'
 
 interface Props {
   subAccounts: SubAccount[]
@@ -42,7 +42,9 @@ const formatStorage = (value?: number) => {
   return value.toFixed(4)
 }
 
-const StorageQuotaCell = ({
+const WARNING_COLOR = '#d97706';
+
+const StorageLimitCell = ({
   used,
   quota,
   usageAlert,
@@ -51,28 +53,44 @@ const StorageQuotaCell = ({
   quota?: number | null;
   usageAlert?: number | null;
 }) => {
-  if (quota == null) return <span style={{ fontSize: 13, color: T.gray50 }}>No limit</span>;
+  const limit = toStorageLimit(quota, usageAlert);
+  if (limit.type === 'none') return <span style={{ fontSize: 13, color: T.gray50 }}>{STORAGE_LIMIT_LABELS.none}</span>;
 
   const usedTb = used ?? 0;
-  const { pct, quotaReached, alertReached, warning } = getStorageLimitStatus(usedTb, quota, usageAlert ?? null);
-  const color = quotaReached ? T.red : warning ? '#d97706' : T.primary;
+  const { pct, reached, warning } = getStorageLimitStatus(usedTb, limit);
+  const typeLabel = <span style={{ fontSize: 11, color: T.gray50 }}>{STORAGE_LIMIT_LABELS[limit.type]}</span>;
+  const textStyle = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.gray50, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' } as const;
 
+  if (limit.type === 'alert') {
+    const color = reached ? WARNING_COLOR : T.gray50;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 104 }}>
+        {typeLabel}
+        <span style={textStyle}>
+          {usedTb.toFixed(2)} TB used · <span style={{ color, fontWeight: reached ? 500 : 400 }}>alert at {limit.valueTb} TB</span>
+          {reached && (
+            <span
+              title={`Usage alert reached: ${usedTb.toFixed(2)} TB used, usage alert ${limit.valueTb} TB`}
+              aria-label='Usage alert reached'
+              style={{ display: 'inline-flex', flexShrink: 0 }}
+            >
+              <WarningIcon size={14} weight='fill' color={color} />
+            </span>
+          )}
+        </span>
+      </div>
+    );
+  }
+
+  const color = reached ? T.red : warning ? WARNING_COLOR : T.primary;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 104 }}>
+      {typeLabel}
       <div style={{ width: '100%', height: 6, borderRadius: 999, background: T.gray15, overflow: 'hidden' }}>
         <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', borderRadius: 999, background: color }} />
       </div>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.gray50, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-        {usedTb.toFixed(2)} / {quota} TB · <span style={{ color, fontWeight: 500 }}>{pct.toFixed(0)}%</span>
-        {alertReached && (
-          <span
-            title={`${quotaReached ? 'Storage quota reached' : 'Usage alert reached'}: ${usedTb.toFixed(2)} TB used, usage alert ${usageAlert} TB, storage quota ${quota} TB`}
-            aria-label='Usage alert reached'
-            style={{ display: 'inline-flex', flexShrink: 0 }}
-          >
-            <WarningIcon size={14} weight='fill' color={color} />
-          </span>
-        )}
+      <span style={textStyle}>
+        {usedTb.toFixed(2)} / {limit.valueTb} TB · <span style={{ color, fontWeight: 500 }}>{pct.toFixed(0)}%</span>
       </span>
     </div>
   );
@@ -470,8 +488,8 @@ export const PartnersSubAccountsTable = ({
       ),
     },
     {
-      header: 'Storage Quota',
-      cell: (acc) => <StorageQuotaCell used={acc.activeStorage} quota={acc.storageQuotaTb} usageAlert={acc.usageAlertTb} />,
+      header: 'Storage Limit',
+      cell: (acc) => <StorageLimitCell used={acc.activeStorage} quota={acc.storageQuotaTb} usageAlert={acc.usageAlertTb} />,
     },
     {
       header: 'Created',
