@@ -48,6 +48,7 @@ async function getPartners(params: {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   includeDeleted?: boolean;
+  search?: string;
 }): Promise<PartnersResponse> {
   const response = await axios.get(`${API()}/partners`, {
     headers: headers(),
