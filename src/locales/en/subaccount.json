@@ -167,6 +167,14 @@
     "columnCreator": "Creator",
     "columnType": "Type",
     "columnCreated": "Created",
+    "columnAccess": "Access",
+    "accessPublic": "Public",
+    "accessMembers": "Members only",
+    "makePublic": "Make public",
+    "makeMembersOnly": "Make members-only",
+    "madePublic": "Anyone with the link can now open it",
+    "madeMembersOnly": "Only members can now open the link",
+    "visibilityError": "Could not change who can open this link",
     "linkCount_one": "{{count}} active link",
     "linkCount_other": "{{count}} active links",
     "revokeSubtitle": "The public link for {{path}} will stop working immediately."
@@ -247,7 +255,17 @@
       "emailLabel": "Account email",
       "accountNumberLabel": "Storage account number",
       "createdAtLabel": "Created at",
-      "active": "Active"
+      "active": "Active",
+      "publicSharingTitle": "Public share links",
+      "publicSharingToggle": "Allow public share links",
+      "publicSharingDescription": "Lets members create links that anyone can open without logging in. Links stay members-only unless their creator chooses otherwise.",
+      "publicSharingLoadFailed": "Could not load the public sharing setting.",
+      "publicSharingUpdateFailed": "Could not update the public sharing setting.",
+      "publicSharingEnabled": "Public share links are allowed",
+      "publicSharingDisabled": "Public share links are turned off",
+      "publicSharingDisableTitle": "Turn off public share links?",
+      "publicSharingDisableSubtitle": "Every public link in this account becomes members-only right away. Turning the setting back on will not make them public again.",
+      "publicSharingDisableConfirm": "Turn off"
     },
     "tabAudit": "Audit log",
     "audit": {
@@ -271,10 +289,15 @@
       "columnTimestamp": "Timestamp",
       "eventType": {
         "created": "Created",
+        "created_public": "Created (public)",
         "opened": "Opened",
         "downloaded": "Downloaded",
-        "deleted": "Revoked"
+        "previewed": "Previewed",
+        "deleted": "Revoked",
+        "made_public": "Made public",
+        "made_private": "Made members-only"
       },
+      "anonymousActor": "Anonymous (public link)",
       "incomplete": "Incomplete",
       "incompleteHint": "The action was recorded but never confirmed as finished.",
       "pageRange": "{{start}}–{{end}} of {{total}}",
@@ -381,7 +404,14 @@
     "customDaysHint": "days (max {{max}})",
     "customDaysValidationError": "Enter a whole number of days between 1 and {{max}}.",
     "durationApiError": "Duration must be between 1 hour and {{max}} days.",
-    "createLink": "Create link"
+    "createLink": "Create link",
+    "accessLabel": "Who can open this link",
+    "accessMembers": "Members only",
+    "accessMembersHint": "People must log in to this account",
+    "accessPublic": "Anyone with the link",
+    "accessPublicHint": "No login required",
+    "publicFolderWarning": "Anyone with the link will also see files added to this folder later.",
+    "publicDisabledError": "Public share links are turned off for this account."
   },
   "shareLink": {
     "descriptionFolder": "Anyone with this link can browse and download the contents of this folder.",
