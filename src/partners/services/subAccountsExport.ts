@@ -17,13 +17,17 @@ import {
 } from '../../utils/exportUtils';
 import { statusLabel } from '../../utils/statusLabel';
 import { ExportDateRange } from '../../components/ExportDateRangeModal';
+import { StorageLimit, STORAGE_LIMIT_LABELS, toStorageLimit } from '../../utils/storageLimits';
+
+const storageLimitOf = (acc: SubAccountUsageItem) => toStorageLimit(acc.storageQuotaTb, acc.usageAlertTb);
+const limitValueOf = (limit: StorageLimit) => (limit.type === 'none' ? null : limit.valueTb);
 
 const SUMMARY_COLUMNS: XLSXColumn<SubAccountUsageItem>[] = [
   { header: 'Name', value: (acc) => acc.name ?? '', width: 30 },
   { header: 'Account Email', value: (acc) => acc.email, width: 36 },
   { header: 'Status', value: (acc) => statusLabel(acc.status), width: 18 },
-  { header: 'Storage Quota (TB)', value: (acc) => acc.storageQuotaTb ?? 'No limit', numFmt: XLSX_COUNT_FORMAT, width: 20 },
-  { header: 'Usage Alert (TB)', value: (acc) => acc.usageAlertTb ?? 'Not set', numFmt: XLSX_DECIMAL_FORMAT, width: 18 },
+  { header: 'Limit Type', value: (acc) => STORAGE_LIMIT_LABELS[storageLimitOf(acc).type], width: 16 },
+  { header: 'Limit (TB)', value: (acc) => limitValueOf(storageLimitOf(acc)), width: 14 },
   { header: 'Avg Active Storage (TB)', value: (acc) => acc.summary.avgActiveStorageTb, numFmt: XLSX_DECIMAL_FORMAT, width: 24 },
   { header: 'Avg Deleted Storage (TB)', value: (acc) => acc.summary.avgDeletedStorageTb, numFmt: XLSX_DECIMAL_FORMAT, width: 24 },
   { header: 'Peak Active Storage (TB)', value: (acc) => acc.summary.peakActiveStorageTb, numFmt: XLSX_DECIMAL_FORMAT, width: 24 },

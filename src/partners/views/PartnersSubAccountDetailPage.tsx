@@ -5,12 +5,7 @@ import { usePartners } from '../context/partnersContext';
 export const PartnersSubAccountDetailPage = () => {
   const { isViewer } = usePartners();
   const service = isViewer
-    ? {
-        ...partnersService,
-        updateSubAccountName: undefined,
-        updateSubAccountStorageQuota: undefined,
-        updateSubAccountUsageAlert: undefined,
-      }
+    ? { ...partnersService, updateSubAccountName: undefined, updateSubAccountStorageLimit: undefined }
     : partnersService;
 
   return (
@@ -18,6 +13,7 @@ export const PartnersSubAccountDetailPage = () => {
       backPath='/partners/sub-accounts'
       service={service}
       showClientName
+      showStorageLimit
     />
   );
 };

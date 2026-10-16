@@ -3,6 +3,7 @@ import { partnersAuthService } from './partners-auth.service';
 import { SubAccount } from '../../management/services/management.service';
 import notificationsService from '../../services/notifications.service';
 import { toConsoleStatus } from '../../utils/statusLabel';
+import { StorageLimit } from '../../utils/storageLimits';
 
 const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners`;
 const headers = () => partnersAuthService.getAuthHeaders();
@@ -120,12 +121,9 @@ async function changeSubAccountPassword(id: string, newPassword: string): Promis
   await axios.patch(`${API()}/sub-accounts/${id}/password`, { newPassword }, { headers: headers() });
 }
 
-async function updateSubAccountStorageQuota(id: string, limitTb: number | null): Promise<void> {
-  await axios.patch(`${API()}/sub-accounts/${id}/storage-quota`, { limitTb }, { headers: headers() });
-}
-
-async function updateSubAccountUsageAlert(id: string, usageAlertTb: number | null): Promise<void> {
-  await axios.patch(`${API()}/sub-accounts/${id}/usage-alert`, { usageAlertTb }, { headers: headers() });
+async function updateSubAccountStorageLimit(id: string, limit: StorageLimit): Promise<void> {
+  const body = { type: limit.type, valueTb: limit.type === 'none' ? null : limit.valueTb };
+  await axios.patch(`${API()}/sub-accounts/${id}/storage-limit`, body, { headers: headers() });
 }
 
 async function getUsageSummary(): Promise<PartnersUsageSummary> {
@@ -283,8 +281,7 @@ export const partnersService = {
   reactivateSubAccount,
   deleteSubAccount,
   changeSubAccountPassword,
-  updateSubAccountStorageQuota,
-  updateSubAccountUsageAlert,
+  updateSubAccountStorageLimit,
   getUsageSummary,
   getSubAccountsUsage,
   createBillingPortalSession,
