@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { CSSProperties, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { passwordPolicyErrors } from '../../utils/passwordPolicy';
 import { PasswordRequirements } from '../../components/FieldFeedback';
-import { Field, inputClass } from '../../components/FormField';
 import { requiredNameRules } from '../../utils/clientName';
+import { T, form, text } from '../../sub-account/tokens';
 
 interface Props {
   isOpen: boolean;
@@ -17,6 +17,21 @@ interface Props {
 type FormValues = { name: string; email: string; password: string };
 
 const MIN_PASSWORD_LENGTH = 8;
+
+const inputStyle = (hasError: unknown): CSSProperties => ({
+  width: '100%',
+  height: 40,
+  padding: '0 12px',
+  background: T.gray5,
+  border: `1px solid ${hasError ? T.red : T.gray20}`,
+  borderRadius: 8,
+  fontSize: 14,
+  color: T.gray80,
+  outline: 'none',
+  boxSizing: 'border-box',
+});
+
+const errorStyle: CSSProperties = { display: 'block', fontSize: 12, color: T.red, marginTop: 4 };
 
 export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,19 +75,22 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} maxWidth='max-w-md'>
-      <div className='flex flex-col gap-4'>
-        <h2 className='text-lg font-semibold text-gray-100'>Create Partner</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h2 style={{ ...text.heading, margin: 0 }}>Create Partner</h2>
 
-        <form onSubmit={handleSubmit(onFormSubmit)} className='flex flex-col gap-3'>
-          <Field label='Name' error={errors.name?.message}>
+        <form onSubmit={handleSubmit(onFormSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={form.label}>Name</label>
             <input
               {...register('name', requiredNameRules())}
               placeholder='Partner name'
-              className={inputClass(errors.name)}
+              style={inputStyle(errors.name)}
             />
-          </Field>
+            {errors.name?.message && <span style={errorStyle}>{errors.name.message}</span>}
+          </div>
 
-          <Field label='Contact Email' error={errors.email?.message}>
+          <div>
+            <label style={form.label}>Contact Email</label>
             <input
               {...register('email', {
                 required: 'Email is required',
@@ -80,12 +98,14 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
               })}
               type='email'
               placeholder='contact@example.com'
-              className={inputClass(errors.email)}
+              style={inputStyle(errors.email)}
             />
-          </Field>
+            {errors.email?.message && <span style={errorStyle}>{errors.email.message}</span>}
+          </div>
 
-          <Field label='Password' error={errors.password?.message}>
-            <div className='relative'>
+          <div>
+            <label style={form.label}>Password</label>
+            <div style={{ position: 'relative' }}>
               <input
                 {...register('password', {
                   required: 'Password is required',
@@ -95,29 +115,30 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
                 })}
                 type={showPassword ? 'text' : 'password'}
                 placeholder='••••••••'
-                className={`${inputClass(passwordErrors.length > 0)} pr-10`}
+                style={{ ...inputStyle(passwordErrors.length > 0), paddingRight: 40 }}
               />
               <button
                 type='button'
-                className='absolute inset-y-0 right-0 flex items-center pr-3'
+                style={{
+                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                  display: 'flex', background: 'transparent', border: 'none',
+                  color: T.gray50, cursor: 'pointer', padding: 0,
+                }}
                 onClick={() => setShowPassword(!showPassword)}
                 title={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? (
-                  <Eye className='h-5 w-5 text-gray-40' />
-                ) : (
-                  <EyeSlash className='h-5 w-5 text-gray-40' />
-                )}
+                {showPassword ? <Eye size={16} /> : <EyeSlash size={16} />}
               </button>
             </div>
             {passwordErrors.length > 0 && (
               <PasswordRequirements errors={passwordErrors} />
             )}
-          </Field>
+            {errors.password?.message && <span style={errorStyle}>{errors.password.message}</span>}
+          </div>
 
-          {error && <p className='text-sm text-red'>{error}</p>}
+          {error && <p style={{ fontSize: 13, color: T.red, margin: 0 }}>{error}</p>}
 
-          <div className='flex justify-end gap-3 pt-2'>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
             <Button variant='secondary' type='button' onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </Button>
