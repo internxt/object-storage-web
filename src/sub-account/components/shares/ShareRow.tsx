@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileIcon, FolderIcon, TrashIcon } from '@phosphor-icons/react';
+import { FileIcon, FolderIcon, GlobeIcon, LockKeyIcon, TrashIcon } from '@phosphor-icons/react';
 import { IconButton } from '../../../components/IconButton';
 import { formatDateTime } from '../../../utils/formatDate';
 import { displayName } from '../../../utils/displayName';
 import { T, text } from '../../tokens';
 import { ShareListItem } from '../../services/share.service';
-import { NO_VALUE, shareResourcePath, shareTypeLabelKey } from './constants';
-import { bodyRow, ellipsis, iconTile } from './styles';
+import { NO_VALUE, shareAccessLabelKey, shareResourcePath, shareTypeLabelKey } from './constants';
+import { accessPill, bodyRow, ellipsis, iconTile } from './styles';
 
 interface ShareRowProps {
   share: ShareListItem;
   onRevoke: () => void;
+  onToggleVisibility?: () => void;
 }
 
-export const ShareRow = ({ share, onRevoke }: ShareRowProps) => {
+export const ShareRow = ({ share, onRevoke, onToggleVisibility }: ShareRowProps) => {
   const { t } = useTranslation('subaccount');
   const [isRowHovered, setIsRowHovered] = useState(false);
   const Icon = share.isFolder ? FolderIcon : FileIcon;
@@ -43,8 +44,21 @@ export const ShareRow = ({ share, onRevoke }: ShareRowProps) => {
 
       <span style={text.body}>{t(shareTypeLabelKey(share))}</span>
 
+      <span>
+        <span style={accessPill(share.isPublic)}>{t(shareAccessLabelKey(share))}</span>
+      </span>
+
       <span style={{ ...text.body, color: T.gray60 }}>{formatDateTime(new Date(share.createdAt))}</span>
-      <span style={{ display: 'flex', justifyContent: 'center' }}>
+      <span style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+        {isRowHovered && onToggleVisibility && (
+          <IconButton
+            title={t(share.isPublic ? 'shares.makeMembersOnly' : 'shares.makePublic')}
+            onClick={onToggleVisibility}
+            style={{ color: T.gray60 }}
+          >
+            {share.isPublic ? <LockKeyIcon size={16} /> : <GlobeIcon size={16} />}
+          </IconButton>
+        )}
         {isRowHovered && (
           <IconButton title={t('shares.revokeTitle')} onClick={onRevoke} style={{ color: T.gray60 }}>
             <TrashIcon size={16} />

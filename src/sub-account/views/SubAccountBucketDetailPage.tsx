@@ -406,12 +406,14 @@ export const SubAccountBucketDetailPage = () => {
   const endpointRef = useRef(searchParams.get('endpoint'));
   const regionRef = useRef(searchParams.get('region'));
 
+  const resolvedEndpoint = endpointRef.current ?? (credentials ? new URL(credentials.endpoint).host : undefined);
+  const resolvedRegion = regionRef.current ?? credentials?.region;
+
   const client = useMemo(() => {
     if (!credentials) return null;
-    const endpoint = endpointRef.current ?? new URL(credentials.endpoint).host;
     return new S3Client({
-      endpoint: `https://${endpoint}`,
-      region: regionRef.current ?? credentials.region ?? 'us-east-1',
+      endpoint: `https://${resolvedEndpoint}`,
+      region: resolvedRegion ?? 'us-east-1',
       credentials: { accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey },
       forcePathStyle: true,
     });
@@ -1298,8 +1300,8 @@ export const SubAccountBucketDetailPage = () => {
         <ShareModal
           obj={objectToShare}
           bucket={bucketName}
-          endpoint={endpointRef.current ?? undefined}
-          region={regionRef.current ?? undefined}
+          endpoint={resolvedEndpoint}
+          region={resolvedRegion}
           onClose={() => setObjectToShare(null)}
         />
       )}

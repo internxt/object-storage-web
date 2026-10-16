@@ -167,6 +167,14 @@
     "columnCreator": "Creador",
     "columnType": "Tipo",
     "columnCreated": "Creado",
+    "columnAccess": "Acceso",
+    "accessPublic": "Público",
+    "accessMembers": "Solo miembros",
+    "makePublic": "Hacer público",
+    "makeMembersOnly": "Hacer solo para miembros",
+    "madePublic": "Ahora cualquiera con el enlace puede abrirlo",
+    "madeMembersOnly": "Ahora solo los miembros pueden abrir el enlace",
+    "visibilityError": "No se pudo cambiar quién puede abrir este enlace",
     "linkCount_one": "{{count}} enlace activo",
     "linkCount_other": "{{count}} enlaces activos",
     "revokeSubtitle": "El enlace público de {{path}} dejará de funcionar de inmediato."
@@ -247,7 +255,17 @@
       "emailLabel": "Correo electrónico de la cuenta",
       "accountNumberLabel": "Número de cuenta de almacenamiento",
       "createdAtLabel": "Creada el",
-      "active": "Activa"
+      "active": "Activa",
+      "publicSharingTitle": "Enlaces públicos",
+      "publicSharingToggle": "Permitir enlaces públicos",
+      "publicSharingDescription": "Permite a los miembros crear enlaces que cualquiera puede abrir sin iniciar sesión. Los enlaces son solo para miembros salvo que su creador elija lo contrario.",
+      "publicSharingLoadFailed": "No se pudo cargar la configuración de enlaces públicos.",
+      "publicSharingUpdateFailed": "No se pudo actualizar la configuración de enlaces públicos.",
+      "publicSharingEnabled": "Los enlaces públicos están permitidos",
+      "publicSharingDisabled": "Los enlaces públicos están desactivados",
+      "publicSharingDisableTitle": "¿Desactivar los enlaces públicos?",
+      "publicSharingDisableSubtitle": "Todos los enlaces públicos de esta cuenta pasan a ser solo para miembros de inmediato. Volver a activar la opción no los hará públicos de nuevo.",
+      "publicSharingDisableConfirm": "Desactivar"
     },
     "tabAudit": "Auditoría",
     "audit": {
@@ -271,10 +289,15 @@
       "columnTimestamp": "Fecha y hora",
       "eventType": {
         "created": "Creado",
+        "created_public": "Creado (público)",
         "opened": "Abierto",
         "downloaded": "Descargado",
-        "deleted": "Revocado"
+        "previewed": "Previsualizado",
+        "deleted": "Revocado",
+        "made_public": "Hecho público",
+        "made_private": "Hecho solo para miembros"
       },
+      "anonymousActor": "Anónimo (enlace público)",
       "incomplete": "Incompleto",
       "incompleteHint": "La acción se registró pero nunca se confirmó como finalizada.",
       "pageRange": "{{start}}–{{end}} de {{total}}",
@@ -381,7 +404,14 @@
     "customDaysHint": "días (máx. {{max}})",
     "customDaysValidationError": "Introduce un número entero de días entre 1 y {{max}}.",
     "durationApiError": "La duración debe estar entre 1 hora y {{max}} días.",
-    "createLink": "Crear enlace"
+    "createLink": "Crear enlace",
+    "accessLabel": "Quién puede abrir este enlace",
+    "accessMembers": "Solo miembros",
+    "accessMembersHint": "Es necesario iniciar sesión en esta cuenta",
+    "accessPublic": "Cualquiera con el enlace",
+    "accessPublicHint": "No requiere iniciar sesión",
+    "publicFolderWarning": "Cualquiera con el enlace verá también los archivos que se añadan después a esta carpeta.",
+    "publicDisabledError": "Los enlaces públicos están desactivados para esta cuenta."
   },
   "shareLink": {
     "descriptionFolder": "Cualquiera con este enlace puede explorar y descargar el contenido de esta carpeta.",

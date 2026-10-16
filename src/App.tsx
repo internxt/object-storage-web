@@ -37,7 +37,6 @@ import { SubAccountForgotPasswordPage } from './sub-account/views/SubAccountForg
 import { PartnersResetPasswordPage } from './partners/views/PartnersResetPasswordPage';
 import { SubAccountResetPasswordPage } from './sub-account/views/SubAccountResetPasswordPage';
 import { SharePage } from './views/SharePage';
-import { ShareAuthRoute } from './components/share/ShareAuthRoute';
 import { SubAccountBrandingProvider } from './sub-account/context/SubAccountBrandingContext/SubAccountBrandingContext';
 import { WholesalersProvider } from './wholesalers/context/wholesalersContext';
 import { WholesalersLoginPage } from './wholesalers/views/WholesalersLoginPage';
@@ -79,9 +78,7 @@ export function App() {
               <Route path='/' element={<Navigate to={getLoginPathForHost()} />} />
 
               {/* Share links */}
-              <Route element={<ShareAuthRoute />}>
-                <Route path='/share/:token' element={<SharePage />} />
-              </Route>
+              <Route path='/share/:token' element={<SharePage />} />
 
               {/* Management console */}
               <Route path='/management/login' element={<ManagementLoginPage />} />

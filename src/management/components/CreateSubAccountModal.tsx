@@ -48,7 +48,7 @@ export const CreateSubAccountModal = ({
     watch,
     reset,
     formState: { errors, isValid },
-  } = useForm<FormValues>({ mode: 'onChange' })
+  } = useForm<FormValues>({ mode: 'all' })
 
   const password = watch('password')
   const passwordErrors = password

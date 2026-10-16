@@ -7,6 +7,8 @@ import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
 import { apiErrorMessage } from '../../utils/apiError';
 import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, validatePassword } from '../../components/auth/passwordPolicy';
 import { PasswordRequirements } from '../../components/FieldFeedback';
+import { Field, inputClass } from '../../components/FormField';
+import { requiredNameRules } from '../../utils/clientName';
 
 interface Props {
   isOpen: boolean;
@@ -33,7 +35,7 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
     watch,
     reset,
     formState: { errors, isValid },
-  } = useForm<FormValues>({ mode: 'onChange' });
+  } = useForm<FormValues>({ mode: 'all' });
 
   const password = watch('password');
   const passwordErrors = password ? validatePassword(password) : [];
@@ -67,9 +69,9 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
         <form onSubmit={handleSubmit(onFormSubmit)} className='flex flex-col gap-3'>
           <Field label='Name' error={errors.name?.message}>
             <input
-              {...register('name', { required: 'Name is required' })}
+              {...register('name', requiredNameRules())}
               placeholder='Wholesaler name'
-              className={inputClass}
+              className={inputClass(errors.name)}
             />
           </Field>
 
@@ -81,7 +83,7 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
               })}
               type='email'
               placeholder='contact@example.com'
-              className={inputClass}
+              className={inputClass(errors.email)}
             />
           </Field>
 
@@ -95,7 +97,7 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
                 })}
                 type={showPassword ? 'text' : 'password'}
                 placeholder='••••••••'
-                className={`${inputClass} pr-10`}
+                className={`${inputClass(errors.password)} pr-10`}
               />
               <button
                 type='button'
@@ -122,7 +124,7 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
             <div className='relative'>
               <select
                 {...register('country', { required: 'Country is required' })}
-                className={`${inputClass} appearance-none bg-white pr-8`}
+                className={`${inputClass(errors.country)} appearance-none bg-white pr-8`}
                 defaultValue=''
               >
                 <option value='' disabled>
@@ -144,7 +146,7 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
             <input
               {...register('postalCode', { required: 'Postal code is required' })}
               placeholder='12345'
-              className={inputClass}
+              className={inputClass(errors.postalCode)}
             />
           </Field>
 
@@ -163,22 +165,3 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
     </Modal>
   );
 };
-
-const inputClass =
-  'w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
-
-const Field = ({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) => (
-  <div className='flex flex-col gap-1'>
-    <label className='text-sm font-medium text-gray-700'>{label}</label>
-    {children}
-    {error && <span className='text-xs text-red'>{error}</span>}
-  </div>
-);

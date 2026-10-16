@@ -1,10 +1,12 @@
+import axios, { AxiosInstance } from 'axios';
 import subAccountAxios from '../sub-account/core/sub-account-axios';
+import { SubAccountBranding } from '../sub-account/services/sub-account-branding.service';
 
 export interface ShareMetadata {
   type: 'file' | 'folder';
   name: string;
-  bucket: string;
   prefix?: string;
+  branding?: SubAccountBranding;
 }
 
 export interface ShareListItem {
@@ -19,27 +21,42 @@ export interface ShareListResponse {
   nextCursor: string | null;
 }
 
-export const shareService = {
-  getMetadata: async (token: string): Promise<ShareMetadata> => {
-    const response = await subAccountAxios.get<ShareMetadata>(`/shares/${token}`);
+export interface ShareDataSource {
+  getMetadata: (token: string) => Promise<ShareMetadata>;
+  list: (token: string, prefix?: string, cursor?: string) => Promise<ShareListResponse>;
+  download: (token: string, key?: string) => Promise<string>;
+  preview: (token: string, key?: string) => Promise<{ url: string; contentType: string }>;
+}
+
+const publicAxios = axios.create({
+  baseURL: import.meta.env.VITE_OBJECT_STORAGE_API_URL,
+});
+
+const createShareDataSource = (client: AxiosInstance, basePath: string): ShareDataSource => ({
+  getMetadata: async (token) => {
+    const response = await client.get<ShareMetadata>(`${basePath}/${token}`);
     return response.data;
   },
-  list: async (token: string, prefix?: string, cursor?: string): Promise<ShareListResponse> => {
-    const response = await subAccountAxios.get<ShareListResponse>(`/shares/${token}/list`, {
+  list: async (token, prefix, cursor) => {
+    const response = await client.get<ShareListResponse>(`${basePath}/${token}/list`, {
       params: { prefix, cursor },
     });
     return response.data;
   },
-  download: async (token: string, key?: string): Promise<string> => {
-    const response = await subAccountAxios.get<{ url: string }>(`/shares/${token}/download`, {
+  download: async (token, key) => {
+    const response = await client.get<{ url: string }>(`${basePath}/${token}/download`, {
       params: { key },
     });
     return response.data.url;
   },
-  preview: async (token: string, key?: string): Promise<{ url: string; contentType: string }> => {
-    const response = await subAccountAxios.get<{ url: string; contentType: string }>(`/shares/${token}/preview`, {
+  preview: async (token, key) => {
+    const response = await client.get<{ url: string; contentType: string }>(`${basePath}/${token}/preview`, {
       params: { key },
     });
     return response.data;
   },
-};
+});
+
+export const shareService = createShareDataSource(subAccountAxios, '/shares');
+
+export const publicShareService = createShareDataSource(publicAxios, '/public/shares');

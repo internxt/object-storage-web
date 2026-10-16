@@ -5,9 +5,10 @@ interface CenteredMessageProps {
   icon: ReactNode;
   title: string;
   subtitle: string;
+  action?: ReactNode;
 }
 
-export const CenteredMessage = ({ icon, title, subtitle }: CenteredMessageProps) => (
+export const CenteredMessage = ({ icon, title, subtitle, action }: CenteredMessageProps) => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '64px 24px' }}>
     <div style={{
       width: 56, height: 56, borderRadius: '50%', background: T.gray10,
@@ -17,5 +18,6 @@ export const CenteredMessage = ({ icon, title, subtitle }: CenteredMessageProps)
     </div>
     <p style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>{title}</p>
     <p style={{ fontSize: 13, color: T.gray50, margin: 0, textAlign: 'center', maxWidth: 320 }}>{subtitle}</p>
+    {action}
   </div>
 );

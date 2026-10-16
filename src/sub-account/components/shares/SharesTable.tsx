@@ -14,6 +14,8 @@ interface SharesTableProps {
   search: string;
   onSearchChange: (value: string) => void;
   onRevoke: (share: ShareListItem) => void;
+  canToggleVisibility: (share: ShareListItem) => boolean;
+  onToggleVisibility: (share: ShareListItem) => void;
 }
 
 export const SharesTable = ({
@@ -23,6 +25,8 @@ export const SharesTable = ({
   search,
   onSearchChange,
   onRevoke,
+  canToggleVisibility,
+  onToggleVisibility,
 }: SharesTableProps) => {
   const { t } = useTranslation('subaccount');
   const bodyState = toBodyState(isLoading, shares.length);
@@ -43,7 +47,12 @@ export const SharesTable = ({
       {bodyState === 'empty' && <SharesEmptyState hasSearch={!!search} />}
       {bodyState === 'items' &&
         shares.map((share) => (
-          <ShareRow key={share.id} share={share} onRevoke={() => onRevoke(share)} />
+          <ShareRow
+            key={share.id}
+            share={share}
+            onRevoke={() => onRevoke(share)}
+            onToggleVisibility={canToggleVisibility(share) ? () => onToggleVisibility(share) : undefined}
+          />
         ))}
     </div>
   );

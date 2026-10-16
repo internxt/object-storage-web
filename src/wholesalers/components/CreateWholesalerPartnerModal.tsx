@@ -30,7 +30,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
     watch,
     reset,
     formState: { errors, isValid },
-  } = useForm<FormValues>({ mode: 'onChange' });
+  } = useForm<FormValues>({ mode: 'all' });
 
   const password = watch('password');
   const passwordErrors = password ? passwordPolicyErrors(password, MIN_PASSWORD_LENGTH) : [];
