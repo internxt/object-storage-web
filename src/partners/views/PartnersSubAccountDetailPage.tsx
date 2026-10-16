@@ -4,7 +4,14 @@ import { usePartners } from '../context/partnersContext';
 
 export const PartnersSubAccountDetailPage = () => {
   const { isViewer } = usePartners();
-  const service = isViewer ? { ...partnersService, updateSubAccountName: undefined } : partnersService;
+  const service = isViewer
+    ? {
+        ...partnersService,
+        updateSubAccountName: undefined,
+        updateSubAccountStorageQuota: undefined,
+        updateSubAccountUsageAlert: undefined,
+      }
+    : partnersService;
 
   return (
     <SubAccountDetailPage
