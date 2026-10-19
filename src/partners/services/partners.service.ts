@@ -182,6 +182,7 @@ async function exportDailyUsage(params?: { startDate?: string; endDate?: string 
 }
 
 export interface SubAccountUsageSummary {
+  billedUnits: number;
   avgActiveStorageTb: number;
   avgDeletedStorageTb: number;
   peakActiveStorageTb: number;
