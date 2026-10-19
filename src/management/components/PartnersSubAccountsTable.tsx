@@ -10,7 +10,7 @@ import { EditClientNameModal } from '../../components/EditClientNameModal'
 import { PartnerInfo } from '../../partners/services/partners.service'
 import { T, shadow } from '../../sub-account/tokens'
 import { StatusBadge } from '../../components/StatusBadge'
-import { getStorageLimitStatus, STORAGE_LIMIT_LABELS, toStorageLimit } from '../../utils/storageLimits'
+import { getStorageLimitStatus, StorageLimit, STORAGE_LIMIT_LABELS, toStorageLimit } from '../../utils/storageLimits'
 
 interface Props {
   subAccounts: SubAccount[]
@@ -44,28 +44,20 @@ const formatStorage = (value?: number) => {
 
 const WARNING_COLOR = '#d97706';
 
-const StorageLimitCell = ({
-  used,
-  quota,
-  usageAlert,
-}: {
-  used?: number;
-  quota?: number | null;
-  usageAlert?: number | null;
-}) => {
-  const limit = toStorageLimit(quota, usageAlert);
+const LIMIT_TEXT_STYLE = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.gray50, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' } as const;
+
+const StorageLimitCell = ({ used, limit }: { used?: number; limit: StorageLimit }) => {
   if (limit.type === 'none') return <span style={{ fontSize: 13, color: T.gray50 }}>{STORAGE_LIMIT_LABELS.none}</span>;
 
   const usedTb = used ?? 0;
   const { pct, reached, warning } = getStorageLimitStatus(usedTb, limit);
   const typeLabel = <span style={{ fontSize: 11, color: T.gray50 }}>{STORAGE_LIMIT_LABELS[limit.type]}</span>;
-  const textStyle = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.gray50, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' } as const;
 
   if (limit.type === 'alert') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 104 }}>
         {typeLabel}
-        <span style={textStyle}>
+        <span style={LIMIT_TEXT_STYLE}>
           {usedTb.toFixed(2)} TB used · <span style={reached ? { color: T.gray100, fontWeight: 600 } : undefined}>alert at {limit.valueTb} TB</span>
           {reached && (
             <span
@@ -88,7 +80,7 @@ const StorageLimitCell = ({
       <div style={{ width: '100%', height: 6, borderRadius: 999, background: T.gray15, overflow: 'hidden' }}>
         <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', borderRadius: 999, background: color }} />
       </div>
-      <span style={textStyle}>
+      <span style={LIMIT_TEXT_STYLE}>
         {usedTb.toFixed(2)} / {limit.valueTb} TB · <span style={{ color, fontWeight: 500 }}>{pct.toFixed(0)}%</span>
       </span>
     </div>
@@ -488,7 +480,7 @@ export const PartnersSubAccountsTable = ({
     },
     {
       header: 'Storage Limit',
-      cell: (acc) => <StorageLimitCell used={acc.activeStorage} quota={acc.storageQuotaTb} usageAlert={acc.usageAlertTb} />,
+      cell: (acc) => <StorageLimitCell used={acc.activeStorage} limit={toStorageLimit(acc.storageQuotaTb, acc.usageAlertTb)} />,
     },
     {
       header: 'Created',

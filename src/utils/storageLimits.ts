@@ -19,29 +19,28 @@ export const toStorageLimit = (storageQuotaTb?: number | null, usageAlertTb?: nu
   return { type: 'none' };
 };
 
-/** Why `value` is not a valid amount of TB for `type`, or null when it is. */
-export const validateStorageLimit = (type: Exclude<StorageLimitType, 'none'>, value: string): string | null => {
-  const parsed = Number(value);
-  if (type === 'alert') {
-    return /^\d+(\.\d{1,2})?$/.test(value) && parsed > 0
-      ? null
-      : 'Enter a usage alert greater than 0 TB, with up to 2 decimals';
-  }
-  return /^\d+$/.test(value) && parsed >= MIN_STORAGE_QUOTA_TB && parsed <= MAX_STORAGE_QUOTA_TB
-    ? null
-    : `Enter a storage quota as a whole number between ${MIN_STORAGE_QUOTA_TB} and ${MAX_STORAGE_QUOTA_TB} TB`;
+export const toStorageFields = (limit: StorageLimit) => ({
+  storageQuotaTb: limit.type === 'quota' ? limit.valueTb : null,
+  usageAlertTb: limit.type === 'alert' ? limit.valueTb : null,
+});
+
+export const storageLimitValueTb = (limit: StorageLimit) => (limit.type === 'none' ? null : limit.valueTb);
+
+export const isSameStorageLimit = (a: StorageLimit, b: StorageLimit) =>
+  a.type === b.type && storageLimitValueTb(a) === storageLimitValueTb(b);
+
+export const STORAGE_LIMIT_TYPING_PATTERN: Record<Exclude<StorageLimitType, 'none'>, RegExp> = {
+  alert: /^\d*(\.\d{0,2})?$/,
+  quota: /^\d*$/,
 };
 
-export interface StorageLimitStatus {
-  pct: number;
-  reached: boolean;
-  warning: boolean;
-}
+export const isValidStorageLimit = (type: Exclude<StorageLimitType, 'none'>, value: string): boolean => {
+  const parsed = Number(value);
+  if (type === 'alert') return /^\d+(\.\d{1,2})?$/.test(value) && parsed > 0;
+  return /^\d+$/.test(value) && parsed >= MIN_STORAGE_QUOTA_TB && parsed <= MAX_STORAGE_QUOTA_TB;
+};
 
-export const getStorageLimitStatus = (used: number, limit: StorageLimit): StorageLimitStatus => {
-  if (limit.type === 'none') return { pct: 0, reached: false, warning: false };
+export const getStorageLimitStatus = (used: number, limit: Exclude<StorageLimit, { type: 'none' }>) => {
   const pct = limit.valueTb > 0 ? (used / limit.valueTb) * 100 : 0;
-  const reached = used >= limit.valueTb;
-  // A storage quota warns from 80%; a usage alert is itself the warning threshold.
-  return { pct, reached, warning: limit.type === 'quota' ? pct >= QUOTA_WARNING_PCT : reached };
+  return { pct, reached: used >= limit.valueTb, warning: pct >= QUOTA_WARNING_PCT };
 };

@@ -17,10 +17,9 @@ import {
 } from '../../utils/exportUtils';
 import { statusLabel } from '../../utils/statusLabel';
 import { ExportDateRange } from '../../components/ExportDateRangeModal';
-import { StorageLimit, STORAGE_LIMIT_LABELS, toStorageLimit } from '../../utils/storageLimits';
+import { STORAGE_LIMIT_LABELS, storageLimitValueTb, toStorageLimit } from '../../utils/storageLimits';
 
 const storageLimitOf = (acc: SubAccountUsageItem) => toStorageLimit(acc.storageQuotaTb, acc.usageAlertTb);
-const limitValueOf = (limit: StorageLimit) => (limit.type === 'none' ? null : limit.valueTb);
 
 export const SUB_ACCOUNTS_EXPORT_MAX_DAYS = 50;
 
@@ -29,7 +28,7 @@ const SUMMARY_COLUMNS: XLSXColumn<SubAccountUsageItem>[] = [
   { header: 'Account Email', value: (acc) => acc.email, width: 36 },
   { header: 'Status', value: (acc) => statusLabel(acc.status), width: 18 },
   { header: 'Limit Type', value: (acc) => STORAGE_LIMIT_LABELS[storageLimitOf(acc).type], width: 16 },
-  { header: 'Limit (TB)', value: (acc) => limitValueOf(storageLimitOf(acc)), width: 14 },
+  { header: 'Limit (TB)', value: (acc) => storageLimitValueTb(storageLimitOf(acc)), width: 14 },
   { header: 'Billed Quantity', value: (acc) => acc.summary.billedUnits, numFmt: XLSX_COUNT_FORMAT, width: 18 },
   {
     header: 'Billed Storage (TB-month)',
