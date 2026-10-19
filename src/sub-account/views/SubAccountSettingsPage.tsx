@@ -15,6 +15,7 @@ import { AssignPermissionsModal } from '../components/permissions-manager/Assign
 import { PolicyDocument } from '../services/iamPolicy.service';
 import Dialog from '../../components/Dialog';
 import { ChangePasswordForm } from '../../components/ChangePasswordForm';
+import { PASSWORD_MIN_LENGTH } from '../../components/auth/passwordPolicy';
 import { Dropdown } from '../../components/Dropdown';
 import { formatDate, formatDateTime } from '../../utils/formatDate';
 import { copyToClipboard } from '../../utils/copyToClipboard';
@@ -78,8 +79,6 @@ const Pill = ({ type }: { type: 'active' | 'primary' }) => {
 };
 
 // ─── Profile Tab ──────────────────────────────────────────────────────────────
-
-const MIN_PASSWORD_LENGTH = 8;
 
 const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: string; role: string }) => {
   const { t } = useTranslation('subaccount');
@@ -155,11 +154,10 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
 
       <SectionCard title={t('settings.profile.changePasswordTitle')}>
         <ChangePasswordForm
-          minLength={MIN_PASSWORD_LENGTH}
           labels={{
             oldPassword: t('settings.profile.oldPasswordLabel'),
             newPassword: t('settings.profile.newPasswordLabel'),
-            newPasswordPlaceholder: t('settings.profile.newPasswordPlaceholder'),
+            newPasswordPlaceholder: t('settings.profile.newPasswordPlaceholder', { min: PASSWORD_MIN_LENGTH }),
             confirmPassword: t('settings.profile.confirmPasswordLabel'),
             confirmPasswordPlaceholder: t('settings.profile.confirmPasswordPlaceholder'),
             sameAsCurrent: t('settings.profile.passwordSameAsCurrent'),

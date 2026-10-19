@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
-import { passwordPolicyErrors } from '../../utils/passwordPolicy';
+import { validatePassword } from '../../components/auth/passwordPolicy';
 import { PasswordRequirements } from '../../components/FieldFeedback';
 import { Field, inputClass } from '../../components/FormField';
 import { requiredNameRules } from '../../utils/clientName';
@@ -16,8 +16,6 @@ interface Props {
 }
 
 type FormValues = { name: string; email: string; password: string };
-
-const MIN_PASSWORD_LENGTH = 8;
 
 export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +31,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
   } = useForm<FormValues>({ mode: 'all' });
 
   const password = watch('password');
-  const passwordErrors = password ? passwordPolicyErrors(password, MIN_PASSWORD_LENGTH) : [];
+  const passwordErrors = password ? validatePassword(password) : [];
 
   const handleClose = () => {
     reset();
@@ -90,7 +88,7 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
                 {...register('password', {
                   required: 'Password is required',
                   validate: (value: string) =>
-                    passwordPolicyErrors(value, MIN_PASSWORD_LENGTH).length === 0 ||
+                    validatePassword(value).length === 0 ||
                     'Password does not meet the requirements',
                 })}
                 type={showPassword ? 'text' : 'password'}

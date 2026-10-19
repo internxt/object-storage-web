@@ -6,7 +6,7 @@ import { CreateSubAccountDto } from '../services/management.service'
 import { Copy, Check } from 'lucide-react'
 import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries'
-import { passwordPolicyErrors } from '../../utils/passwordPolicy'
+import { validatePassword } from '../../components/auth/passwordPolicy'
 import { PasswordRequirements } from '../../components/FieldFeedback'
 import { Field, inputClass } from '../../components/FormField'
 import { requiredNameRules } from '../../utils/clientName'
@@ -25,8 +25,6 @@ interface SuccessData {
   email: string
   password: string
 }
-
-const MIN_PASSWORD_LENGTH = 8
 
 export const CreateSubAccountModal = ({
   isOpen,
@@ -52,7 +50,7 @@ export const CreateSubAccountModal = ({
 
   const password = watch('password')
   const passwordErrors = password
-    ? passwordPolicyErrors(password, MIN_PASSWORD_LENGTH)
+    ? validatePassword(password)
     : []
 
   const handleClose = () => {
@@ -193,7 +191,7 @@ export const CreateSubAccountModal = ({
                 {...register('password', {
                   required: 'Password is required',
                   validate: (value: string) =>
-                    passwordPolicyErrors(value, MIN_PASSWORD_LENGTH).length ===
+                    validatePassword(value).length ===
                       0 || 'Password does not meet the requirements',
                 })}
                 type={showPassword ? 'text' : 'password'}

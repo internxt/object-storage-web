@@ -17,12 +17,12 @@ import { ConfirmActionModal } from "../../management/components/ConfirmActionMod
 import notificationsService from "../../services/notifications.service";
 import { ChangePasswordForm } from "../../components/ChangePasswordForm";
 import {
-  MIN_MEMBER_PASSWORD_LENGTH,
   MemberEmailField,
   MemberPasswordField,
   memberEmailError,
   memberPasswordError,
 } from "../../components/MemberCredentialFields";
+import { PASSWORD_MIN_LENGTH } from "../../components/auth/passwordPolicy";
 import { apiErrorMessage } from "../../utils/apiError";
 import { T, text, shadow } from "../../sub-account/tokens";
 
@@ -708,7 +708,7 @@ const MembersCard = () => {
             <MemberPasswordField
               value={createPassword}
               onChange={setCreatePassword}
-              placeholder={`Min. ${MIN_MEMBER_PASSWORD_LENGTH} characters`}
+              placeholder={`Min. ${PASSWORD_MIN_LENGTH} characters`}
             />
           </div>
 

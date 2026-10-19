@@ -5,7 +5,7 @@ import Input from '../../components/Input'
 import Button from '../../components/Button'
 import notificationsService from '../../services/notifications.service'
 import { T, text, form } from '../../sub-account/tokens'
-import { passwordPolicyErrors } from '../../utils/passwordPolicy'
+import { PASSWORD_MIN_LENGTH, validatePassword } from '../../components/auth/passwordPolicy'
 import { apiErrorMessage } from '../../utils/apiError'
 
 interface Props {
@@ -13,8 +13,6 @@ interface Props {
   onClose: () => void
   onSubmit: (newPassword: string) => Promise<void>
 }
-
-const MIN_PASSWORD_LENGTH = 8
 
 export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const [newPassword, setNewPassword] = useState('')
@@ -31,7 +29,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
     }
   }, [isOpen])
 
-  const policyErrors = passwordPolicyErrors(newPassword, MIN_PASSWORD_LENGTH)
+  const policyErrors = validatePassword(newPassword)
   const showPolicyErrors = touched && policyErrors.length > 0
   const canSubmit = policyErrors.length === 0 && newPassword === confirmPassword
 
@@ -69,7 +67,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
               setNewPassword(v)
               setTouched(true)
             }}
-            placeholder="At least 8 characters"
+            placeholder={`At least ${PASSWORD_MIN_LENGTH} characters`}
             variant="password"
             accent={showPolicyErrors ? 'error' : undefined}
             className="!text-sm"

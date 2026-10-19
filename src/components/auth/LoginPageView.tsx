@@ -7,6 +7,8 @@ import {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import axios from 'axios'
+import dayjs from 'dayjs'
 import { WarningCircle } from '@phosphor-icons/react'
 import TextInput from './TextInput'
 import PasswordInput, { IFormValues } from '../PasswordInput'
@@ -19,6 +21,14 @@ const getSafeRedirect = (raw: string | null): string | null => {
   const isInternalPath = raw.startsWith('/')
   const isExternalUrl = raw.startsWith('//') || raw.startsWith('/\\')
   return isInternalPath && !isExternalUrl ? raw : null
+}
+
+const getLockedUntil = (error: unknown): string | undefined => {
+  if (!axios.isAxiosError(error)) return undefined
+  const data = error.response?.data as
+    | { code?: string; lockedUntil?: string }
+    | undefined
+  return data?.code === 'ACCOUNT_LOCKED' ? data.lockedUntil : undefined
 }
 
 interface LoginBranding {
@@ -109,7 +119,17 @@ export const LoginPageView = ({
       )
       navigate(destination)
     } catch (err) {
-      if (
+      const lockedUntil = getLockedUntil(err)
+      if (lockedUntil) {
+        setLoginError(
+          t(
+            forgotPasswordPath
+              ? 'login.accountLockedWithReset'
+              : 'login.accountLocked',
+            { time: dayjs(lockedUntil).format('HH:mm') },
+          ),
+        )
+      } else if (
         supportsTwoFactor &&
         !twoFactorRequired &&
         (err as Error)?.message === '2FA_REQUIRED'

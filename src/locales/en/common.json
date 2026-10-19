@@ -8,6 +8,8 @@
     "twoFactorCodePlaceholder": "6-digit code",
     "invalidCode": "Invalid code",
     "invalidCredentials": "Invalid credentials",
+    "accountLocked": "Too many failed attempts. Your account is locked until {{time}}.",
+    "accountLockedWithReset": "Too many failed attempts. Your account is locked until {{time}}. You can also reset your password.",
     "or": "or",
     "signingIn": "Signing in…",
     "verify": "Verify",
@@ -36,7 +38,7 @@
     "setNewPassword": "Set new password",
     "passwordUpdatedNotification": "Your password has been updated. Log in to continue.",
     "passwordPolicy": {
-      "minLength": "At least 6 characters",
+      "minLength": "At least {{count}} characters",
       "lowercase": "At least one lowercase letter",
       "uppercase": "At least one uppercase letter",
       "digit": "At least one digit",

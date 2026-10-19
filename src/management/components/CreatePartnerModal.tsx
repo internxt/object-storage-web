@@ -4,6 +4,8 @@ import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
 import { apiErrorMessage } from '../../utils/apiError';
+import { validatePassword } from '../../components/auth/passwordPolicy';
+import { PasswordRequirements } from '../../components/FieldFeedback';
 import { Field, inputClass } from '../../components/FormField';
 import { requiredNameRules } from '../../utils/clientName';
 
@@ -22,9 +24,13 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const {
     register,
     handleSubmit,
+    watch,
     reset,
     formState: { errors, isValid },
   } = useForm<FormValues>({ mode: 'all' });
+
+  const password = watch('password');
+  const passwordErrors = password ? validatePassword(password) : [];
 
   const handleClose = () => {
     reset();
@@ -73,11 +79,16 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
 
           <Field label='Password' error={errors.password?.message}>
             <input
-              {...register('password', { required: 'Password is required' })}
+              {...register('password', {
+                required: 'Password is required',
+                validate: (value: string) =>
+                  validatePassword(value).length === 0 || 'Password does not meet the requirements',
+              })}
               type='password'
               placeholder='••••••••'
               className={inputClass(errors.password)}
             />
+            {passwordErrors.length > 0 && <PasswordRequirements errors={passwordErrors} />}
           </Field>
 
           <Field label='Country' error={errors.country?.message}>

@@ -8,6 +8,8 @@
     "twoFactorCodePlaceholder": "Código de 6 dígitos",
     "invalidCode": "Código no válido",
     "invalidCredentials": "Credenciales no válidas",
+    "accountLocked": "Demasiados intentos fallidos. Tu cuenta está bloqueada hasta las {{time}}.",
+    "accountLockedWithReset": "Demasiados intentos fallidos. Tu cuenta está bloqueada hasta las {{time}}. También puedes restablecer tu contraseña.",
     "or": "o",
     "signingIn": "Iniciando sesión…",
     "verify": "Verificar",
@@ -36,7 +38,7 @@
     "setNewPassword": "Establecer nueva contraseña",
     "passwordUpdatedNotification": "Tu contraseña se ha actualizado. Inicia sesión para continuar.",
     "passwordPolicy": {
-      "minLength": "Al menos 6 caracteres",
+      "minLength": "Al menos {{count}} caracteres",
       "lowercase": "Al menos una letra minúscula",
       "uppercase": "Al menos una letra mayúscula",
       "digit": "Al menos un dígito",

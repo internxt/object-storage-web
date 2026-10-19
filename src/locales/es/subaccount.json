@@ -194,7 +194,7 @@
       "changePasswordTitle": "Cambiar contraseña",
       "oldPasswordLabel": "Contraseña actual",
       "newPasswordLabel": "Nueva contraseña",
-      "newPasswordPlaceholder": "Al menos 8 caracteres",
+      "newPasswordPlaceholder": "Al menos {{min}} caracteres",
       "confirmPasswordLabel": "Confirmar contraseña",
       "confirmPasswordPlaceholder": "Repite la nueva contraseña",
       "saving": "Guardando…",

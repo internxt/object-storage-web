@@ -194,7 +194,7 @@
       "changePasswordTitle": "Change password",
       "oldPasswordLabel": "Old password",
       "newPasswordLabel": "New password",
-      "newPasswordPlaceholder": "At least 8 characters",
+      "newPasswordPlaceholder": "At least {{min}} characters",
       "confirmPasswordLabel": "Confirm password",
       "confirmPasswordPlaceholder": "Repeat new password",
       "saving": "Saving…",
