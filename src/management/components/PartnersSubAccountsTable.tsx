@@ -62,19 +62,18 @@ const StorageLimitCell = ({
   const textStyle = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.gray50, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' } as const;
 
   if (limit.type === 'alert') {
-    const color = reached ? WARNING_COLOR : T.gray50;
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 104 }}>
         {typeLabel}
         <span style={textStyle}>
-          {usedTb.toFixed(2)} TB used · <span style={{ color, fontWeight: reached ? 500 : 400 }}>alert at {limit.valueTb} TB</span>
+          {usedTb.toFixed(2)} TB used · <span style={reached ? { color: T.gray100, fontWeight: 600 } : undefined}>alert at {limit.valueTb} TB</span>
           {reached && (
             <span
               title={`Usage alert reached: ${usedTb.toFixed(2)} TB used, usage alert ${limit.valueTb} TB`}
               aria-label='Usage alert reached'
               style={{ display: 'inline-flex', flexShrink: 0 }}
             >
-              <WarningIcon size={14} weight='fill' color={color} />
+              <WarningIcon size={14} weight='fill' color={WARNING_COLOR} />
             </span>
           )}
         </span>
