@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { ArrowLeft, Database, Package, CaretLeft, CaretRight, DownloadSimple, WarningIcon } from '@phosphor-icons/react';
@@ -9,10 +9,13 @@ import { managementService, SubAccountDetail, SubAccountUsage } from '../service
 import notificationsService from '../../services/notifications.service';
 import { exportAsCSV } from '../../utils/exportUtils';
 import { StatusBadge } from '../../components/StatusBadge';
+import Button from '../../components/Button';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
 import { apiErrorMessage } from '../../utils/apiError';
 import {
   getStorageLimitStatus,
+  MAX_STORAGE_QUOTA_TB,
+  MIN_STORAGE_QUOTA_TB,
   StorageLimit,
   StorageLimitType,
   STORAGE_LIMIT_LABELS,
@@ -68,6 +71,11 @@ const LIMIT_HELP: Record<StorageLimitType, string> = {
   quota: 'New uploads are blocked once usage reaches this amount. Existing data can still be read, downloaded and deleted.',
 };
 
+const LIMIT_RANGE: Record<Exclude<StorageLimitType, 'none'>, string> = {
+  alert: 'Greater than 0, up to 2 decimals',
+  quota: `Whole number from ${MIN_STORAGE_QUOTA_TB} to ${MAX_STORAGE_QUOTA_TB}`,
+};
+
 const describeLimit = (limit: StorageLimit) =>
   limit.type === 'none' ? STORAGE_LIMIT_LABELS.none : `${STORAGE_LIMIT_LABELS[limit.type]} of ${limit.valueTb} TB`;
 
@@ -78,7 +86,7 @@ const UsageAlertWarning = ({ used, limit }: { used: number; limit: StorageLimit 
     <div role='alert' className='rounded-xl border p-4 flex items-start gap-3 bg-orange/10 border-orange/40'>
       <WarningIcon size={20} weight='fill' className='flex-shrink-0 mt-0.5 text-orange' />
       <div className='flex flex-col gap-0.5'>
-        <span className='text-sm font-semibold text-orange-dark'>Usage alert reached</span>
+        <span className='text-sm font-semibold text-gray-100'>Usage alert reached</span>
         <span className='text-xs text-gray-80'>
           {fmt(used, 2)} TB in use · usage alert {limit.valueTb} TB. Uploads keep working; a usage alert never blocks them.
         </span>
@@ -100,6 +108,7 @@ const StorageLimitCard = ({
   const [type, setType] = useState<StorageLimitType>(limit.type);
   const [value, setValue] = useState(savedValue);
   const [busy, setBusy] = useState(false);
+  const inputId = useId();
 
   useEffect(() => {
     setType(limit.type);
@@ -108,9 +117,18 @@ const StorageLimitCard = ({
 
   const summary = (
     <div>
-      <h2 className='text-sm font-semibold text-gray-900'>Storage limit</h2>
-      <p className='text-xs text-gray-400 mt-0.5'>
-        {describeLimit(limit)}. {fmt(used, 2)} TB currently in use.
+      <h2 className='text-base font-medium text-gray-100'>Storage limit</h2>
+      <p className='text-sm text-gray-60 mt-0.5'>
+        {limit.type === 'none' ? (
+          <span className='text-gray-100'>{STORAGE_LIMIT_LABELS.none}</span>
+        ) : (
+          <>
+            <span className='text-gray-100'>{STORAGE_LIMIT_LABELS[limit.type]}</span> of{' '}
+            <span className='text-gray-100'>{limit.valueTb} TB</span>
+          </>
+        )}
+        {' · '}
+        <span className='text-gray-100'>{fmt(used, 2)} TB</span> currently in use
       </p>
     </div>
   );
@@ -119,7 +137,7 @@ const StorageLimitCard = ({
     return (
       <div className='bg-white rounded-xl shadow-sm p-5 flex flex-col gap-1'>
         {summary}
-        <p className='text-xs text-gray-500'>{LIMIT_HELP[limit.type]}</p>
+        <p className='text-xs text-gray-60'>{LIMIT_HELP[limit.type]}</p>
       </div>
     );
   }
@@ -128,7 +146,6 @@ const StorageLimitCard = ({
   const next: StorageLimit | null =
     type === 'none' ? { type } : value !== '' && error == null ? { type, valueTb: Number(value) } : null;
   const changed = next != null && describeLimit(next) !== describeLimit(limit);
-  const canSave = !busy && changed;
 
   const notes: string[] = [];
   if (limit.type !== 'none' && type !== limit.type) {
@@ -143,7 +160,8 @@ const StorageLimitCard = ({
 
   const changeType = (nextType: StorageLimitType) => {
     setType(nextType);
-    if (nextType !== 'none' && !LIMIT_INPUT[nextType].test(value)) setValue('');
+    if (nextType === limit.type) setValue(savedValue);
+    else if (nextType !== 'none' && !LIMIT_INPUT[nextType].test(value)) setValue('');
   };
 
   const save = async () => {
@@ -160,53 +178,106 @@ const StorageLimitCard = ({
     <div className='bg-white rounded-xl shadow-sm p-5 flex flex-col gap-3'>
       {summary}
 
-      <div className='flex items-center gap-2 flex-wrap'>
-        <select
-          aria-label='Limit type'
-          value={type}
-          disabled={busy}
-          onChange={(e) => changeType(e.target.value as StorageLimitType)}
-          className='border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 bg-white outline-none focus:border-indigo-400 disabled:bg-gray-50'
-        >
-          {LIMIT_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {STORAGE_LIMIT_LABELS[t]}
-            </option>
-          ))}
-        </select>
-        {type !== 'none' && (
-          <>
-            <input
-              type='text'
-              inputMode={type === 'alert' ? 'decimal' : 'numeric'}
-              aria-label={`${STORAGE_LIMIT_LABELS[type]} in TB`}
-              value={value}
-              disabled={busy}
-              placeholder={type === 'alert' ? 'e.g. 7.5' : 'e.g. 10'}
-              onChange={(e) => {
-                if (LIMIT_INPUT[type].test(e.target.value)) setValue(e.target.value);
-              }}
-              className='w-32 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400 disabled:bg-gray-50'
-            />
-            <span className='text-sm text-gray-700'>TB</span>
-          </>
-        )}
-        <button
-          disabled={!canSave}
-          onClick={save}
-          className='flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
-        >
-          {busy ? 'Saving…' : 'Save limit'}
-        </button>
-      </div>
+      <fieldset disabled={busy} className='grid grid-cols-1 sm:grid-cols-3 gap-2'>
+        <legend className='sr-only'>Limit type</legend>
+        {LIMIT_TYPES.map((t) => {
+          const selected = type === t;
+          const current = limit.type === t;
+          return (
+            <div
+              key={t}
+              className={`flex flex-col rounded-lg border transition-colors [&:has(:focus-visible)]:ring-2 [&:has(:focus-visible)]:ring-primary/40 ${
+                selected ? 'border-primary ring-1 ring-primary bg-primary/5' : 'border-gray-10 hover:border-gray-30'
+              } ${busy ? 'opacity-60' : ''}`}
+            >
+              <label className={`flex flex-col gap-1 p-3 ${busy ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                <input
+                  type='radio'
+                  name='storage-limit-type'
+                  value={t}
+                  checked={selected}
+                  onChange={() => changeType(t)}
+                  className='sr-only'
+                />
+                <span className='flex items-center gap-2'>
+                  <span
+                    aria-hidden
+                    className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border ${
+                      selected ? 'border-primary' : 'border-gray-30'
+                    }`}
+                  >
+                    {selected && <span className='h-2 w-2 rounded-full bg-primary' />}
+                  </span>
+                  <span className={`text-base ${selected ? 'font-semibold text-primary' : 'font-medium text-gray-80'}`}>
+                    {STORAGE_LIMIT_LABELS[t]}
+                  </span>
+                  {current && (
+                    <span className='ml-auto rounded-full bg-gray-5 px-2 py-0.5 text-xs font-medium text-gray-60'>Current</span>
+                  )}
+                </span>
+                <span className='pl-6 text-xs text-gray-60'>{LIMIT_HELP[t]}</span>
+              </label>
 
-      <p className='text-xs text-gray-500'>{LIMIT_HELP[type]}</p>
-      {error && <p className='text-xs text-red'>{error}</p>}
-      {notes.map((note) => (
-        <p key={note} className='text-xs text-orange-dark'>
-          {note}
-        </p>
-      ))}
+              {t !== 'none' && (
+                <div
+                  aria-hidden={!selected}
+                  className={`mt-auto flex-col gap-1 px-3 pb-3 pl-9 ${selected ? 'flex' : 'hidden sm:flex sm:invisible'}`}
+                >
+                  <div
+                    className={`flex items-center rounded-lg border bg-white transition-colors ${
+                      selected && error ? 'border-red-dark' : 'border-gray-10 focus-within:border-primary'
+                    }`}
+                  >
+                    <input
+                      id={selected ? inputId : undefined}
+                      type='text'
+                      inputMode={t === 'alert' ? 'decimal' : 'numeric'}
+                      value={selected ? value : ''}
+                      tabIndex={selected ? undefined : -1}
+                      placeholder={t === 'alert' ? 'e.g. 7.5' : 'e.g. 10'}
+                      aria-label={`${STORAGE_LIMIT_LABELS[t]} in TB`}
+                      aria-describedby={selected ? `${inputId}-hint` : undefined}
+                      aria-invalid={selected && error != null}
+                      onChange={(e) => {
+                        if (LIMIT_INPUT[t].test(e.target.value)) setValue(e.target.value);
+                      }}
+                      className='w-full min-w-0 bg-transparent px-3 py-1.5 text-sm text-gray-100 outline-none'
+                    />
+                    <span aria-hidden className='pr-3 text-sm text-gray-60'>
+                      TB
+                    </span>
+                  </div>
+                  <span
+                    id={selected ? `${inputId}-hint` : undefined}
+                    className={`text-xs ${selected && error ? 'text-red-dark' : 'text-gray-60'}`}
+                  >
+                    {LIMIT_RANGE[t]}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </fieldset>
+
+      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end'>
+        {notes.length > 0 && (
+          <div
+            role='status'
+            className='flex flex-col gap-1 rounded-lg border border-orange/40 bg-orange/10 px-3 py-2 sm:flex-1'
+          >
+            {notes.map((note) => (
+              <p key={note} className='flex items-start gap-1.5 text-xs text-gray-80'>
+                <WarningIcon size={14} weight='fill' className='flex-shrink-0 mt-px text-orange' aria-hidden />
+                {note}
+              </p>
+            ))}
+          </div>
+        )}
+        <Button size='medium' className='self-end sm:self-auto' disabled={!changed} loading={busy} onClick={save}>
+          {busy ? 'Saving…' : 'Save limit'}
+        </Button>
+      </div>
     </div>
   );
 };
