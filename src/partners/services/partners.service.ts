@@ -2,7 +2,7 @@ import partnersAxios from '../core/partners-axios';
 import { partnersAuthService } from './partners-auth.service';
 import { SubAccount } from '../../management/services/management.service';
 import { toConsoleStatus } from '../../utils/statusLabel';
-import { StorageLimit } from '../../utils/storageLimits';
+import { StorageLimit, storageLimitValueTb } from '../../utils/storageLimits';
 
 const API = '/partners';
 
@@ -104,8 +104,10 @@ async function changeSubAccountPassword(id: string, newPassword: string): Promis
 }
 
 async function updateSubAccountStorageLimit(id: string, limit: StorageLimit): Promise<void> {
-  const body = { type: limit.type, valueTb: limit.type === 'none' ? null : limit.valueTb };
-  await partnersAxios.patch(`${API}/sub-accounts/${id}/storage-limit`, body);
+  await partnersAxios.patch(`${API}/sub-accounts/${id}/storage-limit`, {
+    type: limit.type,
+    valueTb: storageLimitValueTb(limit),
+  });
 }
 
 async function getUsageSummary(): Promise<PartnersUsageSummary> {
