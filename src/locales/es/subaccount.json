@@ -66,7 +66,8 @@
       "objectLockLabel": "Bloqueo de objetos",
       "objectLockVersioningRequired": "(El versionado debe estar activado) ",
       "objectLockHint": "Al activar el bloqueo de objetos podrás evitar que los objetos se sobrescriban o eliminen durante un tiempo determinado. Al activar esta opción, la función de bloqueo de objetos quedará activada de forma permanente mientras exista el bucket.",
-      "bucketNameTakenError": "El nombre de bucket solicitado no está disponible. El espacio de nombres de buckets es compartido por todos los usuarios del sistema. Elige un nombre diferente e inténtalo de nuevo."
+      "bucketNameTakenError": "El nombre de bucket solicitado no está disponible. El espacio de nombres de buckets es compartido por todos los usuarios del sistema. Elige un nombre diferente e inténtalo de nuevo.",
+      "createError": "No se pudo crear el bucket. Inténtalo de nuevo."
     }
   },
   "bucketDetail": {
