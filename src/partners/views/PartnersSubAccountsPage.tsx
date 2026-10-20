@@ -527,7 +527,7 @@ export const PartnersSubAccountsPage = () => {
           `Exported usage for ${count} ${count === 1 ? 'sub-account' : 'sub-accounts'}`
         }
         title="Export sub-account usage"
-        description={`Choose the date range to include in the .xlsx (up to ${SUB_ACCOUNTS_EXPORT_MAX_DAYS} days).`}
+        description={`Choose the date range to include in the .xlsx (up to ${SUB_ACCOUNTS_EXPORT_MAX_DAYS} days). To match an invoice, use the same start and end dates shown on it.`}
         maxRangeDays={SUB_ACCOUNTS_EXPORT_MAX_DAYS}
       />
       <CreateSubAccountModal
