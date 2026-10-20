@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { managementAuthService } from './management-auth.service';
+import { SubAccountsUsageReport } from '../../partners/services/partners.service';
+import { toConsoleStatus } from '../../utils/statusLabel';
 
 const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/management`;
 const headers = () => managementAuthService.getAuthHeaders();
@@ -105,10 +107,23 @@ async function getPartnerSubAccounts(
   };
 }
 
+async function getPartnerSubAccountsUsage(
+  partnerId: string,
+  params: { from: string; to: string },
+): Promise<SubAccountsUsageReport> {
+  const response = await axios.get<SubAccountsUsageReport>(`${API()}/partners/${partnerId}/usages/sub-accounts`, {
+    headers: headers(),
+    params,
+  });
+  const report = response.data;
+  return { ...report, items: report.items.map((item) => ({ ...item, status: toConsoleStatus(item.status) })) };
+}
+
 export const partnersService = {
   createPartner,
   getPartners,
   getPartnerById,
   getPartnersSummary,
   getPartnerSubAccounts,
+  getPartnerSubAccountsUsage,
 };

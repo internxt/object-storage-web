@@ -10,7 +10,7 @@ import {
   partnersService,
   PartnersUsageSummary,
 } from '../services/partners.service'
-import { exportSubAccountsUsage } from '../services/subAccountsExport'
+import { exportSubAccountsUsage, SUB_ACCOUNTS_EXPORT_MAX_DAYS } from '../services/subAccountsExport'
 import { resolveConsoleUrl } from '../../utils/consoleUrl'
 import {
   CreateSubAccountDto,
@@ -27,7 +27,6 @@ import { ExportDateRangeModal } from '../../components/ExportDateRangeModal'
 import { apiErrorMessage } from '../../utils/apiError'
 
 const ACCENT = '#6366f1'
-const SUB_ACCOUNTS_EXPORT_MAX_DAYS = 50
 const POSITIVE = '#10b981'
 
 const STATUS_OPTIONS = [
