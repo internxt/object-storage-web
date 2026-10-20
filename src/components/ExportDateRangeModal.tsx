@@ -13,15 +13,15 @@ export interface ExportDateRange {
 const DAY_FORMAT = 'YYYY-MM-DD';
 
 const lastDays = (days: number): ExportDateRange => ({
-  from: dayjs().subtract(days - 1, 'day').format(DAY_FORMAT),
+  from: dayjs().subtract(days, 'day').format(DAY_FORMAT),
   to: dayjs().format(DAY_FORMAT),
 });
 
 const rangeError = ({ from, to }: ExportDateRange, maxRangeDays: number): string | undefined => {
   if (!from || !to) return 'Select both dates';
-  if (dayjs(from).isAfter(to)) return 'Start date must be before end date';
+  if (!dayjs(from).isBefore(to)) return 'Start date must be before end date';
   if (dayjs(to).isAfter(dayjs(), 'day')) return 'End date cannot be in the future';
-  if (dayjs(to).diff(from, 'day') + 1 > maxRangeDays) return `Range cannot exceed ${maxRangeDays} days`;
+  if (dayjs(to).diff(from, 'day') > maxRangeDays) return `Range cannot exceed ${maxRangeDays} days`;
   return undefined;
 };
 
@@ -74,16 +74,16 @@ export const ExportDateRangeModal = ({
             <input
               type='date'
               value={range.from}
-              max={range.to || today}
+              max={range.to ? dayjs(range.to).subtract(1, 'day').format(DAY_FORMAT) : today}
               onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
               className={inputClass()}
             />
           </Field>
-          <Field label='To'>
+          <Field label='To (not included)'>
             <input
               type='date'
               value={range.to}
-              min={range.from}
+              min={range.from ? dayjs(range.from).add(1, 'day').format(DAY_FORMAT) : undefined}
               max={today}
               onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
               className={inputClass()}
