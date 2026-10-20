@@ -24,6 +24,8 @@ import { useSubAccount } from '../context/SubAccountContext';
 import { T, shadow, text, form } from '../tokens';
 import subAccountAxios from '../core/sub-account-axios';
 import { S3Credentials } from '../services/sub-account-s3-credentials.service';
+import { subAccountBucketsService } from '../services/sub-account-buckets.service';
+import { apiErrorMessage, hasApiErrorStatus } from '../../utils/apiError';
 import { Pagination } from '../../components/Pagination';
 import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal';
 import { BucketLoggingSetup } from '../../components/buckets/BucketLoggingSetup';
@@ -367,6 +369,8 @@ interface CreateBucketModalProps {
   credentials: S3Credentials | null;
   bucketNames: string[];
   onCreated: () => void;
+  entityId: string | null;
+  memberId: string | null;
 }
 
 const INITIAL_FORM_STATE = {
@@ -378,7 +382,7 @@ const INITIAL_FORM_STATE = {
 };
 
 const CreateBucketModal = ({
-  isOpen, onClose, regions, credentials, bucketNames, onCreated,
+  isOpen, onClose, regions, credentials, bucketNames, onCreated, entityId, memberId,
 }: CreateBucketModalProps) => {
   const { t } = useTranslation('subaccount');
   const [formState, setFormState] = useState(INITIAL_FORM_STATE);
@@ -407,19 +411,31 @@ const CreateBucketModal = ({
   );
 
   const handleCreate = async () => {
-    if (!selectedRegion || !isValidBucketName(bucketName) || !credentials) {
+    if (!selectedRegion || !isValidBucketName(bucketName) || !credentials || !entityId || !memberId) {
       return;
     }
     setIsCreating(true);
+
+    try {
+      await subAccountBucketsService.createBucket(
+        entityId,
+        memberId,
+        bucketName,
+        selectedRegion.slug,
+        objectLockEnabled,
+      );
+    } catch (err) {
+      notificationsService.error({
+        text: hasApiErrorStatus(err, 409)
+          ? t('buckets.createModal.bucketNameTakenError')
+          : apiErrorMessage(err, t('buckets.createModal.createError')),
+      });
+      setIsCreating(false);
+      return;
+    }
+
     const regionClient = createRegionS3Client(selectedRegion.endpoint, selectedRegion.slug, credentials);
     try {
-      if (await s3Service.bucketExists(regionClient, bucketName)) {
-        notificationsService.error({
-          text: t('buckets.createModal.bucketNameTakenError'),
-        });
-        return;
-      }
-      await s3Service.createBucket(regionClient, bucketName, selectedRegion.slug, objectLockEnabled);
       if (versioningEnabled) {
         try {
           await s3Service.setBucketVersioning(regionClient, bucketName, true);
@@ -752,6 +768,8 @@ export const SubAccountBucketsPage = () => {
           refreshBuckets(client);
         }}
         bucketNames={bucketNames}
+        entityId={entityId}
+        memberId={memberId}
       />
       <DeleteBucketConfirmModal
         isOpen={!!bucketToDelete}
