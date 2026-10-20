@@ -29,6 +29,12 @@
   Then the submit button shows a loading indicator
   And the submit button is disabled
 
+#### Scenario: Login with a temporarily locked account
+  Given the user has entered a wrong password 5 times in a row
+  When the user tries to log in again within the next 15 minutes
+  Then a message says the account is locked until a given time and that the password can be reset
+  And the user stays on the login page
+
 #### Scenario: Toggle password visibility
   Given the user is on the login page
   When the user clicks the password visibility toggle
@@ -886,8 +892,8 @@
 ### Profile tab — changing password
 - When the user fills in the old password, a new password, and the confirmation and submits,
   then the password is updated and a success message is shown.
-- When the new password is fewer than 8 characters,
-  then the submit button is disabled.
+- When the new password is shorter than 12 characters or lacks an uppercase letter, a lowercase letter, a digit or a special character,
+  then the missing requirements are listed and the submit button is disabled.
 - When the new password and confirmation do not match,
   then the submit button is disabled.
 - When the old password field is empty,
@@ -920,8 +926,8 @@
   then the new member appears in the list.
 - When the email field is empty,
   then the submit button is disabled.
-- When SSO is disabled and the password is fewer than 8 characters,
-  then the submit button is disabled.
+- When SSO is disabled and the password is shorter than 12 characters or lacks an uppercase letter, a lowercase letter, a digit or a special character,
+  then the missing requirements are listed and the submit button is disabled.
 - When SSO is enabled, the password field is optional.
 - When the request is in progress,
   then the submit button shows a loading indicator and is disabled.

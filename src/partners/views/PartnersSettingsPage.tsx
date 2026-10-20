@@ -14,12 +14,12 @@ import Modal from '../../components/Modal'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
 import {
-  MIN_MEMBER_PASSWORD_LENGTH,
   MemberEmailField,
   MemberPasswordField,
   memberEmailError,
   memberPasswordError,
 } from '../../components/MemberCredentialFields'
+import { PASSWORD_MIN_LENGTH } from '../../components/auth/passwordPolicy'
 import Dialog from '../../components/Dialog'
 import { T, text, form, shadow } from '../../sub-account/tokens'
 import { usePartners } from '../context/partnersContext'
@@ -953,7 +953,7 @@ const MembersTab = () => {
             <MemberPasswordField
               value={createPassword}
               onChange={setCreatePassword}
-              placeholder={`Min. ${MIN_MEMBER_PASSWORD_LENGTH} characters`}
+              placeholder={`Min. ${PASSWORD_MIN_LENGTH} characters`}
             />
           </div>
           <div

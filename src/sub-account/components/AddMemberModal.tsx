@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import {
-  MIN_MEMBER_PASSWORD_LENGTH,
   MemberEmailField,
   MemberPasswordField,
   memberEmailError,
   memberPasswordError,
 } from '../../components/MemberCredentialFields';
+import { PASSWORD_MIN_LENGTH } from '../../components/auth/passwordPolicy';
 import { text, form } from '../tokens';
 
 interface AddMemberModalProps {
@@ -73,7 +73,7 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
               value={password}
               onChange={setPassword}
               placeholder={t('addMemberModal.passwordPlaceholder', {
-                min: MIN_MEMBER_PASSWORD_LENGTH,
+                min: PASSWORD_MIN_LENGTH,
               })}
               labels={labels}
             />

@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { T, text } from '../sub-account/tokens';
-import { passwordPolicyErrors } from '../utils/passwordPolicy';
+import { PASSWORD_MIN_LENGTH, validatePassword } from './auth/passwordPolicy';
 import { apiErrorMessage } from '../utils/apiError';
 import notificationsService from '../services/notifications.service';
 import { PasswordRequirements } from './FieldFeedback';
@@ -76,10 +76,10 @@ export interface ChangePasswordLabels {
   failure: string;
 }
 
-const defaultLabels = (minLength: number): ChangePasswordLabels => ({
+const defaultLabels: ChangePasswordLabels = {
   oldPassword: 'Old password',
   newPassword: 'New password',
-  newPasswordPlaceholder: `At least ${minLength} characters`,
+  newPasswordPlaceholder: `At least ${PASSWORD_MIN_LENGTH} characters`,
   confirmPassword: 'Confirm new password',
   confirmPasswordPlaceholder: 'Repeat new password',
   sameAsCurrent: 'New password must differ from current',
@@ -88,18 +88,16 @@ const defaultLabels = (minLength: number): ChangePasswordLabels => ({
   saving: 'Saving…',
   success: 'Password changed successfully',
   failure: 'Failed to change password',
-});
+};
 
 export const ChangePasswordForm = ({
   onSubmit,
-  minLength = 6,
   labels,
 }: {
   onSubmit: (currentPassword: string, newPassword: string) => Promise<void>;
-  minLength?: number;
   labels?: Partial<ChangePasswordLabels>;
 }) => {
-  const copy = { ...defaultLabels(minLength), ...labels };
+  const copy = { ...defaultLabels, ...labels };
   const [current, setCurrent] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -107,7 +105,7 @@ export const ChangePasswordForm = ({
   const [isSaving, setIsSaving] = useState(false);
 
   const policyErrors = touched.newPassword
-    ? passwordPolicyErrors(newPassword, minLength)
+    ? validatePassword(newPassword)
     : [];
   const sameAsCurrent =
     touched.newPassword && newPassword.length > 0 && newPassword === current;
@@ -118,7 +116,7 @@ export const ChangePasswordForm = ({
     current.length > 0 &&
     newPassword.length > 0 &&
     confirm.length > 0 &&
-    passwordPolicyErrors(newPassword, minLength).length === 0 &&
+    validatePassword(newPassword).length === 0 &&
     !sameAsCurrent &&
     newPassword === confirm;
 

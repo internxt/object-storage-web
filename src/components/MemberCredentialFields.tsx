@@ -4,9 +4,7 @@ import {
   FieldErrorMessage,
   PasswordRequirements,
 } from './FieldFeedback';
-import { passwordPolicyErrors } from '../utils/passwordPolicy';
-
-export const MIN_MEMBER_PASSWORD_LENGTH = 8;
+import { validatePassword } from './auth/passwordPolicy';
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
 
@@ -39,7 +37,7 @@ export const memberPasswordError = (
   optional = false,
 ): MemberPasswordErrorCode | undefined => {
   if (!password) return optional ? undefined : 'required';
-  return passwordPolicyErrors(password, MIN_MEMBER_PASSWORD_LENGTH).length > 0
+  return validatePassword(password).length > 0
     ? 'policy'
     : undefined;
 };
@@ -98,7 +96,7 @@ export const MemberPasswordField = ({
       ? memberPasswordError(value, optional)
       : undefined;
   const requirements = value
-    ? passwordPolicyErrors(value, MIN_MEMBER_PASSWORD_LENGTH)
+    ? validatePassword(value)
     : [];
 
   return (
