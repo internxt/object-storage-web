@@ -1,10 +1,8 @@
-import axios from 'axios';
-import { managementAuthService } from './management-auth.service';
+import managementAxios from '../core/management-axios';
 import { SubAccountsUsageReport } from '../../partners/services/partners.service';
 import { toConsoleStatus } from '../../utils/statusLabel';
 
-const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/management`;
-const headers = () => managementAuthService.getAuthHeaders();
+const API = '/management';
 
 export interface Partner {
   id: string;
@@ -41,7 +39,7 @@ export interface PartnerSubAccount {
 }
 
 async function createPartner(dto: { name: string; email: string; password: string; country: string; postalCode: string }): Promise<void> {
-  await axios.post(`${API()}/partners`, dto, { headers: headers() });
+  await managementAxios.post(`${API}/partners`, dto);
 }
 
 async function getPartners(params: {
@@ -52,10 +50,7 @@ async function getPartners(params: {
   includeDeleted?: boolean;
   search?: string;
 }): Promise<PartnersResponse> {
-  const response = await axios.get(`${API()}/partners`, {
-    headers: headers(),
-    params,
-  });
+  const response = await managementAxios.get(`${API}/partners`, { params });
   const data = response.data;
   const rawItems: any[] = Array.isArray(data) ? data : (data.items ?? []);
   return {
@@ -80,12 +75,12 @@ function mapPartner(raw: any): Partner {
 }
 
 async function getPartnerById(id: string): Promise<Partner> {
-  const response = await axios.get(`${API()}/partners/${id}`, { headers: headers() });
+  const response = await managementAxios.get(`${API}/partners/${id}`);
   return mapPartner(response.data);
 }
 
 async function getPartnersSummary(): Promise<PartnersSummary> {
-  const response = await axios.get(`${API()}/partners/summary`, { headers: headers() });
+  const response = await managementAxios.get(`${API}/partners/summary`);
   const data = response.data;
   return {
     totalPartners: data.totalPartners ?? 0,
@@ -97,10 +92,7 @@ async function getPartnerSubAccounts(
   partnerId: string,
   params: { page?: number; perPage?: number },
 ): Promise<{ items: PartnerSubAccount[]; total: number }> {
-  const response = await axios.get(`${API()}/partners/${partnerId}/sub-accounts`, {
-    headers: headers(),
-    params,
-  });
+  const response = await managementAxios.get(`${API}/partners/${partnerId}/sub-accounts`, { params });
   return {
     items: response.data.items ?? [],
     total: response.data.total ?? 0,
@@ -111,8 +103,7 @@ async function getPartnerSubAccountsUsage(
   partnerId: string,
   params: { from: string; to: string },
 ): Promise<SubAccountsUsageReport> {
-  const response = await axios.get<SubAccountsUsageReport>(`${API()}/partners/${partnerId}/usages/sub-accounts`, {
-    headers: headers(),
+  const response = await managementAxios.get<SubAccountsUsageReport>(`${API}/partners/${partnerId}/usages/sub-accounts`, {
     params,
   });
   const report = response.data;

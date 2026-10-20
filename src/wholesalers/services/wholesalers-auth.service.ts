@@ -1,4 +1,5 @@
 import axios from 'axios';
+import wholesalersAxios from '../core/wholesalers-axios';
 
 const WHOLESALERS_TOKEN_KEY = 'wholesalersToken';
 
@@ -28,8 +29,8 @@ async function logIn(
   code?: string,
 ): Promise<{ twoFactorSetupRequired: boolean }> {
   try {
-    const response = await axios.post<{ token: string; twoFactorSetupRequired?: boolean }>(
-      `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/wholesalers/login`,
+    const response = await wholesalersAxios.post<{ token: string; twoFactorSetupRequired?: boolean }>(
+      '/wholesalers/login',
       { email, password, code },
     );
     setToken(response.data.token);
@@ -46,11 +47,6 @@ async function logIn(
 
 function logOut(): void {
   removeToken();
-}
-
-function getAuthHeaders() {
-  const token = getToken();
-  return { Authorization: `Bearer ${token}` };
 }
 
 type WholesalerTokenPayload =
@@ -77,6 +73,5 @@ export const wholesalersAuthService = {
   setToken,
   logOut,
   getToken,
-  getAuthHeaders,
   getPayload,
 };

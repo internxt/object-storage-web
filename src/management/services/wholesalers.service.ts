@@ -1,8 +1,6 @@
-import axios from 'axios';
-import { managementAuthService } from './management-auth.service';
+import managementAxios from '../core/management-axios';
 
-const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/management`;
-const headers = () => managementAuthService.getAuthHeaders();
+const API = '/management';
 
 export interface Wholesaler {
   id: string;
@@ -26,7 +24,7 @@ async function createWholesaler(dto: {
   country: string;
   postalCode: string;
 }): Promise<void> {
-  await axios.post(`${API()}/wholesalers`, dto, { headers: headers() });
+  await managementAxios.post(`${API}/wholesalers`, dto);
 }
 
 interface RawWholesaler {
@@ -45,7 +43,7 @@ async function getWholesalers(params: {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }): Promise<WholesalersResponse> {
-  const response = await axios.get(`${API()}/wholesalers`, { headers: headers(), params });
+  const response = await managementAxios.get(`${API}/wholesalers`, { params });
   const data = response.data;
   const rawItems: RawWholesaler[] = data.items ?? [];
   return { wholesalers: rawItems.map(mapWholesaler), total: data.total ?? rawItems.length };

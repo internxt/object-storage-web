@@ -1,4 +1,5 @@
 import axios from 'axios';
+import partnersAxios from '../core/partners-axios';
 import { CaptchaUnavailableError, captchaService } from '../../services/captcha.service';
 
 const PARTNERS_TOKEN_KEY = 'partnersToken';
@@ -25,8 +26,8 @@ function isTwoFactorRequiredError(err: unknown): boolean {
 
 async function logIn(email: string, password: string, code?: string): Promise<{ twoFactorSetupRequired: boolean }> {
   try {
-    const response = await axios.post<{ token: string; twoFactorSetupRequired: boolean }>(
-      `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners/login`,
+    const response = await partnersAxios.post<{ token: string; twoFactorSetupRequired: boolean }>(
+      '/partners/login',
       { email, password, code }
     );
     setToken(response.data.token);
@@ -45,8 +46,8 @@ async function requestPasswordReset(email: string): Promise<void> {
   const captchaHeaders = await captchaService.tryGetHeaders('ForgotPassword');
 
   try {
-    await axios.post(
-      `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners/forgot-password`,
+    await partnersAxios.post(
+      '/partners/forgot-password',
       { email },
       { headers: captchaHeaders },
     );
@@ -57,16 +58,11 @@ async function requestPasswordReset(email: string): Promise<void> {
 }
 
 async function resetPassword(token: string, newPassword: string): Promise<void> {
-  await axios.post(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners/reset-password`, { token, newPassword });
+  await partnersAxios.post('/partners/reset-password', { token, newPassword });
 }
 
 function logOut(): void {
   removeToken();
-}
-
-function getAuthHeaders() {
-  const token = getToken();
-  return { Authorization: `Bearer ${token}` };
 }
 
 function getRole(): 'partner' | 'member' | null {
@@ -87,6 +83,5 @@ export const partnersAuthService = {
   resetPassword,
   getToken,
   setToken,
-  getAuthHeaders,
   getRole,
 };

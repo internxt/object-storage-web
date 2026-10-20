@@ -1,27 +1,9 @@
-import axios from 'axios';
+import partnersAxios from '../core/partners-axios';
 import { partnersAuthService } from './partners-auth.service';
 import { SubAccount } from '../../management/services/management.service';
-import notificationsService from '../../services/notifications.service';
 import { toConsoleStatus } from '../../utils/statusLabel';
 
-const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/partners`;
-const headers = () => partnersAuthService.getAuthHeaders();
-
-axios.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (
-      err?.response?.status === 401 &&
-      window.location.pathname.startsWith('/partners') &&
-      !window.location.pathname.endsWith('/login')
-    ) {
-      partnersAuthService.logOut();
-      notificationsService.error({ text: 'Session expired. Please log in again.' });
-      window.location.href = '/partners/login';
-    }
-    return Promise.reject(err);
-  },
-);
+const API = '/partners';
 
 export interface PartnersUsageSummary {
   totalSubAccounts: number;
@@ -69,7 +51,7 @@ export interface PartnerInfo {
 }
 
 async function getMe(): Promise<PartnerInfo> {
-  const response = await axios.get(`${API()}/me`, { headers: headers() });
+  const response = await partnersAxios.get(`${API}/me`);
   return response.data;
 }
 
@@ -81,7 +63,7 @@ async function getSubAccounts(params: {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }): Promise<{ subAccounts: SubAccount[]; total: number }> {
-  const response = await axios.get(`${API()}/sub-accounts`, { headers: headers(), params });
+  const response = await partnersAxios.get(`${API}/sub-accounts`, { params });
   const data = response.data;
   const rawItems: DbSubAccount[] = data.items ?? [];
   return { subAccounts: rawItems.map(mapDbSubAccount), total: data.total ?? rawItems.length };
@@ -95,40 +77,40 @@ async function createSubAccount(dto: {
   postalCode?: string;
   companyVatId?: string;
 }): Promise<void> {
-  await axios.post(`${API()}/sub-accounts`, dto, { headers: headers() });
+  await partnersAxios.post(`${API}/sub-accounts`, dto);
 }
 
 async function updateSubAccountName(id: string, name: string): Promise<void> {
-  await axios.patch(`${API()}/sub-accounts/${id}`, { name }, { headers: headers() });
+  await partnersAxios.patch(`${API}/sub-accounts/${id}`, { name });
 }
 
 async function suspendSubAccount(id: string): Promise<void> {
-  await axios.put(`${API()}/sub-accounts/${id}/suspend`, {}, { headers: headers() });
+  await partnersAxios.put(`${API}/sub-accounts/${id}/suspend`, {});
 }
 
 async function reactivateSubAccount(id: string): Promise<void> {
-  await axios.put(`${API()}/sub-accounts/${id}/reactivate`, {}, { headers: headers() });
+  await partnersAxios.put(`${API}/sub-accounts/${id}/reactivate`, {});
 }
 
 async function deleteSubAccount(id: string): Promise<void> {
-  await axios.delete(`${API()}/sub-accounts/${id}`, { headers: headers() });
+  await partnersAxios.delete(`${API}/sub-accounts/${id}`);
 }
 
 async function changeSubAccountPassword(id: string, newPassword: string): Promise<void> {
-  await axios.patch(`${API()}/sub-accounts/${id}/password`, { newPassword }, { headers: headers() });
+  await partnersAxios.patch(`${API}/sub-accounts/${id}/password`, { newPassword });
 }
 
 async function updateSubAccountStorageQuota(id: string, limitTb: number | null): Promise<void> {
-  await axios.patch(`${API()}/sub-accounts/${id}/storage-quota`, { limitTb }, { headers: headers() });
+  await partnersAxios.patch(`${API}/sub-accounts/${id}/storage-quota`, { limitTb });
 }
 
 async function getUsageSummary(): Promise<PartnersUsageSummary> {
-  const response = await axios.get(`${API()}/usages/summary`, { headers: headers() });
+  const response = await partnersAxios.get(`${API}/usages/summary`);
   return response.data;
 }
 
 async function getSubAccountById(id: string): Promise<import('../../management/services/management.service').SubAccountDetail> {
-  const response = await axios.get(`${API()}/sub-accounts/${id}`, { headers: headers() });
+  const response = await partnersAxios.get(`${API}/sub-accounts/${id}`);
   return response.data;
 }
 
@@ -136,7 +118,7 @@ async function getSubAccountUsages(
   id: string,
   params: { from: string; to: string; page?: number; perPage?: number },
 ): Promise<{ items: import('../../management/services/management.service').SubAccountUsage[]; totalItems: number }> {
-  const response = await axios.get(`${API()}/sub-accounts/${id}/usages`, { headers: headers(), params });
+  const response = await partnersAxios.get(`${API}/sub-accounts/${id}/usages`, { params });
   const data = response.data;
   return { items: data.items ?? [], totalItems: data.totalItems ?? data.items?.length ?? 0 };
 }
@@ -151,24 +133,24 @@ export interface PartnerMember {
 }
 
 async function listMembers(): Promise<PartnerMember[]> {
-  const response = await axios.get(`${API()}/members`, { headers: headers() });
+  const response = await partnersAxios.get(`${API}/members`);
   return response.data;
 }
 
 async function createMember(email: string, password: string): Promise<void> {
-  await axios.post(`${API()}/members`, { email, password }, { headers: headers() });
+  await partnersAxios.post(`${API}/members`, { email, password });
 }
 
 async function deleteMember(id: string): Promise<void> {
-  await axios.delete(`${API()}/members/${id}`, { headers: headers() });
+  await partnersAxios.delete(`${API}/members/${id}`);
 }
 
 async function updateMember(id: string, dto: { email?: string; newPassword?: string }): Promise<void> {
-  await axios.patch(`${API()}/members/${id}`, dto, { headers: headers() });
+  await partnersAxios.patch(`${API}/members/${id}`, dto);
 }
 
 async function updateMemberTwoFactor(id: string, action: 'disable' | 'reset'): Promise<void> {
-  await axios.patch(`${API()}/members/${id}/tfa`, { action }, { headers: headers() });
+  await partnersAxios.patch(`${API}/members/${id}/tfa`, { action });
 }
 
 export interface DailyUsageEntry {
@@ -177,7 +159,7 @@ export interface DailyUsageEntry {
 }
 
 async function exportDailyUsage(params?: { startDate?: string; endDate?: string }): Promise<DailyUsageEntry[]> {
-  const response = await axios.get(`${API()}/usages/export`, { headers: headers(), params });
+  const response = await partnersAxios.get(`${API}/usages/export`, { params });
   return response.data;
 }
 
@@ -225,8 +207,7 @@ export interface SubAccountsUsageReport {
 }
 
 async function getSubAccountsUsage(params: { from: string; to: string }): Promise<SubAccountsUsageReport> {
-  const response = await axios.get<SubAccountsUsageReport>(`${API()}/usages/sub-accounts`, {
-    headers: headers(),
+  const response = await partnersAxios.get<SubAccountsUsageReport>(`${API}/usages/sub-accounts`, {
     params,
   });
   const report = response.data;
@@ -234,35 +215,34 @@ async function getSubAccountsUsage(params: { from: string; to: string }): Promis
 }
 
 async function createBillingPortalSession(): Promise<{ url: string }> {
-  const response = await axios.post<{ url: string }>(
-    `${API()}/billing-portal`,
+  const response = await partnersAxios.post<{ url: string }>(
+    `${API}/billing-portal`,
     { returnUrl: window.location.href },
-    { headers: headers() },
   );
   return response.data;
 }
 
 async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
-  const response = await axios.put<{ token: string }>(`${API()}/password`, { currentPassword, newPassword }, { headers: headers() });
+  const response = await partnersAxios.put<{ token: string }>(`${API}/password`, { currentPassword, newPassword });
   partnersAuthService.setToken(response.data.token);
 }
 
 async function getTwoFactorStatus(): Promise<{ enabled: boolean }> {
-  const response = await axios.get(`${API()}/tfa/status`, { headers: headers() });
+  const response = await partnersAxios.get(`${API}/tfa/status`);
   return response.data;
 }
 
 async function getTwoFactorSetup(): Promise<{ secret: string; qrCode: string }> {
-  const response = await axios.get(`${API()}/tfa`, { headers: headers() });
+  const response = await partnersAxios.get(`${API}/tfa`);
   return response.data;
 }
 
 async function enableTwoFactor(code: string): Promise<void> {
-  await axios.put(`${API()}/tfa`, { code }, { headers: headers() });
+  await partnersAxios.put(`${API}/tfa`, { code });
 }
 
 async function disableTwoFactor(password: string, code: string): Promise<void> {
-  await axios.delete(`${API()}/tfa`, { headers: headers(), data: { password, code } });
+  await partnersAxios.delete(`${API}/tfa`, { data: { password, code } });
 }
 
 export const partnersService = {
