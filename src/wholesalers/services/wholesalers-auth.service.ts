@@ -1,4 +1,3 @@
-import axios from 'axios';
 import wholesalersAxios from '../core/wholesalers-axios';
 
 const WHOLESALERS_TOKEN_KEY = 'wholesalersToken';
@@ -15,34 +14,17 @@ function removeToken(): void {
   localStorage.removeItem(WHOLESALERS_TOKEN_KEY);
 }
 
-function isTwoFactorRequiredError(err: unknown): boolean {
-  return (
-    axios.isAxiosError(err) &&
-    err.response?.status === 403 &&
-    (err.response?.data as { message?: string })?.message === '2FA_REQUIRED'
-  );
-}
-
 async function logIn(
   email: string,
   password: string,
   code?: string,
 ): Promise<{ twoFactorSetupRequired: boolean }> {
-  try {
-    const response = await wholesalersAxios.post<{ token: string; twoFactorSetupRequired?: boolean }>(
-      '/wholesalers/login',
-      { email, password, code },
-    );
-    setToken(response.data.token);
-    return { twoFactorSetupRequired: !!response.data.twoFactorSetupRequired };
-  } catch (err) {
-    if (isTwoFactorRequiredError(err)) {
-      const error = new Error('2FA_REQUIRED');
-      error.name = 'TwoFactorRequiredError';
-      throw error;
-    }
-    throw err;
-  }
+  const response = await wholesalersAxios.post<{ token: string; twoFactorSetupRequired?: boolean }>(
+    '/wholesalers/login',
+    { email, password, code },
+  );
+  setToken(response.data.token);
+  return { twoFactorSetupRequired: !!response.data.twoFactorSetupRequired };
 }
 
 function logOut(): void {

@@ -13,6 +13,7 @@ import { WarningCircle } from '@phosphor-icons/react'
 import TextInput from './TextInput'
 import PasswordInput, { IFormValues } from '../PasswordInput'
 import { BrandLogo } from '../BrandLogo'
+import { isTwoFactorRequiredError } from '../../utils/apiError'
 
 // Only app-internal paths are allowed as a post-login destination, so a crafted
 // ?redirect= can never send the user to another origin.
@@ -132,7 +133,7 @@ export const LoginPageView = ({
       } else if (
         supportsTwoFactor &&
         !twoFactorRequired &&
-        (err as Error)?.message === '2FA_REQUIRED'
+        isTwoFactorRequiredError(err)
       ) {
         setTwoFactorRequired(true)
       } else {

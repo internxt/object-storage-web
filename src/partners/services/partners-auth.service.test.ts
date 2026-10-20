@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from 'vitest';
 import { partnersAuthService } from './partners-auth.service';
 import partnersAxios from '../core/partners-axios';
+import { isTwoFactorRequiredError } from '../../utils/apiError';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
 import { stubLocation } from '../../testing/stub-location';
 
@@ -46,7 +47,7 @@ describe('partnersAuthService', () => {
 
       const error = await partnersAuthService.logIn('partner@internxt.com', 'secret').catch((e) => e);
 
-      expect(error.name).toBe('TwoFactorRequiredError');
+      expect(isTwoFactorRequiredError(error)).toBe(true);
       expect(partnersAuthService.getToken()).toBeNull();
     });
 
