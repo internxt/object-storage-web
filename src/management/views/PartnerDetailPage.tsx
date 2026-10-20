@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, Users, CaretLeft, CaretRight, ArrowSquareOut, Info } from '@phosphor-icons/react';
+import { ArrowLeft, Database, Users, CaretLeft, CaretRight, ArrowSquareOut, Info, DownloadSimple } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
 import { Partner, PartnerSubAccount, partnersService } from '../services/partners.service';
 import { StatusBadge } from '../../components/StatusBadge';
+import { ExportDateRangeModal } from '../../components/ExportDateRangeModal';
+import { exportSubAccountsUsageReport, SUB_ACCOUNTS_EXPORT_MAX_DAYS } from '../../partners/services/subAccountsExport';
 
 const PER_PAGE = 20;
 
@@ -36,6 +38,7 @@ export const PartnerDetailPage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -100,7 +103,26 @@ export const PartnerDetailPage = () => {
           )}
           <p className='text-xs text-gray-300 mt-0.5 font-mono'>ID {partner.storageProviderId}</p>
         </div>
+        <button
+          onClick={() => setIsExportModalOpen(true)}
+          disabled={total === 0}
+          title='Export the same usage .xlsx this partner gets in their panel'
+          className='ml-auto flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm hover:bg-gray-50 transition-colors flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed'
+        >
+          <DownloadSimple size={14} />
+          Export usage
+        </button>
       </div>
+
+      <ExportDateRangeModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onExport={(range) => exportSubAccountsUsageReport(partnersService.getPartnerSubAccountsUsage(partner.id, range))}
+        successText={(count) => `Exported usage for ${count} ${count === 1 ? 'sub-account' : 'sub-accounts'}`}
+        title='Export partner sub-account usage'
+        description={`Same export the partner gets in their panel (up to ${SUB_ACCOUNTS_EXPORT_MAX_DAYS} days). To match an invoice, use the same start and end dates shown on it.`}
+        maxRangeDays={SUB_ACCOUNTS_EXPORT_MAX_DAYS}
+      />
 
       {/* Stat cards */}
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
