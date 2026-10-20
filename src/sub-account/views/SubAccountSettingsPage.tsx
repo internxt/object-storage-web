@@ -11,6 +11,7 @@ import { SsoSection } from '../../components/sso/SsoSection';
 import { subAccountSsoService } from '../services/sub-account-sso.service';
 import { SectionCard, ReadField } from '../components/SettingsAtoms';
 import { PublicSharingSection } from '../components/PublicSharingSection';
+import { TwoFactorCard } from '../components/TwoFactorCard';
 import { AssignPermissionsModal } from '../components/permissions-manager/AssignPermissionsModal';
 import { PolicyDocument } from '../services/iamPolicy.service';
 import Dialog from '../../components/Dialog';
@@ -176,6 +177,8 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
           }}
         />
       </SectionCard>
+
+      <TwoFactorCard />
     </div>
   );
 };

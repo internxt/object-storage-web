@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from 'vitest';
 import { wholesalersAuthService } from './wholesalers-auth.service';
 import wholesalersAxios from '../core/wholesalers-axios';
+import { isTwoFactorRequiredError } from '../../utils/apiError';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
 import { stubLocation } from '../../testing/stub-location';
 
@@ -43,7 +44,7 @@ describe('wholesalersAuthService', () => {
       expect(result).toEqual({ twoFactorSetupRequired: false });
     });
 
-    test('when the backend rejects with 2FA_REQUIRED, then logIn maps that into a TwoFactorRequiredError without storing a token', async () => {
+    test('when the backend rejects with 2FA_REQUIRED, then logIn rethrows it as a 2FA-required error without storing a token', async () => {
       wholesalersAxios.defaults.adapter = mockAdapter(() => ({
         status: 403,
         data: { message: '2FA_REQUIRED' },
@@ -51,7 +52,7 @@ describe('wholesalersAuthService', () => {
 
       const error = await wholesalersAuthService.logIn('wholesaler@internxt.com', 'secret').catch((e) => e);
 
-      expect(error.name).toBe('TwoFactorRequiredError');
+      expect(isTwoFactorRequiredError(error)).toBe(true);
       expect(wholesalersAuthService.getToken()).toBeNull();
     });
 

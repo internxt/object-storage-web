@@ -11,7 +11,7 @@ interface SubAccountContextType {
   partnerId: string | null;
   entityCreatedAt: string | null;
   email: string | null;
-  logIn: (email: string, password: string) => Promise<void>;
+  logIn: (email: string, password: string, code?: string) => Promise<void>;
   logInWithSso: (organizationName: string) => Promise<void>;
   refreshClaims: () => void;
   logOut: () => void;
@@ -60,8 +60,8 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     setEmail(subAccountAuthService.getEmail());
   };
 
-  const logIn = async (email: string, password: string) => {
-    await subAccountAuthService.logIn(email, password);
+  const logIn = async (email: string, password: string, code?: string) => {
+    await subAccountAuthService.logIn(email, password, code);
     console.log('[sub-account] context: logIn done, setting isAuthenticated=true');
     refreshClaims();
   };

@@ -17,9 +17,9 @@ function removeToken(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-async function logIn(email: string, password: string): Promise<void> {
+async function logIn(email: string, password: string, code?: string): Promise<void> {
   console.log('[sub-account] logIn called', { email });
-  const response = await subAccountAxios.post<{ token: string }>('/subaccount/login', { email, password });
+  const response = await subAccountAxios.post<{ token: string }>('/subaccount/login', { email, password, code });
   console.log('[sub-account] logIn response', { status: response.status, hasToken: !!response.data.token });
   setToken(response.data.token);
   localStorage.setItem(EMAIL_KEY, email);

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import partnersAxios from '../core/partners-axios';
 import { CaptchaUnavailableError, captchaService } from '../../services/captcha.service';
 
@@ -16,30 +15,13 @@ function removeToken(): void {
   localStorage.removeItem(PARTNERS_TOKEN_KEY);
 }
 
-function isTwoFactorRequiredError(err: unknown): boolean {
-  return (
-    axios.isAxiosError(err) &&
-    err.response?.status === 403 &&
-    (err.response?.data as { message?: string })?.message === '2FA_REQUIRED'
-  );
-}
-
 async function logIn(email: string, password: string, code?: string): Promise<{ twoFactorSetupRequired: boolean }> {
-  try {
-    const response = await partnersAxios.post<{ token: string; twoFactorSetupRequired: boolean }>(
-      '/partners/login',
-      { email, password, code }
-    );
-    setToken(response.data.token);
-    return { twoFactorSetupRequired: response.data.twoFactorSetupRequired };
-  } catch (err) {
-    if (isTwoFactorRequiredError(err)) {
-      const error = new Error('2FA_REQUIRED');
-      error.name = 'TwoFactorRequiredError';
-      throw error;
-    }
-    throw err;
-  }
+  const response = await partnersAxios.post<{ token: string; twoFactorSetupRequired: boolean }>(
+    '/partners/login',
+    { email, password, code }
+  );
+  setToken(response.data.token);
+  return { twoFactorSetupRequired: response.data.twoFactorSetupRequired };
 }
 
 async function requestPasswordReset(email: string): Promise<void> {
