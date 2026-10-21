@@ -1,50 +1,12 @@
-import { AxiosHeaders, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { AxiosInstance } from 'axios';
 import { afterEach, expect, it, vi } from 'vitest';
 import notificationsService from '../services/notifications.service';
+import { mockAdapter } from './mock-axios-adapter';
+import { stubLocation } from './stub-location';
 
 interface ScopedAuthService {
   getToken: () => string | null;
   logOut: () => void;
-}
-
-interface MockResult {
-  status: number;
-  data?: unknown;
-}
-
-function mockAdapter(responder: (config: AxiosRequestConfig) => MockResult) {
-  return async (config: AxiosRequestConfig): Promise<AxiosResponse> => {
-    const result = responder(config);
-    if (result.status >= 200 && result.status < 300) {
-      return {
-        data: result.data ?? {},
-        status: result.status,
-        statusText: '',
-        headers: new AxiosHeaders(),
-        config: config as AxiosResponse['config'],
-      };
-    }
-    const error = new Error(`Request failed with status code ${result.status}`) as Error & {
-      isAxiosError: boolean;
-      config: AxiosRequestConfig;
-      response: AxiosResponse;
-    };
-    error.isAxiosError = true;
-    error.config = config;
-    error.response = {
-      data: result.data ?? {},
-      status: result.status,
-      statusText: '',
-      headers: new AxiosHeaders(),
-      config: config as AxiosResponse['config'],
-    };
-    throw error;
-  };
-}
-
-function stubLocation(pathname: string): void {
-  const stub = { pathname, href: '' } as unknown as Location;
-  Object.defineProperty(window, 'location', { value: stub, writable: true, configurable: true });
 }
 
 /**
