@@ -148,6 +148,20 @@ export const ManagementLayout = ({ children }: { children: ReactNode }) => {
             >
               Wholesalers
             </NavLink>
+            <NavLink
+              to='/management/settings'
+              style={({ isActive }) => ({
+                height: '100%', padding: '0 14px',
+                display: 'flex', alignItems: 'center',
+                borderBottom: isActive ? `2px solid ${T.primary}` : '2px solid transparent',
+                fontSize: 14, fontWeight: 500,
+                color: isActive ? T.gray100 : T.gray60,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              })}
+            >
+              Settings
+            </NavLink>
           </nav>
         </div>
 
