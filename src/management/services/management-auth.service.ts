@@ -1,4 +1,4 @@
-import axios from 'axios';
+import managementAxios from '../core/management-axios';
 
 const MANAGEMENT_TOKEN_KEY = 'managementToken';
 
@@ -15,10 +15,7 @@ function removeToken(): void {
 }
 
 async function logIn(email: string, password: string): Promise<void> {
-  const response = await axios.post<{ token: string }>(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/management/login`,
-    { email, password }
-  );
+  const response = await managementAxios.post<{ token: string }>('/management/login', { email, password });
   setToken(response.data.token);
 }
 
@@ -26,14 +23,8 @@ function logOut(): void {
   removeToken();
 }
 
-function getAuthHeaders() {
-  const token = getToken();
-  return { Authorization: `Bearer ${token}` };
-}
-
 export const managementAuthService = {
   logIn,
   logOut,
   getToken,
-  getAuthHeaders,
 };

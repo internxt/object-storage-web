@@ -1,4 +1,4 @@
-import axios from 'axios';
+import subAccountAxios from '../core/sub-account-axios';
 import { CaptchaUnavailableError, captchaService } from '../../services/captcha.service';
 import { subAccountSsoService } from './sub-account-sso.service';
 
@@ -19,10 +19,7 @@ function removeToken(): void {
 
 async function logIn(email: string, password: string): Promise<void> {
   console.log('[sub-account] logIn called', { email });
-  const response = await axios.post<{ token: string }>(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/login`,
-    { email, password },
-  );
+  const response = await subAccountAxios.post<{ token: string }>('/subaccount/login', { email, password });
   console.log('[sub-account] logIn response', { status: response.status, hasToken: !!response.data.token });
   setToken(response.data.token);
   localStorage.setItem(EMAIL_KEY, email);
@@ -39,11 +36,7 @@ async function requestPasswordReset(email: string): Promise<void> {
   const captchaHeaders = await captchaService.tryGetHeaders('ForgotPassword');
 
   try {
-    await axios.post(
-      `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/forgot-password`,
-      { email },
-      { headers: captchaHeaders },
-    );
+    await subAccountAxios.post('/subaccount/forgot-password', { email }, { headers: captchaHeaders });
   } catch (err) {
     if (captchaService.isCaptchaRejection(err)) throw new CaptchaUnavailableError();
     throw err;
@@ -51,7 +44,7 @@ async function requestPasswordReset(email: string): Promise<void> {
 }
 
 async function resetPassword(token: string, newPassword: string): Promise<void> {
-  await axios.post(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/reset-password`, { token, newPassword });
+  await subAccountAxios.post('/subaccount/reset-password', { token, newPassword });
 }
 
 function getEmail(): string | null {

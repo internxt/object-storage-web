@@ -1,23 +1,7 @@
-import axios from 'axios'
-import { managementAuthService } from './management-auth.service'
+import managementAxios from '../core/management-axios'
 import { toConsoleStatus } from '../../utils/statusLabel'
 
-const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/management`
-const headers = () => managementAuthService.getAuthHeaders()
-
-axios.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (
-      err?.response?.status === 401 &&
-      !window.location.pathname.endsWith('/login')
-    ) {
-      managementAuthService.logOut()
-      window.location.href = '/management/login'
-    }
-    return Promise.reject(err)
-  },
-)
+const API = '/management'
 
 export interface SubAccount {
   id: string
@@ -104,10 +88,7 @@ async function getSubAccounts(params: {
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
 }): Promise<SubAccountsResponse> {
-  const response = await axios.get(`${API()}/sub-accounts`, {
-    headers: headers(),
-    params,
-  })
+  const response = await managementAxios.get(`${API}/sub-accounts`, { params })
   const data = response.data
   const rawItems: DbSubAccount[] = Array.isArray(data)
     ? data
@@ -119,29 +100,19 @@ async function getSubAccounts(params: {
 }
 
 async function createSubAccount(dto: CreateSubAccountDto): Promise<void> {
-  await axios.post(`${API()}/sub-accounts`, dto, { headers: headers() })
+  await managementAxios.post(`${API}/sub-accounts`, dto)
 }
 
 async function suspendSubAccount(id: string): Promise<void> {
-  await axios.put(
-    `${API()}/sub-accounts/${id}/suspend`,
-    {},
-    { headers: headers() },
-  )
+  await managementAxios.put(`${API}/sub-accounts/${id}/suspend`, {})
 }
 
 async function reactivateSubAccount(id: string): Promise<void> {
-  await axios.put(
-    `${API()}/sub-accounts/${id}/reactivate`,
-    {},
-    { headers: headers() },
-  )
+  await managementAxios.put(`${API}/sub-accounts/${id}/reactivate`, {})
 }
 
 async function getUsagesSummary(): Promise<UsagesSummary | null> {
-  const response = await axios.get(`${API()}/usages/summary`, {
-    headers: headers(),
-  })
+  const response = await managementAxios.get(`${API}/usages/summary`)
   const data = response.data
   if (!data) return null
   return {
@@ -203,13 +174,11 @@ async function updateSubAccount(
   id: string,
   dto: UpdateSubAccountDto,
 ): Promise<void> {
-  await axios.patch(`${API()}/sub-accounts/${id}`, dto, { headers: headers() })
+  await managementAxios.patch(`${API}/sub-accounts/${id}`, dto)
 }
 
 async function getSubAccountById(id: string): Promise<SubAccountDetail> {
-  const response = await axios.get(`${API()}/sub-accounts/${id}`, {
-    headers: headers(),
-  })
+  const response = await managementAxios.get(`${API}/sub-accounts/${id}`)
   return response.data
 }
 
@@ -217,10 +186,7 @@ async function getSubAccountUsages(
   id: string,
   params: { from: string; to: string; page?: number; perPage?: number },
 ): Promise<{ items: SubAccountUsage[]; totalItems: number }> {
-  const response = await axios.get(`${API()}/sub-accounts/${id}/usages`, {
-    headers: headers(),
-    params,
-  })
+  const response = await managementAxios.get(`${API}/sub-accounts/${id}/usages`, { params })
   const data = response.data
   return {
     items: data.items ?? [],
@@ -234,10 +200,7 @@ async function getInvoices(params: {
   page?: number
   perPage?: number
 }) {
-  const response = await axios.get(`${API()}/invoices`, {
-    headers: headers(),
-    params,
-  })
+  const response = await managementAxios.get(`${API}/invoices`, { params })
   return response.data
 }
 
@@ -249,10 +212,7 @@ async function getBuckets(params: {
   name?: string
   region?: string
 }) {
-  const response = await axios.get(`${API()}/buckets`, {
-    headers: headers(),
-    params,
-  })
+  const response = await managementAxios.get(`${API}/buckets`, { params })
   return response.data
 }
 

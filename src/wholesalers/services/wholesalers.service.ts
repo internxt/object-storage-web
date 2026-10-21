@@ -1,25 +1,7 @@
-import axios from 'axios';
+import wholesalersAxios from '../core/wholesalers-axios';
 import { wholesalersAuthService } from './wholesalers-auth.service';
-import notificationsService from '../../services/notifications.service';
 
-const API = () => `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/wholesalers`;
-const headers = () => wholesalersAuthService.getAuthHeaders();
-
-axios.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (
-      err?.response?.status === 401 &&
-      window.location.pathname.startsWith('/wholesalers') &&
-      !window.location.pathname.endsWith('/login')
-    ) {
-      wholesalersAuthService.logOut();
-      notificationsService.error({ text: 'Session expired. Please log in again.' });
-      window.location.href = '/wholesalers/login';
-    }
-    return Promise.reject(err);
-  },
-);
+const API = '/wholesalers';
 
 export interface WholesalerPartner {
   id: string;
@@ -35,21 +17,21 @@ async function getPartners(params: { page?: number; perPage?: number }): Promise
   partners: WholesalerPartner[];
   total: number;
 }> {
-  const response = await axios.get(`${API()}/partners`, { headers: headers(), params });
+  const response = await wholesalersAxios.get(`${API}/partners`, { params });
   const data = response.data;
   return { partners: data.items ?? [], total: data.total ?? 0 };
 }
 
 async function createPartner(dto: { name: string; email: string; password: string }): Promise<void> {
-  await axios.post(`${API()}/partners`, dto, { headers: headers() });
+  await wholesalersAxios.post(`${API}/partners`, dto);
 }
 
 async function updatePartnerName(id: string, name: string): Promise<void> {
-  await axios.patch(`${API()}/partners/${id}`, { name }, { headers: headers() });
+  await wholesalersAxios.patch(`${API}/partners/${id}`, { name });
 }
 
 async function deletePartner(id: string): Promise<void> {
-  await axios.delete(`${API()}/partners/${id}`, { headers: headers() });
+  await wholesalersAxios.delete(`${API}/partners/${id}`);
 }
 
 export interface WholesalerPartnerUsageSummary {
@@ -59,7 +41,7 @@ export interface WholesalerPartnerUsageSummary {
 }
 
 async function getPartnerUsageSummary(id: string): Promise<WholesalerPartnerUsageSummary> {
-  const response = await axios.get(`${API()}/partners/${id}/usages/summary`, { headers: headers() });
+  const response = await wholesalersAxios.get(`${API}/partners/${id}/usages/summary`);
   return response.data;
 }
 
@@ -69,44 +51,42 @@ export interface WholesalerUsageSummary {
 }
 
 async function getUsageSummary(): Promise<WholesalerUsageSummary> {
-  const response = await axios.get(`${API()}/usages/summary`, { headers: headers() });
+  const response = await wholesalersAxios.get(`${API}/usages/summary`);
   return response.data;
 }
 
 async function createBillingPortalSession(): Promise<{ url: string }> {
-  const response = await axios.post<{ url: string }>(
-    `${API()}/billing-portal`,
+  const response = await wholesalersAxios.post<{ url: string }>(
+    `${API}/billing-portal`,
     { returnUrl: window.location.href },
-    { headers: headers() },
   );
   return response.data;
 }
 
 async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
-  const response = await axios.put<{ token: string }>(
-    `${API()}/password`,
+  const response = await wholesalersAxios.put<{ token: string }>(
+    `${API}/password`,
     { currentPassword, newPassword },
-    { headers: headers() },
   );
   wholesalersAuthService.setToken(response.data.token);
 }
 
 async function getTwoFactorStatus(): Promise<{ enabled: boolean }> {
-  const response = await axios.get(`${API()}/tfa/status`, { headers: headers() });
+  const response = await wholesalersAxios.get(`${API}/tfa/status`);
   return response.data;
 }
 
 async function getTwoFactorSetup(): Promise<{ secret: string; qrCode: string }> {
-  const response = await axios.get(`${API()}/tfa`, { headers: headers() });
+  const response = await wholesalersAxios.get(`${API}/tfa`);
   return response.data;
 }
 
 async function enableTwoFactor(code: string): Promise<void> {
-  await axios.put(`${API()}/tfa`, { code }, { headers: headers() });
+  await wholesalersAxios.put(`${API}/tfa`, { code });
 }
 
 async function disableTwoFactor(password: string, code: string): Promise<void> {
-  await axios.delete(`${API()}/tfa`, { headers: headers(), data: { password, code } });
+  await wholesalersAxios.delete(`${API}/tfa`, { data: { password, code } });
 }
 
 export interface WholesalerProfile {
@@ -118,7 +98,7 @@ export interface WholesalerProfile {
 }
 
 async function getMe(): Promise<WholesalerProfile> {
-  const response = await axios.get(`${API()}/me`, { headers: headers() });
+  const response = await wholesalersAxios.get(`${API}/me`);
   return response.data;
 }
 
@@ -130,24 +110,24 @@ export interface WholesalerMember {
 }
 
 async function listMembers(): Promise<WholesalerMember[]> {
-  const response = await axios.get(`${API()}/members`, { headers: headers() });
+  const response = await wholesalersAxios.get(`${API}/members`);
   return response.data;
 }
 
 async function createMember(email: string, password: string): Promise<void> {
-  await axios.post(`${API()}/members`, { email, password }, { headers: headers() });
+  await wholesalersAxios.post(`${API}/members`, { email, password });
 }
 
 async function updateMember(id: string, dto: { email?: string; newPassword?: string }): Promise<void> {
-  await axios.patch(`${API()}/members/${id}`, dto, { headers: headers() });
+  await wholesalersAxios.patch(`${API}/members/${id}`, dto);
 }
 
 async function deleteMember(id: string): Promise<void> {
-  await axios.delete(`${API()}/members/${id}`, { headers: headers() });
+  await wholesalersAxios.delete(`${API}/members/${id}`);
 }
 
 async function updateMemberTwoFactor(id: string, action: 'disable' | 'reset'): Promise<void> {
-  await axios.patch(`${API()}/members/${id}/tfa`, { action }, { headers: headers() });
+  await wholesalersAxios.patch(`${API}/members/${id}/tfa`, { action });
 }
 
 export const wholesalersService = {

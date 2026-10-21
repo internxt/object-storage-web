@@ -76,10 +76,9 @@ function normalizeOrganizationName(organizationName: string): string {
 
 async function getPublicConfig(organizationName: string): Promise<PublicSsoConfig> {
   try {
-    const response = await axios.get<PublicSsoConfig>(
-      `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/sso/config`,
-      { params: { organization: normalizeOrganizationName(organizationName) } },
-    );
+    const response = await subAccountAxios.get<PublicSsoConfig>('/subaccount/sso/config', {
+      params: { organization: normalizeOrganizationName(organizationName) },
+    });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -97,10 +96,9 @@ async function getPublicConfig(organizationName: string): Promise<PublicSsoConfi
  */
 async function getConfigByHostname(hostname: string): Promise<PublicSsoConfig> {
   try {
-    const response = await axios.get<PublicSsoConfig>(
-      `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/sso/config`,
-      { params: { hostname: hostname.trim().toLowerCase() } },
-    );
+    const response = await subAccountAxios.get<PublicSsoConfig>('/subaccount/sso/config', {
+      params: { hostname: hostname.trim().toLowerCase() },
+    });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -190,10 +188,10 @@ async function loginWithAzure(organizationName: string): Promise<{ token: string
     const { idToken, azureEmail } = await acquireAzureIdToken(config);
 
     try {
-      const response = await axios.post<{ token: string }>(
-        `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/sso/login`,
-        { organizationName: normalizedOrg, idToken },
-      );
+      const response = await subAccountAxios.post<{ token: string }>('/subaccount/sso/login', {
+        organizationName: normalizedOrg,
+        idToken,
+      });
       return { token: response.data.token, azureEmail };
     } catch (error) {
       const code = getSsoErrorCode(error);
