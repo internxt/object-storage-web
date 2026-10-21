@@ -3,7 +3,7 @@ import { managementAuthService } from '../services/management-auth.service';
 
 interface ManagementContextType {
   isAuthenticated: boolean;
-  logIn: (email: string, password: string) => Promise<void>;
+  logIn: (email: string, password: string, code?: string) => Promise<void>;
   logOut: () => void;
 }
 
@@ -14,8 +14,8 @@ export const ManagementProvider = ({ children }: { children: ReactNode }) => {
     () => !!managementAuthService.getToken()
   );
 
-  const logIn = async (email: string, password: string) => {
-    await managementAuthService.logIn(email, password);
+  const logIn = async (email: string, password: string, code?: string) => {
+    await managementAuthService.logIn(email, password, code);
     setIsAuthenticated(true);
   };
 
