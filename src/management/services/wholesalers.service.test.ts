@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { wholesalersService } from './wholesalers.service';
 import managementAxios from '../core/management-axios';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
@@ -8,7 +8,7 @@ function parseBody(data: unknown): unknown {
 }
 
 describe('management wholesalersService', () => {
-  it('createWholesaler posts the new wholesaler', async () => {
+  test('when createWholesaler is called, then it posts the new wholesaler', async () => {
     let seenConfig: { url?: string; data?: string } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -34,7 +34,7 @@ describe('management wholesalersService', () => {
   });
 
   describe('getWholesalers', () => {
-    it('maps the raw rows into the Wholesaler shape', async () => {
+    test('when the backend returns a pagination envelope, then it maps the raw rows into the Wholesaler shape', async () => {
       let seenConfig: { url?: string; params?: unknown } | undefined;
       managementAxios.defaults.adapter = mockAdapter((config) => {
         seenConfig = config;
@@ -59,7 +59,7 @@ describe('management wholesalersService', () => {
       });
     });
 
-    it('defaults missing rows to an empty list', async () => {
+    test('when the backend returns no rows, then it defaults to an empty list', async () => {
       managementAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: {} }));
 
       const result = await wholesalersService.getWholesalers({});

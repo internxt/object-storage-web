@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { brandingService } from './branding.service';
 import partnersAxios from '../core/partners-axios';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
 
 describe('brandingService', () => {
-  it('getBranding fetches the current branding', async () => {
+  test('when getBranding is called, then it fetches the current branding', async () => {
     let seenConfig: { url?: string } | undefined;
     partnersAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -17,7 +17,7 @@ describe('brandingService', () => {
     expect(result).toEqual({ logoUrl: 'https://x/logo.png', primaryColor: '#000', consoleHostname: null });
   });
 
-  it('updateBranding PATCHes the branding and returns the saved value', async () => {
+  test('when updateBranding is called, then it PATCHes the branding and returns the saved value', async () => {
     let seenConfig: { url?: string; data?: string } | undefined;
     partnersAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import subAccountAxios from '../core/sub-account-axios';
 import userAxios from '../../core/config/axios';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
@@ -45,14 +45,14 @@ const PUBLIC_CONFIG = {
 };
 
 describe('getSsoErrorCode', () => {
-  it('extracts the backend-provided error code from an axios error', async () => {
+  test('when an axios error carries a backend error code, then getSsoErrorCode extracts it', async () => {
     subAccountAxios.defaults.adapter = mockAdapter(() => ({ status: 404, data: { code: 'SOME_CODE' } }));
     const error = await subAccountAxios.get('/anything').catch((e) => e);
 
     expect(getSsoErrorCode(error)).toBe('SOME_CODE');
   });
 
-  it('returns undefined for a non-axios error', () => {
+  test('when the error is not an axios error, then getSsoErrorCode returns undefined', () => {
     expect(getSsoErrorCode(new Error('boom'))).toBeUndefined();
   });
 });
@@ -60,7 +60,7 @@ describe('getSsoErrorCode', () => {
 describe('getPublicConfig', () => {
   stubLocation('/subaccount/login');
 
-  it('fetches the config for the normalized organization name', async () => {
+  test('when getPublicConfig is called, then it fetches the config for the normalized organization name', async () => {
     let seenConfig: { url?: string; params?: Record<string, unknown> } | undefined;
     subAccountAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -74,13 +74,13 @@ describe('getPublicConfig', () => {
     expect(result).toEqual(PUBLIC_CONFIG);
   });
 
-  it('maps a 404 into SsoNotConfiguredError', async () => {
+  test('when the backend returns a 404, then getPublicConfig maps that into SsoNotConfiguredError', async () => {
     subAccountAxios.defaults.adapter = mockAdapter(() => ({ status: 404 }));
 
     await expect(subAccountSsoService.getPublicConfig('acme')).rejects.toBeInstanceOf(SsoNotConfiguredError);
   });
 
-  it('rethrows any other error untouched', async () => {
+  test('when the backend rejects for any other reason, then getPublicConfig rethrows the error untouched', async () => {
     subAccountAxios.defaults.adapter = mockAdapter(() => ({ status: 500 }));
 
     await expect(subAccountSsoService.getPublicConfig('acme')).rejects.toMatchObject({ isAxiosError: true });
@@ -90,7 +90,7 @@ describe('getPublicConfig', () => {
 describe('getConfigByHostname', () => {
   stubLocation('/subaccount/login');
 
-  it('fetches the config for the normalized hostname', async () => {
+  test('when getConfigByHostname is called, then it fetches the config for the normalized hostname', async () => {
     let seenConfig: { url?: string; params?: Record<string, unknown> } | undefined;
     subAccountAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -104,7 +104,7 @@ describe('getConfigByHostname', () => {
     expect(result).toEqual(PUBLIC_CONFIG);
   });
 
-  it('maps a 404 into SsoNotConfiguredError', async () => {
+  test('when the backend returns a 404, then getConfigByHostname maps that into SsoNotConfiguredError', async () => {
     subAccountAxios.defaults.adapter = mockAdapter(() => ({ status: 404 }));
 
     await expect(subAccountSsoService.getConfigByHostname('acme.example.com')).rejects.toBeInstanceOf(
@@ -116,7 +116,7 @@ describe('getConfigByHostname', () => {
 describe('sub-account scoped CRUD', () => {
   stubLocation('/subaccount/login');
 
-  it('getSsoConfig fetches the entity SSO config', async () => {
+  test('when getSsoConfig is called, then it fetches the entity SSO config', async () => {
     let seenConfig: { url?: string } | undefined;
     subAccountAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -129,7 +129,7 @@ describe('sub-account scoped CRUD', () => {
     expect(result).toEqual({ configured: false });
   });
 
-  it('configureSso normalizes the organization name and trims the IDs', async () => {
+  test('when configureSso is called, then it normalizes the organization name and trims the IDs', async () => {
     let seenConfig: { url?: string; data?: string } | undefined;
     subAccountAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -151,7 +151,7 @@ describe('sub-account scoped CRUD', () => {
     });
   });
 
-  it('disableSso falls back to an empty object when the backend returns no body', async () => {
+  test('when the backend returns no body, then disableSso falls back to an empty object', async () => {
     subAccountAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: undefined }));
 
     const result = await subAccountSsoService.disableSso('entity-1');
@@ -159,7 +159,7 @@ describe('sub-account scoped CRUD', () => {
     expect(result).toEqual({});
   });
 
-  it('getOtherMemberCount excludes the current member from the count', async () => {
+  test('when getOtherMemberCount is called, then it excludes the current member from the count', async () => {
     subAccountAxios.defaults.adapter = mockAdapter(() => ({
       status: 200,
       data: [{ id: 'm1' }, { id: 'm2' }, { id: 'm3' }],
@@ -174,7 +174,7 @@ describe('sub-account scoped CRUD', () => {
 describe('root/users scoped CRUD', () => {
   stubLocation('/login');
 
-  it('getUserSsoConfig fetches the user-level SSO config', async () => {
+  test('when getUserSsoConfig is called, then it fetches the user-level SSO config', async () => {
     let seenConfig: { url?: string } | undefined;
     userAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -187,7 +187,7 @@ describe('root/users scoped CRUD', () => {
     expect(result).toEqual({ configured: false });
   });
 
-  it('configureUserSso normalizes the organization name and trims the IDs', async () => {
+  test('when configureUserSso is called, then it normalizes the organization name and trims the IDs', async () => {
     let seenConfig: { url?: string; data?: string } | undefined;
     userAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -205,7 +205,7 @@ describe('root/users scoped CRUD', () => {
     });
   });
 
-  it('disableUserSso falls back to an empty object when the backend returns no body', async () => {
+  test('when the backend returns no body, then disableUserSso falls back to an empty object', async () => {
     userAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: undefined }));
 
     const result = await userSsoService.disableSso();
@@ -213,7 +213,7 @@ describe('root/users scoped CRUD', () => {
     expect(result).toEqual({});
   });
 
-  it('getOtherMemberCount excludes the current email from the count', async () => {
+  test('when getOtherMemberCount is called, then it excludes the current email from the count', async () => {
     userAxios.defaults.adapter = mockAdapter(() => ({
       status: 200,
       data: { items: [{ email: 'a@x.com' }, { email: 'b@x.com' }] },
@@ -240,7 +240,7 @@ describe('loginWithAzure', () => {
     });
   });
 
-  it('acquires an Azure id token via the popup and exchanges it for a backend token', async () => {
+  test('when loginWithAzure succeeds, then it acquires an Azure id token via the popup and exchanges it for a backend token', async () => {
     loginPopupMock.mockResolvedValue({ idToken: 'azure-id-token', account: { username: 'member@azure.com' } });
 
     const result = await subAccountSsoService.loginWithAzure('acme');
@@ -248,7 +248,7 @@ describe('loginWithAzure', () => {
     expect(result).toEqual({ token: 'sso-jwt', azureEmail: 'member@azure.com' });
   });
 
-  it('sends the normalized organization name and the acquired id token to the backend', async () => {
+  test('when loginWithAzure succeeds, then it sends the normalized organization name and the acquired id token to the backend', async () => {
     loginPopupMock.mockResolvedValue({ idToken: 'azure-id-token', account: { username: 'member@azure.com' } });
     let seenLoginBody: string | undefined;
     subAccountAxios.defaults.adapter = mockAdapter((config) => {
@@ -262,25 +262,25 @@ describe('loginWithAzure', () => {
     expect(JSON.parse(seenLoginBody ?? '{}')).toEqual({ organizationName: 'acme', idToken: 'azure-id-token' });
   });
 
-  it('maps a blocked/empty popup error into SsoPopupBlockedError', async () => {
+  test('when the Azure popup is blocked or empty, then loginWithAzure maps that into SsoPopupBlockedError', async () => {
     loginPopupMock.mockRejectedValue(new BrowserAuthError('popup_window_error', 'popup_window_error'));
 
     await expect(subAccountSsoService.loginWithAzure('acme')).rejects.toBeInstanceOf(SsoPopupBlockedError);
   });
 
-  it('maps a user-cancelled popup into SsoCancelledError', async () => {
+  test('when the user cancels the Azure popup, then loginWithAzure maps that into SsoCancelledError', async () => {
     loginPopupMock.mockRejectedValue(new BrowserAuthError('user_cancelled', 'user_cancelled'));
 
     await expect(subAccountSsoService.loginWithAzure('acme')).rejects.toBeInstanceOf(SsoCancelledError);
   });
 
-  it('maps a popup timeout into SsoTimeoutError', async () => {
+  test('when the Azure popup times out, then loginWithAzure maps that into SsoTimeoutError', async () => {
     loginPopupMock.mockRejectedValue(new BrowserAuthError('monitor_window_timeout', 'monitor_window_timeout'));
 
     await expect(subAccountSsoService.loginWithAzure('acme')).rejects.toBeInstanceOf(SsoTimeoutError);
   });
 
-  it('maps a MEMBER_NOT_FOUND backend rejection into SsoMemberNotFoundError', async () => {
+  test('when the backend rejects with MEMBER_NOT_FOUND, then loginWithAzure maps that into SsoMemberNotFoundError', async () => {
     loginPopupMock.mockResolvedValue({ idToken: 'azure-id-token', account: { username: 'member@azure.com' } });
     subAccountAxios.defaults.adapter = mockAdapter((config) => {
       if (config.url === '/subaccount/sso/config') return { status: 200, data: PUBLIC_CONFIG };
@@ -290,7 +290,7 @@ describe('loginWithAzure', () => {
     await expect(subAccountSsoService.loginWithAzure('acme')).rejects.toBeInstanceOf(SsoMemberNotFoundError);
   });
 
-  it('maps a SSO_NOT_CONFIGURED backend rejection into SsoNotConfiguredError', async () => {
+  test('when the backend rejects with SSO_NOT_CONFIGURED, then loginWithAzure maps that into SsoNotConfiguredError', async () => {
     loginPopupMock.mockResolvedValue({ idToken: 'azure-id-token', account: { username: 'member@azure.com' } });
     subAccountAxios.defaults.adapter = mockAdapter((config) => {
       if (config.url === '/subaccount/sso/config') return { status: 200, data: PUBLIC_CONFIG };
@@ -300,7 +300,7 @@ describe('loginWithAzure', () => {
     await expect(subAccountSsoService.loginWithAzure('acme')).rejects.toBeInstanceOf(SsoNotConfiguredError);
   });
 
-  it('rejects a second concurrent attempt while the first is still in flight', async () => {
+  test('when a second attempt starts while the first is still in flight, then it is rejected with SsoCancelledError', async () => {
     let resolveLogin: (value: { idToken: string; account: { username: string } }) => void = () => {};
     loginPopupMock.mockImplementation(() => new Promise((resolve) => { resolveLogin = resolve; }));
 

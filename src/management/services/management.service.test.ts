@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { managementService } from './management.service';
 import managementAxios from '../core/management-axios';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
@@ -9,7 +9,7 @@ function parseBody(data: unknown): unknown {
 
 describe('managementService', () => {
   describe('getSubAccounts', () => {
-    it('maps the raw DB rows into the console SubAccount shape', async () => {
+    test('when the backend returns a pagination envelope, then it maps the raw DB rows into the console SubAccount shape', async () => {
       let seenConfig: { url?: string; params?: unknown } | undefined;
       managementAxios.defaults.adapter = mockAdapter((config) => {
         seenConfig = config;
@@ -51,7 +51,7 @@ describe('managementService', () => {
       });
     });
 
-    it('accepts a bare array response (no pagination envelope)', async () => {
+    test('when the backend returns a bare array (no pagination envelope), then it still maps the rows', async () => {
       managementAxios.defaults.adapter = mockAdapter(() => ({
         status: 200,
         data: [{ id: 'sa-1', email: 'a@b.com', status: 'DELETED', activeStorageBytes: 0, deletedStorageBytes: 0, createdAt: '' }],
@@ -64,7 +64,7 @@ describe('managementService', () => {
     });
   });
 
-  it('createSubAccount posts the new sub-account', async () => {
+  test('when createSubAccount is called, then it posts the new sub-account', async () => {
     let seenConfig: { url?: string; data?: string } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -89,7 +89,7 @@ describe('managementService', () => {
     });
   });
 
-  it('suspendSubAccount PUTs the suspend endpoint', async () => {
+  test('when suspendSubAccount is called, then it PUTs the suspend endpoint', async () => {
     let seenConfig: { url?: string; method?: string } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -101,7 +101,7 @@ describe('managementService', () => {
     expect(seenConfig?.url).toBe('/management/sub-accounts/sa-1/suspend');
   });
 
-  it('reactivateSubAccount PUTs the reactivate endpoint', async () => {
+  test('when reactivateSubAccount is called, then it PUTs the reactivate endpoint', async () => {
     let seenConfig: { url?: string } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -114,7 +114,7 @@ describe('managementService', () => {
   });
 
   describe('getUsagesSummary', () => {
-    it('returns the mapped summary', async () => {
+    test('when the backend returns usage data, then it returns the mapped summary', async () => {
       managementAxios.defaults.adapter = mockAdapter(() => ({
         status: 200,
         data: {
@@ -135,7 +135,7 @@ describe('managementService', () => {
       });
     });
 
-    it('returns null when the backend returns no data', async () => {
+    test('when the backend returns no data, then it returns null', async () => {
       managementAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: null }));
 
       const result = await managementService.getUsagesSummary();
@@ -144,7 +144,7 @@ describe('managementService', () => {
     });
   });
 
-  it('updateSubAccount PATCHes the sub-account with the given fields', async () => {
+  test('when updateSubAccount is called, then it PATCHes the sub-account with the given fields', async () => {
     let seenConfig: { url?: string; data?: string } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -157,7 +157,7 @@ describe('managementService', () => {
     expect(parseBody(seenConfig?.data)).toEqual({ name: 'New name' });
   });
 
-  it('getSubAccountById fetches the sub-account detail', async () => {
+  test('when getSubAccountById is called, then it fetches the sub-account detail', async () => {
     let seenConfig: { url?: string } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -170,7 +170,7 @@ describe('managementService', () => {
     expect(result).toEqual({ id: 'sa-1' });
   });
 
-  it('getSubAccountUsages fetches the usages page with pagination fallback', async () => {
+  test('when getSubAccountUsages is called, then it fetches the usages page with a pagination fallback', async () => {
     let seenConfig: { url?: string; params?: unknown } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -184,7 +184,7 @@ describe('managementService', () => {
     expect(result).toEqual({ items: [{ id: 1 }, { id: 2 }], totalItems: 2 });
   });
 
-  it('getInvoices fetches invoices with the given filters', async () => {
+  test('when getInvoices is called, then it fetches invoices with the given filters', async () => {
     let seenConfig: { url?: string; params?: unknown } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -197,7 +197,7 @@ describe('managementService', () => {
     expect(seenConfig?.params).toEqual({ page: 2, perPage: 10 });
   });
 
-  it('getBuckets fetches buckets with the given filters', async () => {
+  test('when getBuckets is called, then it fetches buckets with the given filters', async () => {
     let seenConfig: { url?: string; params?: unknown } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;

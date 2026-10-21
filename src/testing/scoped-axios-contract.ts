@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import notificationsService from '../services/notifications.service';
 import { mockAdapter } from './mock-axios-adapter';
 import { stubLocation } from './stub-location';
@@ -26,11 +26,11 @@ export function describeScopedAxiosContract(
     vi.restoreAllMocks();
   });
 
-  it('uses the configured object-storage API URL as its baseURL', () => {
+  test('when the instance is created, then its baseURL is the configured object-storage API URL', () => {
     expect(getInstance().defaults.baseURL).toBe(import.meta.env.VITE_OBJECT_STORAGE_API_URL);
   });
 
-  it('attaches the Bearer token from its own auth service when one is present', async () => {
+  test('when the auth service has a token, then the request carries a Bearer Authorization header', async () => {
     vi.spyOn(authService, 'getToken').mockReturnValue('a-token');
     stubLocation('/some/page');
     let seenAuthHeader: unknown;
@@ -44,7 +44,7 @@ export function describeScopedAxiosContract(
     expect(seenAuthHeader).toBe('Bearer a-token');
   });
 
-  it('does not attach an Authorization header when there is no token', async () => {
+  test('when the auth service has no token, then no Authorization header is attached', async () => {
     vi.spyOn(authService, 'getToken').mockReturnValue(null);
     stubLocation('/some/page');
     let seenAuthHeader: unknown;
@@ -58,7 +58,7 @@ export function describeScopedAxiosContract(
     expect(seenAuthHeader).toBeUndefined();
   });
 
-  it(`logs out, notifies and redirects to ${loginPath} on a 401, when not already on a login page`, async () => {
+  test(`when a 401 happens and the user is not already on a login page, then it logs out, notifies and redirects to ${loginPath}`, async () => {
     vi.spyOn(authService, 'getToken').mockReturnValue('a-token');
     const logOutSpy = vi.spyOn(authService, 'logOut').mockImplementation(() => {});
     const notifySpy = vi.spyOn(notificationsService, 'error').mockImplementation(() => {});
@@ -72,7 +72,7 @@ export function describeScopedAxiosContract(
     expect(window.location.href.startsWith(loginPath)).toBe(true);
   });
 
-  it('does not redirect or notify again when a 401 happens while already on a login page', async () => {
+  test('when a 401 happens while already on a login page, then it does not redirect or notify again', async () => {
     vi.spyOn(authService, 'getToken').mockReturnValue(null);
     const logOutSpy = vi.spyOn(authService, 'logOut').mockImplementation(() => {});
     const notifySpy = vi.spyOn(notificationsService, 'error').mockImplementation(() => {});
@@ -86,7 +86,7 @@ export function describeScopedAxiosContract(
     expect(window.location.href).toBe('');
   });
 
-  it('leaves non-401 errors untouched (no logout, no notification, no redirect)', async () => {
+  test('when a non-401 error happens, then it is left untouched (no logout, no notification, no redirect)', async () => {
     const logOutSpy = vi.spyOn(authService, 'logOut').mockImplementation(() => {});
     const notifySpy = vi.spyOn(notificationsService, 'error').mockImplementation(() => {});
     stubLocation('/some/protected/page');

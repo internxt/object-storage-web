@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { wholesalersService } from './wholesalers.service';
 import { wholesalersAuthService } from './wholesalers-auth.service';
 import wholesalersAxios from '../core/wholesalers-axios';
@@ -18,7 +18,7 @@ function captureRequest(): { get: () => { url?: string; data?: string; params?: 
 }
 
 describe('wholesalersService', () => {
-  it('getPartners fetches a page of the wholesaler own partners', async () => {
+  test('when getPartners is called, then it fetches a page of the wholesaler own partners', async () => {
     let seenConfig: { url?: string; params?: unknown } | undefined;
     wholesalersAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -32,7 +32,7 @@ describe('wholesalersService', () => {
     expect(result).toEqual({ partners: [{ id: 'p1' }], total: 1 });
   });
 
-  it('createPartner posts the new partner', async () => {
+  test('when createPartner is called, then it posts the new partner', async () => {
     const req = captureRequest();
 
     await wholesalersService.createPartner({ name: 'Acme', email: 'acme@internxt.com', password: 'secret' });
@@ -41,7 +41,7 @@ describe('wholesalersService', () => {
     expect(parseBody(req.get()?.data)).toEqual({ name: 'Acme', email: 'acme@internxt.com', password: 'secret' });
   });
 
-  it('updatePartnerName PATCHes the partner name', async () => {
+  test('when updatePartnerName is called, then it PATCHes the partner name', async () => {
     const req = captureRequest();
 
     await wholesalersService.updatePartnerName('p1', 'New name');
@@ -50,7 +50,7 @@ describe('wholesalersService', () => {
     expect(parseBody(req.get()?.data)).toEqual({ name: 'New name' });
   });
 
-  it('deletePartner DELETEs the partner', async () => {
+  test('when deletePartner is called, then it DELETEs the partner', async () => {
     const req = captureRequest();
 
     await wholesalersService.deletePartner('p1');
@@ -58,7 +58,7 @@ describe('wholesalersService', () => {
     expect(req.get()?.url).toBe('/wholesalers/partners/p1');
   });
 
-  it('getPartnerUsageSummary fetches a single partner usage summary', async () => {
+  test('when getPartnerUsageSummary is called, then it fetches a single partner usage summary', async () => {
     wholesalersAxios.defaults.adapter = mockAdapter(() => ({
       status: 200,
       data: { totalSubAccounts: 2, activeStorageTb: 1, deletedStorageTb: 0 },
@@ -69,7 +69,7 @@ describe('wholesalersService', () => {
     expect(result).toEqual({ totalSubAccounts: 2, activeStorageTb: 1, deletedStorageTb: 0 });
   });
 
-  it('getUsageSummary fetches the wholesaler usage summary', async () => {
+  test('when getUsageSummary is called, then it fetches the wholesaler usage summary', async () => {
     wholesalersAxios.defaults.adapter = mockAdapter(() => ({
       status: 200,
       data: { totalPartners: 3, activeStorageTb: 4 },
@@ -80,7 +80,7 @@ describe('wholesalersService', () => {
     expect(result).toEqual({ totalPartners: 3, activeStorageTb: 4 });
   });
 
-  it('createBillingPortalSession posts the current page as the return URL', async () => {
+  test('when createBillingPortalSession is called, then it posts the current page as the return URL', async () => {
     let seenData: string | undefined;
     wholesalersAxios.defaults.adapter = mockAdapter((config) => {
       seenData = config.data as string;
@@ -93,7 +93,7 @@ describe('wholesalersService', () => {
     expect(result).toEqual({ url: 'https://billing.stripe.com/session' });
   });
 
-  it('changePassword stores the rotated token on success', async () => {
+  test('when changePassword succeeds, then it stores the rotated token', async () => {
     wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: { token: 'new-jwt' } }));
 
     await wholesalersService.changePassword('old', 'new');
@@ -101,7 +101,7 @@ describe('wholesalersService', () => {
     expect(wholesalersAuthService.getToken()).toBe('new-jwt');
   });
 
-  it('getTwoFactorStatus fetches the current 2FA status', async () => {
+  test('when getTwoFactorStatus is called, then it fetches the current 2FA status', async () => {
     wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: { enabled: false } }));
 
     const result = await wholesalersService.getTwoFactorStatus();
@@ -109,7 +109,7 @@ describe('wholesalersService', () => {
     expect(result).toEqual({ enabled: false });
   });
 
-  it('getTwoFactorSetup fetches the setup secret and QR code', async () => {
+  test('when getTwoFactorSetup is called, then it fetches the setup secret and QR code', async () => {
     wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: { secret: 's', qrCode: 'qr' } }));
 
     const result = await wholesalersService.getTwoFactorSetup();
@@ -117,7 +117,7 @@ describe('wholesalersService', () => {
     expect(result).toEqual({ secret: 's', qrCode: 'qr' });
   });
 
-  it('enableTwoFactor PUTs the verification code', async () => {
+  test('when enableTwoFactor is called, then it PUTs the verification code', async () => {
     const req = captureRequest();
 
     await wholesalersService.enableTwoFactor('123456');
@@ -126,7 +126,7 @@ describe('wholesalersService', () => {
     expect(parseBody(req.get()?.data)).toEqual({ code: '123456' });
   });
 
-  it('disableTwoFactor DELETEs with the password and code in the request body', async () => {
+  test('when disableTwoFactor is called, then it DELETEs with the password and code in the request body', async () => {
     const req = captureRequest();
 
     await wholesalersService.disableTwoFactor('secret', '123456');
@@ -135,7 +135,7 @@ describe('wholesalersService', () => {
     expect(parseBody(req.get()?.data)).toEqual({ password: 'secret', code: '123456' });
   });
 
-  it('getMe fetches the current wholesaler profile', async () => {
+  test('when getMe is called, then it fetches the current wholesaler profile', async () => {
     wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: { id: 'w1' } }));
 
     const result = await wholesalersService.getMe();
@@ -143,7 +143,7 @@ describe('wholesalersService', () => {
     expect(result).toEqual({ id: 'w1' });
   });
 
-  it('listMembers fetches the wholesaler members', async () => {
+  test('when listMembers is called, then it fetches the wholesaler members', async () => {
     wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: [{ id: 'm1' }] }));
 
     const result = await wholesalersService.listMembers();
@@ -151,7 +151,7 @@ describe('wholesalersService', () => {
     expect(result).toEqual([{ id: 'm1' }]);
   });
 
-  it('createMember posts the new member', async () => {
+  test('when createMember is called, then it posts the new member', async () => {
     const req = captureRequest();
 
     await wholesalersService.createMember('member@internxt.com', 'secret');
@@ -160,7 +160,7 @@ describe('wholesalersService', () => {
     expect(parseBody(req.get()?.data)).toEqual({ email: 'member@internxt.com', password: 'secret' });
   });
 
-  it('updateMember PATCHes the member', async () => {
+  test('when updateMember is called, then it PATCHes the member', async () => {
     const req = captureRequest();
 
     await wholesalersService.updateMember('m1', { email: 'new@internxt.com' });
@@ -169,7 +169,7 @@ describe('wholesalersService', () => {
     expect(parseBody(req.get()?.data)).toEqual({ email: 'new@internxt.com' });
   });
 
-  it('deleteMember DELETEs the member', async () => {
+  test('when deleteMember is called, then it DELETEs the member', async () => {
     const req = captureRequest();
 
     await wholesalersService.deleteMember('m1');
@@ -177,7 +177,7 @@ describe('wholesalersService', () => {
     expect(req.get()?.url).toBe('/wholesalers/members/m1');
   });
 
-  it('updateMemberTwoFactor PATCHes the member 2FA action', async () => {
+  test('when updateMemberTwoFactor is called, then it PATCHes the member 2FA action', async () => {
     const req = captureRequest();
 
     await wholesalersService.updateMemberTwoFactor('m1', 'reset');

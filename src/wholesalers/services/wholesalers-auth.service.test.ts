@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, test } from 'vitest';
 import { wholesalersAuthService } from './wholesalers-auth.service';
 import wholesalersAxios from '../core/wholesalers-axios';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
@@ -16,7 +16,7 @@ describe('wholesalersAuthService', () => {
   });
 
   describe('logIn', () => {
-    it('posts the credentials and 2FA code, and stores the returned token', async () => {
+    test('when logIn succeeds, then it posts the credentials and 2FA code, and stores the returned token', async () => {
       let seenConfig: { url?: string; data?: string } | undefined;
       wholesalersAxios.defaults.adapter = mockAdapter((config) => {
         seenConfig = config;
@@ -35,7 +35,7 @@ describe('wholesalersAuthService', () => {
       expect(result).toEqual({ twoFactorSetupRequired: true });
     });
 
-    it('normalizes a missing twoFactorSetupRequired flag to false', async () => {
+    test('when the backend omits twoFactorSetupRequired, then logIn normalizes it to false', async () => {
       wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: { token: 'wholesalers-jwt' } }));
 
       const result = await wholesalersAuthService.logIn('wholesaler@internxt.com', 'secret');
@@ -43,7 +43,7 @@ describe('wholesalersAuthService', () => {
       expect(result).toEqual({ twoFactorSetupRequired: false });
     });
 
-    it('maps a 2FA_REQUIRED rejection into a TwoFactorRequiredError, without storing a token', async () => {
+    test('when the backend rejects with 2FA_REQUIRED, then logIn maps that into a TwoFactorRequiredError without storing a token', async () => {
       wholesalersAxios.defaults.adapter = mockAdapter(() => ({
         status: 403,
         data: { message: '2FA_REQUIRED' },
@@ -55,7 +55,7 @@ describe('wholesalersAuthService', () => {
       expect(wholesalersAuthService.getToken()).toBeNull();
     });
 
-    it('rethrows any other error untouched', async () => {
+    test('when the backend rejects for any other reason, then logIn rethrows the error untouched', async () => {
       wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 401 }));
 
       await expect(wholesalersAuthService.logIn('wholesaler@internxt.com', 'wrong')).rejects.toMatchObject({
@@ -65,11 +65,11 @@ describe('wholesalersAuthService', () => {
   });
 
   describe('token management', () => {
-    it('getToken returns null when no one is logged in', () => {
+    test('when no one is logged in, then getToken returns null', () => {
       expect(wholesalersAuthService.getToken()).toBeNull();
     });
 
-    it('logOut clears the stored token', () => {
+    test('when logOut is called, then it clears the stored token', () => {
       wholesalersAuthService.setToken('a-token');
       wholesalersAuthService.logOut();
       expect(wholesalersAuthService.getToken()).toBeNull();
@@ -77,12 +77,12 @@ describe('wholesalersAuthService', () => {
   });
 
   describe('getPayload / getRole', () => {
-    it('returns null when there is no token', () => {
+    test('when there is no token, then getPayload and getRole return null', () => {
       expect(wholesalersAuthService.getPayload()).toBeNull();
       expect(wholesalersAuthService.getRole()).toBeNull();
     });
 
-    it('decodes a wholesaler payload', () => {
+    test('when a wholesaler token is stored, then it decodes the wholesaler payload', () => {
       wholesalersAuthService.setToken(fakeJwt({ role: 'wholesaler', wholesalerId: 'w1', email: 'w@internxt.com' }));
 
       expect(wholesalersAuthService.getRole()).toBe('wholesaler');
@@ -93,7 +93,7 @@ describe('wholesalersAuthService', () => {
       });
     });
 
-    it('decodes a member payload', () => {
+    test('when a member token is stored, then it decodes the member payload', () => {
       wholesalersAuthService.setToken(
         fakeJwt({ role: 'member', memberId: 'm1', entityType: 'wholesaler', entityId: 'w1' }),
       );
@@ -101,7 +101,7 @@ describe('wholesalersAuthService', () => {
       expect(wholesalersAuthService.getRole()).toBe('member');
     });
 
-    it('returns null when the stored token is malformed', () => {
+    test('when the stored token is malformed, then getPayload and getRole return null', () => {
       wholesalersAuthService.setToken('not-a-jwt');
 
       expect(wholesalersAuthService.getPayload()).toBeNull();

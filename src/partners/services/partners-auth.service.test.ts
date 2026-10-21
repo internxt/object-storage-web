@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, test } from 'vitest';
 import { partnersAuthService } from './partners-auth.service';
 import partnersAxios from '../core/partners-axios';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
@@ -19,7 +19,7 @@ describe('partnersAuthService', () => {
   });
 
   describe('logIn', () => {
-    it('posts the credentials and 2FA code, and stores the returned token', async () => {
+    test('when logIn succeeds, then it posts the credentials and 2FA code, and stores the returned token', async () => {
       let seenConfig: { url?: string; data?: string } | undefined;
       partnersAxios.defaults.adapter = mockAdapter((config) => {
         seenConfig = config;
@@ -38,7 +38,7 @@ describe('partnersAuthService', () => {
       expect(result).toEqual({ twoFactorSetupRequired: true });
     });
 
-    it('maps a 2FA_REQUIRED rejection into a TwoFactorRequiredError, without storing a token', async () => {
+    test('when the backend rejects with 2FA_REQUIRED, then it maps that into a TwoFactorRequiredError without storing a token', async () => {
       partnersAxios.defaults.adapter = mockAdapter(() => ({
         status: 403,
         data: { message: '2FA_REQUIRED' },
@@ -50,7 +50,7 @@ describe('partnersAuthService', () => {
       expect(partnersAuthService.getToken()).toBeNull();
     });
 
-    it('rethrows any other error untouched', async () => {
+    test('when the backend rejects for any other reason, then logIn rethrows the error untouched', async () => {
       partnersAxios.defaults.adapter = mockAdapter(() => ({ status: 401 }));
 
       await expect(partnersAuthService.logIn('partner@internxt.com', 'wrong')).rejects.toMatchObject({
@@ -60,7 +60,7 @@ describe('partnersAuthService', () => {
   });
 
   describe('requestPasswordReset', () => {
-    it('posts the email to the forgot-password endpoint', async () => {
+    test('when requestPasswordReset is called, then it posts the email to the forgot-password endpoint', async () => {
       let seenConfig: { url?: string; data?: string } | undefined;
       partnersAxios.defaults.adapter = mockAdapter((config) => {
         seenConfig = config;
@@ -73,7 +73,7 @@ describe('partnersAuthService', () => {
       expect(JSON.parse(seenConfig?.data ?? '{}')).toEqual({ email: 'partner@internxt.com' });
     });
 
-    it('maps a captcha rejection into a CaptchaUnavailableError', async () => {
+    test('when the backend rejects the captcha, then it maps that into a CaptchaUnavailableError', async () => {
       partnersAxios.defaults.adapter = mockAdapter(() => ({
         status: 403,
         data: { code: 'CAPTCHA_FAILED' },
@@ -84,7 +84,7 @@ describe('partnersAuthService', () => {
       expect(error.name).toBe('CaptchaUnavailableError');
     });
 
-    it('rethrows any other error untouched', async () => {
+    test('when the backend rejects for any other reason, then requestPasswordReset rethrows the error untouched', async () => {
       partnersAxios.defaults.adapter = mockAdapter(() => ({ status: 500 }));
 
       await expect(partnersAuthService.requestPasswordReset('partner@internxt.com')).rejects.toMatchObject({
@@ -94,7 +94,7 @@ describe('partnersAuthService', () => {
   });
 
   describe('resetPassword', () => {
-    it('posts the reset token and the new password', async () => {
+    test('when resetPassword is called, then it posts the reset token and the new password', async () => {
       let seenConfig: { url?: string; data?: string } | undefined;
       partnersAxios.defaults.adapter = mockAdapter((config) => {
         seenConfig = config;
@@ -109,11 +109,11 @@ describe('partnersAuthService', () => {
   });
 
   describe('token management', () => {
-    it('getToken returns null when no one is logged in', () => {
+    test('when no one is logged in, then getToken returns null', () => {
       expect(partnersAuthService.getToken()).toBeNull();
     });
 
-    it('logOut clears the stored token', () => {
+    test('when logOut is called, then it clears the stored token', () => {
       partnersAuthService.setToken('a-token');
       partnersAuthService.logOut();
       expect(partnersAuthService.getToken()).toBeNull();
@@ -121,16 +121,16 @@ describe('partnersAuthService', () => {
   });
 
   describe('getRole', () => {
-    it('returns null when there is no token', () => {
+    test('when there is no token, then it returns null', () => {
       expect(partnersAuthService.getRole()).toBeNull();
     });
 
-    it("decodes the role from the stored token's payload", () => {
+    test("when a token is stored, then it decodes the role from the token's payload", () => {
       partnersAuthService.setToken(fakeJwt({ role: 'member' }));
       expect(partnersAuthService.getRole()).toBe('member');
     });
 
-    it('returns null when the stored token is malformed', () => {
+    test('when the stored token is malformed, then it returns null', () => {
       partnersAuthService.setToken('not-a-jwt');
       expect(partnersAuthService.getRole()).toBeNull();
     });

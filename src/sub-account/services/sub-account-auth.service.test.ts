@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { subAccountAuthService } from './sub-account-auth.service';
 import { subAccountSsoService } from './sub-account-sso.service';
 import subAccountAxios from '../core/sub-account-axios';
@@ -18,7 +18,7 @@ describe('subAccountAuthService', () => {
   });
 
   describe('logIn', () => {
-    it('posts the credentials and stores the token and email', async () => {
+    test('when logIn succeeds, then it posts the credentials and stores the token and email', async () => {
       let seenConfig: { url?: string; data?: string } | undefined;
       subAccountAxios.defaults.adapter = mockAdapter((config) => {
         seenConfig = config;
@@ -33,7 +33,7 @@ describe('subAccountAuthService', () => {
       expect(subAccountAuthService.getEmail()).toBe('member@internxt.com');
     });
 
-    it('rejects and stores nothing when the backend rejects the credentials', async () => {
+    test('when the backend rejects the credentials, then logIn rejects and stores nothing', async () => {
       subAccountAxios.defaults.adapter = mockAdapter(() => ({ status: 401 }));
 
       await expect(subAccountAuthService.logIn('member@internxt.com', 'wrong')).rejects.toMatchObject({
@@ -45,7 +45,7 @@ describe('subAccountAuthService', () => {
   });
 
   describe('logInWithSso', () => {
-    it("delegates to subAccountSsoService and stores the returned token and Azure email", async () => {
+    test("when logInWithSso succeeds, then it delegates to subAccountSsoService and stores the returned token and Azure email", async () => {
       vi.spyOn(subAccountSsoService, 'loginWithAzure').mockResolvedValue({
         token: 'sso-jwt',
         azureEmail: 'member@azure.com',
@@ -58,7 +58,7 @@ describe('subAccountAuthService', () => {
       expect(subAccountAuthService.getEmail()).toBe('member@azure.com');
     });
 
-    it('propagates a rejection from subAccountSsoService without storing anything', async () => {
+    test('when subAccountSsoService rejects, then logInWithSso propagates the rejection without storing anything', async () => {
       vi.spyOn(subAccountSsoService, 'loginWithAzure').mockRejectedValue(new Error('popup blocked'));
 
       await expect(subAccountAuthService.logInWithSso('acme')).rejects.toThrow('popup blocked');
@@ -67,7 +67,7 @@ describe('subAccountAuthService', () => {
   });
 
   describe('requestPasswordReset', () => {
-    it('posts the email to the forgot-password endpoint', async () => {
+    test('when requestPasswordReset is called, then it posts the email to the forgot-password endpoint', async () => {
       let seenConfig: { url?: string; data?: string } | undefined;
       subAccountAxios.defaults.adapter = mockAdapter((config) => {
         seenConfig = config;
@@ -80,7 +80,7 @@ describe('subAccountAuthService', () => {
       expect(JSON.parse(seenConfig?.data ?? '{}')).toEqual({ email: 'member@internxt.com' });
     });
 
-    it('maps a captcha rejection into a CaptchaUnavailableError', async () => {
+    test('when the backend rejects the captcha, then requestPasswordReset maps that into a CaptchaUnavailableError', async () => {
       subAccountAxios.defaults.adapter = mockAdapter(() => ({ status: 403, data: { code: 'CAPTCHA_FAILED' } }));
 
       const error = await subAccountAuthService.requestPasswordReset('member@internxt.com').catch((e) => e);
@@ -88,7 +88,7 @@ describe('subAccountAuthService', () => {
       expect(error.name).toBe('CaptchaUnavailableError');
     });
 
-    it('rethrows any other error untouched', async () => {
+    test('when the backend rejects for any other reason, then requestPasswordReset rethrows the error untouched', async () => {
       subAccountAxios.defaults.adapter = mockAdapter(() => ({ status: 500 }));
 
       await expect(subAccountAuthService.requestPasswordReset('member@internxt.com')).rejects.toMatchObject({
@@ -98,7 +98,7 @@ describe('subAccountAuthService', () => {
   });
 
   describe('resetPassword', () => {
-    it('posts the reset token and the new password', async () => {
+    test('when resetPassword is called, then it posts the reset token and the new password', async () => {
       let seenConfig: { url?: string; data?: string } | undefined;
       subAccountAxios.defaults.adapter = mockAdapter((config) => {
         seenConfig = config;
@@ -113,7 +113,7 @@ describe('subAccountAuthService', () => {
   });
 
   describe('logOut', () => {
-    it('clears both the token and the stored email', async () => {
+    test('when logOut is called, then it clears both the token and the stored email', async () => {
       subAccountAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: { token: 'sub-account-jwt' } }));
       await subAccountAuthService.logIn('member@internxt.com', 'secret');
 
@@ -125,7 +125,7 @@ describe('subAccountAuthService', () => {
   });
 
   describe('JWT claim getters', () => {
-    it('all return null/false when there is no token', () => {
+    test('when there is no token, then all the JWT claim getters return null/false', () => {
       expect(subAccountAuthService.getRole()).toBeNull();
       expect(subAccountAuthService.getMemberId()).toBeNull();
       expect(subAccountAuthService.getEntityId()).toBeNull();
@@ -135,7 +135,7 @@ describe('subAccountAuthService', () => {
       expect(subAccountAuthService.getEntityCreatedAt()).toBeNull();
     });
 
-    it('decode their respective claims from the stored token payload', () => {
+    test('when a token is stored, then each getter decodes its respective claim from the payload', () => {
       subAccountAuthService.setToken(
         fakeJwt({
           role: 'admin',
@@ -157,7 +157,7 @@ describe('subAccountAuthService', () => {
       expect(subAccountAuthService.getEntityCreatedAt()).toBe('2024-01-01T00:00:00.000Z');
     });
 
-    it('all return null/false when the stored token is malformed', () => {
+    test('when the stored token is malformed, then all the JWT claim getters return null/false', () => {
       subAccountAuthService.setToken('not-a-jwt');
 
       expect(subAccountAuthService.getRole()).toBeNull();

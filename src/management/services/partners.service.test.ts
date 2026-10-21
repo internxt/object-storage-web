@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { partnersService } from './partners.service';
 import managementAxios from '../core/management-axios';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
@@ -8,7 +8,7 @@ function parseBody(data: unknown): unknown {
 }
 
 describe('management partnersService', () => {
-  it('createPartner posts the new partner', async () => {
+  test('when createPartner is called, then it posts the new partner', async () => {
     let seenConfig: { url?: string; data?: string } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -34,7 +34,7 @@ describe('management partnersService', () => {
   });
 
   describe('getPartners', () => {
-    it('maps the raw rows into the Partner shape', async () => {
+    test('when the backend returns a pagination envelope, then it maps the raw rows into the Partner shape', async () => {
       let seenConfig: { url?: string; params?: unknown } | undefined;
       managementAxios.defaults.adapter = mockAdapter((config) => {
         seenConfig = config;
@@ -70,7 +70,7 @@ describe('management partnersService', () => {
       });
     });
 
-    it('accepts a bare array response (no pagination envelope)', async () => {
+    test('when the backend returns a bare array (no pagination envelope), then it still maps the rows', async () => {
       managementAxios.defaults.adapter = mockAdapter(() => ({
         status: 200,
         data: [{ id: 'p1', storageProviderId: 'sp1', status: 'ACTIVE' }],
@@ -83,7 +83,7 @@ describe('management partnersService', () => {
     });
   });
 
-  it('getPartnerById fetches and maps a single partner', async () => {
+  test('when getPartnerById is called, then it fetches and maps a single partner', async () => {
     let seenConfig: { url?: string } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -96,7 +96,7 @@ describe('management partnersService', () => {
     expect(result.status).toBe('ACTIVE');
   });
 
-  it('getPartnersSummary returns the mapped summary with sensible defaults', async () => {
+  test('when getPartnersSummary is called, then it returns the mapped summary with sensible defaults', async () => {
     managementAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: {} }));
 
     const result = await partnersService.getPartnersSummary();
@@ -104,7 +104,7 @@ describe('management partnersService', () => {
     expect(result).toEqual({ totalPartners: 0, activeStorageTb: 0 });
   });
 
-  it('getPartnerSubAccounts fetches a partner sub-accounts page', async () => {
+  test('when getPartnerSubAccounts is called, then it fetches a partner sub-accounts page', async () => {
     let seenConfig: { url?: string; params?: unknown } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -118,7 +118,7 @@ describe('management partnersService', () => {
     expect(result).toEqual({ items: [{ id: 'sa1' }], total: 1 });
   });
 
-  it('getPartnerSubAccountsUsage fetches and maps the usage report statuses', async () => {
+  test('when getPartnerSubAccountsUsage is called, then it fetches and maps the usage report statuses', async () => {
     let seenConfig: { url?: string; params?: unknown } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
