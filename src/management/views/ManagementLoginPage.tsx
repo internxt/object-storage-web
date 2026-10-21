@@ -14,6 +14,7 @@ export const ManagementLoginPage = () => {
       rightFeaturePills={['Sub-account management', 'Usage monitoring', 'Storage analytics']}
       isAuthenticated={isAuthenticated}
       logIn={logIn}
+      supportsTwoFactor
       redirectTo='/management/accounts'
       branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
     />

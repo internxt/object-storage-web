@@ -17,6 +17,7 @@ import { SubAccountDetailPage } from './management/views/SubAccountDetailPage';
 import { PartnersPage } from './management/views/PartnersPage';
 import { PartnerDetailPage } from './management/views/PartnerDetailPage';
 import { WholesalersPage } from './management/views/WholesalersPage';
+import { ManagementSettingsPage } from './management/views/ManagementSettingsPage';
 import { ManagementAuthRoute } from './management/components/ManagementAuthRoute';
 import { PartnersProvider } from './partners/context/partnersContext';
 import { PartnersLoginPage } from './partners/views/PartnersLoginPage';
@@ -88,6 +89,7 @@ export function App() {
                 <Route path='/management/partners' element={<PartnersPage />} />
                 <Route path='/management/partners/:id' element={<PartnerDetailPage />} />
                 <Route path='/management/wholesalers' element={<WholesalersPage />} />
+                <Route path='/management/settings' element={<ManagementSettingsPage />} />
               </Route>
               <Route path='/management' element={<Navigate to='/management/accounts' />} />
 
