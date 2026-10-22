@@ -117,13 +117,21 @@ describe('partners partnersService', () => {
     expect(parseBody(req.get()?.data)).toEqual({ newPassword: 'new-secret' });
   });
 
-  test('when updateSubAccountStorageQuota is called, then it PATCHes the storage quota', async () => {
+  test('when updateSubAccountStorageLimit is called with a limit, then it PATCHes its type and value', async () => {
     const req = captureRequest();
 
-    await partnersService.updateSubAccountStorageQuota('sa1', 10);
+    await partnersService.updateSubAccountStorageLimit('sa1', { type: 'alert', valueTb: 2.5 });
 
-    expect(req.get()?.url).toBe('/partners/sub-accounts/sa1/storage-quota');
-    expect(parseBody(req.get()?.data)).toEqual({ limitTb: 10 });
+    expect(req.get()?.url).toBe('/partners/sub-accounts/sa1/storage-limit');
+    expect(parseBody(req.get()?.data)).toEqual({ type: 'alert', valueTb: 2.5 });
+  });
+
+  test('when updateSubAccountStorageLimit is called with no limit, then it PATCHes a null value', async () => {
+    const req = captureRequest();
+
+    await partnersService.updateSubAccountStorageLimit('sa1', { type: 'none' });
+
+    expect(parseBody(req.get()?.data)).toEqual({ type: 'none', valueTb: null });
   });
 
   test('when getUsageSummary is called, then it fetches the partner usage summary', async () => {
