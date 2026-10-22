@@ -1,10 +1,11 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useManagement } from '../context/managementContext';
-import { SignOutIcon } from '@phosphor-icons/react';
+import { GearSixIcon, SignOutIcon } from '@phosphor-icons/react';
 import { T, shadow } from '../../sub-account/tokens';
 
 const AvatarMenu = ({ onLogout }: { onLogout: () => void }) => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -49,6 +50,26 @@ const AvatarMenu = ({ onLogout }: { onLogout: () => void }) => {
             padding: 6,
           }}
         >
+          <button
+            role='menuitem'
+            onClick={() => {
+              setOpen(false);
+              navigate('/management/settings');
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              width: '100%', height: 40, padding: '0 12px',
+              background: 'transparent',
+              border: 'none', borderRadius: 8, cursor: 'pointer',
+              fontSize: 14, fontWeight: 500,
+              color: T.gray80,
+              textAlign: 'left',
+            }}
+          >
+            <GearSixIcon size={16} />
+            Settings
+          </button>
+
           <button
             role='menuitem'
             onClick={onLogout}
@@ -147,20 +168,6 @@ export const ManagementLayout = ({ children }: { children: ReactNode }) => {
               })}
             >
               Wholesalers
-            </NavLink>
-            <NavLink
-              to='/management/settings'
-              style={({ isActive }) => ({
-                height: '100%', padding: '0 14px',
-                display: 'flex', alignItems: 'center',
-                borderBottom: isActive ? `2px solid ${T.primary}` : '2px solid transparent',
-                fontSize: 14, fontWeight: 500,
-                color: isActive ? T.gray100 : T.gray60,
-                textDecoration: 'none',
-                whiteSpace: 'nowrap',
-              })}
-            >
-              Settings
             </NavLink>
           </nav>
         </div>

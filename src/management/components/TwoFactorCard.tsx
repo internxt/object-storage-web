@@ -7,7 +7,8 @@ import { TwoFactorCodeInput, TWO_FACTOR_CODE_LENGTH } from '../../components/two
 import notificationsService from '../../services/notifications.service';
 import { apiErrorCode } from '../../utils/apiError';
 import { managementTwoFactorService, TwoFactorStatus } from '../services/management-two-factor.service';
-import { T, card, text, form } from '../../sub-account/tokens';
+import { SectionCard } from '../../sub-account/components/SettingsAtoms';
+import { T, text, form } from '../../sub-account/tokens';
 
 const ERROR_MESSAGES: Record<string, string> = {
   INVALID_PASSWORD: 'Incorrect password.',
@@ -102,17 +103,15 @@ export const TwoFactorCard = () => {
   };
 
   return (
-    <div style={{ ...card, borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h3 style={{ fontSize: 15, fontWeight: 600, color: T.gray100, margin: 0 }}>Two-factor authentication</h3>
-        {state.kind === 'ready' && state.status.enabled && (
-          <span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green'>
-            <span className='w-1.5 h-1.5 rounded-full bg-green shrink-0' />
-            Enabled
-          </span>
-        )}
-      </div>
-
+    <SectionCard
+      title='Two-factor authentication'
+      action={state.kind === 'ready' && state.status.enabled ? (
+        <span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green'>
+          <span className='w-1.5 h-1.5 rounded-full bg-green shrink-0' />
+          Enabled
+        </span>
+      ) : undefined}
+    >
       {renderBody()}
 
       <Modal isOpen={isSetupOpen} onClose={() => setIsSetupOpen(false)}>
@@ -173,6 +172,6 @@ export const TwoFactorCard = () => {
           </div>
         </div>
       </Modal>
-    </div>
+    </SectionCard>
   );
 };
