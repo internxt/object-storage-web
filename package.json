@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@internxt/css-config": "^1.2.0",
-    "@internxt/eslint-config-internxt": "^2.1.1",
+    "@internxt/eslint-config-internxt": "^2.1.2",
     "@internxt/prettier-config": "^2.0.1",
     "@types/react": "^19.2.17",
     "@types/react-date-range": "^1.4.10",
