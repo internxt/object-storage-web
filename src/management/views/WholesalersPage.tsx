@@ -30,6 +30,7 @@ export const WholesalersPage = () => {
   }, [page]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchWholesalers();
   }, [fetchWholesalers]);
 

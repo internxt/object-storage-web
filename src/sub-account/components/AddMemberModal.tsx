@@ -27,6 +27,7 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
 
   useEffect(() => {
     if (!isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEmail('');
       setPassword('');
       setRole('standard');

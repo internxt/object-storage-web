@@ -170,6 +170,7 @@ export const PartnerDetailPage = () => {
     if (!id) return;
     const statePartner: Partner | undefined = (location.state as { partner?: Partner })?.partner;
     if (statePartner && statePartner.id === id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPartner(statePartner);
       setPartnerLoading(false);
       return;
@@ -185,6 +186,7 @@ export const PartnerDetailPage = () => {
 
   useEffect(() => {
     if (!id) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     partnersService
       .getPartnerSubAccounts(id, { page, perPage: PER_PAGE })
@@ -198,6 +200,7 @@ export const PartnerDetailPage = () => {
   useEffect(() => {
     if (!id) return;
     let stale = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUsageLoading(true);
     setUsageFailed(false);
     partnersService

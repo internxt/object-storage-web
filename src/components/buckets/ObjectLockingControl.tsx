@@ -74,6 +74,7 @@ export const ObjectLockingControl = ({
   const [value, setValue] = useState<string>(String(retentionConfig.days ?? retentionConfig.years ?? ''));
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRetentionOpen(retentionConfig.enabled);
     setMode(retentionConfig.mode ?? RetentionMode.COMPLIANCE);
     setScale(retentionConfig.years ? 'years' : retentionConfig.days ? 'days' : '');

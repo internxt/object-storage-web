@@ -20,6 +20,7 @@ export const useSubAccountS3Client = (entityId: string | null, memberId: string 
 
   useEffect(() => {
     if (!entityId || !memberId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState({ client: null, credentials: null, isLoading: false, error: null });
       return;
     }

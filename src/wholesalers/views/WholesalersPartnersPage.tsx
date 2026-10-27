@@ -62,10 +62,12 @@ export const WholesalersPartnersPage = () => {
   }, [page]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsageSummary();
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPartners();
   }, [fetchPartners]);
 

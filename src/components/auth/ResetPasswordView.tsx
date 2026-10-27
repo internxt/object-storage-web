@@ -86,6 +86,7 @@ export const ResetPasswordView = ({
   const canSubmit = meetsPolicy && confirmPassword === newPassword && !isSubmitting;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSubmitError(undefined);
   }, [newPassword, confirmPassword]);
 

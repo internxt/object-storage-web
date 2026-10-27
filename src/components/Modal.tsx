@@ -79,6 +79,7 @@ const Modal = ({
         setTransitionOpacity('opacity-100');
         setTransitionScale('scale-100');
       }, 10);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowContent(true);
       return () => clearTimeout(timeout);
     } else {

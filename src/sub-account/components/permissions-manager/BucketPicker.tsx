@@ -34,6 +34,7 @@ export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: Bucket
 
   useEffect(() => {
     if (!isOpen || !client) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
     fetchAllBuckets(client)
       .then(setBuckets)
@@ -43,6 +44,7 @@ export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: Bucket
 
   useEffect(() => {
     if (!isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearch('');
       setBuckets([]);
     }

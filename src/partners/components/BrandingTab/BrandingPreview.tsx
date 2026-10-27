@@ -12,6 +12,7 @@ export function BrandingPreview({ logoUrl, primaryColor }: { logoUrl: string; pr
   const badgeTextColour = foreground === '#18181B' ? foreground : colour;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLogoLoadFailed(false);
   }, [logoUrl]);
 

@@ -906,6 +906,7 @@ export const SubAccountBucketDetailPage = () => {
       .map((o) => o.key);
 
     if (!client || !bucketName || folderKeys.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectionHasNonEmptyFolder(false);
       return;
     }

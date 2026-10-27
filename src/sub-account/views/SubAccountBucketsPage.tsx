@@ -390,6 +390,7 @@ const CreateBucketModal = ({
     if (isOpen) {
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormState(INITIAL_FORM_STATE);
   }, [isOpen]);
 
@@ -673,6 +674,7 @@ export const SubAccountBucketsPage = () => {
   // Clamp page when the filtered set shrinks (e.g. after a delete or a narrower search).
   useEffect(() => {
     if (pageNumber > pageCount) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPageNumber(pageCount);
     }
   }, [pageNumber, pageCount]);

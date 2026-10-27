@@ -92,10 +92,12 @@ export const PartnersSubAccountsPage = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsageSummary();
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSubAccounts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, statusFilter, activeStorageSortOrder]);

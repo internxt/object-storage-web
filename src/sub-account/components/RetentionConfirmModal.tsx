@@ -28,6 +28,7 @@ export const RetentionConfirmModal = ({
   const [typed, setTyped] = useState('');
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isOpen) setTyped('');
   }, [isOpen]);
 

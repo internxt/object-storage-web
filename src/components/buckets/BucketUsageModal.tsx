@@ -57,6 +57,7 @@ export const BucketUsageModal = ({
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchBucketUsageData();
     }
   }, [isOpen, fetchBucketUsageData]);

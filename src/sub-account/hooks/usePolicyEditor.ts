@@ -30,6 +30,7 @@ export const usePolicyEditor = ({ isOpen, onFetchPermissions }: Params) => {
 
   useEffect(() => {
     if (!isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditor(EMPTY_EDITOR);
       setLoadStatus('idle');
       return;

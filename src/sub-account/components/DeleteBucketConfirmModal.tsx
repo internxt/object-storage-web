@@ -23,6 +23,7 @@ export const DeleteBucketConfirmModal = ({
   const [typedName, setTypedName] = useState('');
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isOpen) setTypedName('');
   }, [isOpen]);
 

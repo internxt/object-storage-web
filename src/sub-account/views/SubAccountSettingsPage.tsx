@@ -238,6 +238,7 @@ const MembersTab = ({
 
   useEffect(() => {
     if (!entityId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMembers();
     subAccountSsoService
       .getSsoConfig(entityId)
@@ -426,6 +427,7 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
   const [isRegenerating, setIsRegenerating] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
     subAccountS3CredentialsService
       .getCredentials(entityId, memberId)
@@ -707,6 +709,7 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
 
   useEffect(() => {
     if (!entityId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entityId, appliedFilters, offset]);

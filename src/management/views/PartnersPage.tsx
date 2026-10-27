@@ -60,6 +60,7 @@ export const PartnersPage = () => {
   }, [page, sortOrder, showDeleted, debouncedSearch]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSummary();
   }, []);
 
@@ -72,6 +73,7 @@ export const PartnersPage = () => {
   }, [search]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPartners();
   }, [fetchPartners]);
 

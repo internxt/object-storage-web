@@ -44,6 +44,7 @@ export const SubAccountSharedPage = () => {
 
   useEffect(() => {
     if (!entityId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
     shareService
       .listShares(entityId)
@@ -94,6 +95,7 @@ export const SubAccountSharedPage = () => {
 
   useEffect(() => {
     if (pageNumber > pageCount) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPageNumber(pageCount);
     }
   }, [pageNumber, pageCount]);

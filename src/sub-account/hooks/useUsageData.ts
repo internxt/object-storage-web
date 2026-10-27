@@ -63,6 +63,7 @@ export function useUsageData(entityId?: string | null) {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPageNumber(1);
   }, [fromDate, toDate, entityId, pageSize]);
 

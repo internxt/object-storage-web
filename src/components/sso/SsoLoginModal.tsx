@@ -40,10 +40,9 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }:
     if (!isOpen) return;
     attemptIdRef.current += 1;
     const attemptId = attemptIdRef.current;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setError(null);
     setIsLoading(false);
-    // Start every attempt from a clean slate, even if the previous one was
-    // interrupted mid-popup and left MSAL's client-side state stuck.
     subAccountSsoService.resetSsoLoginState();
 
     const startManual = () => {
@@ -51,15 +50,11 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }:
       setResolution({ kind: 'manual' });
     };
 
-    // The caller already resolved the config for this hostname (e.g. the login
-    // page's own by-hostname check) — reuse it instead of looking it up again.
     if (resolvedConfig) {
       setResolution({ kind: 'auto', config: resolvedConfig });
       return;
     }
 
-    // The shared console hostname has no custom-domain SSO association, so never
-    // attempt the hostname lookup there — go straight to the manual flow.
     if (isSharedConsoleHostname()) {
       startManual();
       return;
@@ -73,8 +68,6 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }:
         setResolution({ kind: 'auto', config });
       })
       .catch(() => {
-        // No custom-domain SSO for this hostname (404) or a network hiccup —
-        // either way, degrade silently to the manual organization-name field.
         if (attemptId !== attemptIdRef.current) return;
         startManual();
       });

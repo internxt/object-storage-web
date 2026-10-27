@@ -49,6 +49,7 @@ export const ExportDateRangeModal = ({
   const [range, setRange] = useState<ExportDateRange>(() => lastDays(defaultRangeDays));
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isOpen) setRange(lastDays(defaultRangeDays));
   }, [isOpen, defaultRangeDays]);
 

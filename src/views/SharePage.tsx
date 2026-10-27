@@ -62,6 +62,7 @@ export const SharePage = () => {
 
   useEffect(() => {
     if (!token) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMetadata(null);
     setObjects([]);
     setCurrentPrefix(null);
@@ -116,6 +117,7 @@ export const SharePage = () => {
   // Changing pageNumber selects a different pageMarker, so it is what triggers fetching
   // prev/next pages. `loadList` is intentionally omitted: it is recreated every render.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (currentPrefix !== null) loadList(currentPrefix, pagination.pageMarker?.continuationToken);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPrefix, pagination.pageNumber]);

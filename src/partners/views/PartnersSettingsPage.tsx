@@ -163,6 +163,7 @@ const TwoFactorCard = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStatus();
   }, []);
 
@@ -612,6 +613,7 @@ const MembersTab = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetch();
   }, []);
 

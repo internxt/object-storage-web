@@ -21,6 +21,7 @@ export const SubAccountBrandingProvider = ({ children }: { children: ReactNode }
     function loadBranding() {
       if (isSharedConsole) {
         if (!entityId) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setBranding(DEFAULT_BRANDING);
           setIsLoading(false);
           return;

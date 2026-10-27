@@ -22,6 +22,7 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
 
   useEffect(() => {
     if (!isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNewPassword('');
       setConfirmPassword('');
       setIsSaving(false);

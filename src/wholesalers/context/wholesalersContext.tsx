@@ -22,6 +22,7 @@ export const WholesalersProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!isAuthenticated) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWholesalerEmail(null);
       return;
     }

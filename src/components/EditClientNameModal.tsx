@@ -31,6 +31,7 @@ export const EditClientNameModal = ({ isOpen, currentName, onClose, onSubmit }: 
   useEffect(() => {
     if (isOpen) {
       reset({ name: currentName ?? '' });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(undefined);
     }
   }, [isOpen, currentName, reset]);

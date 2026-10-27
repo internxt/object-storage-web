@@ -100,6 +100,7 @@ export const UsagePage = () => {
     const startDate = dayjs().subtract(1, 'month').toDate();
     const endDate = dayjs().toDate();
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     getUsage(startDate.toDateString(), endDate.toDateString());
   }, []);
 

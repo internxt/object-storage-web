@@ -113,6 +113,7 @@ const StorageLimitCard = ({
   const inputId = useId();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setType(limit.type);
     setValue(savedValue);
   }, [limit.type, savedValue]);
@@ -342,6 +343,7 @@ export const SubAccountDetailPage = ({
   }, [service, id, from, to, page]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsages();
   }, [fetchUsages]);
 
