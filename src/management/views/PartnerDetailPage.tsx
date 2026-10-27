@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Database, Users, CaretLeft, CaretRight, ArrowSquareOut, Info, DownloadSimple } from '@phosphor-icons/react';
+import { ArrowLeft, CaretLeft, CaretRight, ArrowSquareOut, Info, DownloadSimple } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
 import { Partner, PartnerSubAccount, partnersService } from '../services/partners.service';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -11,22 +11,50 @@ import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { StoragePoint, StorageOverTimeChart } from '../components/StorageOverTimeChart';
 import { UsageDateRange } from '../components/UsageDateRange';
-import { T, card, text } from '../../sub-account/tokens';
+import { T, card, shadow, text } from '../../sub-account/tokens';
 
 const PER_PAGE = 20;
 const MAX_RANGE_DAYS = 31;
 
-const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
-  <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>
-    <div className='w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center flex-shrink-0'>
-      {icon}
-    </div>
-    <div>
-      <div className='text-lg font-bold text-gray-900'>{value}</div>
-      <div className='text-xs text-gray-400'>{label}</div>
-    </div>
-  </div>
-);
+const ACCENT = '#6366f1';
+const POSITIVE = '#10b981';
+
+const labelStyle: CSSProperties = {
+  fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', color: T.gray60, margin: 0,
+};
+
+const metricStyle: CSSProperties = { fontSize: 48, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1 };
+
+const unitStyle: CSSProperties = { fontSize: 20, fontWeight: 500, color: T.gray50 };
+
+const columnStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 8, flex: 1, padding: '28px 40px' };
+
+const buttonStyle: CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 12px',
+  fontSize: 14, fontWeight: 500, color: T.gray80, fontFamily: 'inherit',
+  border: `1px solid ${T.gray20}`, borderRadius: 8, background: T.white, boxShadow: shadow.sm,
+  cursor: 'pointer', flexShrink: 0,
+};
+
+const pageButtonStyle = (disabled: boolean): CSSProperties => ({
+  ...buttonStyle, height: 32, fontSize: 13, boxShadow: 'none',
+  opacity: disabled ? 0.4 : 1, cursor: disabled ? 'not-allowed' : 'pointer',
+});
+
+const headerCellStyle: CSSProperties = {
+  padding: '12px 16px', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
+  color: T.gray50, borderBottom: `1px solid ${T.gray15}`, background: T.gray5, whiteSpace: 'nowrap',
+};
+
+const tableStyle: CSSProperties = {
+  width: '100%', fontSize: 14, textAlign: 'left', borderCollapse: 'separate', borderSpacing: 0,
+};
+
+const linkStyle: CSSProperties = { color: T.primary, textDecoration: 'underline', textUnderlineOffset: 2 };
+
+const SUB_ACCOUNT_COLUMNS = [
+  'ID', 'Email', 'Active Storage (TB)', 'Deleted Storage (TB)', 'Status', 'Created', 'Stripe',
+];
 
 const formatStorage = (bytes: number) => (bytes / 1e12).toFixed(4);
 const formatDate = (s: string | null | undefined) =>
@@ -119,39 +147,41 @@ export const PartnerDetailPage = () => {
   }
 
   if (partnerLoading || !partner) {
-    return <div className='p-10 text-center text-sm text-gray-400'>Loading…</div>;
+    return <div style={{ ...text.hint, padding: 40, textAlign: 'center' }}>Loading…</div>;
   }
 
   const totalPages = Math.ceil(total / PER_PAGE);
 
   return (
-    <div className='flex flex-col gap-5'>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Header */}
-      <div className='flex items-start gap-4'>
-        <button
-          onClick={() => navigate('/management/partners')}
-          className='flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm hover:bg-gray-50 transition-colors flex-shrink-0'
-        >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+        <button onClick={() => navigate('/management/partners')} style={buttonStyle}>
           <ArrowLeft size={14} />
           Back
         </button>
         <div>
-          <div className='flex items-center gap-3'>
-            <h1 className='text-lg font-bold text-gray-900'>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <h1 style={{ ...text.heading, margin: 0 }}>
               {partner.name ?? <span className='font-mono'>{partner.storageProviderId}</span>}
             </h1>
             <StatusBadge status={partner.status} />
           </div>
-          {partner.email && (
-            <p className='text-sm text-gray-400 mt-0.5'>{partner.email}</p>
-          )}
-          <p className='text-xs text-gray-300 mt-0.5 font-mono'>ID {partner.storageProviderId}</p>
+          {partner.email && <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{partner.email}</p>}
+          <p className='font-mono' style={{ fontSize: 12, color: T.gray50, margin: '2px 0 0' }}>
+            ID {partner.storageProviderId}
+          </p>
         </div>
         <button
           onClick={() => setIsExportModalOpen(true)}
           disabled={total === 0}
           title='Export the same usage .xlsx this partner gets in their panel'
-          className='ml-auto flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm hover:bg-gray-50 transition-colors flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed'
+          style={{
+            ...buttonStyle,
+            marginLeft: 'auto',
+            opacity: total === 0 ? 0.4 : 1,
+            cursor: total === 0 ? 'not-allowed' : 'pointer',
+          }}
         >
           <DownloadSimple size={14} />
           Export usage
@@ -168,23 +198,23 @@ export const PartnerDetailPage = () => {
         maxRangeDays={SUB_ACCOUNTS_EXPORT_MAX_DAYS}
       />
 
-      {/* Stat cards */}
-      <div className='grid grid-cols-1 gap-4 sm:grid-cols-3'>
-        <StatCard
-          icon={<Database size={20} weight='duotone' className='text-indigo-600' />}
-          value={`${partner.activeStorageTb.toFixed(4)} TB`}
-          label='Active Storage'
-        />
-        <StatCard
-          icon={<Users size={20} weight='duotone' className='text-indigo-600' />}
-          value={loading ? '…' : String(total)}
-          label='Sub-accounts'
-        />
-        <StatCard
-          icon={<Database size={20} weight='duotone' className='text-indigo-600' />}
-          value={formatDate(partner.providerCreatedAt)}
-          label='Partner Created'
-        />
+      {/* Stats */}
+      <div style={{ ...card, borderRadius: 16, display: 'flex' }}>
+        <div style={columnStyle}>
+          <p style={labelStyle}>Active Storage</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ ...metricStyle, color: ACCENT }}>{partner.activeStorageTb.toFixed(4)}</span>
+            <span style={unitStyle}>TB</span>
+          </div>
+        </div>
+        <div style={{ ...columnStyle, borderLeft: `1px solid ${T.gray20}` }}>
+          <p style={labelStyle}>Sub-accounts</p>
+          <span style={{ ...metricStyle, color: POSITIVE }}>{loading ? '…' : total}</span>
+        </div>
+        <div style={{ ...columnStyle, borderLeft: `1px solid ${T.gray20}` }}>
+          <p style={labelStyle}>Partner Created</p>
+          <span style={{ ...metricStyle, fontSize: 32, color: T.gray80 }}>{formatDate(partner.providerCreatedAt)}</span>
+        </div>
       </div>
 
       {/* Usage section */}
@@ -214,32 +244,33 @@ export const PartnerDetailPage = () => {
       </div>
 
       {/* Sub-accounts section */}
-      <div className='bg-white rounded-xl shadow-sm overflow-hidden'>
-        <div className='px-5 py-4 border-b border-gray-100'>
-          <h2 className='text-sm font-semibold text-gray-700'>Sub-accounts</h2>
+      <div style={{ ...card, overflow: 'hidden' }}>
+        <div style={{ padding: '18px 24px', borderBottom: `1px solid ${T.gray15}` }}>
+          <span style={text.heading}>Sub-accounts</span>
         </div>
 
-        <div className='overflow-x-auto relative'>
-          {/* Loading bar */}
-          <div className={`absolute top-0 left-0 right-0 h-[2px] overflow-hidden transition-opacity duration-300 ${loading ? 'opacity-100' : 'opacity-0'}`}>
-            <div className='h-full bg-indigo-400/30 w-full'>
-              <div className='h-full bg-indigo-400 animate-loading-bar' />
+        <div style={{ overflowX: 'auto', position: 'relative' }}>
+          <div
+            style={{
+              position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+              overflow: 'hidden', transition: 'opacity 300ms', opacity: loading ? 1 : 0,
+            }}
+          >
+            <div style={{ height: '100%', background: T.primaryBg14, width: '100%' }}>
+              <div className='animate-loading-bar' style={{ height: '100%', background: T.primary }} />
             </div>
           </div>
 
-          <table className='w-full text-sm text-left border-separate border-spacing-0'>
+          <table style={tableStyle}>
             <thead>
               <tr>
-                {['ID', 'Email', 'Active Storage (TB)', 'Deleted Storage (TB)', 'Status', 'Created', 'Stripe'].map((h) => (
-                  <th
-                    key={h}
-                    className='px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-400 border-b border-gray-100 bg-white whitespace-nowrap'
-                  >
+                {SUB_ACCOUNT_COLUMNS.map((h) => (
+                  <th key={h} style={headerCellStyle}>
                     {h === 'Stripe' ? (
-                      <span className='inline-flex items-center gap-1'>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         {h}
                         <span title="Sub-accounts belonging to a partner share the partner's own Stripe customer.">
-                          <Info size={12} className='text-gray-400' />
+                          <Info size={12} color={T.gray50} />
                         </span>
                       </span>
                     ) : (
@@ -249,55 +280,67 @@ export const PartnerDetailPage = () => {
                 ))}
               </tr>
             </thead>
-            <tbody className={`transition-opacity duration-200 ${loading ? 'opacity-40' : 'opacity-100'}`}>
+            <tbody style={{ transition: 'opacity 200ms', opacity: loading ? 0.4 : 1 }}>
               {subAccounts.length === 0 && !loading ? (
                 <tr>
-                  <td colSpan={7} className='text-center py-16 text-gray-300 text-sm font-medium'>
+                  <td
+                    colSpan={SUB_ACCOUNT_COLUMNS.length}
+                    style={{ textAlign: 'center', padding: '64px 0', color: T.gray50, fontSize: 14, fontWeight: 500 }}
+                  >
                     No sub-accounts linked to this partner
                   </td>
                 </tr>
               ) : (
-                subAccounts.map((sa, idx) => (
-                  <tr key={sa.id} className='hover:bg-gray-50/80 transition-colors'>
-                    <td
-                      className={`px-4 py-3.5 ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}
-                      onClick={() => navigate(`/management/accounts/${sa.id}`)}
+                subAccounts.map((sa, idx) => {
+                  const cell: CSSProperties = {
+                    padding: '14px 16px',
+                    borderBottom: idx < subAccounts.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                  };
+                  const numberCell: CSSProperties = {
+                    ...cell, fontSize: 13, color: T.gray80, fontVariantNumeric: 'tabular-nums',
+                  };
+                  return (
+                    <tr
+                      key={sa.id}
+                      style={{ transition: 'background 120ms' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = T.gray5; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
-                      <span className='font-mono text-[11px] text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2 cursor-pointer tracking-tight'>
-                        {sa.id.slice(0, 8)}…{sa.id.slice(-4)}
-                      </span>
-                    </td>
-                    <td className={`px-4 py-3.5 text-[13px] text-gray-600 ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                      {sa.email ?? '—'}
-                    </td>
-                    <td className={`px-4 py-3.5 font-mono text-[12px] text-gray-700 tabular-nums ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                      {formatStorage(sa.activeStorageBytes)}
-                    </td>
-                    <td className={`px-4 py-3.5 font-mono text-[12px] text-gray-700 tabular-nums ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                      {formatStorage(sa.deletedStorageBytes)}
-                    </td>
-                    <td className={`px-4 py-3.5 ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                      <StatusBadge status={sa.status} />
-                    </td>
-                    <td className={`px-4 py-3.5 text-[12px] text-gray-500 whitespace-nowrap ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                      {formatDate(sa.createdAt)}
-                    </td>
-                    <td className={`px-4 py-3.5 text-[12px] whitespace-nowrap ${idx < subAccounts.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                      {sa.customerId ? (
-                        <a
-                          href={`https://dashboard.stripe.com/customers/${sa.customerId}`}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          className='inline-flex items-center gap-1 text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2'
+                      <td style={cell}>
+                        <span
+                          onClick={() => navigate(`/management/accounts/${sa.id}`)}
+                          className='font-mono'
+                          style={{ ...linkStyle, fontSize: 12, cursor: 'pointer' }}
                         >
-                          View <ArrowSquareOut size={12} />
-                        </a>
-                      ) : (
-                        <span className='text-gray-300'>—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                          {sa.id.slice(0, 8)}…{sa.id.slice(-4)}
+                        </span>
+                      </td>
+                      <td style={{ ...cell, fontSize: 13, color: T.gray80 }}>{sa.email ?? '—'}</td>
+                      <td style={numberCell}>{formatStorage(sa.activeStorageBytes)}</td>
+                      <td style={numberCell}>{formatStorage(sa.deletedStorageBytes)}</td>
+                      <td style={cell}>
+                        <StatusBadge status={sa.status} />
+                      </td>
+                      <td style={{ ...cell, fontSize: 13, color: T.gray60, whiteSpace: 'nowrap' }}>
+                        {formatDate(sa.createdAt)}
+                      </td>
+                      <td style={{ ...cell, fontSize: 13, whiteSpace: 'nowrap' }}>
+                        {sa.customerId ? (
+                          <a
+                            href={`https://dashboard.stripe.com/customers/${sa.customerId}`}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            style={{ ...linkStyle, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          >
+                            View <ArrowSquareOut size={12} />
+                          </a>
+                        ) : (
+                          <span style={{ color: T.gray50 }}>—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -305,23 +348,24 @@ export const PartnerDetailPage = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className='flex items-center justify-between px-5 py-3 border-t border-gray-50'>
-            <span className='text-xs text-gray-400'>
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 24px', borderTop: `1px solid ${T.gray15}`,
+            }}
+          >
+            <span style={text.caption}>
               {page * PER_PAGE + 1}–{Math.min((page + 1) * PER_PAGE, total)} of {total}
             </span>
-            <div className='flex items-center gap-1'>
-              <button
-                disabled={page === 0}
-                onClick={() => setPage((p) => p - 1)}
-                className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed'
-              >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} style={pageButtonStyle(page === 0)}>
                 <CaretLeft size={14} /> Prev
               </button>
-              <span className='px-3 py-1.5 text-sm text-gray-500'>{page + 1} / {totalPages}</span>
+              <span style={{ ...text.hint, padding: '0 12px' }}>{page + 1} / {totalPages}</span>
               <button
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage((p) => p + 1)}
-                className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed'
+                style={pageButtonStyle(page >= totalPages - 1)}
               >
                 Next <CaretRight size={14} />
               </button>
