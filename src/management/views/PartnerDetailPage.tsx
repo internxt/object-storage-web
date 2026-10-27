@@ -168,7 +168,7 @@ export const PartnerDetailPage = () => {
 
   useEffect(() => {
     if (!id) return;
-    const statePartner: Partner | undefined = (location.state as any)?.partner;
+    const statePartner: Partner | undefined = (location.state as { partner?: Partner })?.partner;
     if (statePartner && statePartner.id === id) {
       setPartner(statePartner);
       setPartnerLoading(false);

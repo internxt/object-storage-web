@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 type DropdownItem = {
@@ -59,7 +59,21 @@ export const Dropdown = ({ button, items, width = 'w-36', label }: DropdownProps
     };
   };
 
-  const position = getDropdownPosition();
+  const [position, setPosition] = useState(() => ({
+    top: 0 as number | undefined,
+    bottom: undefined as number | undefined,
+    right: 0,
+    width: 0,
+  }));
+
+  useLayoutEffect(() => {
+    const next = getDropdownPosition();
+    setPosition((prev) =>
+      prev.top === next.top && prev.bottom === next.bottom && prev.right === next.right && prev.width === next.width
+        ? prev
+        : next,
+    );
+  });
 
   const widthClass = width?.match(/w-[^\s]+/)?.[0] || '';
   const otherClasses = width?.replace(widthClass, '').trim() || '';

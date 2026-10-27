@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -515,11 +515,11 @@ export const SubAccountBucketDetailPage = () => {
   const { entityId, memberId, isAdmin } = useSubAccount();
   const { credentials } = useSubAccountS3Client(entityId, memberId);
 
-  const endpointRef = useRef(searchParams.get('endpoint'));
-  const regionRef = useRef(searchParams.get('region'));
+  const [endpointParam] = useState(() => searchParams.get('endpoint'));
+  const [regionParam] = useState(() => searchParams.get('region'));
 
-  const resolvedEndpoint = endpointRef.current ?? (credentials ? new URL(credentials.endpoint).host : undefined);
-  const resolvedRegion = regionRef.current ?? credentials?.region;
+  const resolvedEndpoint = endpointParam ?? (credentials ? new URL(credentials.endpoint).host : undefined);
+  const resolvedRegion = regionParam ?? credentials?.region;
 
   const client = useMemo(() => {
     if (!credentials) return null;
@@ -624,6 +624,9 @@ export const SubAccountBucketDetailPage = () => {
       if (!bucketName) {
         return;
       }
+      // loadObjects is declared further below in this component and reused by several handlers;
+      // moving it above this effect isn't a safe local reorder.
+      // eslint-disable-next-line react-hooks/immutability
       const handle = setTimeout(() => loadObjects(c), searchQuery ? 300 : 0);
       return () => clearTimeout(handle);
     },
@@ -880,8 +883,8 @@ export const SubAccountBucketDetailPage = () => {
 
   const navigateToPrefix = (newPrefix: string) => {
     const next: Record<string, string> = {};
-    if (endpointRef.current) next.endpoint = endpointRef.current;
-    if (regionRef.current) next.region = regionRef.current;
+    if (endpointParam) next.endpoint = endpointParam;
+    if (regionParam) next.region = regionParam;
     if (newPrefix) next.prefix = newPrefix;
     setSearchParams(next);
     setSearchQuery('');
@@ -1058,8 +1061,8 @@ export const SubAccountBucketDetailPage = () => {
     }
   };
 
-  const region = regionRef.current ?? '—';
-  const endpoint = endpointRef.current ?? '';
+  const region = regionParam ?? '—';
+  const endpoint = endpointParam ?? '';
 
   const inputShared: React.CSSProperties = {
     height: 40,

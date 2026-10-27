@@ -77,8 +77,11 @@ export const ChangePasswordModal = ({ isOpen, onClose }: Props) => {
       await partnersService.changePassword(currentPassword, newPassword);
       notificationsService.success({ text: 'Password changed successfully' });
       handleClose();
-    } catch (err: any) {
-      const msg = err?.response?.status === 403 ? 'Current password is incorrect' : 'Failed to change password';
+    } catch (err) {
+      const msg =
+        (err as { response?: { status?: number } })?.response?.status === 403
+          ? 'Current password is incorrect'
+          : 'Failed to change password';
       notificationsService.error({ text: msg });
     } finally {
       setIsLoading(false);
