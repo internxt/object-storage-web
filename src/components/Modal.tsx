@@ -1,13 +1,13 @@
-import { JSX, ReactNode, useEffect, useRef, useState } from 'react'
+import { JSX, ReactNode, useEffect, useRef, useState } from 'react';
 
 export interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  children: ReactNode
-  maxWidth?: string
-  className?: string
-  width?: string
-  preventClosing?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  children: ReactNode;
+  maxWidth?: string;
+  className?: string;
+  width?: string;
+  preventClosing?: boolean;
 }
 
 /**
@@ -60,75 +60,70 @@ const Modal = ({
   width,
   preventClosing = false,
 }: ModalProps): JSX.Element | null => {
-  const modalRef = useRef<HTMLDivElement | null>(null)
-  const [showContent, setShowContent] = useState(isOpen)
-  const [transitionOpacity, setTransitionOpacity] =
-    useState<string>('opacity-0')
-  const [transitionScale, setTransitionScale] = useState<string>('scale-95')
+  const modalRef = useRef<HTMLDivElement | null>(null);
+  const [showContent, setShowContent] = useState(isOpen);
+  const [transitionOpacity, setTransitionOpacity] = useState<string>('opacity-0');
+  const [transitionScale, setTransitionScale] = useState<string>('scale-95');
 
   const closeLastOpenModal = () => {
-    const openModals = document.querySelectorAll('[data-modal]')
-    const lastModal = openModals[openModals.length - 1]
+    const openModals = document.querySelectorAll('[data-modal]');
+    const lastModal = openModals[openModals.length - 1];
     if (modalRef.current === lastModal) {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   useEffect(() => {
     if (isOpen) {
       const timeout = setTimeout(() => {
-        setTransitionOpacity('opacity-100')
-        setTransitionScale('scale-100')
-      }, 10)
-      setShowContent(true)
-      return () => clearTimeout(timeout)
+        setTransitionOpacity('opacity-100');
+        setTransitionScale('scale-100');
+      }, 10);
+      setShowContent(true);
+      return () => clearTimeout(timeout);
     } else {
-      setTransitionOpacity('opacity-0')
-      setTransitionScale('scale-95')
+      setTransitionOpacity('opacity-0');
+      setTransitionScale('scale-95');
       const timeout = setTimeout(() => {
-        setShowContent(false)
-      }, 150)
-      return () => clearTimeout(timeout)
+        setShowContent(false);
+      }, 150);
+      return () => clearTimeout(timeout);
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node) &&
-        !preventClosing
-      ) {
-        event.preventDefault()
-        closeLastOpenModal()
+      if (modalRef.current && !modalRef.current.contains(event.target as Node) && !preventClosing) {
+        event.preventDefault();
+        closeLastOpenModal();
       }
-    }
+    };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isOpen, onClose, preventClosing])
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose, preventClosing]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !preventClosing) {
-        event.preventDefault()
-        closeLastOpenModal()
+        event.preventDefault();
+        closeLastOpenModal();
       }
-    }
+    };
 
     if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown)
+      window.addEventListener('keydown', handleKeyDown);
     }
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isOpen, onClose, preventClosing])
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose, preventClosing]);
 
   return (
     <>
@@ -191,7 +186,7 @@ const Modal = ({
         </div>
       )}
     </>
-  )
-}
+  );
+};
 
-export default Modal
+export default Modal;

@@ -8,11 +8,11 @@ export const AuthRoute = () => {
   const hasToken = !!localStorageService.getUserToken();
 
   if (isLoading) {
-    return hasToken ? null : <Navigate to='/login' replace />;
+    return hasToken ? null : <Navigate to="/login" replace />;
   }
 
   if (!isAuthenticated && !hasToken) {
-    return <Navigate to='/login' replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return (

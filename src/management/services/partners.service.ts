@@ -38,7 +38,13 @@ export interface PartnerSubAccount {
   customerId: string | null;
 }
 
-async function createPartner(dto: { name: string; email: string; password: string; country: string; postalCode: string }): Promise<void> {
+async function createPartner(dto: {
+  name: string;
+  email: string;
+  password: string;
+  country: string;
+  postalCode: string;
+}): Promise<void> {
   await managementAxios.post(`${API}/partners`, dto);
 }
 
@@ -103,9 +109,12 @@ async function getPartnerSubAccountsUsage(
   partnerId: string,
   params: { from: string; to: string },
 ): Promise<SubAccountsUsageReport> {
-  const response = await managementAxios.get<SubAccountsUsageReport>(`${API}/partners/${partnerId}/usages/sub-accounts`, {
-    params,
-  });
+  const response = await managementAxios.get<SubAccountsUsageReport>(
+    `${API}/partners/${partnerId}/usages/sub-accounts`,
+    {
+      params,
+    },
+  );
   const report = response.data;
   return { ...report, items: report.items.map((item) => ({ ...item, status: toConsoleStatus(item.status) })) };
 }

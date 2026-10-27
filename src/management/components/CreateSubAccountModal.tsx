@@ -1,44 +1,37 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import Modal from '../../components/Modal'
-import Button from '../../components/Button'
-import { CreateSubAccountDto } from '../services/management.service'
-import { Copy, Check } from 'lucide-react'
-import { Eye, EyeSlash } from '@phosphor-icons/react'
-import { COUNTRIES, getFlagEmoji } from '../../utils/countries'
-import { validatePassword } from '../../components/auth/passwordPolicy'
-import { PasswordRequirements } from '../../components/FieldFeedback'
-import { Field, inputClass } from '../../components/FormField'
-import { requiredNameRules } from '../../utils/clientName'
-import { apiErrorMessage } from '../../utils/apiError'
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import Modal from '../../components/Modal';
+import Button from '../../components/Button';
+import { CreateSubAccountDto } from '../services/management.service';
+import { Copy, Check } from 'lucide-react';
+import { Eye, EyeSlash } from '@phosphor-icons/react';
+import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
+import { validatePassword } from '../../components/auth/passwordPolicy';
+import { PasswordRequirements } from '../../components/FieldFeedback';
+import { Field, inputClass } from '../../components/FormField';
+import { requiredNameRules } from '../../utils/clientName';
+import { apiErrorMessage } from '../../utils/apiError';
 
 interface Props {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (dto: CreateSubAccountDto) => Promise<void>
-  consoleUrl: string
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (dto: CreateSubAccountDto) => Promise<void>;
+  consoleUrl: string;
 }
 
-type FormValues = CreateSubAccountDto & { confirmPassword?: string }
+type FormValues = CreateSubAccountDto & { confirmPassword?: string };
 
 interface SuccessData {
-  email: string
-  password: string
+  email: string;
+  password: string;
 }
 
-export const CreateSubAccountModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  consoleUrl,
-}: Props) => {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string>()
-  const [successData, setSuccessData] = useState<SuccessData | null>(null)
-  const [copiedField, setCopiedField] = useState<
-    'email' | 'password' | 'url' | null
-  >(null)
-  const [showPassword, setShowPassword] = useState(false)
+export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit, consoleUrl }: Props) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string>();
+  const [successData, setSuccessData] = useState<SuccessData | null>(null);
+  const [copiedField, setCopiedField] = useState<'email' | 'password' | 'url' | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -46,58 +39,53 @@ export const CreateSubAccountModal = ({
     watch,
     reset,
     formState: { errors, isValid },
-  } = useForm<FormValues>({ mode: 'all' })
+  } = useForm<FormValues>({ mode: 'all' });
 
-  const password = watch('password')
-  const passwordErrors = password
-    ? validatePassword(password)
-    : []
+  const password = watch('password');
+  const passwordErrors = password ? validatePassword(password) : [];
 
   const handleClose = () => {
-    reset()
-    setError(undefined)
-    setSuccessData(null)
-    setShowPassword(false)
-    onClose()
-  }
+    reset();
+    setError(undefined);
+    setSuccessData(null);
+    setShowPassword(false);
+    onClose();
+  };
 
-  const handleCopy = async (
-    text: string,
-    field: 'email' | 'password' | 'url',
-  ) => {
+  const handleCopy = async (text: string, field: 'email' | 'password' | 'url') => {
     try {
-      await navigator.clipboard.writeText(text)
-      setCopiedField(field)
-      setTimeout(() => setCopiedField(null), 2000)
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err)
+      console.error('Failed to copy:', err);
     }
-  }
+  };
 
   const onFormSubmit = async (data: FormValues) => {
-    setIsSubmitting(true)
-    setError(undefined)
+    setIsSubmitting(true);
+    setError(undefined);
     try {
-      const { ...dto } = data
+      const { ...dto } = data;
       await onSubmit({
         ...dto,
         trialQuotaTB: dto.trialQuotaTB ? Number(dto.trialQuotaTB) : undefined,
         trialDays: dto.trialDays ? Number(dto.trialDays) : undefined,
-      })
+      });
       // Mostrar modal de éxito con credenciales
       setSuccessData({
         email: data.email,
         password: data.password,
-      })
+      });
     } catch (err) {
-      setError(apiErrorMessage(err, 'Failed to create sub-account'))
+      setError(apiErrorMessage(err, 'Failed to create sub-account'));
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const isPasswordValid = !!password && passwordErrors.length === 0
-  const isFormValid = isValid && isPasswordValid
+  const isPasswordValid = !!password && passwordErrors.length === 0;
+  const isFormValid = isValid && isPasswordValid;
 
   // Modal de éxito con credenciales
   if (successData) {
@@ -108,13 +96,9 @@ export const CreateSubAccountModal = ({
             <Check className="w-6 h-6 text-green" />
           </div>
 
-          <h2 className="text-lg font-semibold text-center text-gray-100">
-            Sub-Account Created Successfully
-          </h2>
+          <h2 className="text-lg font-semibold text-center text-gray-100">Sub-Account Created Successfully</h2>
 
-          <p className="text-sm text-gray-60 text-center">
-            Share these credentials with the new account owner:
-          </p>
+          <p className="text-sm text-gray-60 text-center">Share these credentials with the new account owner:</p>
 
           <div className="space-y-3">
             <CredentialField
@@ -140,8 +124,7 @@ export const CreateSubAccountModal = ({
 
           <div className="p-3 bg-yellow/10 border border-yellow rounded-md">
             <p className="text-xs text-yellow-dark">
-              ⚠️ Make sure to share these credentials securely. The password
-              will not be shown again.
+              ⚠️ Make sure to share these credentials securely. The password will not be shown again.
             </p>
           </div>
 
@@ -150,21 +133,16 @@ export const CreateSubAccountModal = ({
           </Button>
         </div>
       </Modal>
-    )
+    );
   }
 
   // Modal de formulario
   return (
     <Modal isOpen={isOpen} onClose={handleClose} maxWidth="max-w-md">
       <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold text-gray-100">
-          Create Sub-Account
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-100">Create Sub-Account</h2>
 
-        <form
-          onSubmit={handleSubmit(onFormSubmit)}
-          className="flex flex-col gap-3"
-        >
+        <form onSubmit={handleSubmit(onFormSubmit)} className="flex flex-col gap-3">
           <Field label="Name" error={errors.name?.message}>
             <input
               {...register('name', requiredNameRules())}
@@ -191,8 +169,7 @@ export const CreateSubAccountModal = ({
                 {...register('password', {
                   required: 'Password is required',
                   validate: (value: string) =>
-                    validatePassword(value).length ===
-                      0 || 'Password does not meet the requirements',
+                    validatePassword(value).length === 0 || 'Password does not meet the requirements',
                 })}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Password"
@@ -211,9 +188,7 @@ export const CreateSubAccountModal = ({
                 )}
               </button>
             </div>
-            {passwordErrors.length > 0 && (
-              <PasswordRequirements errors={passwordErrors} />
-            )}
+            {passwordErrors.length > 0 && <PasswordRequirements errors={passwordErrors} />}
           </Field>
 
           <Field label="Country" error={errors.country?.message}>
@@ -232,9 +207,7 @@ export const CreateSubAccountModal = ({
                   </option>
                 ))}
               </select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                ▾
-              </span>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">▾</span>
             </div>
           </Field>
 
@@ -251,27 +224,18 @@ export const CreateSubAccountModal = ({
           {error && <p className="text-sm text-red">{error}</p>}
 
           <div className="flex justify-end gap-3 pt-2">
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
+            <Button variant="secondary" type="button" onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={!isFormValid || isSubmitting}
-              loading={isSubmitting}
-            >
+            <Button type="submit" disabled={!isFormValid || isSubmitting} loading={isSubmitting}>
               Create
             </Button>
           </div>
         </form>
       </div>
     </Modal>
-  )
-}
+  );
+};
 
 const CredentialField = ({
   label,
@@ -280,21 +244,19 @@ const CredentialField = ({
   onCopy,
   isPassword = false,
 }: {
-  label: string
-  value: string
-  isCopied: boolean
-  onCopy: () => void
-  isPassword?: boolean
+  label: string;
+  value: string;
+  isCopied: boolean;
+  onCopy: () => void;
+  isPassword?: boolean;
 }) => {
-  const displayValue = isPassword ? '•'.repeat(value.length) : value
+  const displayValue = isPassword ? '•'.repeat(value.length) : value;
 
   return (
     <div className="flex items-center justify-between p-3 border border-gray-20 rounded-md bg-gray-5">
       <div>
         <p className="text-xs font-medium text-gray-60">{label}</p>
-        <p className="text-sm font-mono text-gray-100 break-all">
-          {displayValue}
-        </p>
+        <p className="text-sm font-mono text-gray-100 break-all">{displayValue}</p>
       </div>
       <button
         type="button"
@@ -302,12 +264,8 @@ const CredentialField = ({
         className="ml-2 p-2 hover:bg-gray-20 rounded transition-colors flex-shrink-0"
         title="Copy to clipboard"
       >
-        {isCopied ? (
-          <Check className="w-5 h-5 text-green" />
-        ) : (
-          <Copy className="w-5 h-5 text-gray-60" />
-        )}
+        {isCopied ? <Check className="w-5 h-5 text-green" /> : <Copy className="w-5 h-5 text-gray-60" />}
       </button>
     </div>
-  )
-}
+  );
+};

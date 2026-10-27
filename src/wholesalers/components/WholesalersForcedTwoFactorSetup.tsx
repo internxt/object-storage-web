@@ -32,7 +32,7 @@ export const WholesalersForcedTwoFactorSetup = () => {
                 color: T.red,
               }}
             >
-              <ShieldWarningIcon size={20} weight='fill' />
+              <ShieldWarningIcon size={20} weight="fill" />
             </div>
             <p style={{ ...text.heading, margin: 0 }}>Set up two-factor authentication</p>
             <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>

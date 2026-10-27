@@ -10,9 +10,7 @@ interface ManagementContextType {
 const ManagementContext = createContext<ManagementContextType | undefined>(undefined);
 
 export const ManagementProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => !!managementAuthService.getToken()
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!managementAuthService.getToken());
 
   const logIn = async (email: string, password: string, code?: string) => {
     await managementAuthService.logIn(email, password, code);
@@ -24,16 +22,9 @@ export const ManagementProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
   };
 
-  const value = useMemo(
-    () => ({ isAuthenticated, logIn, logOut }),
-    [isAuthenticated]
-  );
+  const value = useMemo(() => ({ isAuthenticated, logIn, logOut }), [isAuthenticated]);
 
-  return (
-    <ManagementContext.Provider value={value}>
-      {children}
-    </ManagementContext.Provider>
-  );
+  return <ManagementContext.Provider value={value}>{children}</ManagementContext.Provider>;
 };
 
 export const useManagement = (): ManagementContextType => {

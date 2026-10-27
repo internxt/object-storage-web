@@ -1,10 +1,10 @@
-import { ReactNode, useEffect, useRef, useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useWholesalers } from '../context/wholesalersContext'
-import { SignOutIcon, ArrowSquareOutIcon, GearSixIcon, QuestionIcon } from '@phosphor-icons/react'
-import { wholesalersService } from '../services/wholesalers.service'
-import notificationsService from '../../services/notifications.service'
-import { T, shadow } from '../../sub-account/tokens'
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useWholesalers } from '../context/wholesalersContext';
+import { SignOutIcon, ArrowSquareOutIcon, GearSixIcon, QuestionIcon } from '@phosphor-icons/react';
+import { wholesalersService } from '../services/wholesalers.service';
+import notificationsService from '../../services/notifications.service';
+import { T, shadow } from '../../sub-account/tokens';
 
 const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
   height: '100%',
@@ -17,21 +17,21 @@ const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
   color: isActive ? T.gray100 : T.gray60,
   textDecoration: 'none',
   whiteSpace: 'nowrap',
-})
+});
 
 const AvatarMenu = ({ initials, onLogout }: { initials: string; onLogout: () => void }) => {
-  const [open, setOpen] = useState(false)
-  const navigate = useNavigate()
-  const ref = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -78,8 +78,8 @@ const AvatarMenu = ({ initials, onLogout }: { initials: string; onLogout: () => 
           <button
             role="menuitem"
             onClick={() => {
-              setOpen(false)
-              navigate('/wholesalers/settings')
+              setOpen(false);
+              navigate('/wholesalers/settings');
             }}
             style={{
               display: 'flex',
@@ -128,32 +128,32 @@ const AvatarMenu = ({ initials, onLogout }: { initials: string; onLogout: () => 
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 export const WholesalersLayout = ({ children }: { children: ReactNode }) => {
-  const { logOut, wholesalerEmail } = useWholesalers()
-  const navigate = useNavigate()
-  const [billingLoading, setBillingLoading] = useState(false)
+  const { logOut, wholesalerEmail } = useWholesalers();
+  const navigate = useNavigate();
+  const [billingLoading, setBillingLoading] = useState(false);
 
   const openBilling = async () => {
-    setBillingLoading(true)
+    setBillingLoading(true);
     try {
-      const { url } = await wholesalersService.createBillingPortalSession()
-      window.open(url, '_blank')
+      const { url } = await wholesalersService.createBillingPortalSession();
+      window.open(url, '_blank');
     } catch {
-      notificationsService.error({ text: 'Failed to open billing portal' })
+      notificationsService.error({ text: 'Failed to open billing portal' });
     } finally {
-      setBillingLoading(false)
+      setBillingLoading(false);
     }
-  }
+  };
 
   const handleLogOut = () => {
-    logOut()
-    navigate('/wholesalers/login')
-  }
+    logOut();
+    navigate('/wholesalers/login');
+  };
 
-  const initials = (wholesalerEmail ?? '?').trim().slice(0, 2).toUpperCase()
+  const initials = (wholesalerEmail ?? '?').trim().slice(0, 2).toUpperCase();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: T.gray5 }}>
@@ -251,5 +251,5 @@ export const WholesalersLayout = ({ children }: { children: ReactNode }) => {
 
       <main style={{ flex: 1, padding: 24, overflow: 'auto', background: T.gray5 }}>{children}</main>
     </div>
-  )
-}
+  );
+};

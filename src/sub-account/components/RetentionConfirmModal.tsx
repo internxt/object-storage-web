@@ -32,7 +32,8 @@ export const RetentionConfirmModal = ({
   }, [isOpen]);
 
   const canConfirm = typed === 'CONFIRM';
-  const label = mode === RetentionMode.GOVERNANCE ? t('retentionConfirmModal.governance') : t('retentionConfirmModal.compliance');
+  const label =
+    mode === RetentionMode.GOVERNANCE ? t('retentionConfirmModal.governance') : t('retentionConfirmModal.compliance');
   const scaleLabel = scale === 'years' ? t('retentionConfirmModal.years') : t('retentionConfirmModal.days');
 
   return (
@@ -53,18 +54,20 @@ export const RetentionConfirmModal = ({
         <div className="flex flex-col gap-3">
           <p className="m-0 text-sm leading-normal text-gray-80">
             {t('retentionConfirmModal.bodyPrefix', { label })}{' '}
-            <strong>{value} {scaleLabel}</strong>.
+            <strong>
+              {value} {scaleLabel}
+            </strong>
+            .
           </p>
           {mode === RetentionMode.COMPLIANCE && (
-            <p className="m-0 text-sm leading-normal text-gray-80">
-              {t('retentionConfirmModal.complianceWarning')}
-            </p>
+            <p className="m-0 text-sm leading-normal text-gray-80">{t('retentionConfirmModal.complianceWarning')}</p>
           )}
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="confirm-retention" className="text-[13px] font-medium text-gray-80">
-            {t('retentionConfirmModal.confirmLabelPrefix')} <strong>CONFIRM</strong> {t('retentionConfirmModal.confirmLabelSuffix')}
+            {t('retentionConfirmModal.confirmLabelPrefix')} <strong>CONFIRM</strong>{' '}
+            {t('retentionConfirmModal.confirmLabelSuffix')}
           </label>
           <input
             id="confirm-retention"

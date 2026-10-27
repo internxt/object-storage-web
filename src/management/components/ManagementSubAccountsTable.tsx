@@ -71,60 +71,116 @@ const ActionsMenu = ({
       <button
         ref={btnRef}
         onClick={handleOpen}
-        style={{ padding: 6, borderRadius: 8, color: T.gray50, background: 'transparent', border: 'none', cursor: 'pointer' }}
-        onMouseEnter={(e) => { e.currentTarget.style.color = T.gray80; e.currentTarget.style.background = T.gray10; }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = T.gray50; e.currentTarget.style.background = 'transparent'; }}
+        style={{
+          padding: 6,
+          borderRadius: 8,
+          color: T.gray50,
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = T.gray80;
+          e.currentTarget.style.background = T.gray10;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = T.gray50;
+          e.currentTarget.style.background = 'transparent';
+        }}
       >
-        <DotsThree size={17} weight='bold' />
+        <DotsThree size={17} weight="bold" />
       </button>
-      {open && createPortal(
-        <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
-          <div
-            style={{
-              position: 'fixed', top: coords.top, right: coords.right,
-              background: T.white, border: `1px solid ${T.gray15}`, borderRadius: 12,
-              boxShadow: shadow.lg, width: 144, zIndex: 50, overflow: 'hidden', padding: '4px 0',
-            }}
-          >
-            {account.status !== 'SUSPENDED' ? (
-              <button
-                onClick={() => { setConfirmAction('suspend'); setOpen(false); }}
-                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 16px', fontSize: 14, color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                Suspend
-              </button>
-            ) : (
-              <button
-                onClick={() => { setConfirmAction('reactivate'); setOpen(false); }}
-                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 16px', fontSize: 14, color: '#059669', background: 'transparent', border: 'none', cursor: 'pointer' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#ecfdf5'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                Reactivate
-              </button>
-            )}
-          </div>
-        </>,
-        document.body,
-      )}
+      {open &&
+        createPortal(
+          <>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
+            <div
+              style={{
+                position: 'fixed',
+                top: coords.top,
+                right: coords.right,
+                background: T.white,
+                border: `1px solid ${T.gray15}`,
+                borderRadius: 12,
+                boxShadow: shadow.lg,
+                width: 144,
+                zIndex: 50,
+                overflow: 'hidden',
+                padding: '4px 0',
+              }}
+            >
+              {account.status !== 'SUSPENDED' ? (
+                <button
+                  onClick={() => {
+                    setConfirmAction('suspend');
+                    setOpen(false);
+                  }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '8px 16px',
+                    fontSize: 14,
+                    color: '#ef4444',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#fef2f2';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  Suspend
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setConfirmAction('reactivate');
+                    setOpen(false);
+                  }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '8px 16px',
+                    fontSize: 14,
+                    color: '#059669',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#ecfdf5';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  Reactivate
+                </button>
+              )}
+            </div>
+          </>,
+          document.body,
+        )}
       <ConfirmActionModal
         isOpen={confirmAction === 'suspend'}
-        title='Suspend account?'
-        description='This will suspend the account and block access. You can reactivate it at any time.'
-        confirmLabel='Suspend'
-        variant='danger'
+        title="Suspend account?"
+        description="This will suspend the account and block access. You can reactivate it at any time."
+        confirmLabel="Suspend"
+        variant="danger"
         onConfirm={handleConfirm}
         onCancel={() => setConfirmAction(null)}
       />
       <ConfirmActionModal
         isOpen={confirmAction === 'reactivate'}
-        title='Reactivate account?'
-        description='This will restore access to the account.'
-        confirmLabel='Reactivate'
-        variant='success'
+        title="Reactivate account?"
+        description="This will restore access to the account."
+        confirmLabel="Reactivate"
+        variant="success"
         onConfirm={handleConfirm}
         onCancel={() => setConfirmAction(null)}
       />
@@ -144,14 +200,21 @@ export const ManagementSubAccountsTable = ({
   const navigate = useNavigate();
 
   const linkStyle: React.CSSProperties = {
-    fontSize: 14, color: T.primary, textDecoration: 'underline', textUnderlineOffset: 2, cursor: 'pointer',
+    fontSize: 14,
+    color: T.primary,
+    textDecoration: 'underline',
+    textUnderlineOffset: 2,
+    cursor: 'pointer',
   };
 
   const columns: ColumnDef[] = [
     {
       header: 'ID',
       cell: (acc) => (
-        <span onClick={() => navigate(`/management/accounts/${acc.id}`)} style={{ ...linkStyle, fontFamily: 'monospace', fontSize: 13, letterSpacing: '-0.01em' }}>
+        <span
+          onClick={() => navigate(`/management/accounts/${acc.id}`)}
+          style={{ ...linkStyle, fontFamily: 'monospace', fontSize: 13, letterSpacing: '-0.01em' }}
+        >
           {acc.id.slice(0, 8)}…{acc.id.slice(-4)}
         </span>
       ),
@@ -175,16 +238,26 @@ export const ManagementSubAccountsTable = ({
       header: 'Active Storage (TB)',
       align: 'right',
       sortKey: 'activeStorage',
-      cell: (acc) => <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>{formatStorage(acc.activeStorage)}</span>,
+      cell: (acc) => (
+        <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
+          {formatStorage(acc.activeStorage)}
+        </span>
+      ),
     },
     {
       header: 'Deleted Storage (TB)',
       align: 'right',
-      cell: (acc) => <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>{formatStorage(acc.deletedStorage)}</span>,
+      cell: (acc) => (
+        <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
+          {formatStorage(acc.deletedStorage)}
+        </span>
+      ),
     },
     {
       header: 'Created',
-      cell: (acc) => <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>{formatDate(acc.creationDate)}</span>,
+      cell: (acc) => (
+        <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>{formatDate(acc.creationDate)}</span>
+      ),
     },
     {
       header: 'Status',
@@ -203,8 +276,8 @@ export const ManagementSubAccountsTable = ({
         acc.customerId ? (
           <a
             href={`https://dashboard.stripe.com/customers/${acc.customerId}`}
-            target='_blank'
-            rel='noopener noreferrer'
+            target="_blank"
+            rel="noopener noreferrer"
             style={{ ...linkStyle, display: 'inline-flex', alignItems: 'center', gap: 4 }}
           >
             View <ArrowSquareOut size={14} />
@@ -219,8 +292,15 @@ export const ManagementSubAccountsTable = ({
       cell: (acc) =>
         pendingAccountId === acc.id ? (
           <div
-            className='animate-spin'
-            style={{ width: 16, height: 16, borderRadius: '50%', border: `2px solid ${T.gray20}`, borderTopColor: T.primary, display: 'inline-block' }}
+            className="animate-spin"
+            style={{
+              width: 16,
+              height: 16,
+              borderRadius: '50%',
+              border: `2px solid ${T.gray20}`,
+              borderTopColor: T.primary,
+              display: 'inline-block',
+            }}
           />
         ) : (
           <ActionsMenu account={acc} onSuspend={onSuspend} onReactivate={onReactivate} />

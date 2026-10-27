@@ -21,7 +21,8 @@ const ERROR_MESSAGES: Record<string, string> = {
 const errorMessage = (err: unknown): string =>
   ERROR_MESSAGES[apiErrorCode(err) ?? ''] ?? 'Something went wrong. Please try again.';
 
-type CardState = { kind: 'loading' } | { kind: 'failed' } | { kind: 'legacy' } | { kind: 'ready'; status: TwoFactorStatus };
+type CardState =
+  { kind: 'loading' } | { kind: 'failed' } | { kind: 'legacy' } | { kind: 'ready'; status: TwoFactorStatus };
 
 export const TwoFactorCard = () => {
   const [state, setState] = useState<CardState>({ kind: 'loading' });
@@ -91,7 +92,7 @@ export const TwoFactorCard = () => {
                 : 'Add an extra layer of security by requiring a code from an authenticator app when you sign in.'}
             </p>
             {state.status.enabled ? (
-              <Button variant='secondary' onClick={() => setIsDisableOpen(true)}>
+              <Button variant="secondary" onClick={() => setIsDisableOpen(true)}>
                 Disable
               </Button>
             ) : (
@@ -104,13 +105,15 @@ export const TwoFactorCard = () => {
 
   return (
     <SectionCard
-      title='Two-factor authentication'
-      action={state.kind === 'ready' && state.status.enabled ? (
-        <span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green'>
-          <span className='w-1.5 h-1.5 rounded-full bg-green shrink-0' />
-          Enabled
-        </span>
-      ) : undefined}
+      title="Two-factor authentication"
+      action={
+        state.kind === 'ready' && state.status.enabled ? (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green">
+            <span className="w-1.5 h-1.5 rounded-full bg-green shrink-0" />
+            Enabled
+          </span>
+        ) : undefined
+      }
     >
       {renderBody()}
 
@@ -120,7 +123,8 @@ export const TwoFactorCard = () => {
           {isSetupOpen && (
             <TwoFactorSetupForm
               labels={{
-                scanInstructions: 'Scan this QR code with your authenticator app, then enter the 6-digit code it shows.',
+                scanInstructions:
+                  'Scan this QR code with your authenticator app, then enter the 6-digit code it shows.',
                 qrCodeAlt: 'Two-factor authentication QR code',
                 manualEntry: "Can't scan it? Enter this key manually:",
                 codeLabel: 'Verification code',
@@ -146,23 +150,23 @@ export const TwoFactorCard = () => {
           <p style={{ ...text.hint, margin: 0 }}>Enter your password and a code from your authenticator app.</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Password</label>
-            <Input value={disablePassword} onChange={setDisablePassword} variant='password' />
+            <Input value={disablePassword} onChange={setDisablePassword} variant="password" />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Verification code</label>
             <TwoFactorCodeInput
               value={disableCode}
               onChange={setDisableCode}
-              placeholder='000000'
+              placeholder="000000"
               error={disableError}
             />
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
-            <Button variant='secondary' type='button' onClick={closeDisable} disabled={isDisabling}>
+            <Button variant="secondary" type="button" onClick={closeDisable} disabled={isDisabling}>
               Cancel
             </Button>
             <Button
-              type='button'
+              type="button"
               disabled={isDisabling || !disablePassword || disableCode.length !== TWO_FACTOR_CODE_LENGTH}
               loading={isDisabling}
               onClick={handleDisable}

@@ -86,8 +86,7 @@ export const SubAccountSharedPage = () => {
     const query = search.toLowerCase().trim();
     if (!query) return shares;
     return shares.filter(
-      (share) =>
-        shareResourcePath(share).toLowerCase().includes(query) || share.creator.toLowerCase().includes(query),
+      (share) => shareResourcePath(share).toLowerCase().includes(query) || share.creator.toLowerCase().includes(query),
     );
   }, [shares, search]);
 

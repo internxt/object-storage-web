@@ -21,7 +21,12 @@ const ACCENT = '#6366f1';
 const POSITIVE = '#10b981';
 
 const labelStyle: CSSProperties = {
-  fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', color: T.gray60, margin: 0,
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.14em',
+  color: T.gray60,
+  margin: 0,
 };
 
 const metricStyle: CSSProperties = { fontSize: 48, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1 };
@@ -31,35 +36,66 @@ const unitStyle: CSSProperties = { fontSize: 20, fontWeight: 500, color: T.gray5
 const columnStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 8, flex: 1, padding: '28px 40px' };
 
 const buttonStyle: CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 12px',
-  fontSize: 14, fontWeight: 500, color: T.gray80, fontFamily: 'inherit',
-  border: `1px solid ${T.gray20}`, borderRadius: 8, background: T.white, boxShadow: shadow.sm,
-  cursor: 'pointer', flexShrink: 0,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  height: 36,
+  padding: '0 12px',
+  fontSize: 14,
+  fontWeight: 500,
+  color: T.gray80,
+  fontFamily: 'inherit',
+  border: `1px solid ${T.gray20}`,
+  borderRadius: 8,
+  background: T.white,
+  boxShadow: shadow.sm,
+  cursor: 'pointer',
+  flexShrink: 0,
 };
 
 const pageButtonStyle = (disabled: boolean): CSSProperties => ({
-  ...buttonStyle, height: 32, fontSize: 13, boxShadow: 'none',
-  opacity: disabled ? 0.4 : 1, cursor: disabled ? 'not-allowed' : 'pointer',
+  ...buttonStyle,
+  height: 32,
+  fontSize: 13,
+  boxShadow: 'none',
+  opacity: disabled ? 0.4 : 1,
+  cursor: disabled ? 'not-allowed' : 'pointer',
 });
 
 const headerCellStyle: CSSProperties = {
-  padding: '12px 16px', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
-  color: T.gray50, borderBottom: `1px solid ${T.gray15}`, background: T.gray5, whiteSpace: 'nowrap',
+  padding: '12px 16px',
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.1em',
+  color: T.gray50,
+  borderBottom: `1px solid ${T.gray15}`,
+  background: T.gray5,
+  whiteSpace: 'nowrap',
 };
 
 const tableStyle: CSSProperties = {
-  width: '100%', fontSize: 14, textAlign: 'left', borderCollapse: 'separate', borderSpacing: 0,
+  width: '100%',
+  fontSize: 14,
+  textAlign: 'left',
+  borderCollapse: 'separate',
+  borderSpacing: 0,
 };
 
 const linkStyle: CSSProperties = { color: T.primary, textDecoration: 'underline', textUnderlineOffset: 2 };
 
 const SUB_ACCOUNT_COLUMNS = [
-  'ID', 'Email', 'Active Storage (TB)', 'Deleted Storage (TB)', 'Status', 'Created', 'Stripe',
+  'ID',
+  'Email',
+  'Active Storage (TB)',
+  'Deleted Storage (TB)',
+  'Status',
+  'Created',
+  'Stripe',
 ];
 
 const formatStorage = (bytes: number) => (bytes / 1e12).toFixed(4);
-const formatDate = (s: string | null | undefined) =>
-  s && dayjs(s).isValid() ? dayjs(s).format('DD MMM YYYY') : '—';
+const formatDate = (s: string | null | undefined) => (s && dayjs(s).isValid() ? dayjs(s).format('DD MMM YYYY') : '—');
 
 const GB_PER_TB = 1024;
 
@@ -94,8 +130,14 @@ const USAGE_VIEWS = { storage: 'Storage', activity: 'Daily activity' } as const;
 type UsageView = keyof typeof USAGE_VIEWS;
 
 const viewButtonStyle = (selected: boolean): CSSProperties => ({
-  height: 30, padding: '0 12px', border: 'none', borderRadius: 6, cursor: 'pointer',
-  fontSize: 13, fontWeight: 500, fontFamily: 'inherit',
+  height: 30,
+  padding: '0 12px',
+  border: 'none',
+  borderRadius: 6,
+  cursor: 'pointer',
+  fontSize: 13,
+  fontWeight: 500,
+  fontFamily: 'inherit',
   background: selected ? T.white : 'transparent',
   color: selected ? T.gray100 : T.gray60,
   boxShadow: selected ? shadow.sm : 'none',
@@ -195,19 +237,19 @@ export const PartnerDetailPage = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h1 style={{ ...text.heading, margin: 0 }}>
-              {partner.name ?? <span className='font-mono'>{partner.storageProviderId}</span>}
+              {partner.name ?? <span className="font-mono">{partner.storageProviderId}</span>}
             </h1>
             <StatusBadge status={partner.status} />
           </div>
           {partner.email && <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{partner.email}</p>}
-          <p className='font-mono' style={{ fontSize: 12, color: T.gray50, margin: '2px 0 0' }}>
+          <p className="font-mono" style={{ fontSize: 12, color: T.gray50, margin: '2px 0 0' }}>
             ID {partner.storageProviderId}
           </p>
         </div>
         <button
           onClick={() => setIsExportModalOpen(true)}
           disabled={total === 0}
-          title='Export the same usage .xlsx this partner gets in their panel'
+          title="Export the same usage .xlsx this partner gets in their panel"
           style={{
             ...buttonStyle,
             marginLeft: 'auto',
@@ -223,9 +265,11 @@ export const PartnerDetailPage = () => {
       <ExportDateRangeModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
-        onExport={(range) => exportSubAccountsUsageReport(partnersService.getPartnerSubAccountsUsage(partner.id, range))}
+        onExport={(range) =>
+          exportSubAccountsUsageReport(partnersService.getPartnerSubAccountsUsage(partner.id, range))
+        }
         successText={(count) => `Exported usage for ${count} ${count === 1 ? 'sub-account' : 'sub-accounts'}`}
-        title='Export partner sub-account usage'
+        title="Export partner sub-account usage"
         description={`Same export the partner gets in their panel (up to ${SUB_ACCOUNTS_EXPORT_MAX_DAYS} days). To match an invoice, use the same start and end dates shown on it.`}
         maxRangeDays={SUB_ACCOUNTS_EXPORT_MAX_DAYS}
       />
@@ -253,17 +297,22 @@ export const PartnerDetailPage = () => {
       <div style={{ ...card, overflow: 'hidden' }}>
         <div
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap',
-            gap: 16, padding: '18px 24px', borderBottom: `1px solid ${T.gray15}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 16,
+            padding: '18px 24px',
+            borderBottom: `1px solid ${T.gray15}`,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <span style={text.heading}>Usage</span>
-            <div role='tablist' style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 8, background: T.gray10 }}>
+            <div role="tablist" style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 8, background: T.gray10 }}>
               {(Object.keys(USAGE_VIEWS) as UsageView[]).map((view) => (
                 <button
                   key={view}
-                  role='tab'
+                  role="tab"
                   aria-selected={usageView === view}
                   onClick={() => setUsageView(view)}
                   style={viewButtonStyle(usageView === view)}
@@ -278,10 +327,10 @@ export const PartnerDetailPage = () => {
         <div style={{ padding: 24 }}>
           {usageLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-              <div className='w-5 h-5 border-2 border-gray-20 border-t-primary rounded-full animate-spin' />
+              <div className="w-5 h-5 border-2 border-gray-20 border-t-primary rounded-full animate-spin" />
             </div>
           ) : usageFailed ? (
-            <p role='alert' style={{ ...text.hint, color: T.red, textAlign: 'center', padding: '40px 0', margin: 0 }}>
+            <p role="alert" style={{ ...text.hint, color: T.red, textAlign: 'center', padding: '40px 0', margin: 0 }}>
               Couldn't load usage for this period. Try again or pick another date range.
             </p>
           ) : usageSeries.length === 0 ? (
@@ -305,12 +354,18 @@ export const PartnerDetailPage = () => {
         <div style={{ overflowX: 'auto', position: 'relative' }}>
           <div
             style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-              overflow: 'hidden', transition: 'opacity 300ms', opacity: loading ? 1 : 0,
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 2,
+              overflow: 'hidden',
+              transition: 'opacity 300ms',
+              opacity: loading ? 1 : 0,
             }}
           >
             <div style={{ height: '100%', background: T.primaryBg14, width: '100%' }}>
-              <div className='animate-loading-bar' style={{ height: '100%', background: T.primary }} />
+              <div className="animate-loading-bar" style={{ height: '100%', background: T.primary }} />
             </div>
           </div>
 
@@ -350,19 +405,26 @@ export const PartnerDetailPage = () => {
                     borderBottom: idx < subAccounts.length - 1 ? `1px solid ${T.gray15}` : 'none',
                   };
                   const numberCell: CSSProperties = {
-                    ...cell, fontSize: 13, color: T.gray80, fontVariantNumeric: 'tabular-nums',
+                    ...cell,
+                    fontSize: 13,
+                    color: T.gray80,
+                    fontVariantNumeric: 'tabular-nums',
                   };
                   return (
                     <tr
                       key={sa.id}
                       style={{ transition: 'background 120ms' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = T.gray5; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = T.gray5;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                      }}
                     >
                       <td style={cell}>
                         <span
                           onClick={() => navigate(`/management/accounts/${sa.id}`)}
-                          className='font-mono'
+                          className="font-mono"
                           style={{ ...linkStyle, fontSize: 12, cursor: 'pointer' }}
                         >
                           {sa.id.slice(0, 8)}…{sa.id.slice(-4)}
@@ -381,8 +443,8 @@ export const PartnerDetailPage = () => {
                         {sa.customerId ? (
                           <a
                             href={`https://dashboard.stripe.com/customers/${sa.customerId}`}
-                            target='_blank'
-                            rel='noopener noreferrer'
+                            target="_blank"
+                            rel="noopener noreferrer"
                             style={{ ...linkStyle, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                           >
                             View <ArrowSquareOut size={12} />
@@ -403,8 +465,11 @@ export const PartnerDetailPage = () => {
         {totalPages > 1 && (
           <div
             style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 24px', borderTop: `1px solid ${T.gray15}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 24px',
+              borderTop: `1px solid ${T.gray15}`,
             }}
           >
             <span style={text.caption}>
@@ -414,7 +479,9 @@ export const PartnerDetailPage = () => {
               <button disabled={page === 0} onClick={() => setPage((p) => p - 1)} style={pageButtonStyle(page === 0)}>
                 <CaretLeft size={14} /> Prev
               </button>
-              <span style={{ ...text.hint, padding: '0 12px' }}>{page + 1} / {totalPages}</span>
+              <span style={{ ...text.hint, padding: '0 12px' }}>
+                {page + 1} / {totalPages}
+              </span>
               <button
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage((p) => p + 1)}

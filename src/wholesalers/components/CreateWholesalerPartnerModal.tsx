@@ -57,69 +57,66 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
   const isFormValid = isValid && isPasswordValid;
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} maxWidth='max-w-md'>
-      <div className='flex flex-col gap-4'>
-        <h2 className='text-lg font-semibold text-gray-100'>Create Partner</h2>
+    <Modal isOpen={isOpen} onClose={handleClose} maxWidth="max-w-md">
+      <div className="flex flex-col gap-4">
+        <h2 className="text-lg font-semibold text-gray-100">Create Partner</h2>
 
-        <form onSubmit={handleSubmit(onFormSubmit)} className='flex flex-col gap-3'>
-          <Field label='Name' error={errors.name?.message}>
+        <form onSubmit={handleSubmit(onFormSubmit)} className="flex flex-col gap-3">
+          <Field label="Name" error={errors.name?.message}>
             <input
               {...register('name', requiredNameRules())}
-              placeholder='Partner name'
+              placeholder="Partner name"
               className={inputClass(errors.name)}
             />
           </Field>
 
-          <Field label='Contact Email' error={errors.email?.message}>
+          <Field label="Contact Email" error={errors.email?.message}>
             <input
               {...register('email', {
                 required: 'Email is required',
                 pattern: { value: /^\S+@\S+\.\S+$/, message: 'Invalid email' },
               })}
-              type='email'
-              placeholder='contact@example.com'
+              type="email"
+              placeholder="contact@example.com"
               className={inputClass(errors.email)}
             />
           </Field>
 
-          <Field label='Password' error={errors.password?.message}>
-            <div className='relative'>
+          <Field label="Password" error={errors.password?.message}>
+            <div className="relative">
               <input
                 {...register('password', {
                   required: 'Password is required',
                   validate: (value: string) =>
-                    validatePassword(value).length === 0 ||
-                    'Password does not meet the requirements',
+                    validatePassword(value).length === 0 || 'Password does not meet the requirements',
                 })}
                 type={showPassword ? 'text' : 'password'}
-                placeholder='••••••••'
+                placeholder="••••••••"
                 className={`${inputClass(passwordErrors.length > 0)} pr-10`}
               />
               <button
-                type='button'
-                className='absolute inset-y-0 right-0 flex items-center pr-3'
+                type="button"
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
                 onClick={() => setShowPassword(!showPassword)}
                 title={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
-                  <Eye className='h-5 w-5 text-gray-40' />
+                  <Eye className="h-5 w-5 text-gray-40" />
                 ) : (
-                  <EyeSlash className='h-5 w-5 text-gray-40' />
+                  <EyeSlash className="h-5 w-5 text-gray-40" />
                 )}
               </button>
             </div>
-            {passwordErrors.length > 0 && (
-              <PasswordRequirements errors={passwordErrors} />
-            )}
+            {passwordErrors.length > 0 && <PasswordRequirements errors={passwordErrors} />}
           </Field>
 
-          {error && <p className='text-sm text-red'>{error}</p>}
+          {error && <p className="text-sm text-red">{error}</p>}
 
-          <div className='flex justify-end gap-3 pt-2'>
-            <Button variant='secondary' type='button' onClick={handleClose} disabled={isSubmitting}>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="secondary" type="button" onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type='submit' disabled={!isFormValid || isSubmitting} loading={isSubmitting}>
+            <Button type="submit" disabled={!isFormValid || isSubmitting} loading={isSubmitting}>
               Create
             </Button>
           </div>
@@ -128,4 +125,3 @@ export const CreateWholesalerPartnerModal = ({ isOpen, onClose, onSubmit }: Prop
     </Modal>
   );
 };
-

@@ -56,18 +56,14 @@ async function getUsageSummary(): Promise<WholesalerUsageSummary> {
 }
 
 async function createBillingPortalSession(): Promise<{ url: string }> {
-  const response = await wholesalersAxios.post<{ url: string }>(
-    `${API}/billing-portal`,
-    { returnUrl: window.location.href },
-  );
+  const response = await wholesalersAxios.post<{ url: string }>(`${API}/billing-portal`, {
+    returnUrl: window.location.href,
+  });
   return response.data;
 }
 
 async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
-  const response = await wholesalersAxios.put<{ token: string }>(
-    `${API}/password`,
-    { currentPassword, newPassword },
-  );
+  const response = await wholesalersAxios.put<{ token: string }>(`${API}/password`, { currentPassword, newPassword });
   wholesalersAuthService.setToken(response.data.token);
 }
 

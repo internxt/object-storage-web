@@ -302,7 +302,12 @@ describe('loginWithAzure', () => {
 
   test('when a second attempt starts while the first is still in flight, then it is rejected with SsoCancelledError', async () => {
     let resolveLogin: (value: { idToken: string; account: { username: string } }) => void = () => {};
-    loginPopupMock.mockImplementation(() => new Promise((resolve) => { resolveLogin = resolve; }));
+    loginPopupMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+    );
 
     const first = subAccountSsoService.loginWithAzure('acme');
     // Wait until `first` has actually reached the popup call (and so `ssoLoginInFlight`

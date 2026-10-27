@@ -8,12 +8,5 @@ export const PartnersSubAccountDetailPage = () => {
     ? { ...partnersService, updateSubAccountName: undefined, updateSubAccountStorageLimit: undefined }
     : partnersService;
 
-  return (
-    <SubAccountDetailPage
-      backPath='/partners/sub-accounts'
-      service={service}
-      showClientName
-      showStorageLimit
-    />
-  );
+  return <SubAccountDetailPage backPath="/partners/sub-accounts" service={service} showClientName showStorageLimit />;
 };

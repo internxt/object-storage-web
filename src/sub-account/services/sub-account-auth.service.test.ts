@@ -45,7 +45,7 @@ describe('subAccountAuthService', () => {
   });
 
   describe('logInWithSso', () => {
-    test("when logInWithSso succeeds, then it delegates to subAccountSsoService and stores the returned token and Azure email", async () => {
+    test('when logInWithSso succeeds, then it delegates to subAccountSsoService and stores the returned token and Azure email', async () => {
       vi.spyOn(subAccountSsoService, 'loginWithAzure').mockResolvedValue({
         token: 'sso-jwt',
         azureEmail: 'member@azure.com',

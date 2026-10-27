@@ -1,21 +1,21 @@
-import { JSX, ReactNode } from 'react'
-import Loader from './Loader'
+import { JSX, ReactNode } from 'react';
+import Loader from './Loader';
 
 export interface ButtonProps {
-  id?: string
-  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive' | 'tertiary'
-  type?: 'button' | 'submit'
-  children?: ReactNode
-  className?: string
-  disabled?: boolean
-  onClick?: (e?: unknown) => void
-  onKeyDown?: (e?: unknown) => void
-  size?: 'medium' | 'default'
-  loading?: boolean
-  dataTest?: string
-  autofocus?: boolean
-  buttonDataCy?: string
-  buttonChildrenDataCy?: string
+  id?: string;
+  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive' | 'tertiary';
+  type?: 'button' | 'submit';
+  children?: ReactNode;
+  className?: string;
+  disabled?: boolean;
+  onClick?: (e?: unknown) => void;
+  onKeyDown?: (e?: unknown) => void;
+  size?: 'medium' | 'default';
+  loading?: boolean;
+  dataTest?: string;
+  autofocus?: boolean;
+  buttonDataCy?: string;
+  buttonChildrenDataCy?: string;
 }
 
 /**
@@ -90,38 +90,33 @@ const Button = ({
   buttonDataCy,
   buttonChildrenDataCy,
 }: Readonly<ButtonProps>): JSX.Element => {
-  let styles = ''
+  let styles = '';
 
   if (variant === 'primary' && !disabled) {
-    styles = `${
-      loading ? 'bg-primary-dark' : 'bg-primary'
-    } active:bg-primary-dark text-white shadow-sm`
+    styles = `${loading ? 'bg-primary-dark' : 'bg-primary'} active:bg-primary-dark text-white shadow-sm`;
   } else if (variant === 'primary' && disabled) {
-    styles = 'bg-gray-30 text-white shadow-sm'
+    styles = 'bg-gray-30 text-white shadow-sm';
   } else if (variant === 'destructive' && !disabled) {
-    styles = `${
-      loading ? 'bg-red-dark' : 'bg-red'
-    } active:bg-red-dark text-white shadow-sm`
+    styles = `${loading ? 'bg-red-dark' : 'bg-red'} active:bg-red-dark text-white shadow-sm`;
   } else if (variant === 'destructive' && disabled) {
-    styles = 'bg-gray-30 text-white shadow-sm'
+    styles = 'bg-gray-30 text-white shadow-sm';
   } else if (variant === 'secondary' && !disabled) {
     styles =
       'bg-surface dark:bg-gray-5 border border-gray-10' +
-      ' hover:border-gray-20 active:bg-gray-1 dark:active:bg-gray-10 text-gray-80 shadow-sm'
+      ' hover:border-gray-20 active:bg-gray-1 dark:active:bg-gray-10 text-gray-80 shadow-sm';
   } else if (variant === 'secondary' && disabled) {
-    styles =
-      'bg-surface dark:bg-gray-5 text-gray-30 border border-gray-5 shadow-sm'
+    styles = 'bg-surface dark:bg-gray-5 text-gray-30 border border-gray-5 shadow-sm';
   } else if (variant === 'ghost' && !disabled) {
-    styles = 'hover:bg-gray-5 active:bg-gray-10 focus-visible:bg-gray-10'
+    styles = 'hover:bg-gray-5 active:bg-gray-10 focus-visible:bg-gray-10';
   } else if (variant === 'ghost' && disabled) {
-    styles = 'text-gray-30'
+    styles = 'text-gray-30';
   } else if (variant === 'tertiary' && !disabled) {
     styles = `${
       loading ? 'bg-white/45' : 'bg-white/15'
     } active:bg-white/25 text-white shadow-sm border border-white/20 active:border-white hover:border-white/40 active:border-white 
-    transition-all duration-200`
+    transition-all duration-200`;
   } else if (variant === 'tertiary' && disabled) {
-    styles = 'bg-white/45 text-white shadow-sm border border-white/20'
+    styles = 'bg-white/45 text-white shadow-sm border border-white/20';
   }
 
   return (
@@ -142,14 +137,11 @@ const Button = ({
       focus-visible:ring-primary/50 ${styles} ${className}`}
     >
       {loading && <Loader size={18} />}
-      <div
-        className="flex items-center justify-center space-x-2"
-        data-cy={buttonChildrenDataCy}
-      >
+      <div className="flex items-center justify-center space-x-2" data-cy={buttonChildrenDataCy}>
         {children}
       </div>
     </button>
-  )
-}
+  );
+};
 
-export default Button
+export default Button;

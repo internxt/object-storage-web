@@ -56,7 +56,6 @@ function logOut(): void {
   localStorage.removeItem(EMAIL_KEY);
 }
 
-
 function getRole(): 'admin' | 'standard' | null {
   const token = getToken();
   if (!token) return null;

@@ -22,7 +22,7 @@ export interface PublicSsoConfig {
 }
 
 export type SsoConfig =
-  { configured: false }
+  | { configured: false }
   | {
       configured: true;
       organizationName: string;
@@ -249,9 +249,11 @@ async function getUserSsoConfig(): Promise<SsoConfig> {
   return response.data;
 }
 
-async function configureUserSso(
-  config: { organizationName: string; tenantId: string; clientId: string },
-): Promise<SsoConfig> {
+async function configureUserSso(config: {
+  organizationName: string;
+  tenantId: string;
+  clientId: string;
+}): Promise<SsoConfig> {
   const response = await userAxios.post<SsoConfig>('/users/sso', {
     organizationName: normalizeOrganizationName(config.organizationName),
     provider: 'azure-ad',

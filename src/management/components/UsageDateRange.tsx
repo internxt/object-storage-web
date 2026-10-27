@@ -5,9 +5,15 @@ import { T, text } from '../../sub-account/tokens';
 const labelStyle: CSSProperties = { fontSize: 12, fontWeight: 500, color: T.gray60 };
 
 const inputStyle: CSSProperties = {
-  height: 36, padding: '0 10px', borderRadius: 8, fontSize: 13,
-  border: `1px solid ${T.gray20}`, fontFamily: 'inherit',
-  color: T.gray100, background: T.white, outline: 'none',
+  height: 36,
+  padding: '0 10px',
+  borderRadius: 8,
+  fontSize: 13,
+  border: `1px solid ${T.gray20}`,
+  fontFamily: 'inherit',
+  color: T.gray100,
+  background: T.white,
+  outline: 'none',
 };
 
 interface UsageDateRangeProps {
@@ -22,7 +28,7 @@ export const UsageDateRange = ({ from, to, maxDays, onChange }: UsageDateRangePr
     <label style={labelStyle}>
       From{' '}
       <input
-        type='date'
+        type="date"
         value={from}
         max={dayjs(to).subtract(1, 'day').format('YYYY-MM-DD')}
         onChange={(e) => {
@@ -36,7 +42,7 @@ export const UsageDateRange = ({ from, to, maxDays, onChange }: UsageDateRangePr
     <label style={labelStyle}>
       To{' '}
       <input
-        type='date'
+        type="date"
         value={to}
         min={dayjs(from).add(1, 'day').format('YYYY-MM-DD')}
         max={dayjs(from).add(maxDays, 'day').format('YYYY-MM-DD')}

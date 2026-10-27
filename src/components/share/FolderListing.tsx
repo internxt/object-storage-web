@@ -15,9 +15,7 @@ interface FolderListingProps {
 export const FolderListing = ({ objects, isLoading, onOpenFolder, onDownload, onPreview }: FolderListingProps) => {
   if (isLoading) {
     return (
-      <div style={{ padding: '40px 20px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
-        Loading objects…
-      </div>
+      <div style={{ padding: '40px 20px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>Loading objects…</div>
     );
   }
 

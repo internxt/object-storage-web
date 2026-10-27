@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TrashIcon, LockKeyIcon, EyeIcon, EyeSlashIcon, GearIcon, InfoIcon, DotsThreeVerticalIcon, CaretDownIcon, PencilSimpleIcon, PlusIcon } from '@phosphor-icons/react';
+import {
+  TrashIcon,
+  LockKeyIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  GearIcon,
+  InfoIcon,
+  DotsThreeVerticalIcon,
+  CaretDownIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+} from '@phosphor-icons/react';
 import subAccountAxios from '../core/sub-account-axios';
 import { subAccountS3CredentialsService, S3Credentials } from '../services/sub-account-s3-credentials.service';
 import { subAccountAuthService } from '../services/sub-account-auth.service';
@@ -56,9 +67,13 @@ function avatarInitials(email: string): string {
 
 /** Password input with eye toggle */
 const AvatarSquare = ({ initials, variant }: { initials: string; variant: 'primary' | 'tint' }) => (
-  <div className={`w-[132px] h-[132px] rounded-2xl flex items-center justify-center text-[48px] font-bold select-none shrink-0 ${
-    variant === 'primary' ? 'bg-primary text-[color:var(--sub-account-primary-contrast,#FFFFFF)]' : 'bg-primary/[0.08] text-primary'
-  }`}>
+  <div
+    className={`w-[132px] h-[132px] rounded-2xl flex items-center justify-center text-[48px] font-bold select-none shrink-0 ${
+      variant === 'primary'
+        ? 'bg-primary text-[color:var(--sub-account-primary-contrast,#FFFFFF)]'
+        : 'bg-primary/[0.08] text-primary'
+    }`}
+  >
     {initials}
   </div>
 );
@@ -67,13 +82,13 @@ const AvatarSquare = ({ initials, variant }: { initials: string; variant: 'prima
 const Pill = ({ type }: { type: 'active' | 'primary' }) => {
   const { t } = useTranslation('subaccount');
   return type === 'active' ? (
-    <span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green'>
-      <span className='w-1.5 h-1.5 rounded-full bg-green shrink-0' />
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green">
+      <span className="w-1.5 h-1.5 rounded-full bg-green shrink-0" />
       {t('settings.accessKeys.active')}
     </span>
   ) : (
-    <span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/[0.08] text-primary'>
-      <span className='w-1.5 h-1.5 rounded-full bg-primary shrink-0' />
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/[0.08] text-primary">
+      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
       {t('settings.accessKeys.primary')}
     </span>
   );
@@ -89,7 +104,8 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
   const [isSavingEmail, setIsSavingEmail] = useState(false);
 
   useEffect(() => {
-    subAccountAxios.get<MemberItem[]>(`/sub-accounts/${entityId}/members`)
+    subAccountAxios
+      .get<MemberItem[]>(`/sub-accounts/${entityId}/members`)
       .then((res) => {
         const me = res.data.find((m) => m.id === memberId);
         if (me) {
@@ -118,13 +134,13 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
   };
 
   return (
-    <div className='flex flex-col gap-5'>
+    <div className="flex flex-col gap-5">
       <SectionCard
         title={t('settings.profile.sectionTitle')}
         action={
           <button
             disabled={!canUpdate || isSavingEmail}
-            className='inline-flex items-center gap-2 h-8 px-3 bg-surface border border-gray-100/10 text-gray-80 rounded-lg text-sm font-medium hover:bg-gray-1 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+            className="inline-flex items-center gap-2 h-8 px-3 bg-surface border border-gray-100/10 text-gray-80 rounded-lg text-sm font-medium hover:bg-gray-1 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             onClick={handleUpdateEmail}
           >
             <PencilSimpleIcon size={14} />
@@ -132,19 +148,19 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
           </button>
         }
       >
-        <div className='flex gap-8'>
-          <div className='flex flex-col items-center gap-3'>
-            <AvatarSquare initials={initials} variant='primary' />
-            <Pill type='active' />
+        <div className="flex gap-8">
+          <div className="flex flex-col items-center gap-3">
+            <AvatarSquare initials={initials} variant="primary" />
+            <Pill type="active" />
           </div>
-          <div className='flex-1 flex flex-col gap-4'>
+          <div className="flex-1 flex flex-col gap-4">
             <div>
-              <p className='text-sm font-medium text-gray-100 mb-1.5'>{t('settings.profile.emailLabel')}</p>
+              <p className="text-sm font-medium text-gray-100 mb-1.5">{t('settings.profile.emailLabel')}</p>
               <input
-                type='email'
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className='w-full h-10 bg-gray-5 border border-gray-10 rounded-lg px-3 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary'
+                className="w-full h-10 bg-gray-5 border border-gray-10 rounded-lg px-3 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary"
               />
             </div>
             <ReadField label={t('settings.profile.memberRoleLabel')} value={role} />
@@ -185,14 +201,22 @@ const ProfileTab = ({ entityId, memberId, role }: { entityId: string; memberId: 
 
 // ─── Members Tab ──────────────────────────────────────────────────────────────
 
-const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: string; ssoEnabled: boolean; currentMemberId: string }) => {
+const MembersTab = ({
+  entityId,
+  ssoEnabled,
+  currentMemberId,
+}: {
+  entityId: string;
+  ssoEnabled: boolean;
+  currentMemberId: string;
+}) => {
   const { t } = useTranslation('subaccount');
-  const [members, setMembers]             = useState<MemberItem[]>([]);
-  const [isLoading, setIsLoading]         = useState(false);
-  const [isAddMemberOpen, setIsAddMemberOpen]   = useState(false);
-  const [isAddingMember, setIsAddingMember]     = useState(false);
+  const [members, setMembers] = useState<MemberItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  const [isAddingMember, setIsAddingMember] = useState(false);
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
-  const [memberToDelete, setMemberToDelete]     = useState<MemberItem | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<MemberItem | null>(null);
   const [permissionMember, setPermissionMember] = useState<MemberItem | null>(null);
   const [isAssigningPermission, setIsAssigningPermission] = useState(false);
   // The session JWT's `ssoEnabled` claim is only as fresh as the token itself —
@@ -203,7 +227,8 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
   useEffect(() => {
     if (!entityId) return;
     fetchMembers();
-    subAccountSsoService.getSsoConfig(entityId)
+    subAccountSsoService
+      .getSsoConfig(entityId)
       .then((config) => setSsoConfigured(config.configured))
       .catch(() => {});
   }, [entityId]);
@@ -253,7 +278,9 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
     if (!permissionMember) return;
     setIsAssigningPermission(true);
     try {
-      await subAccountAxios.put(`/sub-accounts/${entityId}/members/${permissionMember.id}/permissions`, { statement: policy.Statement });
+      await subAccountAxios.put(`/sub-accounts/${entityId}/members/${permissionMember.id}/permissions`, {
+        statement: policy.Statement,
+      });
       notificationsService.success({ text: t('settings.members.permissionsUpdated') });
       setPermissionMember(null);
     } catch {
@@ -282,56 +309,67 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
       action={
         <button
           onClick={() => setIsAddMemberOpen(true)}
-          className='inline-flex items-center gap-2 h-10 px-4 bg-primary hover:bg-primary-dark text-[color:var(--sub-account-primary-contrast,#FFFFFF)] rounded-lg text-sm font-medium transition-colors'
+          className="inline-flex items-center gap-2 h-10 px-4 bg-primary hover:bg-primary-dark text-[color:var(--sub-account-primary-contrast,#FFFFFF)] rounded-lg text-sm font-medium transition-colors"
         >
-          <PlusIcon size={14} weight='bold' />
+          <PlusIcon size={14} weight="bold" />
           {t('settings.members.addMember')}
         </button>
       }
     >
-      {ssoConfigured && (
-        <p className='text-sm text-gray-60 mb-4'>
-          {t('settings.members.ssoEnabledHint')}
-        </p>
-      )}
+      {ssoConfigured && <p className="text-sm text-gray-60 mb-4">{t('settings.members.ssoEnabledHint')}</p>}
       {isLoading ? (
-        <p className='text-sm text-gray-50'>{t('settings.members.loading')}</p>
+        <p className="text-sm text-gray-50">{t('settings.members.loading')}</p>
       ) : members.length === 0 ? (
-        <p className='text-sm text-gray-50'>{t('settings.members.empty')}</p>
+        <p className="text-sm text-gray-50">{t('settings.members.empty')}</p>
       ) : (
-        <table className='w-full'>
+        <table className="w-full">
           <thead>
-            <tr className='border-t border-b border-gray-10'>
-              <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.members.columnEmail')}</th>
-              <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.members.columnRole')}</th>
-              <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.members.columnAdded')}</th>
-              <th className='w-[88px]' />
+            <tr className="border-t border-b border-gray-10">
+              <th className="text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+                {t('settings.members.columnEmail')}
+              </th>
+              <th className="text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+                {t('settings.members.columnRole')}
+              </th>
+              <th className="text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+                {t('settings.members.columnAdded')}
+              </th>
+              <th className="w-[88px]" />
             </tr>
           </thead>
           <tbody>
             {members.map((m) => (
-              <tr key={m.id} className='border-b border-gray-10/60'>
-                <td className='py-3.5'>
-                  <div className='flex items-center gap-3'>
-                    <div className='w-8 h-8 rounded-full bg-primary/[0.08] text-primary flex items-center justify-center text-xs font-bold shrink-0 select-none'>
+              <tr key={m.id} className="border-b border-gray-10/60">
+                <td className="py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/[0.08] text-primary flex items-center justify-center text-xs font-bold shrink-0 select-none">
                       {avatarInitials(m.email)}
                     </div>
-                    <span className='text-sm text-gray-100'>{m.email}</span>
+                    <span className="text-sm text-gray-100">{m.email}</span>
                   </div>
                 </td>
-                <td className='py-3.5 text-sm text-gray-80'>
+                <td className="py-3.5 text-sm text-gray-80">
                   {m.role ? m.role.charAt(0).toUpperCase() + m.role.slice(1) : t('settings.members.roleStandard')}
                 </td>
-                <td className='py-3.5 text-sm text-gray-80'>
+                <td className="py-3.5 text-sm text-gray-80">
                   {m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '—'}
                 </td>
-                <td className='py-3.5'>
-                  <div className='flex items-center gap-1 justify-end'>
-                    <button onClick={() => setPermissionMember(m)} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-gray-80 transition-colors' title={t('settings.members.assignPermissions')}>
+                <td className="py-3.5">
+                  <div className="flex items-center gap-1 justify-end">
+                    <button
+                      onClick={() => setPermissionMember(m)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-gray-80 transition-colors"
+                      title={t('settings.members.assignPermissions')}
+                    >
                       <LockKeyIcon size={16} />
                     </button>
                     {m.id !== currentMemberId && (
-                      <button onClick={() => setMemberToDelete(m)} disabled={deletingMemberId === m.id} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-red disabled:opacity-40 transition-colors' title={t('settings.members.removeMember')}>
+                      <button
+                        onClick={() => setMemberToDelete(m)}
+                        disabled={deletingMemberId === m.id}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-red disabled:opacity-40 transition-colors"
+                        title={t('settings.members.removeMember')}
+                      >
                         <TrashIcon size={16} />
                       </button>
                     )}
@@ -343,15 +381,34 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
         </table>
       )}
 
-      <AddMemberModal isOpen={isAddMemberOpen} isLoading={isAddingMember} ssoEnabled={ssoConfigured} onClose={() => setIsAddMemberOpen(false)} onAdd={onAddMember} />
+      <AddMemberModal
+        isOpen={isAddMemberOpen}
+        isLoading={isAddingMember}
+        ssoEnabled={ssoConfigured}
+        onClose={() => setIsAddMemberOpen(false)}
+        onAdd={onAddMember}
+      />
       {permissionMember && (
-        <AssignPermissionsModal isOpen={!!permissionMember} isLoading={isAssigningPermission} memberEmail={permissionMember.email} onClose={() => setPermissionMember(null)} onAssign={onAssignPermissions} onFetchPermissions={onFetchPermissions} />
+        <AssignPermissionsModal
+          isOpen={!!permissionMember}
+          isLoading={isAssigningPermission}
+          memberEmail={permissionMember.email}
+          onClose={() => setPermissionMember(null)}
+          onAssign={onAssignPermissions}
+          onFetchPermissions={onFetchPermissions}
+        />
       )}
       <Dialog
-        isOpen={!!memberToDelete} onClose={() => setMemberToDelete(null)}
-        onPrimaryAction={onDeleteMember} onSecondaryAction={() => setMemberToDelete(null)}
-        isLoading={!!deletingMemberId} primaryAction={t('settings.members.removeMember')} secondaryAction={t('actions.cancel')} primaryActionColor='danger'
-        title={t('settings.members.removeMemberConfirmTitle')} subtitle={t('settings.members.removeMemberConfirmSubtitle', { email: memberToDelete?.email })}
+        isOpen={!!memberToDelete}
+        onClose={() => setMemberToDelete(null)}
+        onPrimaryAction={onDeleteMember}
+        onSecondaryAction={() => setMemberToDelete(null)}
+        isLoading={!!deletingMemberId}
+        primaryAction={t('settings.members.removeMember')}
+        secondaryAction={t('actions.cancel')}
+        primaryActionColor="danger"
+        title={t('settings.members.removeMemberConfirmTitle')}
+        subtitle={t('settings.members.removeMemberConfirmSubtitle', { email: memberToDelete?.email })}
       />
     </SectionCard>
   );
@@ -362,14 +419,15 @@ const MembersTab = ({ entityId, ssoEnabled, currentMemberId }: { entityId: strin
 const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: string }) => {
   const { t } = useTranslation('subaccount');
   const [credentials, setCredentials] = useState<S3Credentials | null>(null);
-  const [isLoading, setIsLoading]     = useState(false);
-  const [revealed, setRevealed]       = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [revealed, setRevealed] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
-    subAccountS3CredentialsService.getCredentials(entityId, memberId)
+    subAccountS3CredentialsService
+      .getCredentials(entityId, memberId)
       .then(setCredentials)
       .catch(() => notificationsService.error({ text: t('settings.accessKeys.loadFailed') }))
       .finally(() => setIsLoading(false));
@@ -391,16 +449,19 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
   };
 
   return (
-    <div className='bg-surface border border-gray-10 rounded-xl p-6' style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-2'>
-          <h2 className='text-base font-semibold text-gray-100'>{t('settings.accessKeys.title')}</h2>
-          <InfoIcon size={15} className='text-gray-50' />
+    <div
+      className="bg-surface border border-gray-10 rounded-xl p-6"
+      style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold text-gray-100">{t('settings.accessKeys.title')}</h2>
+          <InfoIcon size={15} className="text-gray-50" />
         </div>
         <Dropdown
-          width='w-52'
+          width="w-52"
           button={
-            <div className='inline-flex items-center gap-2 h-8 px-3 bg-surface border border-gray-100/10 text-gray-80 rounded-lg text-sm font-medium hover:bg-gray-1 cursor-pointer select-none whitespace-nowrap transition-colors'>
+            <div className="inline-flex items-center gap-2 h-8 px-3 bg-surface border border-gray-100/10 text-gray-80 rounded-lg text-sm font-medium hover:bg-gray-1 cursor-pointer select-none whitespace-nowrap transition-colors">
               <GearIcon size={14} />
               {t('settings.accessKeys.manage')}
               <CaretDownIcon size={12} />
@@ -410,44 +471,71 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
         />
       </div>
 
-      <div className='mt-4'>
+      <div className="mt-4">
         {isLoading ? (
-          <p className='text-sm text-gray-50 pt-5'>{t('settings.accessKeys.loading')}</p>
+          <p className="text-sm text-gray-50 pt-5">{t('settings.accessKeys.loading')}</p>
         ) : !credentials ? (
-          <p className='text-sm text-gray-50 pt-5'>{t('settings.accessKeys.empty')}</p>
+          <p className="text-sm text-gray-50 pt-5">{t('settings.accessKeys.empty')}</p>
         ) : (
-          <table className='w-full'>
+          <table className="w-full">
             <thead>
-              <tr className='border-t border-b border-gray-10'>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60 w-[1.2fr]'>{t('settings.accessKeys.columnName')}</th>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.accessKeys.columnKey')}</th>
-                <th className='text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.accessKeys.columnCreatedOn')}</th>
-                <th className='w-[120px]' />
+              <tr className="border-t border-b border-gray-10">
+                <th className="text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60 w-[1.2fr]">
+                  {t('settings.accessKeys.columnName')}
+                </th>
+                <th className="text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+                  {t('settings.accessKeys.columnKey')}
+                </th>
+                <th className="text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+                  {t('settings.accessKeys.columnCreatedOn')}
+                </th>
+                <th className="w-[120px]" />
               </tr>
             </thead>
             <tbody>
-              <tr className='border-b border-gray-10/60'>
-                <td className='py-3.5 text-sm font-medium text-gray-100'>{t('settings.accessKeys.rootAccessKey')}</td>
-                <td className='py-3.5'>
-                  <div className='flex items-center gap-2'>
-                    <span className='font-mono text-sm text-gray-80'>
+              <tr className="border-b border-gray-10/60">
+                <td className="py-3.5 text-sm font-medium text-gray-100">{t('settings.accessKeys.rootAccessKey')}</td>
+                <td className="py-3.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm text-gray-80">
                       {revealed ? credentials.accessKeyId : credentials.accessKeyId.slice(0, 8) + '••••••••••••'}
                     </span>
-                    <button onClick={() => setRevealed(v => !v)} className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-gray-80 transition-colors'>
+                    <button
+                      onClick={() => setRevealed((v) => !v)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-60 hover:text-gray-80 transition-colors"
+                    >
                       {revealed ? <EyeSlashIcon size={15} /> : <EyeIcon size={15} />}
                     </button>
                   </div>
                 </td>
-                <td className='py-3.5 text-sm text-gray-50'>{formatDate(credentials.createdAt ? new Date(credentials.createdAt) : undefined)}</td>
-                <td className='py-3.5'>
-                  <div className='flex items-center gap-2 justify-end'>
-                    <Pill type='primary' />
+                <td className="py-3.5 text-sm text-gray-50">
+                  {formatDate(credentials.createdAt ? new Date(credentials.createdAt) : undefined)}
+                </td>
+                <td className="py-3.5">
+                  <div className="flex items-center gap-2 justify-end">
+                    <Pill type="primary" />
                     <Dropdown
-                      width='w-44'
-                      button={<button className='w-8 h-8 flex items-center justify-center rounded-lg text-gray-80 hover:text-gray-100 transition-colors'><DotsThreeVerticalIcon size={17} /></button>}
+                      width="w-44"
+                      button={
+                        <button className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-80 hover:text-gray-100 transition-colors">
+                          <DotsThreeVerticalIcon size={17} />
+                        </button>
+                      }
                       items={[
-                        { label: t('settings.accessKeys.copyAccessKey'), onClick: async () => { await copyToClipboard(credentials.accessKeyId); notificationsService.success({ text: t('settings.accessKeys.accessKeyCopied') }); } },
-                        { label: t('settings.accessKeys.copySecretKey'), onClick: async () => { await copyToClipboard(credentials.secretAccessKey); notificationsService.success({ text: t('settings.accessKeys.secretKeyCopied') }); } },
+                        {
+                          label: t('settings.accessKeys.copyAccessKey'),
+                          onClick: async () => {
+                            await copyToClipboard(credentials.accessKeyId);
+                            notificationsService.success({ text: t('settings.accessKeys.accessKeyCopied') });
+                          },
+                        },
+                        {
+                          label: t('settings.accessKeys.copySecretKey'),
+                          onClick: async () => {
+                            await copyToClipboard(credentials.secretAccessKey);
+                            notificationsService.success({ text: t('settings.accessKeys.secretKeyCopied') });
+                          },
+                        },
                       ]}
                     />
                   </div>
@@ -458,10 +546,16 @@ const AccessKeysTab = ({ entityId, memberId }: { entityId: string; memberId: str
         )}
       </div>
       <Dialog
-        isOpen={confirmOpen} onClose={() => setConfirmOpen(false)}
-        onPrimaryAction={onRegenerate} onSecondaryAction={() => setConfirmOpen(false)}
-        isLoading={isRegenerating} primaryAction={t('settings.accessKeys.regenerate')} secondaryAction={t('actions.cancel')} primaryActionColor='danger'
-        title={t('settings.accessKeys.regenerateConfirmTitle')} subtitle={t('settings.accessKeys.regenerateConfirmSubtitle')}
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onPrimaryAction={onRegenerate}
+        onSecondaryAction={() => setConfirmOpen(false)}
+        isLoading={isRegenerating}
+        primaryAction={t('settings.accessKeys.regenerate')}
+        secondaryAction={t('actions.cancel')}
+        primaryActionColor="danger"
+        title={t('settings.accessKeys.regenerateConfirmTitle')}
+        subtitle={t('settings.accessKeys.regenerateConfirmSubtitle')}
       />
     </div>
   );
@@ -475,7 +569,8 @@ const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberI
   const [email, setEmail] = useState('');
 
   useEffect(() => {
-    subAccountAxios.get<MemberItem[]>(`/sub-accounts/${entityId}/members`)
+    subAccountAxios
+      .get<MemberItem[]>(`/sub-accounts/${entityId}/members`)
       .then((res) => {
         const me = res.data.find((m) => m.id === memberId);
         if (me) setEmail(me.email);
@@ -487,14 +582,14 @@ const AccountTab = ({ entityId, memberId, isAdmin }: { entityId: string; memberI
   const initials = email ? avatarInitials(email) : '—';
 
   return (
-    <div className='flex flex-col gap-6'>
+    <div className="flex flex-col gap-6">
       <SectionCard title={t('settings.account.sectionTitle')}>
-        <div className='flex gap-8'>
-          <div className='flex flex-col items-center gap-3'>
-            <AvatarSquare initials={initials} variant='tint' />
-            <Pill type='active' />
+        <div className="flex gap-8">
+          <div className="flex flex-col items-center gap-3">
+            <AvatarSquare initials={initials} variant="tint" />
+            <Pill type="active" />
           </div>
-          <div className='flex-1 flex flex-col gap-4'>
+          <div className="flex-1 flex flex-col gap-4">
             <ReadField label={t('settings.account.emailLabel')} value={email} />
             <ReadField label={t('settings.account.accountNumberLabel')} value={entityId} mono />
             <ReadField label={t('settings.account.createdAtLabel')} value={createdAt} />
@@ -555,16 +650,26 @@ const TruncatedCell = ({ text, title, className }: { text: string; title?: strin
 );
 
 const FilterField = ({
-  label, type = 'text', value, placeholder, onChange,
-}: { label: string; type?: string; value: string; placeholder?: string; onChange: (v: string) => void }) => (
-  <div className='flex flex-col gap-1.5'>
-    <label className='text-xs font-medium text-gray-60'>{label}</label>
+  label,
+  type = 'text',
+  value,
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  type?: string;
+  value: string;
+  placeholder?: string;
+  onChange: (v: string) => void;
+}) => (
+  <div className="flex flex-col gap-1.5">
+    <label className="text-xs font-medium text-gray-60">{label}</label>
     <input
       type={type}
       value={value}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      className='h-9 bg-gray-5 border border-gray-10 rounded-lg px-3 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary'
+      className="h-9 bg-gray-5 border border-gray-10 rounded-lg px-3 text-sm text-gray-80 outline-none transition-colors focus:bg-white focus:border-primary"
     />
   </div>
 );
@@ -621,69 +726,108 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
 
   return (
     <SectionCard title={t('settings.audit.title')}>
-      <p className='text-sm text-gray-60 mb-4'>{t('settings.audit.subtitle')}</p>
+      <p className="text-sm text-gray-60 mb-4">{t('settings.audit.subtitle')}</p>
 
-      <div className='grid grid-cols-4 gap-3 mb-4'>
-        <FilterField label={t('settings.audit.filterFrom')} type='date' value={draftFilters.from} onChange={(v) => setDraftFilters({ ...draftFilters, from: v })} />
-        <FilterField label={t('settings.audit.filterTo')} type='date' value={draftFilters.to} onChange={(v) => setDraftFilters({ ...draftFilters, to: v })} />
-        <FilterField label={t('settings.audit.filterActor')} value={draftFilters.actorEmail} placeholder={t('settings.audit.filterActorPlaceholder')} onChange={(v) => setDraftFilters({ ...draftFilters, actorEmail: v })} />
-        <FilterField label={t('settings.audit.filterResource')} value={draftFilters.resourcePath} placeholder={t('settings.audit.filterResourcePlaceholder')} onChange={(v) => setDraftFilters({ ...draftFilters, resourcePath: v })} />
+      <div className="grid grid-cols-4 gap-3 mb-4">
+        <FilterField
+          label={t('settings.audit.filterFrom')}
+          type="date"
+          value={draftFilters.from}
+          onChange={(v) => setDraftFilters({ ...draftFilters, from: v })}
+        />
+        <FilterField
+          label={t('settings.audit.filterTo')}
+          type="date"
+          value={draftFilters.to}
+          onChange={(v) => setDraftFilters({ ...draftFilters, to: v })}
+        />
+        <FilterField
+          label={t('settings.audit.filterActor')}
+          value={draftFilters.actorEmail}
+          placeholder={t('settings.audit.filterActorPlaceholder')}
+          onChange={(v) => setDraftFilters({ ...draftFilters, actorEmail: v })}
+        />
+        <FilterField
+          label={t('settings.audit.filterResource')}
+          value={draftFilters.resourcePath}
+          placeholder={t('settings.audit.filterResourcePlaceholder')}
+          onChange={(v) => setDraftFilters({ ...draftFilters, resourcePath: v })}
+        />
       </div>
 
-      <div className='flex items-center gap-2 mb-4'>
-        <button onClick={onApply} className='h-9 px-4 rounded-lg bg-primary text-sm font-medium text-[color:var(--sub-account-primary-contrast,#FFFFFF)] hover:bg-blue-60 transition-colors'>
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          onClick={onApply}
+          className="h-9 px-4 rounded-lg bg-primary text-sm font-medium text-[color:var(--sub-account-primary-contrast,#FFFFFF)] hover:bg-blue-60 transition-colors"
+        >
           {t('settings.audit.applyFilters')}
         </button>
-        <button onClick={onClear} className='h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 transition-colors'>
+        <button
+          onClick={onClear}
+          className="h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 transition-colors"
+        >
           {t('settings.audit.clearFilters')}
         </button>
       </div>
 
       {isLoading ? (
-        <p className='text-sm text-gray-50'>{t('settings.audit.loading')}</p>
+        <p className="text-sm text-gray-50">{t('settings.audit.loading')}</p>
       ) : events.length === 0 ? (
-        <p className='text-sm text-gray-50'>{t('settings.audit.empty')}</p>
+        <p className="text-sm text-gray-50">{t('settings.audit.empty')}</p>
       ) : (
         <>
-          <table className='w-full table-fixed'>
+          <table className="w-full table-fixed">
             <thead>
-              <tr className='border-t border-b border-gray-10'>
-                <th className='w-[14%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnEvent')}</th>
-                <th className='w-[19%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnActor')}</th>
-                <th className='w-[33%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnResource')}</th>
-                <th className='w-[14%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnIp')}</th>
-                <th className='w-[20%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60'>{t('settings.audit.columnTimestamp')}</th>
+              <tr className="border-t border-b border-gray-10">
+                <th className="w-[14%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+                  {t('settings.audit.columnEvent')}
+                </th>
+                <th className="w-[19%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+                  {t('settings.audit.columnActor')}
+                </th>
+                <th className="w-[33%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+                  {t('settings.audit.columnResource')}
+                </th>
+                <th className="w-[14%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+                  {t('settings.audit.columnIp')}
+                </th>
+                <th className="w-[20%] text-left py-3 text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+                  {t('settings.audit.columnTimestamp')}
+                </th>
               </tr>
             </thead>
             <tbody>
               {events.map((event) => (
-                <tr key={event.id} className='border-b border-gray-10/60'>
-                  <td className='py-3.5 pr-4 text-sm text-gray-100'>
-                    <div className='flex flex-wrap items-center gap-2'>
-                      <span className='min-w-0 break-words'>{t(`settings.audit.eventType.${event.eventType}`)}</span>
+                <tr key={event.id} className="border-b border-gray-10/60">
+                  <td className="py-3.5 pr-4 text-sm text-gray-100">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="min-w-0 break-words">{t(`settings.audit.eventType.${event.eventType}`)}</span>
                       {event.status === 'incomplete' && (
-                        <span className='shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-5 text-gray-60' title={t('settings.audit.incompleteHint')}>
+                        <span
+                          className="shrink-0 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-5 text-gray-60"
+                          title={t('settings.audit.incompleteHint')}
+                        >
                           {t('settings.audit.incomplete')}
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className='py-3.5 pr-4 text-sm text-gray-80'>
+                  <td className="py-3.5 pr-4 text-sm text-gray-80">
                     <TruncatedCell
                       text={event.actorEmail ?? (event.anonymous ? t('settings.audit.anonymousActor') : '—')}
                     />
                   </td>
-                  <td className='py-3.5 pr-4 text-sm text-gray-80'>
+                  <td className="py-3.5 pr-4 text-sm text-gray-80">
                     {event.resourcePath ? (
                       <TruncatedCell text={shortenResourcePath(event.resourcePath)} title={event.resourcePath} />
                     ) : (
                       '—'
                     )}
                   </td>
-                  <td className='py-3.5 pr-4 text-sm text-gray-80'>
+                  <td className="py-3.5 pr-4 text-sm text-gray-80">
                     <TruncatedCell text={event.ip ?? '—'} />
                   </td>
-                  <td className='py-3.5 text-sm text-gray-80'>
+                  <td className="py-3.5 text-sm text-gray-80">
                     <TruncatedCell text={formatDateTime(new Date(event.timestamp))} />
                   </td>
                 </tr>
@@ -691,20 +835,22 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
             </tbody>
           </table>
 
-          <div className='flex items-center justify-between mt-4'>
-            <p className='text-sm text-gray-60'>{t('settings.audit.pageRange', { start: rangeStart, end: rangeEnd, total })}</p>
-            <div className='flex items-center gap-2'>
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-sm text-gray-60">
+              {t('settings.audit.pageRange', { start: rangeStart, end: rangeEnd, total })}
+            </p>
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setOffset(Math.max(0, offset - AUDIT_PAGE_SIZE))}
                 disabled={offset === 0}
-                className='h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 disabled:opacity-40 transition-colors'
+                className="h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 disabled:opacity-40 transition-colors"
               >
                 {t('settings.audit.previous')}
               </button>
               <button
                 onClick={() => setOffset(offset + AUDIT_PAGE_SIZE)}
                 disabled={rangeEnd >= total}
-                className='h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 disabled:opacity-40 transition-colors'
+                className="h-9 px-4 rounded-lg border border-gray-10 text-sm font-medium text-gray-80 hover:bg-gray-5 disabled:opacity-40 transition-colors"
               >
                 {t('settings.audit.next')}
               </button>
@@ -737,22 +883,24 @@ export const SubAccountSettingsPage = () => {
       if (!token) return 'standard';
       const payload = JSON.parse(atob(token.split('.')[1]));
       return (payload.role as string) ?? 'standard';
-    } catch { return 'standard'; }
+    } catch {
+      return 'standard';
+    }
   })();
 
   const visibleTabs = isAdmin ? TABS : TABS.filter((t) => t.key !== 'members');
 
   return (
-    <div className='max-w-[920px] mx-auto px-8 py-8 flex flex-col gap-6'>
+    <div className="max-w-[920px] mx-auto px-8 py-8 flex flex-col gap-6">
       {/* Page header */}
       <div>
-        <h1 className='text-2xl font-semibold text-gray-100'>{t('settings.title')}</h1>
-        <p className='text-sm text-gray-60 mt-1.5'>{t('settings.subtitle')}</p>
+        <h1 className="text-2xl font-semibold text-gray-100">{t('settings.title')}</h1>
+        <p className="text-sm text-gray-60 mt-1.5">{t('settings.subtitle')}</p>
       </div>
 
       {/* Tab bar */}
-      <div className='border-b border-gray-10'>
-        <div className='flex'>
+      <div className="border-b border-gray-10">
+        <div className="flex">
           {visibleTabs.map((tab) => (
             <button
               key={tab.key}
@@ -770,11 +918,17 @@ export const SubAccountSettingsPage = () => {
       </div>
 
       {/* Tab content */}
-      {activeTab === 'profile'     && entityId && memberId && <ProfileTab    entityId={entityId} memberId={memberId} role={role} />}
-      {activeTab === 'members'     && entityId && memberId && <MembersTab    entityId={entityId} ssoEnabled={ssoEnabled} currentMemberId={memberId} />}
+      {activeTab === 'profile' && entityId && memberId && (
+        <ProfileTab entityId={entityId} memberId={memberId} role={role} />
+      )}
+      {activeTab === 'members' && entityId && memberId && (
+        <MembersTab entityId={entityId} ssoEnabled={ssoEnabled} currentMemberId={memberId} />
+      )}
       {activeTab === 'access-keys' && entityId && memberId && <AccessKeysTab entityId={entityId} memberId={memberId} />}
-      {activeTab === 'account'     && entityId && memberId && <AccountTab    entityId={entityId} memberId={memberId} isAdmin={isAdmin} />}
-      {activeTab === 'audit'       && entityId && isAdmin && auditLogEnabled && <AuditTab entityId={entityId} />}
+      {activeTab === 'account' && entityId && memberId && (
+        <AccountTab entityId={entityId} memberId={memberId} isAdmin={isAdmin} />
+      )}
+      {activeTab === 'audit' && entityId && isAdmin && auditLogEnabled && <AuditTab entityId={entityId} />}
     </div>
   );
 };

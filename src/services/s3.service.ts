@@ -29,7 +29,7 @@ export const RetentionMode = {
   COMPLIANCE: 'COMPLIANCE',
 } as const;
 
-export type RetentionMode = typeof RetentionMode[keyof typeof RetentionMode];
+export type RetentionMode = (typeof RetentionMode)[keyof typeof RetentionMode];
 
 export type VersioningStatus = 'Enabled' | 'Suspended' | 'Unversioned';
 
@@ -96,10 +96,7 @@ export const s3Service = {
   },
 
   getBucketLocation: async (client: S3Client, bucket: string, abortSignal?: AbortSignal): Promise<string> => {
-    const { LocationConstraint } = await client.send(
-      new GetBucketLocationCommand({ Bucket: bucket }),
-      { abortSignal },
-    );
+    const { LocationConstraint } = await client.send(new GetBucketLocationCommand({ Bucket: bucket }), { abortSignal });
     return LocationConstraint ?? 'us-east-1';
   },
 
@@ -116,20 +113,17 @@ export const s3Service = {
     }
   },
 
-  createBucket: async (
-    client: S3Client,
-    name: string,
-    region: string,
-    objectLockEnabled?: boolean,
-  ): Promise<void> => {
+  createBucket: async (client: S3Client, name: string, region: string, objectLockEnabled?: boolean): Promise<void> => {
     if (import.meta.env.DEV) console.log('[s3] createBucket', { name, region, objectLockEnabled });
-    await client.send(new CreateBucketCommand({
-      Bucket: name,
-      ...(region !== 'us-east-1' && {
-        CreateBucketConfiguration: { LocationConstraint: region as never },
+    await client.send(
+      new CreateBucketCommand({
+        Bucket: name,
+        ...(region !== 'us-east-1' && {
+          CreateBucketConfiguration: { LocationConstraint: region as never },
+        }),
+        ...(objectLockEnabled && { ObjectLockEnabledForBucket: true }),
       }),
-      ...(objectLockEnabled && { ObjectLockEnabledForBucket: true }),
-    }));
+    );
     if (import.meta.env.DEV) console.log('[s3] createBucket success', { name, region, objectLockEnabled });
   },
 
@@ -141,14 +135,20 @@ export const s3Service = {
     maxKeys = 100,
   ): Promise<ListObjectsResult> => {
     const folderMarkerOffset = !continuationToken && prefix.endsWith('/') ? 1 : 0;
-    const { Contents = [], CommonPrefixes = [], NextContinuationToken, IsTruncated } =
-      await client.send(new ListObjectsV2Command({
+    const {
+      Contents = [],
+      CommonPrefixes = [],
+      NextContinuationToken,
+      IsTruncated,
+    } = await client.send(
+      new ListObjectsV2Command({
         Bucket: bucket,
         Prefix: prefix,
         Delimiter: '/',
         ContinuationToken: continuationToken,
         MaxKeys: maxKeys + folderMarkerOffset,
-      }));
+      }),
+    );
 
     const folders: S3Object[] = CommonPrefixes.map((p) => ({
       key: p.Prefix!,
@@ -156,15 +156,13 @@ export const s3Service = {
       lastModified: new Date(0),
       isFolder: true,
     }));
-    
-    const files: S3Object[] = Contents
-      .filter((c) => !(c.Key === prefix && prefix.endsWith('/')))
-      .map((c) => ({
-        key: c.Key!,
-        size: c.Size ?? 0,
-        lastModified: c.LastModified ?? new Date(0),
-        isFolder: false,
-      }));
+
+    const files: S3Object[] = Contents.filter((c) => !(c.Key === prefix && prefix.endsWith('/'))).map((c) => ({
+      key: c.Key!,
+      size: c.Size ?? 0,
+      lastModified: c.LastModified ?? new Date(0),
+      isFolder: false,
+    }));
 
     return {
       objects: [...folders, ...files],
@@ -182,15 +180,22 @@ export const s3Service = {
     maxKeys = 100,
   ): Promise<ListObjectVersionsResult> => {
     const folderMarkerOffset = !keyMarker && prefix.endsWith('/') ? 1 : 0;
-    const { Versions = [], CommonPrefixes = [], NextKeyMarker, NextVersionIdMarker, IsTruncated } =
-      await client.send(new ListObjectVersionsCommand({
+    const {
+      Versions = [],
+      CommonPrefixes = [],
+      NextKeyMarker,
+      NextVersionIdMarker,
+      IsTruncated,
+    } = await client.send(
+      new ListObjectVersionsCommand({
         Bucket: bucket,
         Prefix: prefix,
         Delimiter: '/',
         KeyMarker: keyMarker,
         VersionIdMarker: versionIdMarker,
         MaxKeys: maxKeys + folderMarkerOffset,
-      }));
+      }),
+    );
 
     const folders: S3Object[] = CommonPrefixes.map((p) => ({
       key: p.Prefix!,
@@ -199,8 +204,7 @@ export const s3Service = {
       isFolder: true,
     }));
 
-    const files: S3Object[] = Versions
-      .filter((v) => !(v.Key === prefix && prefix.endsWith('/')))
+    const files: S3Object[] = Versions.filter((v) => !(v.Key === prefix && prefix.endsWith('/')))
       .map((v) => ({
         key: v.Key!,
         size: v.Size ?? 0,
@@ -245,7 +249,13 @@ export const s3Service = {
         await upload.abort();
         throw new DOMException('Upload aborted', 'AbortError');
       }
-      abortSignal.addEventListener('abort', () => { void upload.abort(); }, { once: true });
+      abortSignal.addEventListener(
+        'abort',
+        () => {
+          void upload.abort();
+        },
+        { once: true },
+      );
     }
 
     await upload.done();
@@ -253,12 +263,16 @@ export const s3Service = {
 
   getDownloadUrl: async (client: S3Client, bucket: string, key: string, versionId?: string): Promise<string> => {
     const filename = key.split('/').pop() ?? key;
-    return getSignedUrl(client, new GetObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      VersionId: versionId,
-      ResponseContentDisposition: `attachment; filename="${filename}"`,
-    }), { expiresIn: 900 });
+    return getSignedUrl(
+      client,
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        VersionId: versionId,
+        ResponseContentDisposition: `attachment; filename="${filename}"`,
+      }),
+      { expiresIn: 900 },
+    );
   },
 
   getPreviewUrl: async (client: S3Client, bucket: string, key: string, versionId?: string): Promise<string> => {
@@ -269,13 +283,17 @@ export const s3Service = {
     // silently render its raw S3 error body inline instead of surfacing as an error.
     await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key, VersionId: versionId }));
     const filename = key.split('/').pop() ?? key;
-    return getSignedUrl(client, new GetObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      VersionId: versionId,
-      ResponseContentDisposition: `inline; filename="${filename}"`,
-      ResponseContentType: info.contentType,
-    }), { expiresIn: 900 });
+    return getSignedUrl(
+      client,
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        VersionId: versionId,
+        ResponseContentDisposition: `inline; filename="${filename}"`,
+        ResponseContentType: info.contentType,
+      }),
+      { expiresIn: 900 },
+    );
   },
 
   deleteObject: async (client: S3Client, bucket: string, key: string, versionId?: string): Promise<void> => {
@@ -287,32 +305,32 @@ export const s3Service = {
     bucket: string,
     items: { key: string; versionId?: string }[],
   ): Promise<void> => {
-    await client.send(new DeleteObjectsCommand({
-      Bucket: bucket,
-      Delete: { Objects: items.map(({ key, versionId }) => ({ Key: key, VersionId: versionId })) },
-    }));
+    await client.send(
+      new DeleteObjectsCommand({
+        Bucket: bucket,
+        Delete: { Objects: items.map(({ key, versionId }) => ({ Key: key, VersionId: versionId })) },
+      }),
+    );
   },
 
   getBucketVersioning: async (client: S3Client, bucket: string) => {
-    const { Status, MFADelete } = await client.send(
-      new GetBucketVersioningCommand({ Bucket: bucket }),
-    );
+    const { Status, MFADelete } = await client.send(new GetBucketVersioningCommand({ Bucket: bucket }));
     const status: VersioningStatus =
       Status === 'Enabled' ? 'Enabled' : Status === 'Suspended' ? 'Suspended' : 'Unversioned';
     return { enabled: Status === 'Enabled', status, mfaDelete: MFADelete === 'Enabled' };
   },
 
   setBucketVersioning: async (client: S3Client, bucket: string, enabled: boolean): Promise<void> => {
-    await client.send(new PutBucketVersioningCommand({
-      Bucket: bucket,
-      VersioningConfiguration: { Status: enabled ? 'Enabled' : 'Suspended' },
-    }));
+    await client.send(
+      new PutBucketVersioningCommand({
+        Bucket: bucket,
+        VersioningConfiguration: { Status: enabled ? 'Enabled' : 'Suspended' },
+      }),
+    );
   },
 
   getBucketLogging: async (client: S3Client, bucket: string) => {
-    const { LoggingEnabled } = await client.send(
-      new GetBucketLoggingCommand({ Bucket: bucket }),
-    );
+    const { LoggingEnabled } = await client.send(new GetBucketLoggingCommand({ Bucket: bucket }));
     return {
       enabled: !!LoggingEnabled,
       targetBucket: LoggingEnabled?.TargetBucket,
@@ -327,19 +345,20 @@ export const s3Service = {
     targetBucket?: string,
     targetPrefix?: string,
   ): Promise<void> => {
-    await client.send(new PutBucketLoggingCommand({
-      Bucket: bucket,
-      BucketLoggingStatus: enabled && targetBucket
-        ? { LoggingEnabled: { TargetBucket: targetBucket, TargetPrefix: targetPrefix ?? '' } }
-        : {},
-    }));
+    await client.send(
+      new PutBucketLoggingCommand({
+        Bucket: bucket,
+        BucketLoggingStatus:
+          enabled && targetBucket
+            ? { LoggingEnabled: { TargetBucket: targetBucket, TargetPrefix: targetPrefix ?? '' } }
+            : {},
+      }),
+    );
   },
 
   getObjectLockConfig: async (client: S3Client, bucket: string) => {
     try {
-      const { ObjectLockConfiguration } = await client.send(
-        new GetObjectLockConfigurationCommand({ Bucket: bucket }),
-      );
+      const { ObjectLockConfiguration } = await client.send(new GetObjectLockConfigurationCommand({ Bucket: bucket }));
       return {
         lockEnabledAtCreation: ObjectLockConfiguration?.ObjectLockEnabled === 'Enabled',
         enabled: !!ObjectLockConfiguration?.Rule?.DefaultRetention,
@@ -359,20 +378,24 @@ export const s3Service = {
     days?: number,
     years?: number,
   ): Promise<void> => {
-    await client.send(new PutObjectLockConfigurationCommand({
-      Bucket: bucket,
-      ObjectLockConfiguration: {
-        ObjectLockEnabled: 'Enabled',
-        Rule: { DefaultRetention: { Mode: mode, Days: days, Years: years } },
-      },
-    }));
+    await client.send(
+      new PutObjectLockConfigurationCommand({
+        Bucket: bucket,
+        ObjectLockConfiguration: {
+          ObjectLockEnabled: 'Enabled',
+          Rule: { DefaultRetention: { Mode: mode, Days: days, Years: years } },
+        },
+      }),
+    );
   },
 
   clearObjectLockConfig: async (client: S3Client, bucket: string): Promise<void> => {
-    await client.send(new PutObjectLockConfigurationCommand({
-      Bucket: bucket,
-      ObjectLockConfiguration: { ObjectLockEnabled: 'Enabled' },
-    }));
+    await client.send(
+      new PutObjectLockConfigurationCommand({
+        Bucket: bucket,
+        ObjectLockConfiguration: { ObjectLockEnabled: 'Enabled' },
+      }),
+    );
   },
 
   getObjectRetention: async (client: S3Client, bucket: string, key: string, versionId?: string) => {
@@ -380,9 +403,7 @@ export const s3Service = {
       const { Retention } = await client.send(
         new GetObjectRetentionCommand({ Bucket: bucket, Key: key, VersionId: versionId }),
       );
-      return Retention
-        ? { mode: Retention.Mode, retainUntilDate: Retention.RetainUntilDate }
-        : null;
+      return Retention ? { mode: Retention.Mode, retainUntilDate: Retention.RetainUntilDate } : null;
     } catch {
       return null;
     }
@@ -396,12 +417,14 @@ export const s3Service = {
     retainUntilDate: Date,
     versionId?: string,
   ): Promise<void> => {
-    await client.send(new PutObjectRetentionCommand({
-      Bucket: bucket,
-      Key: key,
-      VersionId: versionId,
-      Retention: { Mode: mode, RetainUntilDate: retainUntilDate },
-    }));
+    await client.send(
+      new PutObjectRetentionCommand({
+        Bucket: bucket,
+        Key: key,
+        VersionId: versionId,
+        Retention: { Mode: mode, RetainUntilDate: retainUntilDate },
+      }),
+    );
   },
 
   deleteBucket: async (client: S3Client, bucket: string): Promise<void> => {
@@ -423,8 +446,8 @@ export const s3Service = {
   ): Promise<'public' | 'private'> => {
     try {
       const { Grants = [] } = await client.send(new GetBucketAclCommand({ Bucket: bucket }), { abortSignal });
-      const isPublic = Grants.some((g) =>
-        g.Grantee?.URI?.includes('AllUsers') || g.Grantee?.URI?.includes('AuthenticatedUsers'),
+      const isPublic = Grants.some(
+        (g) => g.Grantee?.URI?.includes('AllUsers') || g.Grantee?.URI?.includes('AuthenticatedUsers'),
       );
       return isPublic ? 'public' : 'private';
     } catch {

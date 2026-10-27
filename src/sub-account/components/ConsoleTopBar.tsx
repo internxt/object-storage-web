@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  GlobeIcon,
-  CaretDownIcon,
-  GearSixIcon,
-  SignOutIcon,
-  ArrowSquareOutIcon,
-} from '@phosphor-icons/react';
+import { GlobeIcon, CaretDownIcon, GearSixIcon, SignOutIcon, ArrowSquareOutIcon } from '@phosphor-icons/react';
 import { T, shadow } from '../tokens';
 import { BrandLogo } from '../../components/BrandLogo';
 
@@ -38,11 +32,18 @@ const LanguageSelector = () => {
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
         style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          height: 36, padding: '0 12px',
-          background: 'none', border: `1px solid ${T.gray20}`,
-          borderRadius: 8, cursor: 'pointer',
-          fontSize: 13, fontWeight: 500, color: T.gray60,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          height: 36,
+          padding: '0 12px',
+          background: 'none',
+          border: `1px solid ${T.gray20}`,
+          borderRadius: 8,
+          cursor: 'pointer',
+          fontSize: 13,
+          fontWeight: 500,
+          color: T.gray60,
         }}
       >
         <GlobeIcon size={15} aria-label={t('topBar.language')} />
@@ -54,8 +55,11 @@ const LanguageSelector = () => {
         <div
           role="menu"
           style={{
-            position: 'absolute', right: 0, top: 'calc(100% + 8px)',
-            width: 160, zIndex: 200,
+            position: 'absolute',
+            right: 0,
+            top: 'calc(100% + 8px)',
+            width: 160,
+            zIndex: 200,
             background: T.white,
             border: `1px solid ${T.gray20}`,
             borderRadius: 12,
@@ -72,10 +76,19 @@ const LanguageSelector = () => {
                 setOpen(false);
               }}
               style={{
-                display: 'flex', alignItems: 'center', width: '100%', height: 36, padding: '0 10px',
+                display: 'flex',
+                alignItems: 'center',
+                width: '100%',
+                height: 36,
+                padding: '0 10px',
                 background: language.code === currentLanguage.code ? T.gray5 : 'transparent',
-                border: 'none', borderRadius: 8, cursor: 'pointer',
-                fontSize: 13, fontWeight: 500, color: T.gray100, textAlign: 'left',
+                border: 'none',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 500,
+                color: T.gray100,
+                textAlign: 'left',
               }}
             >
               {language.label}
@@ -124,7 +137,9 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
-    const keyHandler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     document.addEventListener('mousedown', handler);
     document.addEventListener('keydown', keyHandler);
     return () => {
@@ -139,13 +154,20 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
       <button
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen((o) => !o)}
         style={{
-          width: 36, height: 36, borderRadius: '50%',
-          background: T.primaryBg, color: T.primary,
-          border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, fontWeight: 600,
+          width: 36,
+          height: 36,
+          borderRadius: '50%',
+          background: T.primaryBg,
+          color: T.primary,
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 13,
+          fontWeight: 600,
           flexShrink: 0,
         }}
         title={t('topBar.accountMenu')}
@@ -158,8 +180,11 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
         <div
           role="menu"
           style={{
-            position: 'absolute', right: 0, top: 'calc(100% + 8px)',
-            width: 220, zIndex: 200,
+            position: 'absolute',
+            right: 0,
+            top: 'calc(100% + 8px)',
+            width: 220,
+            zIndex: 200,
             background: T.white,
             border: `1px solid ${T.gray20}`,
             borderRadius: 12,
@@ -171,9 +196,7 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
           {user.email && (
             <>
               <div style={{ padding: '8px 12px 10px' }}>
-                <p style={{ fontSize: 13, color: T.gray60, margin: 0, wordBreak: 'break-all' }}>
-                  {user.email}
-                </p>
+                <p style={{ fontSize: 13, color: T.gray60, margin: 0, wordBreak: 'break-all' }}>{user.email}</p>
               </div>
               <div style={{ height: 1, background: T.gray20, margin: '0 0 4px' }} />
             </>
@@ -183,7 +206,10 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
           <MenuItem
             icon={<GearSixIcon size={16} />}
             label={t('topBar.settings')}
-            onClick={() => { setOpen(false); onSettings(); }}
+            onClick={() => {
+              setOpen(false);
+              onSettings();
+            }}
           />
 
           {/* Separator */}
@@ -193,7 +219,10 @@ const AvatarMenu = ({ user, onSettings, onLogout }: AvatarMenuProps) => {
           <MenuItem
             icon={<SignOutIcon size={16} />}
             label={t('topBar.logOut')}
-            onClick={() => { setOpen(false); onLogout(); }}
+            onClick={() => {
+              setOpen(false);
+              onLogout();
+            }}
             danger
           />
         </div>
@@ -218,11 +247,18 @@ const MenuItem = ({ icon, label, onClick, danger }: MenuItemProps) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display: 'flex', alignItems: 'center', gap: 10,
-        width: '100%', height: 40, padding: '0 12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        width: '100%',
+        height: 40,
+        padding: '0 12px',
         background: hovered ? T.gray5 : 'transparent',
-        border: 'none', borderRadius: 8, cursor: 'pointer',
-        fontSize: 14, fontWeight: 500,
+        border: 'none',
+        borderRadius: 8,
+        cursor: 'pointer',
+        fontSize: 14,
+        fontWeight: 500,
         color: danger ? T.red : T.gray100,
         textAlign: 'left',
       }}
@@ -248,90 +284,111 @@ export const ConsoleTopBar = ({
 }: ConsoleTopBarProps) => {
   const { t } = useTranslation('subaccount');
   return (
-  <header style={{
-    height: 56,
-    background: T.white,
-    borderBottom: `1px solid ${T.gray20}`,
-    padding: '0 32px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 0,
-    fontFamily: '"Instrument Sans", sans-serif',
-    position: 'sticky', top: 0, zIndex: 100,
-  }}>
-    {/* Left group */}
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <BrandLogo
-        logoUrl={logoUrl}
-        fallbackLogoUrl='/logo.svg'
-        fallbackAlt='Internxt'
-        darkenFallback
-        style={{ maxWidth: 132, height: 14 }}
-      />
+    <header
+      style={{
+        height: 56,
+        background: T.white,
+        borderBottom: `1px solid ${T.gray20}`,
+        padding: '0 32px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0,
+        fontFamily: '"Instrument Sans", sans-serif',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+      }}
+    >
+      {/* Left group */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <BrandLogo
+          logoUrl={logoUrl}
+          fallbackLogoUrl="/logo.svg"
+          fallbackAlt="Internxt"
+          darkenFallback
+          style={{ maxWidth: 132, height: 14 }}
+        />
 
-      {/* Console badge */}
-      <span style={{
-        fontSize: 11, fontWeight: 500, textTransform: 'uppercase',
-        letterSpacing: '0.06em', color: T.primary,
-        background: T.primaryBg,
-        padding: '3px 8px', borderRadius: 999,
-        whiteSpace: 'nowrap',
-      }}>
-        {consoleLabel}
-      </span>
+        {/* Console badge */}
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 500,
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            color: T.primary,
+            background: T.primaryBg,
+            padding: '3px 8px',
+            borderRadius: 999,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {consoleLabel}
+        </span>
 
-      {/* Tabs */}
-      <nav style={{ display: 'flex', alignItems: 'stretch', height: 56, marginLeft: 8 }}>
-        {tabs.map(tab => {
-          const isActive = tab.key === activeTab;
-          return (
+        {/* Tabs */}
+        <nav style={{ display: 'flex', alignItems: 'stretch', height: 56, marginLeft: 8 }}>
+          {tabs.map((tab) => {
+            const isActive = tab.key === activeTab;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => onTab(tab.key)}
+                style={{
+                  height: '100%',
+                  padding: '0 14px',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: isActive ? `2px solid ${T.primary}` : '2px solid transparent',
+                  cursor: 'pointer',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: isActive ? T.gray100 : T.gray60,
+                  transition: 'color 120ms, border-color 120ms',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+          {billing && (
             <button
-              key={tab.key}
-              onClick={() => onTab(tab.key)}
+              onClick={billing.onClick}
+              disabled={billing.loading}
               style={{
-                height: '100%', padding: '0 14px',
-                background: 'none', border: 'none',
-                borderBottom: isActive ? `2px solid ${T.primary}` : '2px solid transparent',
-                cursor: 'pointer',
-                fontSize: 14, fontWeight: 500,
-                color: isActive ? T.gray100 : T.gray60,
-                transition: 'color 120ms, border-color 120ms',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                height: '100%',
+                padding: '0 14px',
+                background: 'none',
+                border: 'none',
+                borderBottom: '2px solid transparent',
+                cursor: billing.loading ? 'default' : 'pointer',
+                fontSize: 14,
+                fontWeight: 500,
+                color: T.gray60,
                 whiteSpace: 'nowrap',
+                opacity: billing.loading ? 0.6 : 1,
               }}
             >
-              {tab.label}
+              {t('topBar.billing')}
+              <ArrowSquareOutIcon size={14} />
             </button>
-          );
-        })}
-        {billing && (
-          <button
-            onClick={billing.onClick}
-            disabled={billing.loading}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              height: '100%', padding: '0 14px',
-              background: 'none', border: 'none', borderBottom: '2px solid transparent',
-              cursor: billing.loading ? 'default' : 'pointer',
-              fontSize: 14, fontWeight: 500, color: T.gray60,
-              whiteSpace: 'nowrap', opacity: billing.loading ? 0.6 : 1,
-            }}
-          >
-            {t('topBar.billing')}
-            <ArrowSquareOutIcon size={14} />
-          </button>
-        )}
-      </nav>
-    </div>
+          )}
+        </nav>
+      </div>
 
-    {/* Spacer */}
-    <div style={{ flex: 1 }} />
+      {/* Spacer */}
+      <div style={{ flex: 1 }} />
 
-    {/* Right group */}
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <LanguageSelector />
+      {/* Right group */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <LanguageSelector />
 
-      <AvatarMenu user={user} onSettings={onSettings} onLogout={onLogout} />
-    </div>
-  </header>
+        <AvatarMenu user={user} onSettings={onSettings} onLogout={onLogout} />
+      </div>
+    </header>
   );
 };

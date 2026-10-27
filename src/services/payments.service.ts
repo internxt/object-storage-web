@@ -10,7 +10,7 @@ export interface Invoice {
 
 const getInvoices = async (): Promise<Invoice[]> => {
   const response = await axiosInstance.get<Invoice[]>(
-    `${import.meta.env.VITE_PAYMENTS_API_URL}/object-storage/invoices`
+    `${import.meta.env.VITE_PAYMENTS_API_URL}/object-storage/invoices`,
   );
   return response.data;
 };

@@ -28,7 +28,11 @@ export const useSubAccountS3Client = (entityId: string | null, memberId: string 
       .getCredentials(entityId, memberId)
       .then((credentials) => {
         if (import.meta.env.DEV) {
-          console.log('[sub-account] s3 credentials', { accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey, endpoint: credentials.endpoint });
+          console.log('[sub-account] s3 credentials', {
+            accessKeyId: credentials.accessKeyId,
+            secretAccessKey: credentials.secretAccessKey,
+            endpoint: credentials.endpoint,
+          });
         }
         if (clientRef.current) {
           clientRef.current.destroy();

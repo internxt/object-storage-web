@@ -7,17 +7,11 @@ import dayjs from 'dayjs';
 import Button from './Button';
 
 interface DateRangePickerProps {
-  onApplyFilterButtonClicked: (
-    startDate: string,
-    endDate: string
-  ) => Promise<void>;
+  onApplyFilterButtonClicked: (startDate: string, endDate: string) => Promise<void>;
   returnISOString?: boolean;
 }
 
-export const DateRangePicker = ({
-  onApplyFilterButtonClicked,
-  returnISOString = false,
-}: DateRangePickerProps) => {
+export const DateRangePicker = ({ onApplyFilterButtonClicked, returnISOString = false }: DateRangePickerProps) => {
   const startDate = dayjs().subtract(1, 'month').toDate();
   const endDate = dayjs().toDate();
 
@@ -40,44 +34,34 @@ export const DateRangePicker = ({
   }, []);
 
   const formattedLabel = () => {
-    return `${formattedDate('DD MMM YYYY', range.startDate)} → ${formattedDate(
-      'DD MMM YYYY',
-      range.endDate
-    )}`;
+    return `${formattedDate('DD MMM YYYY', range.startDate)} → ${formattedDate('DD MMM YYYY', range.endDate)}`;
   };
 
   const handleApply = async () => {
-    const startDateString = returnISOString
-      ? range.startDate.toISOString()
-      : range.startDate.toDateString();
-    const endDateString = returnISOString
-      ? range.endDate.toISOString()
-      : range.endDate.toDateString();
+    const startDateString = returnISOString ? range.startDate.toISOString() : range.startDate.toDateString();
+    const endDateString = returnISOString ? range.endDate.toISOString() : range.endDate.toDateString();
 
     await onApplyFilterButtonClicked(startDateString, endDateString);
     setIsOpen(false);
   };
 
   return (
-    <div className='relative w-max' ref={ref}>
-      <Button
-        onClick={() => setIsOpen(!isOpen)}
-        className='flex w-max text-white px-3 py-2 rounded-md text-sm'
-      >
+    <div className="relative w-max" ref={ref}>
+      <Button onClick={() => setIsOpen(!isOpen)} className="flex w-max text-white px-3 py-2 rounded-md text-sm">
         {formattedLabel()}
       </Button>
 
       {isOpen && (
-        <div className='absolute right-0 z-50 flex flex-col gap-3 mt-2 shadow-lg bg-white rounded'>
+        <div className="absolute right-0 z-50 flex flex-col gap-3 mt-2 shadow-lg bg-white rounded">
           <DateRange
-            className='rounded-sm'
+            className="rounded-sm"
             onChange={(item) => {
               const { startDate, endDate } = item.range;
               if (startDate && endDate) {
                 setRange({ startDate, endDate });
               }
             }}
-            color='#155dfc'
+            color="#155dfc"
             rangeColors={['#155dfc']}
             ranges={[
               {
@@ -87,15 +71,12 @@ export const DateRangePicker = ({
               },
             ]}
             months={2}
-            direction='horizontal'
+            direction="horizontal"
             showDateDisplay={false}
             maxDate={new Date()}
           />
-          <div className='flex p-2 justify-end'>
-            <Button
-              className='flex w-max text-white px-3 py-2 rounded-md'
-              onClick={handleApply}
-            >
+          <div className="flex p-2 justify-end">
+            <Button className="flex w-max text-white px-3 py-2 rounded-md" onClick={handleApply}>
               Apply
             </Button>
           </div>

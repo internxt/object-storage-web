@@ -20,7 +20,7 @@ const PasswordInput = ({
 }) => {
   const [show, setShow] = useState(false);
   return (
-    <div className='relative'>
+    <div className="relative">
       <input
         type={show ? 'text' : 'password'}
         value={value}
@@ -31,9 +31,9 @@ const PasswordInput = ({
         }`}
       />
       <button
-        type='button'
+        type="button"
         onClick={() => setShow((s) => !s)}
-        className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
         tabIndex={-1}
       >
         {show ? <Eye size={16} /> : <EyeSlash size={16} />}
@@ -66,10 +66,7 @@ export const ChangePasswordModal = ({ isOpen, onClose }: Props) => {
   const allFilled = currentPassword.length > 0 && newPassword.length > 0 && confirmPassword.length > 0;
 
   const isValid =
-    allFilled &&
-    validatePassword(newPassword).length === 0 &&
-    !isSameAsCurrent &&
-    newPassword === confirmPassword;
+    allFilled && validatePassword(newPassword).length === 0 && !isSameAsCurrent && newPassword === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,31 +86,33 @@ export const ChangePasswordModal = ({ isOpen, onClose }: Props) => {
   };
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
-      <div className='bg-white rounded-2xl shadow-xl w-full max-w-md p-8'>
-        <h2 className='text-lg font-semibold text-gray-900 mb-6'>Change Password</h2>
-        <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
-
-          <div className='flex flex-col gap-1'>
-            <label className='text-xs font-medium text-gray-500 uppercase tracking-wide'>Current Password *</label>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">Change Password</h2>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Current Password *</label>
             <PasswordInput value={currentPassword} onChange={setCurrentPassword} hasError={false} />
           </div>
 
-          <div className='flex flex-col gap-1'>
-            <label className='text-xs font-medium text-gray-500 uppercase tracking-wide'>New Password *</label>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">New Password *</label>
             <PasswordInput
               value={newPassword}
-              onChange={(v) => { setNewPassword(v); setTouched((t) => ({ ...t, newPassword: true })); }}
+              onChange={(v) => {
+                setNewPassword(v);
+                setTouched((t) => ({ ...t, newPassword: true }));
+              }}
               hasError={policyErrors.length > 0 || isSameAsCurrent}
             />
             {isSameAsCurrent && (
-              <p className='text-xs text-red mt-0.5'>New password must be different from the current one</p>
+              <p className="text-xs text-red mt-0.5">New password must be different from the current one</p>
             )}
             {!isSameAsCurrent && policyErrors.length > 0 && (
-              <ul className='mt-1 flex flex-col gap-0.5'>
+              <ul className="mt-1 flex flex-col gap-0.5">
                 {policyErrors.map((err) => (
-                  <li key={err} className='text-xs flex items-center gap-1.5' style={{ color: '#ef4444' }}>
-                    <span className='w-1 h-1 rounded-full flex-shrink-0' style={{ backgroundColor: '#ef4444' }} />
+                  <li key={err} className="text-xs flex items-center gap-1.5" style={{ color: '#ef4444' }}>
+                    <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ backgroundColor: '#ef4444' }} />
                     {err}
                   </li>
                 ))}
@@ -121,30 +120,35 @@ export const ChangePasswordModal = ({ isOpen, onClose }: Props) => {
             )}
           </div>
 
-          <div className='flex flex-col gap-1'>
-            <label className='text-xs font-medium text-gray-500 uppercase tracking-wide'>Confirm New Password *</label>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Confirm New Password *</label>
             <PasswordInput
               value={confirmPassword}
-              onChange={(v) => { setConfirmPassword(v); setTouched((t) => ({ ...t, confirmPassword: true })); }}
+              onChange={(v) => {
+                setConfirmPassword(v);
+                setTouched((t) => ({ ...t, confirmPassword: true }));
+              }}
               hasError={mismatch}
             />
             {mismatch && (
-              <p className='text-xs mt-0.5' style={{ color: '#ef4444' }}>Passwords do not match</p>
+              <p className="text-xs mt-0.5" style={{ color: '#ef4444' }}>
+                Passwords do not match
+              </p>
             )}
           </div>
 
-          <div className='flex justify-end gap-3 mt-2'>
+          <div className="flex justify-end gap-3 mt-2">
             <button
-              type='button'
+              type="button"
               onClick={handleClose}
-              className='px-4 py-2 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors'
+              className="px-4 py-2 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
-              type='submit'
+              type="submit"
               disabled={isLoading || !isValid}
-              className='px-4 py-2 text-sm font-medium text-white bg-indigo hover:bg-indigo-dark rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed'
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo hover:bg-indigo-dark rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Saving…' : 'Change Password'}
             </button>

@@ -115,7 +115,9 @@ async function getUsageSummary(): Promise<PartnersUsageSummary> {
   return response.data;
 }
 
-async function getSubAccountById(id: string): Promise<import('../../management/services/management.service').SubAccountDetail> {
+async function getSubAccountById(
+  id: string,
+): Promise<import('../../management/services/management.service').SubAccountDetail> {
   const response = await partnersAxios.get(`${API}/sub-accounts/${id}`);
   return response.data;
 }
@@ -222,10 +224,9 @@ async function getSubAccountsUsage(params: { from: string; to: string }): Promis
 }
 
 async function createBillingPortalSession(): Promise<{ url: string }> {
-  const response = await partnersAxios.post<{ url: string }>(
-    `${API}/billing-portal`,
-    { returnUrl: window.location.href },
-  );
+  const response = await partnersAxios.post<{ url: string }>(`${API}/billing-portal`, {
+    returnUrl: window.location.href,
+  });
   return response.data;
 }
 

@@ -1,12 +1,5 @@
 import { User } from '../services/user.service';
-import {
-  createContext,
-  useState,
-  ReactNode,
-  useContext,
-  useMemo,
-  useEffect,
-} from 'react';
+import { createContext, useState, ReactNode, useContext, useMemo, useEffect } from 'react';
 import { localStorageService } from '../services/localStorage.service';
 
 interface UserContextType {
@@ -60,12 +53,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       isLoading,
       isAuthenticated: !!user,
     }),
-    [user, setUser, isLoading]
+    [user, setUser, isLoading],
   );
 
-  return (
-    <UserContext.Provider value={memoizedUser}>{children}</UserContext.Provider>
-  );
+  return <UserContext.Provider value={memoizedUser}>{children}</UserContext.Provider>;
 };
 
 export const useUser = (): UserContextType => {

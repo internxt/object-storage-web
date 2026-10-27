@@ -35,16 +35,16 @@ export const BucketsTable = ({
 }: BucketsTableProps) => {
   if (isLoading) {
     return (
-      <table className='w-full'>
+      <table className="w-full">
         <thead>
-          <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
+          <tr className="w-full h-12 bg-gray-10 text-black text-sm">
             {headers.map((header) => (
-              <th key={header.sortKey} className='w-[33%] px-5 text-left'>
+              <th key={header.sortKey} className="w-[33%] px-5 text-left">
                 {header.title}
               </th>
             ))}
 
-            <th className='w-[1%]' />
+            <th className="w-[1%]" />
           </tr>
         </thead>
         <tbody>
@@ -55,61 +55,48 @@ export const BucketsTable = ({
   }
 
   return (
-    <table className='w-full'>
-      <thead className='sticky top-0 z-10'>
-        <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
+    <table className="w-full">
+      <thead className="sticky top-0 z-10">
+        <tr className="w-full h-12 bg-gray-10 text-black text-sm">
           {headers.map((header) => (
-            <th key={header.sortKey} className='w-[33%] px-5 text-left'>
+            <th key={header.sortKey} className="w-[33%] px-5 text-left">
               {header.title}
             </th>
           ))}
 
-          <th className='w-[1%]' />
+          <th className="w-[1%]" />
         </tr>
       </thead>
       <tbody>
         {buckets.length === 0 ? (
-          <tr className='w-full h-12 text-sm text-gray-500'>
-            <td colSpan={headers.length} className='text-center'>
+          <tr className="w-full h-12 text-sm text-gray-500">
+            <td colSpan={headers.length} className="text-center">
               No buckets found
             </td>
           </tr>
         ) : (
           buckets.map((bucket) => (
-            <tr className='w-full h-12 text-sm text-gray-500' key={bucket.id}>
-              <td className='w-[33%] px-5'>
-                <div className='flex flex-row gap-2 items-center'>
-                  <Database size={18} className='text-blue-600' />
-                  <span className='text-primary font-medium'>
-                    {bucket.name}
-                  </span>
+            <tr className="w-full h-12 text-sm text-gray-500" key={bucket.id}>
+              <td className="w-[33%] px-5">
+                <div className="flex flex-row gap-2 items-center">
+                  <Database size={18} className="text-blue-600" />
+                  <span className="text-primary font-medium">{bucket.name}</span>
                 </div>
               </td>
-              <td className='w-[33%] px-5'>
-                <div className='flex flex-row gap-2 items-center'>
+              <td className="w-[33%] px-5">
+                <div className="flex flex-row gap-2 items-center">
                   <p>{getFlagAndNameFromRegion(bucket.region).flag}</p>
                   <p>{getFlagAndNameFromRegion(bucket.region).name}</p>
                 </div>
               </td>
-              <td className='w-[33%] px-5'>
-                {formattedDate(
-                  FORMATTED_DATE_WITH_TIMEZONE,
-                  bucket.creationDate
-                )}
-              </td>
-              <td className='w-[1%] px-5'>
+              <td className="w-[33%] px-5">{formattedDate(FORMATTED_DATE_WITH_TIMEZONE, bucket.creationDate)}</td>
+              <td className="w-[1%] px-5">
                 <Dropdown
-                  button={
-                    <DotsThreeVertical
-                      size={28}
-                      weight='bold'
-                      className='hover:bg-gray-20 rounded-full p-1'
-                    />
-                  }
+                  button={<DotsThreeVertical size={28} weight="bold" className="hover:bg-gray-20 rounded-full p-1" />}
                   items={[
                     {
                       label: 'View Usage',
-                      icon: <ChartBar size={18} className='text-blue-600' />,
+                      icon: <ChartBar size={18} className="text-blue-600" />,
                       onClick: () => onViewUsageClicked(bucket),
                       disabled: !bucket.bucketNumber,
                     },

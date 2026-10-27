@@ -41,9 +41,14 @@ export const ShareLink = ({ url, isFolder }: ShareLinkProps) => {
           value={url}
           onFocus={(e) => e.target.select()}
           style={{
-            flex: 1, height: 38, padding: '0 12px',
-            border: `1px solid ${T.gray20}`, borderRadius: 8,
-            fontSize: 13, color: T.gray80, fontFamily: 'var(--font-mono,monospace)',
+            flex: 1,
+            height: 38,
+            padding: '0 12px',
+            border: `1px solid ${T.gray20}`,
+            borderRadius: 8,
+            fontSize: 13,
+            color: T.gray80,
+            fontFamily: 'var(--font-mono,monospace)',
           }}
         />
         <Button type="button" onClick={onCopy}>

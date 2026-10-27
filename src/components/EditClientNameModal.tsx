@@ -49,27 +49,27 @@ export const EditClientNameModal = ({ isOpen, currentName, onClose, onSubmit }: 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth='max-w-md'>
-      <div className='flex flex-col gap-4'>
-        <h2 className='text-lg font-semibold text-gray-100'>Edit name</h2>
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-md">
+      <div className="flex flex-col gap-4">
+        <h2 className="text-lg font-semibold text-gray-100">Edit name</h2>
 
-        <form onSubmit={handleSubmit(onFormSubmit)} className='flex flex-col gap-3'>
-          <Field label='Name' error={errors.name?.message}>
+        <form onSubmit={handleSubmit(onFormSubmit)} className="flex flex-col gap-3">
+          <Field label="Name" error={errors.name?.message}>
             <input
               {...register('name', requiredNameRules())}
-              placeholder='Name'
+              placeholder="Name"
               autoFocus
               className={inputClass(errors.name)}
             />
           </Field>
 
-          {error && <p className='text-sm text-red'>{error}</p>}
+          {error && <p className="text-sm text-red">{error}</p>}
 
-          <div className='flex justify-end gap-3 pt-2'>
-            <Button variant='secondary' type='button' onClick={onClose} disabled={isSubmitting}>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="secondary" type="button" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type='submit' disabled={!isValid || isUnchanged || isSubmitting} loading={isSubmitting}>
+            <Button type="submit" disabled={!isValid || isUnchanged || isSubmitting} loading={isSubmitting}>
               Save
             </Button>
           </div>
@@ -93,9 +93,9 @@ export const EditClientNameButton = ({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        aria-label='Edit name'
-        title='Edit name'
-        className='p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors'
+        aria-label="Edit name"
+        title="Edit name"
+        className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
       >
         <PencilSimple size={16} />
       </button>

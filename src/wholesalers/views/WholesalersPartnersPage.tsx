@@ -107,8 +107,12 @@ export const WholesalersPartnersPage = () => {
           </div>
           <div
             style={{
-              display: 'flex', flexDirection: 'column', gap: 8, flex: 1,
-              padding: '28px 40px', borderLeft: `1px solid ${T.gray20}`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              flex: 1,
+              padding: '28px 40px',
+              borderLeft: `1px solid ${T.gray20}`,
             }}
           >
             <p style={labelStyle}>Partners</p>
@@ -123,19 +127,25 @@ export const WholesalersPartnersPage = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>Partners</h2>
-            {total > 0 && (
-              <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{total} partners total</p>
-            )}
+            {total > 0 && <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{total} partners total</p>}
           </div>
           {!isViewer && (
             <button
               onClick={() => setIsCreateModalOpen(true)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                height: 40, padding: '0 18px',
-                background: T.primary, color: T.white,
-                border: 'none', borderRadius: 8, cursor: 'pointer',
-                fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 40,
+                padding: '0 18px',
+                background: T.primary,
+                color: T.white,
+                border: 'none',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
               }}
             >
               Create Partner
@@ -151,7 +161,16 @@ export const WholesalersPartnersPage = () => {
           deletingPartnerId={deletingPartnerId}
         />
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.gray15}` }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 16,
+            paddingTop: 16,
+            borderTop: `1px solid ${T.gray15}`,
+          }}
+        >
           <span style={{ fontSize: 13, color: T.gray50 }}>
             Showing {fromItem}–{toItem} of {total} partners
           </span>
@@ -160,11 +179,18 @@ export const WholesalersPartnersPage = () => {
               disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                height: 32, padding: '0 12px',
-                fontSize: 13, fontWeight: 500, color: T.gray80,
-                border: `1px solid ${T.gray20}`, borderRadius: 8,
-                background: T.white, cursor: hasPrev ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                height: 32,
+                padding: '0 12px',
+                fontSize: 13,
+                fontWeight: 500,
+                color: T.gray80,
+                border: `1px solid ${T.gray20}`,
+                borderRadius: 8,
+                background: T.white,
+                cursor: hasPrev ? 'pointer' : 'not-allowed',
                 opacity: hasPrev ? 1 : 0.4,
               }}
             >
@@ -178,11 +204,18 @@ export const WholesalersPartnersPage = () => {
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                height: 32, padding: '0 12px',
-                fontSize: 13, fontWeight: 500, color: T.gray80,
-                border: `1px solid ${T.gray20}`, borderRadius: 8,
-                background: T.white, cursor: hasNext ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                height: 32,
+                padding: '0 12px',
+                fontSize: 13,
+                fontWeight: 500,
+                color: T.gray80,
+                border: `1px solid ${T.gray20}`,
+                borderRadius: 8,
+                background: T.white,
+                cursor: hasNext ? 'pointer' : 'not-allowed',
                 opacity: hasNext ? 1 : 0.4,
               }}
             >

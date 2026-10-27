@@ -31,17 +31,23 @@ const PRESET_HOURS: Record<Exclude<DurationPreset, 'custom'>, number> = {
   '30d': 24 * MAX_CUSTOM_DAYS,
 };
 
-const DurationOption = ({ title, selected, onSelect }: {
-  title: string; selected: boolean; onSelect: () => void;
-}) => (
+const DurationOption = ({ title, selected, onSelect }: { title: string; selected: boolean; onSelect: () => void }) => (
   <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
     <input type="radio" checked={selected} onChange={onSelect} style={{ cursor: 'pointer' }} />
     <span style={text.body}>{title}</span>
   </label>
 );
 
-const AccessOption = ({ title, hint, selected, onSelect }: {
-  title: string; hint: string; selected: boolean; onSelect: () => void;
+const AccessOption = ({
+  title,
+  hint,
+  selected,
+  onSelect,
+}: {
+  title: string;
+  hint: string;
+  selected: boolean;
+  onSelect: () => void;
 }) => (
   <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer' }}>
     <input type="radio" checked={selected} onChange={onSelect} style={{ cursor: 'pointer', marginTop: 3 }} />
@@ -80,7 +86,12 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
     const requestPublic = isPublicSharingEnabled && isPublic;
     try {
       const share = await shareService.createShare(entityId, {
-        bucket, key: obj.key, isFolder: obj.isFolder, endpoint, region, expiresInHours,
+        bucket,
+        key: obj.key,
+        isFolder: obj.isFolder,
+        endpoint,
+        region,
+        expiresInHours,
         isPublic: requestPublic,
       });
       setUrl(`${window.location.origin}/share/${share.token}`);
@@ -92,10 +103,10 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
         isPublicRefused
           ? t('shareModal.publicDisabledError')
           : isForbidden
-          ? t('shareModal.accessDenied')
-          : isBadRequest
-            ? t('shareModal.durationApiError', { max: MAX_CUSTOM_DAYS })
-            : t('shareModal.createError'),
+            ? t('shareModal.accessDenied')
+            : isBadRequest
+              ? t('shareModal.durationApiError', { max: MAX_CUSTOM_DAYS })
+              : t('shareModal.createError'),
       );
     } finally {
       setCreating(false);
@@ -118,10 +129,26 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <span style={text.label}>{t('shareModal.expiresInLabel')}</span>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <DurationOption title={t('shareModal.preset24h')} selected={duration === '24h'} onSelect={() => setDuration('24h')} />
-          <DurationOption title={t('shareModal.preset7d')} selected={duration === '7d'} onSelect={() => setDuration('7d')} />
-          <DurationOption title={t('shareModal.preset30d')} selected={duration === '30d'} onSelect={() => setDuration('30d')} />
-          <DurationOption title={t('shareModal.presetCustom')} selected={duration === 'custom'} onSelect={() => setDuration('custom')} />
+          <DurationOption
+            title={t('shareModal.preset24h')}
+            selected={duration === '24h'}
+            onSelect={() => setDuration('24h')}
+          />
+          <DurationOption
+            title={t('shareModal.preset7d')}
+            selected={duration === '7d'}
+            onSelect={() => setDuration('7d')}
+          />
+          <DurationOption
+            title={t('shareModal.preset30d')}
+            selected={duration === '30d'}
+            onSelect={() => setDuration('30d')}
+          />
+          <DurationOption
+            title={t('shareModal.presetCustom')}
+            selected={duration === 'custom'}
+            onSelect={() => setDuration('custom')}
+          />
         </div>
         {duration === 'custom' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 24 }}>
@@ -132,9 +159,13 @@ export const ShareModal = ({ obj, bucket, endpoint, region, onClose }: ShareModa
               value={customDays}
               onChange={(e) => setCustomDays(e.target.value)}
               style={{
-                width: 72, height: 34, padding: '0 10px',
-                border: `1px solid ${T.gray20}`, borderRadius: 8,
-                fontSize: 14, color: T.gray100,
+                width: 72,
+                height: 34,
+                padding: '0 10px',
+                border: `1px solid ${T.gray20}`,
+                borderRadius: 8,
+                fontSize: 14,
+                color: T.gray100,
               }}
             />
             <span style={text.hint}>{t('shareModal.customDaysHint', { max: MAX_CUSTOM_DAYS })}</span>

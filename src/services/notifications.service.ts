@@ -1,4 +1,4 @@
-import { toast } from 'react-toastify'
+import { toast } from 'react-toastify';
 
 export enum ToastType {
   Success = 'success',
@@ -9,9 +9,9 @@ export enum ToastType {
 }
 
 export type ToastShowProps = {
-  text: string
-  duration?: number
-}
+  text: string;
+  duration?: number;
+};
 
 const notificationsService = {
   success: ({ text, duration = 3000 }: ToastShowProps) => {
@@ -21,7 +21,7 @@ const notificationsService = {
       position: 'bottom-center',
       theme: 'colored',
       icon: false,
-    })
+    });
   },
   error: ({ text, duration = 3000 }: ToastShowProps) => {
     toast.error(text, {
@@ -30,9 +30,9 @@ const notificationsService = {
       autoClose: duration,
       position: 'bottom-center',
       theme: 'colored',
-    })
+    });
   },
   dismiss: toast.dismiss(),
-}
+};
 
-export default notificationsService
+export default notificationsService;

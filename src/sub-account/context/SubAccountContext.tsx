@@ -20,33 +20,15 @@ interface SubAccountContextType {
 const SubAccountContext = createContext<SubAccountContextType | undefined>(undefined);
 
 export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => !!subAccountAuthService.getToken(),
-  );
-  const [isAdmin, setIsAdmin] = useState(
-    () => subAccountAuthService.getRole() === 'admin',
-  );
-  const [ssoEnabled, setSsoEnabled] = useState(
-    () => subAccountAuthService.getSsoEnabled(),
-  );
-  const [auditLogEnabled, setAuditLogEnabled] = useState(
-    () => subAccountAuthService.getAuditLogEnabled(),
-  );
-  const [memberId, setMemberId] = useState(
-    () => subAccountAuthService.getMemberId(),
-  );
-  const [entityId, setEntityId] = useState(
-    () => subAccountAuthService.getEntityId(),
-  );
-  const [partnerId, setPartnerId] = useState(
-    () => subAccountAuthService.getPartnerId(),
-  );
-  const [entityCreatedAt, setEntityCreatedAt] = useState(
-    () => subAccountAuthService.getEntityCreatedAt(),
-  );
-  const [email, setEmail] = useState(
-    () => subAccountAuthService.getEmail(),
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!subAccountAuthService.getToken());
+  const [isAdmin, setIsAdmin] = useState(() => subAccountAuthService.getRole() === 'admin');
+  const [ssoEnabled, setSsoEnabled] = useState(() => subAccountAuthService.getSsoEnabled());
+  const [auditLogEnabled, setAuditLogEnabled] = useState(() => subAccountAuthService.getAuditLogEnabled());
+  const [memberId, setMemberId] = useState(() => subAccountAuthService.getMemberId());
+  const [entityId, setEntityId] = useState(() => subAccountAuthService.getEntityId());
+  const [partnerId, setPartnerId] = useState(() => subAccountAuthService.getPartnerId());
+  const [entityCreatedAt, setEntityCreatedAt] = useState(() => subAccountAuthService.getEntityCreatedAt());
+  const [email, setEmail] = useState(() => subAccountAuthService.getEmail());
 
   const refreshClaims = () => {
     setIsAuthenticated(!!subAccountAuthService.getToken());
@@ -85,7 +67,21 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const value = useMemo(
-    () => ({ isAuthenticated, isAdmin, ssoEnabled, auditLogEnabled, memberId, entityId, partnerId, entityCreatedAt, email, logIn, logInWithSso, refreshClaims, logOut }),
+    () => ({
+      isAuthenticated,
+      isAdmin,
+      ssoEnabled,
+      auditLogEnabled,
+      memberId,
+      entityId,
+      partnerId,
+      entityCreatedAt,
+      email,
+      logIn,
+      logInWithSso,
+      refreshClaims,
+      logOut,
+    }),
     [isAuthenticated, isAdmin, ssoEnabled, auditLogEnabled, memberId, entityId, partnerId, entityCreatedAt, email],
   );
 

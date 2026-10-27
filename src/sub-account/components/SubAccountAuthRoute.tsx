@@ -6,7 +6,7 @@ export const SubAccountAuthRoute = () => {
   const { isAuthenticated } = useSubAccount();
 
   if (!isAuthenticated) {
-    return <Navigate to='/subaccount/login' replace />;
+    return <Navigate to="/subaccount/login" replace />;
   }
 
   return (

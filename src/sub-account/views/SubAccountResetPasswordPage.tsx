@@ -14,8 +14,8 @@ export const SubAccountResetPasswordPage = () => {
   return (
     <ResetPasswordView
       {...getSubAccountConsoleBranding(t)}
-      loginPath='/subaccount/login'
-      forgotPasswordPath='/subaccount/forgot-password'
+      loginPath="/subaccount/login"
+      forgotPasswordPath="/subaccount/forgot-password"
       resetPassword={subAccountAuthService.resetPassword}
       branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
     />

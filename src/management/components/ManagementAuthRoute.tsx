@@ -6,7 +6,7 @@ export const ManagementAuthRoute = () => {
   const { isAuthenticated } = useManagement();
 
   if (!isAuthenticated) {
-    return <Navigate to='/management/login' replace />;
+    return <Navigate to="/management/login" replace />;
   }
 
   return (

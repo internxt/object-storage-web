@@ -15,12 +15,8 @@ interface PartnersContextType {
 const PartnersContext = createContext<PartnersContextType | undefined>(undefined);
 
 export const PartnersProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => !!partnersAuthService.getToken()
-  );
-  const [isViewer, setIsViewer] = useState(
-    () => partnersAuthService.getRole() === 'member'
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!partnersAuthService.getToken());
+  const [isViewer, setIsViewer] = useState(() => partnersAuthService.getRole() === 'member');
   const [partnerInfo, setPartnerInfo] = useState<PartnerInfo | null>(null);
   const [twoFactorSetupRequired, setTwoFactorSetupRequired] = useState(false);
 
@@ -56,15 +52,19 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
   const clearTwoFactorSetupRequired = () => setTwoFactorSetupRequired(false);
 
   const value = useMemo(
-    () => ({ isAuthenticated, isViewer, partnerInfo, twoFactorSetupRequired, clearTwoFactorSetupRequired, logIn, logOut }),
-    [isAuthenticated, isViewer, partnerInfo, twoFactorSetupRequired]
+    () => ({
+      isAuthenticated,
+      isViewer,
+      partnerInfo,
+      twoFactorSetupRequired,
+      clearTwoFactorSetupRequired,
+      logIn,
+      logOut,
+    }),
+    [isAuthenticated, isViewer, partnerInfo, twoFactorSetupRequired],
   );
 
-  return (
-    <PartnersContext.Provider value={value}>
-      {children}
-    </PartnersContext.Provider>
-  );
+  return <PartnersContext.Provider value={value}>{children}</PartnersContext.Provider>;
 };
 
 export const usePartners = (): PartnersContextType => {

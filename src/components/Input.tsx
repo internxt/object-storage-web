@@ -1,38 +1,30 @@
-import {
-  CheckCircle,
-  Eye,
-  EyeSlash,
-  Info,
-  Warning,
-  WarningOctagon,
-  X,
-} from '@phosphor-icons/react'
-import { JSX, KeyboardEvent, useEffect, useRef, useState } from 'react'
-import Tooltip from './Tooltip'
+import { CheckCircle, Eye, EyeSlash, Info, Warning, WarningOctagon, X } from '@phosphor-icons/react';
+import { JSX, KeyboardEvent, useEffect, useRef, useState } from 'react';
+import Tooltip from './Tooltip';
 
 export interface InputProps {
-  className?: string
-  label?: string
-  variant?: 'default' | 'search' | 'password' | 'email'
-  accent?: 'error' | 'warning' | 'success'
-  disabled?: boolean
-  placeholder?: string
-  value?: string
-  maxLength?: number
-  onChange?: (v: string) => void
-  onClear?: () => void
-  onFocus?: () => void
-  onBlur?: () => void
-  message?: string
-  autofocus?: boolean
-  autoComplete?: 'on' | 'off' | 'new-password'
-  dataTest?: string
-  name?: string
-  required?: boolean
-  labelDataCy?: string
-  inputDataCy?: string
-  tooltip?: string
-  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
+  className?: string;
+  label?: string;
+  variant?: 'default' | 'search' | 'password' | 'email';
+  accent?: 'error' | 'warning' | 'success';
+  disabled?: boolean;
+  placeholder?: string;
+  value?: string;
+  maxLength?: number;
+  onChange?: (v: string) => void;
+  onClear?: () => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  message?: string;
+  autofocus?: boolean;
+  autoComplete?: 'on' | 'off' | 'new-password';
+  dataTest?: string;
+  name?: string;
+  required?: boolean;
+  labelDataCy?: string;
+  inputDataCy?: string;
+  tooltip?: string;
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
 }
 
 /**
@@ -133,45 +125,41 @@ const Input = ({
   tooltip,
   onKeyDown,
 }: InputProps): JSX.Element => {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const focusInput = () => {
     if (inputRef && inputRef.current) {
       if (variant !== 'email') {
-        inputRef.current.selectionStart = inputRef.current.value.length
-        inputRef.current.selectionEnd = inputRef.current.value.length
+        inputRef.current.selectionStart = inputRef.current.value.length;
+        inputRef.current.selectionEnd = inputRef.current.value.length;
       }
-      inputRef.current.focus()
+      inputRef.current.focus();
     }
-  }
+  };
 
   useEffect(() => {
     if (message || autofocus) {
-      focusInput()
+      focusInput();
     }
-  }, [message, autofocus, disabled])
+  }, [message, autofocus, disabled]);
 
   const borderColor =
     accent === 'error'
       ? 'border-red disabled:border-gray-10'
       : variant === 'search'
         ? 'border-gray-30'
-        : 'border-gray-30 disabled:border-gray-10'
+        : 'border-gray-30 disabled:border-gray-10';
 
-  const focusRing =
-    accent === 'error'
-      ? 'focus:ring-2 focus:ring-red'
-      : 'focus:ring-2 focus:ring-primary'
+  const focusRing = accent === 'error' ? 'focus:ring-2 focus:ring-red' : 'focus:ring-2 focus:ring-primary';
 
-  const placeholderColor =
-    variant === 'search' ? 'placeholder-gray-40' : 'placeholder-gray-30'
+  const placeholderColor = variant === 'search' ? 'placeholder-gray-40' : 'placeholder-gray-30';
 
-  const padding = variant === 'search' ? 'pl-4 pr-10' : 'px-4'
+  const padding = variant === 'search' ? 'pl-4 pr-10' : 'px-4';
 
-  const [showPassword, setShowPassword] = useState(false)
-  const [isFocused, setIsFocused] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
-  const background = variant === 'search' ? 'bg-gray-5' : 'bg-transparent'
+  const background = variant === 'search' ? 'bg-gray-5' : 'bg-transparent';
 
   const input = (
     <div className="relative">
@@ -180,22 +168,16 @@ const Input = ({
         disabled={disabled}
         className={` h-10 w-full rounded-md border font-normal text-gray-800 outline-none disabled:text-gray-40 disabled:placeholder-gray-20
           ${borderColor} ${focusRing} ${placeholderColor} ${padding} ${background}`}
-        type={
-          variant === 'password' && !showPassword
-            ? 'password'
-            : variant === 'email'
-              ? 'email'
-              : 'text'
-        }
+        type={variant === 'password' && !showPassword ? 'password' : variant === 'email' ? 'email' : 'text'}
         placeholder={placeholder}
         onChange={(e) => onChange && onChange(e.target.value)}
         onFocus={() => {
-          if (onFocus) onFocus()
-          setIsFocused(true)
+          if (onFocus) onFocus();
+          setIsFocused(true);
         }}
         onBlur={() => {
-          if (onBlur) onBlur()
-          setIsFocused(false)
+          if (onBlur) onBlur();
+          setIsFocused(false);
         }}
         autoComplete={autoComplete}
         value={value}
@@ -211,9 +193,9 @@ const Input = ({
           role="button"
           tabIndex={0}
           onMouseDown={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setShowPassword(!showPassword)
+            e.preventDefault();
+            e.stopPropagation();
+            setShowPassword(!showPassword);
           }}
           className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer bg-transparent py-2 pl-2 text-gray-80"
         >
@@ -225,8 +207,8 @@ const Input = ({
           role="button"
           tabIndex={0}
           onMouseDown={(e) => {
-            e.preventDefault()
-            if (onClear) onClear()
+            e.preventDefault();
+            if (onClear) onClear();
           }}
           className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer py-2 pl-2 text-gray-40"
         >
@@ -234,26 +216,26 @@ const Input = ({
         </div>
       )}
     </div>
-  )
+  );
 
-  let messageColor: string
-  let MessageIcon: typeof WarningOctagon | undefined
+  let messageColor: string;
+  let MessageIcon: typeof WarningOctagon | undefined;
 
   switch (accent) {
     case 'success':
-      messageColor = 'text-green'
-      MessageIcon = CheckCircle
-      break
+      messageColor = 'text-green';
+      MessageIcon = CheckCircle;
+      break;
     case 'warning':
-      messageColor = 'text-orange'
-      MessageIcon = Warning
-      break
+      messageColor = 'text-orange';
+      MessageIcon = Warning;
+      break;
     case 'error':
-      messageColor = 'text-red'
-      MessageIcon = WarningOctagon
-      break
+      messageColor = 'text-red';
+      MessageIcon = WarningOctagon;
+      break;
     default:
-      messageColor = 'text-gray-808'
+      messageColor = 'text-gray-808';
   }
 
   return (
@@ -261,20 +243,11 @@ const Input = ({
       {label ? (
         <div className="flex flex-col gap-1 w-full">
           <label className="flex items-center gap-1">
-            <span
-              data-cy={labelDataCy}
-              className={`text-sm ${
-                disabled ? 'text-gray-40' : 'text-gray-80'
-              }`}
-            >
+            <span data-cy={labelDataCy} className={`text-sm ${disabled ? 'text-gray-40' : 'text-gray-80'}`}>
               {label}
             </span>
             {tooltip && (
-              <Tooltip
-                popsFrom="bottom"
-                title={tooltip}
-                className="text-black cursor-pointer z-20"
-              >
+              <Tooltip popsFrom="bottom" title={tooltip} className="text-black cursor-pointer z-20">
                 <Info size={14} />
               </Tooltip>
             )}
@@ -285,9 +258,7 @@ const Input = ({
         input
       )}
       {maxLength && (
-        <p className="font-regular mt-1 text-right text-sm text-gray-50">{`${
-          value?.length ?? 0
-        }/${maxLength}`}</p>
+        <p className="font-regular mt-1 text-right text-sm text-gray-50">{`${value?.length ?? 0}/${maxLength}`}</p>
       )}
       {message && (
         <div className={`mt-0.5 flex items-center ${messageColor}`}>
@@ -296,7 +267,7 @@ const Input = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Input
+export default Input;

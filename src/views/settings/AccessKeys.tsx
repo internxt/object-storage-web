@@ -2,11 +2,7 @@ import { Gear, Key } from '@phosphor-icons/react';
 import { Dropdown } from '../../components/Dropdown';
 import { Separator } from '../../components/Separator';
 import { useEffect, useState } from 'react';
-import {
-  AccessKey,
-  AccessKeyPermission,
-  accessKeysService,
-} from '../../services/access-keys.service';
+import { AccessKey, AccessKeyPermission, accessKeysService } from '../../services/access-keys.service';
 import notificationsService from '../../services/notifications.service';
 import { AccessKeyTable } from '../../components/accessKeys/AccessKeysTable';
 import Dialog from '../../components/Dialog';
@@ -34,15 +30,13 @@ interface ManageKeysDropdownProps {
   onGenerateNewKeysButtonClicked: () => void;
 }
 
-const ManageKeysDropdown = ({
-  onGenerateNewKeysButtonClicked,
-}: ManageKeysDropdownProps) => {
+const ManageKeysDropdown = ({ onGenerateNewKeysButtonClicked }: ManageKeysDropdownProps) => {
   return (
     <Dropdown
-      width='w-full z-50'
+      width="w-full z-50"
       button={
-        <div className='flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center'>
-          <div className='flex flex-row gap-2 items-center'>
+        <div className="flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center">
+          <div className="flex flex-row gap-2 items-center">
             <p>Manage Access keys</p>
             <Gear />
           </div>
@@ -61,16 +55,11 @@ const ManageKeysDropdown = ({
 
 export const AccessKeys = () => {
   const [accessKeys, setAccessKeys] = useState<AccessKey[]>([]);
-  const [accessKeyToDelete, setAccessKeyToDelete] =
-    useState<AccessKey | null>();
-  const [newGeneratedAccessKey, setNewGeneratedAccessKey] =
-    useState<AccessKey | null>();
-  const [isGenerateKeysDialogOpened, setIsGenerateKeysDialogOpened] =
-    useState<boolean>(false);
-  const [isPreviewGeneratedKeysModalOpen, setIsPreviewGeneratedKeysModalOpen] =
-    useState<boolean>(false);
-  const [isDeleteAccessKeyDialogOpen, setIsDeleteAccessKeyDialogOpen] =
-    useState<boolean>(false);
+  const [accessKeyToDelete, setAccessKeyToDelete] = useState<AccessKey | null>();
+  const [newGeneratedAccessKey, setNewGeneratedAccessKey] = useState<AccessKey | null>();
+  const [isGenerateKeysDialogOpened, setIsGenerateKeysDialogOpened] = useState<boolean>(false);
+  const [isPreviewGeneratedKeysModalOpen, setIsPreviewGeneratedKeysModalOpen] = useState<boolean>(false);
+  const [isDeleteAccessKeyDialogOpen, setIsDeleteAccessKeyDialogOpen] = useState<boolean>(false);
   const [isGeneratingAccessKeys, setIsGeneratingAccessKeys] = useState(false);
   const [isDeletingAccessKey, setIsDeletingAccessKey] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -97,9 +86,7 @@ export const AccessKeys = () => {
     setIsGenerateKeysDialogOpened(true);
   };
 
-  const onPreviewGeneratedKeysModalOpen = (
-    newGeneratedAccessKey: AccessKey
-  ) => {
+  const onPreviewGeneratedKeysModalOpen = (newGeneratedAccessKey: AccessKey) => {
     setNewGeneratedAccessKey(newGeneratedAccessKey);
     setIsPreviewGeneratedKeysModalOpen(true);
   };
@@ -126,7 +113,7 @@ export const AccessKeys = () => {
   const onGenerateNewKeys = async (
     accessKeyName: AccessKey['name'],
     accessKeyPermission: AccessKeyPermission,
-    accessKeyRegion: AccessKey['region']
+    accessKeyRegion: AccessKey['region'],
   ) => {
     try {
       setIsGeneratingAccessKeys(true);
@@ -175,7 +162,7 @@ export const AccessKeys = () => {
   const onDownloadCredentialsCSV = (
     name: AccessKey['name'],
     accessKey: AccessKey['accessKeyId'],
-    secretKey: AccessKey['secretAccessKey']
+    secretKey: AccessKey['secretAccessKey'],
   ) => {
     try {
       const csvContent = `name,access-key,secret-key\n${name},${accessKey},${secretKey}`;
@@ -202,10 +189,7 @@ export const AccessKeys = () => {
     }
   };
 
-  const onCopyKeys = async (
-    accessKey: AccessKey['accessKeyId'],
-    secretKey: AccessKey['secretAccessKey']
-  ) => {
+  const onCopyKeys = async (accessKey: AccessKey['accessKeyId'], secretKey: AccessKey['secretAccessKey']) => {
     const text = `access-key = ${accessKey}\nsecret-key = ${secretKey}`;
     try {
       await copyToClipboard(text);
@@ -223,13 +207,11 @@ export const AccessKeys = () => {
   };
 
   return (
-    <section className='flex flex-col gap-10 overflow-hidden'>
-      <div className='flex flex-col rounded-md bg-white gap-7 p-7'>
-        <div className='flex flex-row w-full justify-between'>
-          <p className='text-xl font-semibold'>Access Keys</p>
-          <ManageKeysDropdown
-            onGenerateNewKeysButtonClicked={onGenerateNewKeysButtonClicked}
-          />
+    <section className="flex flex-col gap-10 overflow-hidden">
+      <div className="flex flex-col rounded-md bg-white gap-7 p-7">
+        <div className="flex flex-row w-full justify-between">
+          <p className="text-xl font-semibold">Access Keys</p>
+          <ManageKeysDropdown onGenerateNewKeysButtonClicked={onGenerateNewKeysButtonClicked} />
         </div>
         <Separator />
         <AccessKeyTable
@@ -247,11 +229,11 @@ export const AccessKeys = () => {
         onClose={onCloseDeleteBucketModal}
         onPrimaryAction={onDeleteAccessKey}
         onSecondaryAction={onCloseDeleteBucketModal}
-        primaryAction='Delete'
-        secondaryAction='Cancel'
-        primaryActionColor='danger'
-        title='Delete bucket'
-        subtitle='By deleting this bucket, all associated usage data will also be permanently removed.'
+        primaryAction="Delete"
+        secondaryAction="Cancel"
+        primaryActionColor="danger"
+        title="Delete bucket"
+        subtitle="By deleting this bucket, all associated usage data will also be permanently removed."
       />
 
       {newGeneratedAccessKey && (

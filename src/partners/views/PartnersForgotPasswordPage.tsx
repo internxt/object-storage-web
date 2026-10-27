@@ -6,7 +6,7 @@ export const PartnersForgotPasswordPage = () => {
   return (
     <ForgotPasswordView
       {...partnersConsoleBranding}
-      loginPath='/partners/login'
+      loginPath="/partners/login"
       requestPasswordReset={partnersAuthService.requestPasswordReset}
     />
   );

@@ -41,9 +41,7 @@ function traverseEntry(entry: FileSystemEntry, path = ''): Promise<FileEntry[]> 
       const readBatch = () => {
         reader.readEntries(async (batch) => {
           if (batch.length === 0) {
-            const nested = await Promise.all(
-              collected.map((child) => traverseEntry(child, `${path}${entry.name}/`)),
-            );
+            const nested = await Promise.all(collected.map((child) => traverseEntry(child, `${path}${entry.name}/`)));
             resolve(nested.flat());
           } else {
             collected.push(...batch);
@@ -147,22 +145,25 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
       const { file, relativePath } = files[i];
       const key = prefix + relativePath;
 
-      setFiles((prev) => prev.map((f, idx) => idx === i ? { ...f, status: 'uploading' } : f));
+      setFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, status: 'uploading' } : f)));
 
       try {
-        await s3Service.uploadObject(client, bucket, key, file, (progress) => {
-          setFiles((prev) => prev.map((f, idx) => idx === i ? { ...f, progress } : f));
-        }, signal);
-        setFiles((prev) => prev.map((f, idx) => idx === i ? { ...f, status: 'done', progress: 100 } : f));
+        await s3Service.uploadObject(
+          client,
+          bucket,
+          key,
+          file,
+          (progress) => {
+            setFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, progress } : f)));
+          },
+          signal,
+        );
+        setFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, status: 'done', progress: 100 } : f)));
       } catch (err) {
         if (signal.aborted) break;
         anyError = true;
-        const message = isAccessDeniedError(err)
-          ? t('uploadModal.accessDenied')
-          : (err as Error).message;
-        setFiles((prev) =>
-          prev.map((f, idx) => idx === i ? { ...f, status: 'error', error: message } : f),
-        );
+        const message = isAccessDeniedError(err) ? t('uploadModal.accessDenied') : (err as Error).message;
+        setFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, status: 'error', error: message } : f)));
         notificationsService.error({ text: message });
       }
     }
@@ -172,12 +173,12 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
 
     if (signal.aborted) {
       setFiles((prev) =>
-          prev.map((f) => ({
-              ...f,
-              status: "pending",
-              progress: 0,
-              error: undefined,
-          })),
+        prev.map((f) => ({
+          ...f,
+          status: 'pending',
+          progress: 0,
+          error: undefined,
+        })),
       );
       return;
     }
@@ -192,8 +193,8 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
-      <div className='flex flex-col gap-5 w-full min-w-[480px]'>
-        <p className='text-black text-xl font-semibold'>{t('uploadModal.title')}</p>
+      <div className="flex flex-col gap-5 w-full min-w-[480px]">
+        <p className="text-black text-xl font-semibold">{t('uploadModal.title')}</p>
 
         {/* Drop zone */}
         {!isUploading && (
@@ -201,39 +202,36 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
             }`}
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
             onDragLeave={() => setIsDragging(false)}
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
           >
-            <UploadSimple size={32} className='mx-auto text-gray-400 mb-2' />
-            <p className='text-sm text-gray-500'>
-              {t('uploadModal.dropzone')} <span className='text-blue-600 font-medium'>{t('uploadModal.browse')}</span>
+            <UploadSimple size={32} className="mx-auto text-gray-400 mb-2" />
+            <p className="text-sm text-gray-500">
+              {t('uploadModal.dropzone')} <span className="text-blue-600 font-medium">{t('uploadModal.browse')}</span>
             </p>
-            <input
-              ref={inputRef}
-              type='file'
-              multiple
-              className='hidden'
-              onChange={(e) => addFiles(e.target.files)}
-            />
+            <input ref={inputRef} type="file" multiple className="hidden" onChange={(e) => addFiles(e.target.files)} />
           </div>
         )}
 
         {/* File list */}
         {files.length > 0 && (
-          <div className='flex flex-col gap-2 max-h-60 overflow-y-auto'>
+          <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
             {files.map((f, i) => (
-              <div key={i} className='flex items-center gap-3 text-sm'>
-                <div className='flex-1 min-w-0'>
-                  <div className='flex justify-between mb-1'>
-                    <span className='truncate text-gray-700'>{f.relativePath}</span>
-                    <span className='text-gray-400 ml-2 shrink-0'>{prettyBytes(f.file.size)}</span>
+              <div key={i} className="flex items-center gap-3 text-sm">
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between mb-1">
+                    <span className="truncate text-gray-700">{f.relativePath}</span>
+                    <span className="text-gray-400 ml-2 shrink-0">{prettyBytes(f.file.size)}</span>
                   </div>
                   {f.status !== 'error' && (
-                    <div className='h-1.5 bg-gray-100 rounded-full overflow-hidden'>
+                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                       <div
-                        className='h-full transition-all duration-300'
+                        className="h-full transition-all duration-300"
                         style={{
                           width: f.status === 'done' ? '100%' : `${f.progress}%`,
                           backgroundColor: f.status === 'done' ? '#22c55e' : '#3b82f6',
@@ -241,14 +239,12 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
                       />
                     </div>
                   )}
-                  {f.status === 'error' && (
-                    <p className='text-red text-xs'>{f.error}</p>
-                  )}
+                  {f.status === 'error' && <p className="text-red text-xs">{f.error}</p>}
                 </div>
-                {f.status === 'done' && <CheckCircle size={18} className='text-green-500 shrink-0' />}
-                {f.status === 'error' && <Warning size={18} className='text-red shrink-0' />}
+                {f.status === 'done' && <CheckCircle size={18} className="text-green-500 shrink-0" />}
+                {f.status === 'error' && <Warning size={18} className="text-red shrink-0" />}
                 {f.status === 'pending' && (
-                  <button onClick={() => removeFile(i)} className='shrink-0 hover:text-red-500'>
+                  <button onClick={() => removeFile(i)} className="shrink-0 hover:text-red-500">
                     <X size={16} />
                   </button>
                 )}
@@ -257,16 +253,12 @@ export const UploadModal = ({ isOpen, bucket, prefix, client: clientProp, onClos
           </div>
         )}
 
-        <div className='flex gap-3 justify-end'>
-          <Button
-            variant='secondary'
-            className='rounded-md'
-            onClick={isUploading ? cancelUpload : handleClose}
-          >
+        <div className="flex gap-3 justify-end">
+          <Button variant="secondary" className="rounded-md" onClick={isUploading ? cancelUpload : handleClose}>
             {t('actions.cancel')}
           </Button>
           <Button
-            className='rounded-md'
+            className="rounded-md"
             disabled={files.length === 0 || isUploading}
             loading={isUploading}
             onClick={uploadAll}

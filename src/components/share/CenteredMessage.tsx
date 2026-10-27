@@ -10,10 +10,17 @@ interface CenteredMessageProps {
 
 export const CenteredMessage = ({ icon, title, subtitle, action }: CenteredMessageProps) => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '64px 24px' }}>
-    <div style={{
-      width: 56, height: 56, borderRadius: '50%', background: T.gray10,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
+    <div
+      style={{
+        width: 56,
+        height: 56,
+        borderRadius: '50%',
+        background: T.gray10,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       {icon}
     </div>
     <p style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>{title}</p>

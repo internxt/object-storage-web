@@ -36,7 +36,8 @@ export const TwoFactorCard = () => {
   const [isDisabling, setIsDisabling] = useState(false);
 
   useEffect(() => {
-    subAccountTwoFactorService.getStatus()
+    subAccountTwoFactorService
+      .getStatus()
       .then(setStatus)
       .catch(() => setStatusFailed(true));
   }, []);
@@ -77,17 +78,19 @@ export const TwoFactorCard = () => {
   };
 
   const renderBody = () => {
-    if (statusFailed) return <p className='text-sm text-red'>{t('settings.profile.twoFactor.loadFailed')}</p>;
-    if (!status) return <p className='text-sm text-gray-50'>{t('settings.profile.twoFactor.loading')}</p>;
-    if (status.ssoEnabled) return <p className='text-sm text-gray-60'>{t('settings.profile.twoFactor.ssoManaged')}</p>;
+    if (statusFailed) return <p className="text-sm text-red">{t('settings.profile.twoFactor.loadFailed')}</p>;
+    if (!status) return <p className="text-sm text-gray-50">{t('settings.profile.twoFactor.loading')}</p>;
+    if (status.ssoEnabled) return <p className="text-sm text-gray-60">{t('settings.profile.twoFactor.ssoManaged')}</p>;
 
     return (
-      <div className='flex items-center justify-between gap-6'>
-        <p className='text-sm text-gray-60'>
-          {status.enabled ? t('settings.profile.twoFactor.enabledDescription') : t('settings.profile.twoFactor.description')}
+      <div className="flex items-center justify-between gap-6">
+        <p className="text-sm text-gray-60">
+          {status.enabled
+            ? t('settings.profile.twoFactor.enabledDescription')
+            : t('settings.profile.twoFactor.description')}
         </p>
         {status.enabled ? (
-          <Button variant='secondary' onClick={() => setIsDisableOpen(true)}>
+          <Button variant="secondary" onClick={() => setIsDisableOpen(true)}>
             {t('settings.profile.twoFactor.disable')}
           </Button>
         ) : (
@@ -100,12 +103,14 @@ export const TwoFactorCard = () => {
   return (
     <SectionCard
       title={t('settings.profile.twoFactor.title')}
-      action={status?.enabled && !status.ssoEnabled ? (
-        <span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green'>
-          <span className='w-1.5 h-1.5 rounded-full bg-green shrink-0' />
-          {t('settings.profile.twoFactor.enabledPill')}
-        </span>
-      ) : undefined}
+      action={
+        status?.enabled && !status.ssoEnabled ? (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green">
+            <span className="w-1.5 h-1.5 rounded-full bg-green shrink-0" />
+            {t('settings.profile.twoFactor.enabledPill')}
+          </span>
+        ) : undefined
+      }
     >
       {renderBody()}
 
@@ -141,7 +146,7 @@ export const TwoFactorCard = () => {
           <p style={{ ...text.hint, margin: 0 }}>{t('settings.profile.twoFactor.disableDescription')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>{t('settings.profile.twoFactor.passwordLabel')}</label>
-            <Input value={disablePassword} onChange={setDisablePassword} variant='password' />
+            <Input value={disablePassword} onChange={setDisablePassword} variant="password" />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>{t('settings.profile.twoFactor.codeLabel')}</label>
@@ -153,11 +158,11 @@ export const TwoFactorCard = () => {
             />
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
-            <Button variant='secondary' type='button' onClick={closeDisable} disabled={isDisabling}>
+            <Button variant="secondary" type="button" onClick={closeDisable} disabled={isDisabling}>
               {t('actions.cancel')}
             </Button>
             <Button
-              type='button'
+              type="button"
               disabled={isDisabling || !disablePassword || disableCode.length !== TWO_FACTOR_CODE_LENGTH}
               loading={isDisabling}
               onClick={handleDisable}

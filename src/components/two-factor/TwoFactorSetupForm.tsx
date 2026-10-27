@@ -1,27 +1,27 @@
-import { useEffect, useState } from 'react'
-import { TwoFactorCodeInput, TWO_FACTOR_CODE_LENGTH } from './TwoFactorCodeInput'
-import Button from '../Button'
-import { T, form } from '../../sub-account/tokens'
+import { useEffect, useState } from 'react';
+import { TwoFactorCodeInput, TWO_FACTOR_CODE_LENGTH } from './TwoFactorCodeInput';
+import Button from '../Button';
+import { T, form } from '../../sub-account/tokens';
 
 export interface TwoFactorSetupFormLabels {
-  scanInstructions: string
-  qrCodeAlt: string
-  manualEntry: string
-  codeLabel: string
-  codePlaceholder: string
-  loading: string
-  loadFailed: string
-  cancel: string
-  confirm: string
+  scanInstructions: string;
+  qrCodeAlt: string;
+  manualEntry: string;
+  codeLabel: string;
+  codePlaceholder: string;
+  loading: string;
+  loadFailed: string;
+  cancel: string;
+  confirm: string;
 }
 
 interface TwoFactorSetupFormProps {
-  labels: TwoFactorSetupFormLabels
-  getSetup: () => Promise<{ secret: string; qrCode: string }>
-  enable: (code: string) => Promise<void>
-  errorMessage: (err: unknown) => string
-  onComplete: () => void
-  onCancel?: () => void
+  labels: TwoFactorSetupFormLabels;
+  getSetup: () => Promise<{ secret: string; qrCode: string }>;
+  enable: (code: string) => Promise<void>;
+  errorMessage: (err: unknown) => string;
+  onComplete: () => void;
+  onCancel?: () => void;
 }
 
 export const TwoFactorSetupForm = ({
@@ -32,30 +32,30 @@ export const TwoFactorSetupForm = ({
   onComplete,
   onCancel,
 }: TwoFactorSetupFormProps) => {
-  const [setupData, setSetupData] = useState<{ secret: string; qrCode: string } | null>(null)
-  const [loadFailed, setLoadFailed] = useState(false)
-  const [confirmError, setConfirmError] = useState<string>()
-  const [code, setCode] = useState('')
-  const [confirming, setConfirming] = useState(false)
+  const [setupData, setSetupData] = useState<{ secret: string; qrCode: string } | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [confirmError, setConfirmError] = useState<string>();
+  const [code, setCode] = useState('');
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     getSetup()
       .then(setSetupData)
-      .catch(() => setLoadFailed(true))
-  }, [])
+      .catch(() => setLoadFailed(true));
+  }, []);
 
   const handleConfirm = async () => {
-    setConfirming(true)
-    setConfirmError(undefined)
+    setConfirming(true);
+    setConfirmError(undefined);
     try {
-      await enable(code)
-      onComplete()
+      await enable(code);
+      onComplete();
     } catch (err) {
-      setConfirmError(errorMessage(err))
+      setConfirmError(errorMessage(err));
     } finally {
-      setConfirming(false)
+      setConfirming(false);
     }
-  }
+  };
 
   if (loadFailed) {
     return (
@@ -69,11 +69,11 @@ export const TwoFactorSetupForm = ({
           </div>
         )}
       </div>
-    )
+    );
   }
 
   if (!setupData) {
-    return <p style={{ fontSize: 13, color: T.gray50, margin: 0 }}>{labels.loading}</p>
+    return <p style={{ fontSize: 13, color: T.gray50, margin: 0 }}>{labels.loading}</p>;
   }
 
   return (
@@ -110,10 +110,15 @@ export const TwoFactorSetupForm = ({
             {labels.cancel}
           </Button>
         )}
-        <Button type="button" disabled={confirming || code.length !== TWO_FACTOR_CODE_LENGTH} loading={confirming} onClick={handleConfirm}>
+        <Button
+          type="button"
+          disabled={confirming || code.length !== TWO_FACTOR_CODE_LENGTH}
+          loading={confirming}
+          onClick={handleConfirm}
+        >
           {labels.confirm}
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

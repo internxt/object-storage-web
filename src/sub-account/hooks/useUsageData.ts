@@ -3,17 +3,17 @@ import dayjs from 'dayjs';
 import subAccountAxios from '../core/sub-account-axios';
 
 export interface UsageRecord {
-  date: string;        // YYYY-MM-DD
-  active: number;      // bytes
-  deleted: number;     // bytes
+  date: string; // YYYY-MM-DD
+  active: number; // bytes
+  deleted: number; // bytes
   objects: number;
 }
 
 interface WacmUsageItem {
   startTime: string;
   endTime: string;
-  activeStorage: number;   // TB
-  deletedStorage: number;  // TB
+  activeStorage: number; // TB
+  deletedStorage: number; // TB
   activeObjects: number;
 }
 
@@ -54,12 +54,12 @@ export function useUsageData(entityId?: string | null) {
 
   const handleFromChange = (value: string) => {
     setFromDate(value);
-    setToDate(prev => keepWithinRange('from', value, prev));
+    setToDate((prev) => keepWithinRange('from', value, prev));
   };
 
   const handleToChange = (value: string) => {
     setToDate(value);
-    setFromDate(prev => keepWithinRange('to', value, prev));
+    setFromDate((prev) => keepWithinRange('to', value, prev));
   };
 
   useEffect(() => {
@@ -73,17 +73,18 @@ export function useUsageData(entityId?: string | null) {
     (async () => {
       setIsLoading(true);
       try {
-        const { data } = await subAccountAxios.get<WacmUsageItem[]>(
-          `/sub-accounts/${entityId}/usages`,
-          { params: { from: fromDate, to: toDate, page: 0, perPage: daysBetween(fromDate, toDate) } },
-        );
+        const { data } = await subAccountAxios.get<WacmUsageItem[]>(`/sub-accounts/${entityId}/usages`, {
+          params: { from: fromDate, to: toDate, page: 0, perPage: daysBetween(fromDate, toDate) },
+        });
         if (cancelled) return;
-        setRecords(data.map(u => ({
-          date: u.startTime.slice(0, 10),
-          active: u.activeStorage * TB_TO_BYTES,
-          deleted: u.deletedStorage * TB_TO_BYTES,
-          objects: u.activeObjects,
-        })));
+        setRecords(
+          data.map((u) => ({
+            date: u.startTime.slice(0, 10),
+            active: u.activeStorage * TB_TO_BYTES,
+            deleted: u.deletedStorage * TB_TO_BYTES,
+            objects: u.activeObjects,
+          })),
+        );
       } catch {
         if (!cancelled) setRecords([]);
       } finally {
@@ -91,7 +92,9 @@ export function useUsageData(entityId?: string | null) {
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [fromDate, toDate, entityId]);
 
   const sorted = useMemo(() => {
@@ -103,11 +106,14 @@ export function useUsageData(entityId?: string | null) {
     return sorted.slice(start, start + pageSize);
   }, [sorted, pageNumber, pageSize]);
 
-  const totals = useMemo(() => ({
-    active: sorted[0]?.active ?? 0,
-    deleted: sorted[0]?.deleted ?? 0,
-    objects: sorted[0]?.objects ?? 0,
-  }), [sorted]);
+  const totals = useMemo(
+    () => ({
+      active: sorted[0]?.active ?? 0,
+      deleted: sorted[0]?.deleted ?? 0,
+      objects: sorted[0]?.objects ?? 0,
+    }),
+    [sorted],
+  );
 
   return {
     fromDate,
@@ -121,7 +127,7 @@ export function useUsageData(entityId?: string | null) {
     pageNumber,
     pageSize,
     setPageSize,
-    goToPrevPage: () => setPageNumber(p => Math.max(1, p - 1)),
-    goToNextPage: () => setPageNumber(p => p + 1),
+    goToPrevPage: () => setPageNumber((p) => Math.max(1, p - 1)),
+    goToNextPage: () => setPageNumber((p) => p + 1),
   };
 }

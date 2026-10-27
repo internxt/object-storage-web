@@ -65,9 +65,7 @@ export const AccountsPage = () => {
       const res = await managementService.getSubAccounts({
         page,
         perPage: PER_PAGE,
-        status:
-          (statusFilter as Exclude<SubAccount['status'], 'PENDING_DELETION'> | undefined) ||
-          undefined,
+        status: (statusFilter as Exclude<SubAccount['status'], 'PENDING_DELETION'> | undefined) || undefined,
         name: searchName || undefined,
         sortBy: activeStorageSortOrder ? 'activeStorage' : undefined,
         sortOrder: activeStorageSortOrder,
@@ -124,9 +122,8 @@ export const AccountsPage = () => {
   const fromItem = totalSubAccounts === 0 ? 0 : page * PER_PAGE + 1;
   const toItem = Math.min((page + 1) * PER_PAGE, totalSubAccounts);
 
-
   return (
-    <div className='flex flex-col gap-5'>
+    <div className="flex flex-col gap-5">
       <StatsHeader data={usagesData} topClient={topClient} />
 
       {/* Sub-Accounts */}
@@ -141,11 +138,19 @@ export const AccountsPage = () => {
           <button
             onClick={() => setIsCreateModalOpen(true)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              height: 40, padding: '0 18px',
-              background: T.primary, color: T.white,
-              border: 'none', borderRadius: 8, cursor: 'pointer',
-              fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              height: 40,
+              padding: '0 18px',
+              background: T.primary,
+              color: T.white,
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
             }}
           >
             Create Sub-Account
@@ -155,21 +160,31 @@ export const AccountsPage = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <div
             style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              border: `1px solid ${T.gray20}`, borderRadius: 8,
-              padding: '0 12px', flex: 1, maxWidth: 384,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              border: `1px solid ${T.gray20}`,
+              borderRadius: 8,
+              padding: '0 12px',
+              flex: 1,
+              maxWidth: 384,
               background: T.white,
             }}
           >
             <MagnifyingGlass size={15} color={T.gray50} style={{ flexShrink: 0 }} />
             <input
-              type='text'
-              placeholder='Search accounts…'
+              type="text"
+              placeholder="Search accounts…"
               value={searchName}
               onChange={(e) => handleSearch(e.target.value)}
               style={{
-                fontSize: 14, padding: '8px 0', outline: 'none', flex: 1,
-                background: 'transparent', color: T.gray80, border: 'none',
+                fontSize: 14,
+                padding: '8px 0',
+                outline: 'none',
+                flex: 1,
+                background: 'transparent',
+                color: T.gray80,
+                border: 'none',
               }}
             />
           </div>
@@ -178,11 +193,16 @@ export const AccountsPage = () => {
             <button
               onClick={() => setFilterMenuOpen((o) => !o)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                height: 40, padding: '0 12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                height: 40,
+                padding: '0 12px',
                 border: `1px solid ${statusFilter ? T.primary : T.gray20}`,
-                borderRadius: 8, cursor: 'pointer',
-                fontSize: 14, fontWeight: 500,
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 500,
                 background: statusFilter ? T.primaryBg : T.white,
                 color: statusFilter ? T.primary : T.gray60,
               }}
@@ -195,9 +215,16 @@ export const AccountsPage = () => {
                 <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setFilterMenuOpen(false)} />
                 <div
                   style={{
-                    position: 'absolute', left: 0, top: 'calc(100% + 4px)',
-                    background: T.white, border: `1px solid ${T.gray20}`, borderRadius: 8,
-                    boxShadow: shadow.lg, width: 176, zIndex: 20, overflow: 'hidden',
+                    position: 'absolute',
+                    left: 0,
+                    top: 'calc(100% + 4px)',
+                    background: T.white,
+                    border: `1px solid ${T.gray20}`,
+                    borderRadius: 8,
+                    boxShadow: shadow.lg,
+                    width: 176,
+                    zIndex: 20,
+                    overflow: 'hidden',
                   }}
                 >
                   {STATUS_OPTIONS.map((opt) => (
@@ -209,15 +236,25 @@ export const AccountsPage = () => {
                         setFilterMenuOpen(false);
                       }}
                       style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        width: '100%', textAlign: 'left', padding: '10px 16px',
-                        fontSize: 14, border: 'none', cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 16px',
+                        fontSize: 14,
+                        border: 'none',
+                        cursor: 'pointer',
                         background: statusFilter === opt.value ? T.primaryBg : 'transparent',
                         color: statusFilter === opt.value ? T.primary : T.gray80,
                         fontWeight: statusFilter === opt.value ? 500 : 400,
                       }}
-                      onMouseEnter={(e) => { if (statusFilter !== opt.value) e.currentTarget.style.background = T.gray5; }}
-                      onMouseLeave={(e) => { if (statusFilter !== opt.value) e.currentTarget.style.background = 'transparent'; }}
+                      onMouseEnter={(e) => {
+                        if (statusFilter !== opt.value) e.currentTarget.style.background = T.gray5;
+                      }}
+                      onMouseLeave={(e) => {
+                        if (statusFilter !== opt.value) e.currentTarget.style.background = 'transparent';
+                      }}
                     >
                       {opt.label}
                       {statusFilter === opt.value && <span style={{ color: T.primary }}>✓</span>}
@@ -236,11 +273,23 @@ export const AccountsPage = () => {
           isLoading={isSubAccountsLoading}
           pendingAccountId={pendingAccountId}
           sortOrder={activeStorageSortOrder}
-          onSortActiveStorage={(order: SortOrder) => { setPage(0); setActiveStorageSortOrder(order); }}
+          onSortActiveStorage={(order: SortOrder) => {
+            setPage(0);
+            setActiveStorageSortOrder(order);
+          }}
         />
 
         {/* Pagination */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.gray15}` }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 16,
+            paddingTop: 16,
+            borderTop: `1px solid ${T.gray15}`,
+          }}
+        >
           <span style={{ fontSize: 13, color: T.gray50 }}>
             Showing {fromItem}–{toItem} of {totalSubAccounts} accounts
           </span>
@@ -249,11 +298,18 @@ export const AccountsPage = () => {
               disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                height: 32, padding: '0 12px',
-                fontSize: 13, fontWeight: 500, color: T.gray80,
-                border: `1px solid ${T.gray20}`, borderRadius: 8,
-                background: T.white, cursor: hasPrev ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                height: 32,
+                padding: '0 12px',
+                fontSize: 13,
+                fontWeight: 500,
+                color: T.gray80,
+                border: `1px solid ${T.gray20}`,
+                borderRadius: 8,
+                background: T.white,
+                cursor: hasPrev ? 'pointer' : 'not-allowed',
                 opacity: hasPrev ? 1 : 0.4,
               }}
             >
@@ -267,11 +323,18 @@ export const AccountsPage = () => {
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                height: 32, padding: '0 12px',
-                fontSize: 13, fontWeight: 500, color: T.gray80,
-                border: `1px solid ${T.gray20}`, borderRadius: 8,
-                background: T.white, cursor: hasNext ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                height: 32,
+                padding: '0 12px',
+                fontSize: 13,
+                fontWeight: 500,
+                color: T.gray80,
+                border: `1px solid ${T.gray20}`,
+                borderRadius: 8,
+                background: T.white,
+                cursor: hasNext ? 'pointer' : 'not-allowed',
                 opacity: hasNext ? 1 : 0.4,
               }}
             >

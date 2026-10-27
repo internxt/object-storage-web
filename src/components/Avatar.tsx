@@ -1,12 +1,12 @@
-import { User } from '@phosphor-icons/react'
-import { JSX } from 'react'
+import { User } from '@phosphor-icons/react';
+import { JSX } from 'react';
 
 export default function DefaultAvatar({
   diameter,
   className = '',
 }: Readonly<{
-  diameter: number
-  className?: string
+  diameter: number;
+  className?: string;
 }>): JSX.Element {
   return (
     <div
@@ -15,5 +15,5 @@ export default function DefaultAvatar({
     >
       <User size={diameter / 2.1} />
     </div>
-  )
+  );
 }

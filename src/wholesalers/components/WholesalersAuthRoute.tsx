@@ -7,7 +7,7 @@ export const WholesalersAuthRoute = () => {
   const { isAuthenticated, twoFactorSetupRequired } = useWholesalers();
 
   if (!isAuthenticated) {
-    return <Navigate to='/wholesalers/login' replace />;
+    return <Navigate to="/wholesalers/login" replace />;
   }
 
   if (twoFactorSetupRequired) {

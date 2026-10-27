@@ -8,14 +8,20 @@ export const ManagementLoginPage = () => {
 
   return (
     <LoginPageView
-      consoleTitle='Management Console'
-      rightHeadline={<>Object Storage<br />Management</>}
-      rightDescription='Monitor usage, manage sub-accounts, and control your storage infrastructure from one place.'
+      consoleTitle="Management Console"
+      rightHeadline={
+        <>
+          Object Storage
+          <br />
+          Management
+        </>
+      }
+      rightDescription="Monitor usage, manage sub-accounts, and control your storage infrastructure from one place."
       rightFeaturePills={['Sub-account management', 'Usage monitoring', 'Storage analytics']}
       isAuthenticated={isAuthenticated}
       logIn={logIn}
       supportsTwoFactor
-      redirectTo='/management/accounts'
+      redirectTo="/management/accounts"
       branding={{ logoUrl: branding.logoUrl, styles: branding.primaryColor ? styles : undefined }}
     />
   );

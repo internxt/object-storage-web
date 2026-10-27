@@ -1,9 +1,4 @@
-import {
-  partnersService,
-  SubAccountDailyUsage,
-  SubAccountsUsageReport,
-  SubAccountUsageItem,
-} from './partners.service';
+import { partnersService, SubAccountDailyUsage, SubAccountsUsageReport, SubAccountUsageItem } from './partners.service';
 import {
   exportAsXLSX,
   generateExportFilename,
@@ -36,15 +31,35 @@ const SUMMARY_COLUMNS: XLSXColumn<SubAccountUsageItem>[] = [
     numFmt: XLSX_DECIMAL_FORMAT,
     width: 26,
   },
-  { header: 'Avg Active Storage (TB)', value: (acc) => acc.summary.avgActiveStorageTb, numFmt: XLSX_DECIMAL_FORMAT, width: 24 },
-  { header: 'Avg Deleted Storage (TB)', value: (acc) => acc.summary.avgDeletedStorageTb, numFmt: XLSX_DECIMAL_FORMAT, width: 24 },
-  { header: 'Peak Active Storage (TB)', value: (acc) => acc.summary.peakActiveStorageTb, numFmt: XLSX_DECIMAL_FORMAT, width: 24 },
+  {
+    header: 'Avg Active Storage (TB)',
+    value: (acc) => acc.summary.avgActiveStorageTb,
+    numFmt: XLSX_DECIMAL_FORMAT,
+    width: 24,
+  },
+  {
+    header: 'Avg Deleted Storage (TB)',
+    value: (acc) => acc.summary.avgDeletedStorageTb,
+    numFmt: XLSX_DECIMAL_FORMAT,
+    width: 24,
+  },
+  {
+    header: 'Peak Active Storage (TB)',
+    value: (acc) => acc.summary.peakActiveStorageTb,
+    numFmt: XLSX_DECIMAL_FORMAT,
+    width: 24,
+  },
   { header: 'Storage Wrote (TB)', value: (acc) => acc.summary.storageWroteTb, numFmt: XLSX_DECIMAL_FORMAT, width: 20 },
   { header: 'Storage Read (TB)', value: (acc) => acc.summary.storageReadTb, numFmt: XLSX_DECIMAL_FORMAT, width: 20 },
   { header: 'Egress (GB)', value: (acc) => acc.summary.egressGb, numFmt: XLSX_DECIMAL_FORMAT, width: 16 },
   { header: 'Ingress (GB)', value: (acc) => acc.summary.ingressGb, numFmt: XLSX_DECIMAL_FORMAT, width: 16 },
   { header: 'API Calls', value: (acc) => acc.summary.apiCalls, numFmt: XLSX_COUNT_FORMAT, width: 14 },
-  { header: 'Active Objects (last day)', value: (acc) => acc.summary.activeObjectsLastDay, numFmt: XLSX_COUNT_FORMAT, width: 24 },
+  {
+    header: 'Active Objects (last day)',
+    value: (acc) => acc.summary.activeObjectsLastDay,
+    numFmt: XLSX_COUNT_FORMAT,
+    width: 24,
+  },
   { header: 'Days with data', value: (acc) => acc.summary.daysWithData, width: 16 },
 ];
 
@@ -77,10 +92,7 @@ const buildWorkbook = ({ from, to, items }: SubAccountsUsageReport): XLSXWorkboo
   );
   return {
     filename: generateExportFilename(from, to, 'sub_accounts_usage'),
-    sheets: [
-      xlsxSheet('Summary', SUMMARY_COLUMNS, sorted),
-      xlsxSheet('Daily usage', DAILY_COLUMNS, daily),
-    ],
+    sheets: [xlsxSheet('Summary', SUMMARY_COLUMNS, sorted), xlsxSheet('Daily usage', DAILY_COLUMNS, daily)],
   };
 };
 

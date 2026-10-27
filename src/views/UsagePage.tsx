@@ -61,8 +61,7 @@ export type BODY_STATE = 'loading' | 'empty' | 'items';
 
 export const UsagePage = () => {
   const [usageData, setUsageData] = useState<Usage[]>([]);
-  const [summaryData, setSummaryData] =
-    useState<UsageSummary>(DEFAULT_SUMMARY_DATA);
+  const [summaryData, setSummaryData] = useState<UsageSummary>(DEFAULT_SUMMARY_DATA);
   const [tableBodyState, setTableBodyState] = useState<BODY_STATE>('loading');
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -71,15 +70,8 @@ export const UsagePage = () => {
     endDate: dayjs().toDate().toISOString(),
   });
 
-  const {
-    paginatedData,
-    currentPage,
-    setCurrentPage,
-    pageInfo,
-    totalItems,
-    hasNextPage,
-    hasPrevPage,
-  } = usePaginatedUsageData(usageData, PAGINATED_ITEMS);
+  const { paginatedData, currentPage, setCurrentPage, pageInfo, totalItems, hasNextPage, hasPrevPage } =
+    usePaginatedUsageData(usageData, PAGINATED_ITEMS);
 
   useEffect(() => {
     const startDate = dayjs().subtract(1, 'month').toDate();
@@ -91,10 +83,7 @@ export const UsagePage = () => {
   const getUsage = async (startDate: string, endDate: string) => {
     try {
       setTableBodyState('loading');
-      const { usage, summary } = await usageService.getUsage(
-        startDate,
-        endDate
-      );
+      const { usage, summary } = await usageService.getUsage(startDate, endDate);
 
       if (usage.length === 0) {
         setSummaryData(DEFAULT_SUMMARY_DATA);
@@ -139,11 +128,7 @@ export const UsagePage = () => {
         return;
       }
 
-      exportUsageData(
-        usageData,
-        currentDateRange.startDate,
-        currentDateRange.endDate
-      );
+      exportUsageData(usageData, currentDateRange.startDate, currentDateRange.endDate);
 
       notificationsService.success({
         text: 'Usage data exported successfully as CSV',
@@ -185,21 +170,18 @@ export const UsagePage = () => {
   };
 
   return (
-    <section className='flex flex-col-reverse justify-between p-7 w-screen gap-10'>
-      <div className='flex flex-col p-8 w-full bg-white gap-5'>
-        <div className='flex flex-row justify-between items-center w-full'>
-          <div className='flex w-full'>
-            <h1 className='text-xl font-bold text-black'>Account Usage</h1>
+    <section className="flex flex-col-reverse justify-between p-7 w-screen gap-10">
+      <div className="flex flex-col p-8 w-full bg-white gap-5">
+        <div className="flex flex-row justify-between items-center w-full">
+          <div className="flex w-full">
+            <h1 className="text-xl font-bold text-black">Account Usage</h1>
           </div>
-          <div className='flex flex-col w-full justify-end items-end gap-2'>
-            <div className='flex items-center gap-4'>
-              <DateRangePicker
-                onApplyFilterButtonClicked={onApplyFilter}
-                returnISOString={true}
-              />
+          <div className="flex flex-col w-full justify-end items-end gap-2">
+            <div className="flex items-center gap-4">
+              <DateRangePicker onApplyFilterButtonClicked={onApplyFilter} returnISOString={true} />
               <button
                 onClick={handleExport}
-                className='flex items-center gap-2 px-4 py-2 bg-gray-10 text-black rounded-md hover:bg-blue-700 transition-colors'
+                className="flex items-center gap-2 px-4 py-2 bg-gray-10 text-black rounded-md hover:bg-blue-700 transition-colors"
               >
                 <Export size={16} />
                 Export
@@ -207,43 +189,35 @@ export const UsagePage = () => {
             </div>
           </div>
         </div>
-        <div className='flex flex-col w-full justify-between h-full'>
-          <UsageTable
-            headers={TABLE_HEADERS}
-            usage={paginatedData}
-            bodyState={tableBodyState}
-          />
-          <div className='flex flex-row items-end justify-end w-full'>
-            <div className='items-center flex flex-row gap-3'>
-              <p className='text-sm text-gray-600'>
+        <div className="flex flex-col w-full justify-between h-full">
+          <UsageTable headers={TABLE_HEADERS} usage={paginatedData} bodyState={tableBodyState} />
+          <div className="flex flex-row items-end justify-end w-full">
+            <div className="items-center flex flex-row gap-3">
+              <p className="text-sm text-gray-600">
                 {pageInfo.from}-{pageInfo.to} of {totalItems}
               </p>
-              <div className='flex flex-row gap-3 items-center'>
+              <div className="flex flex-row gap-3 items-center">
                 <button
                   disabled={!hasPrevPage}
                   onClick={() => setCurrentPage(currentPage - 1)}
-                  className='p-1 disabled:opacity-50 disabled:cursor-not-allowed'
+                  className="p-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <CaretLeft
                     size={20}
                     className={`${
-                      !hasPrevPage
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-black hover:text-blue-600'
+                      !hasPrevPage ? 'text-gray-300 cursor-not-allowed' : 'text-black hover:text-blue-600'
                     }`}
                   />
                 </button>
                 <button
                   disabled={!hasNextPage}
                   onClick={() => setCurrentPage(currentPage + 1)}
-                  className='p-1 disabled:opacity-50 disabled:cursor-not-allowed'
+                  className="p-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <CaretRight
                     size={20}
                     className={`${
-                      !hasNextPage
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-black hover:text-blue-600'
+                      !hasNextPage ? 'text-gray-300 cursor-not-allowed' : 'text-black hover:text-blue-600'
                     }`}
                   />
                 </button>
@@ -252,31 +226,31 @@ export const UsagePage = () => {
           </div>
         </div>
       </div>
-      <div className='grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-10 gap-5 items-stretch'>
+      <div className="grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-10 gap-5 items-stretch">
         <CapacityCard
           totalCapacity={formatCapacityValue(summaryData.totalCapacity * 1024)}
           usedCapacity={formatWithBestUnit(summaryData.usedCapacity)}
           remainingCapacity={formatWithBestUnit(summaryData.remainingCapacity)}
-          className='col-span-4 h-full'
-          tooltip='The total amount of storage provisioned for the account.'
+          className="col-span-4 h-full"
+          tooltip="The total amount of storage provisioned for the account."
         />
         <InfoCard
           value={summaryData.totalApiCalls.toLocaleString()}
-          name='Total API Calls'
-          className='col-span-2 h-full'
-          tooltip='API Calls is the sum of all API Calls across all buckets for the date range. This also includes API Calls not made to a specific bucket.'
+          name="Total API Calls"
+          className="col-span-2 h-full"
+          tooltip="API Calls is the sum of all API Calls across all buckets for the date range. This also includes API Calls not made to a specific bucket."
         />
         <InfoCard
           value={formatWithBestUnit(summaryData.totalEgress)}
-          name='Total Egress'
-          className='col-span-2 h-full'
-          tooltip='Egress is the sum of all Egress across all buckets for the date range.'
+          name="Total Egress"
+          className="col-span-2 h-full"
+          tooltip="Egress is the sum of all Egress across all buckets for the date range."
         />
         <InfoCard
           value={formatWithBestUnit(summaryData.totalIngress)}
-          name='Total Ingress'
-          className='col-span-2 h-full'
-          tooltip='Ingress is the sum of all Ingress across all buckets for the date range.'
+          name="Total Ingress"
+          className="col-span-2 h-full"
+          tooltip="Ingress is the sum of all Ingress across all buckets for the date range."
         />
       </div>
 
