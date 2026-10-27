@@ -32,10 +32,6 @@ const Members = () => {
     PAGINATED_ITEMS,
   );
 
-  useEffect(() => {
-    getMembers();
-  }, []);
-
   const getMembers = async () => {
     try {
       setTableBodyState('loading');
@@ -53,6 +49,10 @@ const Members = () => {
       setTableBodyState('empty');
     }
   };
+
+  useEffect(() => {
+    getMembers();
+  }, []);
 
   const handleCreateMember = () => {
     // TODO: Implement create member functionality

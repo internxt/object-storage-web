@@ -327,10 +327,6 @@ export const SubAccountDetailPage = ({
       .finally(() => setLoading(false));
   }, [id]);
 
-  useEffect(() => {
-    fetchUsages();
-  }, [id, from, to, page]);
-
   const fetchUsages = async () => {
     setUsagesLoading(true);
     try {
@@ -344,6 +340,10 @@ export const SubAccountDetailPage = ({
       setUsagesLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsages();
+  }, [id, from, to, page]);
 
   const exportUsages = async () => {
     setExporting(true);

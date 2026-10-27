@@ -64,10 +64,6 @@ export const AccessKeys = () => {
   const [isDeletingAccessKey, setIsDeletingAccessKey] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    getAccessKeys();
-  }, []);
-
   const getAccessKeys = async () => {
     try {
       setIsLoading(true);
@@ -81,6 +77,10 @@ export const AccessKeys = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    getAccessKeys();
+  }, []);
 
   const onGenerateNewKeysButtonClicked = () => {
     setIsGenerateKeysDialogOpened(true);

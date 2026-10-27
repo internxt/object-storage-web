@@ -59,22 +59,6 @@ export const PartnersSubAccountsPage = () => {
   const [pendingAccountId, setPendingAccountId] = useState<string | null>(null);
   const [exportableCount, setExportableCount] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchUsageSummary();
-  }, []);
-
-  useEffect(() => {
-    fetchSubAccounts();
-  }, [page, statusFilter, activeStorageSortOrder]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPage(0);
-      fetchSubAccounts();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
-
   const fetchUsageSummary = async () => {
     partnersService
       .getSubAccounts({ page: 0, perPage: 1 })
@@ -106,6 +90,22 @@ export const PartnersSubAccountsPage = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsageSummary();
+  }, []);
+
+  useEffect(() => {
+    fetchSubAccounts();
+  }, [page, statusFilter, activeStorageSortOrder]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(0);
+      fetchSubAccounts();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const handleSuspend = async (id: string) => {
     setPendingAccountId(id);

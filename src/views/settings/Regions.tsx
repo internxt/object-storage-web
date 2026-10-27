@@ -10,11 +10,9 @@ const TABLE_COLUMNS_COUNT = 3;
 
 export const Regions = () => {
   const [regions, setRegions] = useState<Region[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    setIsLoading(true);
-
     bucketsService
       .getRegions()
       .then((regions) => {

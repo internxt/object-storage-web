@@ -18,10 +18,6 @@ const Billing = () => {
   const [tableBodyState, setTableBodyState] = useState<BODY_STATE>('loading');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
 
-  useEffect(() => {
-    getInvoices();
-  }, []);
-
   const getInvoices = async () => {
     try {
       setTableBodyState('loading');
@@ -39,6 +35,10 @@ const Billing = () => {
       setTableBodyState('empty');
     }
   };
+
+  useEffect(() => {
+    getInvoices();
+  }, []);
 
   return (
     <div className="flex flex-col rounded-md bg-white gap-7 p-7">

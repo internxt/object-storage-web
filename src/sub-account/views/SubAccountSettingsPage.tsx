@@ -224,15 +224,6 @@ const MembersTab = ({
   // Fetch the live value so "password optional when SSO is enabled" actually holds.
   const [ssoConfigured, setSsoConfigured] = useState(ssoEnabled);
 
-  useEffect(() => {
-    if (!entityId) return;
-    fetchMembers();
-    subAccountSsoService
-      .getSsoConfig(entityId)
-      .then((config) => setSsoConfigured(config.configured))
-      .catch(() => {});
-  }, [entityId]);
-
   const fetchMembers = async () => {
     setIsLoading(true);
     try {
@@ -244,6 +235,15 @@ const MembersTab = ({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!entityId) return;
+    fetchMembers();
+    subAccountSsoService
+      .getSsoConfig(entityId)
+      .then((config) => setSsoConfigured(config.configured))
+      .catch(() => {});
+  }, [entityId]);
 
   const onAddMember = async (email: string, password: string | undefined, role: 'admin' | 'standard') => {
     setIsAddingMember(true);
@@ -683,12 +683,6 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
   const [offset, setOffset] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (!entityId) return;
-    fetchEvents();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entityId, appliedFilters, offset]);
-
   const fetchEvents = async () => {
     setIsLoading(true);
     try {
@@ -709,6 +703,12 @@ const AuditTab = ({ entityId }: { entityId: string }) => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!entityId) return;
+    fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entityId, appliedFilters, offset]);
 
   const onApply = () => {
     setOffset(0);

@@ -73,13 +73,6 @@ export const UsagePage = () => {
   const { paginatedData, currentPage, setCurrentPage, pageInfo, totalItems, hasNextPage, hasPrevPage } =
     usePaginatedUsageData(usageData, PAGINATED_ITEMS);
 
-  useEffect(() => {
-    const startDate = dayjs().subtract(1, 'month').toDate();
-    const endDate = dayjs().toDate();
-
-    getUsage(startDate.toDateString(), endDate.toDateString());
-  }, []);
-
   const getUsage = async (startDate: string, endDate: string) => {
     try {
       setTableBodyState('loading');
@@ -102,6 +95,13 @@ export const UsagePage = () => {
       setTableBodyState('empty');
     }
   };
+
+  useEffect(() => {
+    const startDate = dayjs().subtract(1, 'month').toDate();
+    const endDate = dayjs().toDate();
+
+    getUsage(startDate.toDateString(), endDate.toDateString());
+  }, []);
 
   const onApplyFilter = async (startDate: string, endDate: string) => {
     try {

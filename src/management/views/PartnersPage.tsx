@@ -27,22 +27,6 @@ export const PartnersPage = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const latestRequestId = useRef(0);
 
-  useEffect(() => {
-    fetchSummary();
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPage(0);
-      setDebouncedSearch(search.trim());
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  useEffect(() => {
-    fetchPartners();
-  }, [page, sortOrder, showDeleted, debouncedSearch]);
-
   const fetchSummary = async () => {
     try {
       const data = await partnersService.getPartnersSummary();
@@ -74,6 +58,22 @@ export const PartnersPage = () => {
       if (requestId === latestRequestId.current) setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchSummary();
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(0);
+      setDebouncedSearch(search.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    fetchPartners();
+  }, [page, sortOrder, showDeleted, debouncedSearch]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
   const hasPrev = page > 0;

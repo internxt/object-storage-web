@@ -37,12 +37,6 @@ export const BucketUsageModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchBucketUsageData();
-    }
-  }, [isOpen, bucketNumber]);
-
   const fetchBucketUsageData = async () => {
     setIsLoading(true);
     setError(null);
@@ -60,6 +54,12 @@ export const BucketUsageModal = ({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchBucketUsageData();
+    }
+  }, [isOpen, bucketNumber]);
 
   const onApplyFilter = async (startDate: string, endDate: string) => {
     setIsLoading(true);

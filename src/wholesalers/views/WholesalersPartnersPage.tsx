@@ -39,14 +39,6 @@ export const WholesalersPartnersPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deletingPartnerId, setDeletingPartnerId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchUsageSummary();
-  }, []);
-
-  useEffect(() => {
-    fetchPartners();
-  }, [page]);
-
   const fetchUsageSummary = async () => {
     try {
       const data = await wholesalersService.getUsageSummary();
@@ -68,6 +60,14 @@ export const WholesalersPartnersPage = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsageSummary();
+  }, []);
+
+  useEffect(() => {
+    fetchPartners();
+  }, [page]);
 
   const handleDelete = async (id: string) => {
     setDeletingPartnerId(id);

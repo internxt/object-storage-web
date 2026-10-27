@@ -30,22 +30,6 @@ export const AccountsPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [activeStorageSortOrder, setActiveStorageSortOrder] = useState<SortOrder | undefined>('desc');
   const [pendingAccountId, setPendingAccountId] = useState<string | null>(null);
-  useEffect(() => {
-    fetchUsages();
-  }, []);
-
-  useEffect(() => {
-    fetchSubAccounts();
-  }, [page, statusFilter, activeStorageSortOrder]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPage(0);
-      fetchSubAccounts();
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchName]);
-
   const fetchUsages = async () => {
     try {
       const [data, top] = await Promise.all([
@@ -78,6 +62,22 @@ export const AccountsPage = () => {
       setIsSubAccountsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsages();
+  }, []);
+
+  useEffect(() => {
+    fetchSubAccounts();
+  }, [page, statusFilter, activeStorageSortOrder]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(0);
+      fetchSubAccounts();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchName]);
 
   const handleSearch = (value: string) => {
     setSearchName(value);

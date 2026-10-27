@@ -16,10 +16,6 @@ export const WholesalersPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchWholesalers();
-  }, [page]);
-
   const fetchWholesalers = async () => {
     setIsLoading(true);
     try {
@@ -32,6 +28,10 @@ export const WholesalersPage = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchWholesalers();
+  }, [page]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
   const hasPrev = page > 0;

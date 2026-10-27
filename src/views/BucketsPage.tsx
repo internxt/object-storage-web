@@ -59,10 +59,6 @@ export const BucketsPage = () => {
 
   const { paginatedData, currentPage, setCurrentPage, totalItems } = usePaginatedUsageData(filteredBuckets, 20);
 
-  useEffect(() => {
-    getBuckets();
-  }, []);
-
   const getBuckets = async () => {
     try {
       setIsLoading(true);
@@ -76,6 +72,10 @@ export const BucketsPage = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    getBuckets();
+  }, []);
 
   const onCreateBucket = async (bucketName: Bucket['name'], bucketRegion: Bucket['region']) => {
     if (!isValidBucketName(bucketName)) return;
