@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
@@ -30,12 +30,12 @@ export const CreatePartnerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     reset,
     formState: { errors, isValid },
   } = useForm<FormValues>({ mode: 'all' });
 
-  const password = watch('password');
+  const password = useWatch({ control, name: 'password' });
   const passwordErrors = password ? validatePassword(password) : [];
 
   const handleClose = () => {

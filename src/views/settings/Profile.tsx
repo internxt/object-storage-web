@@ -1,4 +1,4 @@
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import DefaultAvatar from '../../components/Avatar';
 import Input from '../../components/Input';
 import { Separator } from '../../components/Separator';
@@ -40,7 +40,6 @@ const ChangePasswordSection = () => {
   const {
     register,
     handleSubmit,
-    watch,
     control,
     reset,
     getValues,
@@ -50,7 +49,7 @@ const ChangePasswordSection = () => {
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  const newPassword = watch('newPassword');
+  const newPassword = useWatch({ control, name: 'newPassword' });
 
   const onSubmit = async ({ newPassword }: IFormValues) => {
     try {

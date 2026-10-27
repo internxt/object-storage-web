@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import { CreateSubAccountDto } from '../services/management.service';
@@ -37,12 +37,12 @@ export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit, consoleUrl }:
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     reset,
     formState: { errors, isValid },
   } = useForm<FormValues>({ mode: 'all' });
 
-  const password = watch('password');
+  const password = useWatch({ control, name: 'password' });
   const passwordErrors = password ? validatePassword(password) : [];
 
   const handleClose = () => {

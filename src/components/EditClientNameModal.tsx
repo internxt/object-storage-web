@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { PencilSimple } from '@phosphor-icons/react';
 import Modal from './Modal';
 import Button from './Button';
@@ -24,7 +24,7 @@ export const EditClientNameModal = ({ isOpen, currentName, onClose, onSubmit }: 
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors, isValid, isSubmitting },
   } = useForm<FormValues>({ mode: 'onChange', defaultValues: { name: currentName ?? '' } });
 
@@ -35,7 +35,8 @@ export const EditClientNameModal = ({ isOpen, currentName, onClose, onSubmit }: 
     }
   }, [isOpen, currentName, reset]);
 
-  const isUnchanged = watch('name') === (currentName ?? '');
+  const name = useWatch({ control, name: 'name' });
+  const isUnchanged = name === (currentName ?? '');
 
   const onFormSubmit = async ({ name }: FormValues) => {
     setError(undefined);
