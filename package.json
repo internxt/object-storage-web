@@ -21,7 +21,6 @@
     "@aws-sdk/lib-storage": "^3.1076.0",
     "@aws-sdk/s3-request-presigner": "^3.1076.0",
     "@azure/msal-browser": "^5.17.0",
-    "@internxt/css-config": "^1.2.0",
     "@phosphor-icons/react": "^2.1.10",
     "@stripe/react-stripe-js": "^6.6.0",
     "@stripe/stripe-js": "^9.8.0",
@@ -53,6 +52,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@internxt/css-config": "^1.2.0",
     "@internxt/eslint-config-internxt": "^2.1.1",
     "@internxt/prettier-config": "^2.0.1",
     "@tailwindcss/postcss": "^4.3.2",
