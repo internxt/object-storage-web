@@ -1,23 +1,6 @@
-import { createContext, useState, ReactNode, useContext, useMemo, useCallback } from 'react';
+import { useState, ReactNode, useMemo, useCallback } from 'react';
 import { subAccountAuthService } from '../services/sub-account-auth.service';
-
-interface SubAccountContextType {
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  ssoEnabled: boolean;
-  auditLogEnabled: boolean;
-  memberId: string | null;
-  entityId: string | null;
-  partnerId: string | null;
-  entityCreatedAt: string | null;
-  email: string | null;
-  logIn: (email: string, password: string, code?: string) => Promise<void>;
-  logInWithSso: (organizationName: string) => Promise<void>;
-  refreshClaims: () => void;
-  logOut: () => void;
-}
-
-const SubAccountContext = createContext<SubAccountContextType | undefined>(undefined);
+import { SubAccountContext } from './useSubAccount';
 
 export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!subAccountAuthService.getToken());
@@ -97,12 +80,4 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
   );
 
   return <SubAccountContext.Provider value={value}>{children}</SubAccountContext.Provider>;
-};
-
-export const useSubAccount = (): SubAccountContextType => {
-  const context = useContext(SubAccountContext);
-  if (!context) {
-    throw new Error('useSubAccount must be used within a SubAccountProvider');
-  }
-  return context;
 };

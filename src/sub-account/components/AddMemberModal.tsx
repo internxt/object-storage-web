@@ -2,12 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
-import {
-  MemberEmailField,
-  MemberPasswordField,
-  memberEmailError,
-  memberPasswordError,
-} from '../../components/MemberCredentialFields';
+import { MemberEmailField, MemberPasswordField } from '../../components/MemberCredentialFields';
+import { memberEmailError, memberPasswordError } from '../../components/memberValidation';
 import { PASSWORD_MIN_LENGTH } from '../../components/auth/passwordPolicy';
 import { text, form } from '../tokens';
 

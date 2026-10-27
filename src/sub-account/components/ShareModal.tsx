@@ -7,7 +7,7 @@ import Loader from '../../components/Loader';
 import { S3Object } from '../../services/s3.service';
 import { shareService } from '../services/share.service';
 import { usePublicSharingEnabled } from '../hooks/usePublicSharingEnabled';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { displayName } from '../../utils/displayName';
 import { hasApiErrorStatus } from '../../utils/apiError';
 import { ShareLink } from './ShareLink';

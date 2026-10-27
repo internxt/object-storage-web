@@ -6,7 +6,7 @@ import Button from '../../../components/Button';
 import Dialog from '../../../components/Dialog';
 import Loader from '../../../components/Loader';
 import { T, text } from '../../tokens';
-import { useSubAccount } from '../../context/SubAccountContext';
+import { useSubAccount } from '../../context/useSubAccount';
 import { useSubAccountS3Client } from '../../hooks/useSubAccountS3Client';
 import { usePolicyEditor } from '../../hooks/usePolicyEditor';
 import { BucketRulesBuilder } from './BucketRulesBuilder';

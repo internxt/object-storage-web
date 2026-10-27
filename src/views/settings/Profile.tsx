@@ -2,7 +2,7 @@ import { Controller, useForm, useWatch } from 'react-hook-form';
 import DefaultAvatar from '../../components/Avatar';
 import Input from '../../components/Input';
 import { Separator } from '../../components/Separator';
-import { useUser } from '../../context/userContext';
+import { useUser } from '../../context/useUser';
 import { User } from '../../services/user.service';
 import PasswordInput, { IFormValues } from '../../components/PasswordInput';
 import notificationsService from '../../services/notifications.service';

@@ -1,15 +1,7 @@
 import { User } from '../services/user.service';
-import { createContext, useState, ReactNode, useContext, useMemo, useEffect } from 'react';
+import { useState, ReactNode, useMemo, useEffect } from 'react';
 import { localStorageService } from '../services/localStorage.service';
-
-interface UserContextType {
-  user: User | null;
-  setUser: (user: User | null) => void;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-}
-
-const UserContext = createContext<UserContextType | undefined>(undefined);
+import { UserContext } from './useUser';
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -56,12 +48,4 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 
   return <UserContext.Provider value={memoizedUser}>{children}</UserContext.Provider>;
-};
-
-export const useUser = (): UserContextType => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  return context;
 };

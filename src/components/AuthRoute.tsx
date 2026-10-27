@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useUser } from '../context/userContext';
+import { useUser } from '../context/useUser';
 import { Layout } from './Layout';
 import { localStorageService } from '../services/localStorage.service';
 

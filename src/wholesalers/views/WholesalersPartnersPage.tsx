@@ -3,7 +3,7 @@ import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { wholesalersService, WholesalerPartner, WholesalerUsageSummary } from '../services/wholesalers.service';
 import { WholesalersPartnersTable } from '../components/WholesalersPartnersTable';
 import { CreateWholesalerPartnerModal } from '../components/CreateWholesalerPartnerModal';
-import { useWholesalers } from '../context/wholesalersContext';
+import { useWholesalers } from '../context/useWholesalers';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { T, card } from '../../sub-account/tokens';

@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useManagement } from '../context/managementContext';
+import { useManagement } from '../context/useManagement';
 import { GearSixIcon, SignOutIcon } from '@phosphor-icons/react';
 import { T, shadow } from '../../sub-account/tokens';
 

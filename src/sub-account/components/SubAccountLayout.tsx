@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { useSubAccountBranding } from '../context/SubAccountBrandingContext/useSubAccountBranding';
 import { ConsoleTopBar } from './ConsoleTopBar';
 import { subAccountBillingService } from '../services/sub-account-billing.service';

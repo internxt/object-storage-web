@@ -7,7 +7,7 @@ import { TwoFactorSetupForm } from '../../components/two-factor/TwoFactorSetupFo
 import { TwoFactorCodeInput, TWO_FACTOR_CODE_LENGTH } from '../../components/two-factor/TwoFactorCodeInput';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorCode } from '../../utils/apiError';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { subAccountTwoFactorService, TwoFactorStatus } from '../services/sub-account-two-factor.service';
 import { SectionCard } from './SettingsAtoms';
 import { text, form } from '../tokens';

@@ -1,5 +1,5 @@
 import { LoginPageView } from '../../components/auth/LoginPageView';
-import { useWholesalers } from '../context/wholesalersContext';
+import { useWholesalers } from '../context/useWholesalers';
 
 export const WholesalersLoginPage = () => {
   const { isAuthenticated, logIn } = useWholesalers();

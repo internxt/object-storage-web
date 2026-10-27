@@ -12,7 +12,7 @@ import { PreviewModal } from '../components/objects/PreviewModal';
 import { BrandLogo } from '../components/BrandLogo';
 import { useObjectPagination } from '../sub-account/hooks/useObjectPagination';
 import { publicShareService, shareService, ShareListItem, ShareMetadata } from '../services/share.service';
-import { useSubAccount } from '../sub-account/context/SubAccountContext';
+import { useSubAccount } from '../sub-account/context/useSubAccount';
 import { getBrandingStyles, mapToBranding } from '../sub-account/context/SubAccountBrandingContext/service';
 import { hasApiErrorStatus } from '../utils/apiError';
 import { displayName } from '../utils/displayName';

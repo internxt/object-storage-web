@@ -6,7 +6,8 @@ import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
 import { apiErrorMessage } from '../../utils/apiError';
 import { validatePassword } from '../../components/auth/passwordPolicy';
 import { PasswordRequirements } from '../../components/FieldFeedback';
-import { Field, inputClass } from '../../components/FormField';
+import { Field } from '../../components/FormField';
+import { inputClass } from '../../components/inputClass';
 import { requiredNameRules } from '../../utils/clientName';
 
 interface Props {

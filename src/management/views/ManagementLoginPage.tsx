@@ -1,5 +1,5 @@
 import { LoginPageView } from '../../components/auth/LoginPageView';
-import { useManagement } from '../context/managementContext';
+import { useManagement } from '../context/useManagement';
 import { useSubAccountBranding } from '../../sub-account/context/SubAccountBrandingContext/useSubAccountBranding';
 
 export const ManagementLoginPage = () => {

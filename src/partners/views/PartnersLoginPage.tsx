@@ -1,5 +1,5 @@
 import { LoginPageView } from '../../components/auth/LoginPageView';
-import { usePartners } from '../context/partnersContext';
+import { usePartners } from '../context/usePartners';
 import { useSubAccountBranding } from '../../sub-account/context/SubAccountBrandingContext/useSubAccountBranding';
 
 export const PartnersLoginPage = () => {

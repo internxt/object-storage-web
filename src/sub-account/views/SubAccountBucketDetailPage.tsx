@@ -44,7 +44,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useSubAccountS3Client, useOnS3ClientReadyEffect } from '../hooks/useSubAccountS3Client';
 import { useObjectPagination } from '../hooks/useObjectPagination';
 import { useFileRetention } from '../hooks/useFileRetention';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal';
 import { RetentionConfirmModal } from '../components/RetentionConfirmModal';
 import { ShareModal } from '../components/ShareModal';

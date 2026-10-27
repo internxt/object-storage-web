@@ -9,16 +9,12 @@ import notificationsService from '../../services/notifications.service';
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import {
-  MemberEmailField,
-  MemberPasswordField,
-  memberEmailError,
-  memberPasswordError,
-} from '../../components/MemberCredentialFields';
+import { MemberEmailField, MemberPasswordField } from '../../components/MemberCredentialFields';
+import { memberEmailError, memberPasswordError } from '../../components/memberValidation';
 import { PASSWORD_MIN_LENGTH } from '../../components/auth/passwordPolicy';
 import Dialog from '../../components/Dialog';
 import { T, text, form, shadow } from '../../sub-account/tokens';
-import { usePartners } from '../context/partnersContext';
+import { usePartners } from '../context/usePartners';
 import { TwoFactorSetupForm } from '../components/TwoFactorSetupForm';
 import { BrandingTab } from '../components/BrandingTab';
 import { apiErrorMessage } from '../../utils/apiError';

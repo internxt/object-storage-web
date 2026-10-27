@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import Modal from './Modal';
 import Button from './Button';
-import { Field, inputClass } from './FormField';
+import { Field } from './FormField';
+import { inputClass } from './inputClass';
 import { ExportButton } from './ExportButton';
 
 export interface ExportDateRange {

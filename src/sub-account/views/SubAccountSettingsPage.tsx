@@ -15,7 +15,7 @@ import {
 import subAccountAxios from '../core/sub-account-axios';
 import { subAccountS3CredentialsService, S3Credentials } from '../services/sub-account-s3-credentials.service';
 import { subAccountAuthService } from '../services/sub-account-auth.service';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import notificationsService from '../../services/notifications.service';
 import { AddMemberModal } from '../components/AddMemberModal';
 import { SsoSection } from '../../components/sso/SsoSection';

@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import { useSubAccount } from '../SubAccountContext';
+import { useSubAccount } from '../useSubAccount';
 import { type SubAccountBranding } from '../../services/sub-account-branding.service';
 import { SubAccountBrandingContext } from '.';
 import { getBrandingCacheKey, getBrandingStyles, isSharedConsoleHostname, readCachedBranding } from './service';

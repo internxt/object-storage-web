@@ -1,5 +1,5 @@
 import { ShieldWarningIcon } from '@phosphor-icons/react';
-import { usePartners } from '../context/partnersContext';
+import { usePartners } from '../context/usePartners';
 import { TwoFactorSetupForm } from './TwoFactorSetupForm';
 import { T, text, card } from '../../sub-account/tokens';
 

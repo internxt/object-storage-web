@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useWholesalers } from '../context/wholesalersContext';
+import { useWholesalers } from '../context/useWholesalers';
 import { SignOutIcon, ArrowSquareOutIcon, GearSixIcon, QuestionIcon } from '@phosphor-icons/react';
 import { wholesalersService } from '../services/wholesalers.service';
 import notificationsService from '../../services/notifications.service';

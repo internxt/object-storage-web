@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useWholesalers } from '../context/wholesalersContext';
+import { useWholesalers } from '../context/useWholesalers';
 import { WholesalersLayout } from './WholesalersLayout';
 import { WholesalersForcedTwoFactorSetup } from './WholesalersForcedTwoFactorSetup';
 

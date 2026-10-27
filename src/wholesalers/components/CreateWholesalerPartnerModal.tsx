@@ -5,7 +5,8 @@ import Button from '../../components/Button';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { validatePassword } from '../../components/auth/passwordPolicy';
 import { PasswordRequirements } from '../../components/FieldFeedback';
-import { Field, inputClass } from '../../components/FormField';
+import { Field } from '../../components/FormField';
+import { inputClass } from '../../components/inputClass';
 import { requiredNameRules } from '../../utils/clientName';
 import { apiErrorMessage } from '../../utils/apiError';
 

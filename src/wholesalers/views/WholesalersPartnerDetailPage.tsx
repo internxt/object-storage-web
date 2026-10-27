@@ -7,7 +7,7 @@ import { apiErrorMessage } from '../../utils/apiError';
 import { PartnerActions } from '../components/PartnerActions';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
 import { StatusBadge } from '../../components/StatusBadge';
-import { useWholesalers } from '../context/wholesalersContext';
+import { useWholesalers } from '../context/useWholesalers';
 
 const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
   <div className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">

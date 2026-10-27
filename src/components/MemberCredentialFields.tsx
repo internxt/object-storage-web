@@ -2,11 +2,7 @@ import { useState } from 'react';
 import Input from './Input';
 import { FieldErrorMessage, PasswordRequirements } from './FieldFeedback';
 import { validatePassword } from './auth/passwordPolicy';
-
-const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
-
-export type MemberEmailErrorCode = 'required' | 'invalid';
-export type MemberPasswordErrorCode = 'required' | 'policy';
+import { memberEmailError, memberPasswordError } from './memberValidation';
 
 export interface MemberCredentialLabels {
   emailRequired: string;
@@ -20,16 +16,6 @@ const defaultLabels: MemberCredentialLabels = {
   emailInvalid: 'Invalid email',
   passwordRequired: 'Password is required',
   passwordPolicy: 'Password does not meet the requirements',
-};
-
-export const memberEmailError = (email: string): MemberEmailErrorCode | undefined => {
-  if (!email) return 'required';
-  return EMAIL_PATTERN.test(email) ? undefined : 'invalid';
-};
-
-export const memberPasswordError = (password: string, optional = false): MemberPasswordErrorCode | undefined => {
-  if (!password) return optional ? undefined : 'required';
-  return validatePassword(password).length > 0 ? 'policy' : undefined;
 };
 
 export const MemberEmailField = ({

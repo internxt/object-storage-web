@@ -7,7 +7,7 @@ import { localStorageService } from '../services/localStorage.service';
 import { BaseSyntheticEvent, useEffect, useState } from 'react';
 import Button from '../components/Button';
 import { WarningCircle } from '@phosphor-icons/react';
-import { useUser } from '../context/userContext';
+import { useUser } from '../context/useUser';
 // import { userService } from '../services/user.service'; // Temporarily commented out - not needed during login
 
 export const LoginPage = () => {

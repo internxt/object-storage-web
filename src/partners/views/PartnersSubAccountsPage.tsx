@@ -8,7 +8,7 @@ import { PartnersSubAccountsTable } from '../../management/components/PartnersSu
 import { SortOrder } from '../../management/components/SubAccountsTable';
 import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal';
 import notificationsService from '../../services/notifications.service';
-import { usePartners } from '../context/partnersContext';
+import { usePartners } from '../context/usePartners';
 import { T, card, shadow } from '../../sub-account/tokens';
 import Button from '../../components/Button';
 import { ExportDateRangeModal } from '../../components/ExportDateRangeModal';

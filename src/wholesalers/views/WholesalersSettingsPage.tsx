@@ -6,16 +6,12 @@ import { wholesalersService, WholesalerMember } from '../services/wholesalers.se
 import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { useWholesalers } from '../context/wholesalersContext';
+import { useWholesalers } from '../context/useWholesalers';
 import { ConfirmActionModal } from '../../management/components/ConfirmActionModal';
 import notificationsService from '../../services/notifications.service';
 import { ChangePasswordForm } from '../../components/ChangePasswordForm';
-import {
-  MemberEmailField,
-  MemberPasswordField,
-  memberEmailError,
-  memberPasswordError,
-} from '../../components/MemberCredentialFields';
+import { MemberEmailField, MemberPasswordField } from '../../components/MemberCredentialFields';
+import { memberEmailError, memberPasswordError } from '../../components/memberValidation';
 import { PASSWORD_MIN_LENGTH } from '../../components/auth/passwordPolicy';
 import { apiErrorMessage } from '../../utils/apiError';
 import { T, text, shadow } from '../../sub-account/tokens';

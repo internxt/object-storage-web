@@ -4,7 +4,7 @@ import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import Dialog from '../../components/Dialog';
 import { Pagination } from '../../components/Pagination';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { shareService, ShareListItem } from '../services/share.service';
 import { usePublicSharingEnabled } from '../hooks/usePublicSharingEnabled';
 import { SharesTable } from '../components/shares/SharesTable';

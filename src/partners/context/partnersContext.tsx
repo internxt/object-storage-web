@@ -1,18 +1,7 @@
-import { createContext, useState, ReactNode, useContext, useMemo, useEffect } from 'react';
+import { useState, ReactNode, useMemo, useEffect } from 'react';
 import { partnersAuthService } from '../services/partners-auth.service';
 import { partnersService, PartnerInfo } from '../services/partners.service';
-
-interface PartnersContextType {
-  isAuthenticated: boolean;
-  isViewer: boolean;
-  partnerInfo: PartnerInfo | null;
-  twoFactorSetupRequired: boolean;
-  clearTwoFactorSetupRequired: () => void;
-  logIn: (email: string, password: string, code?: string) => Promise<void>;
-  logOut: () => void;
-}
-
-const PartnersContext = createContext<PartnersContextType | undefined>(undefined);
+import { PartnersContext } from './usePartners';
 
 export const PartnersProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!partnersAuthService.getToken());
@@ -66,12 +55,4 @@ export const PartnersProvider = ({ children }: { children: ReactNode }) => {
   );
 
   return <PartnersContext.Provider value={value}>{children}</PartnersContext.Provider>;
-};
-
-export const usePartners = (): PartnersContextType => {
-  const context = useContext(PartnersContext);
-  if (!context) {
-    throw new Error('usePartners must be used within a PartnersProvider');
-  }
-  return context;
 };

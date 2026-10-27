@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { SubAccountDetailPage } from '../../management/views/SubAccountDetailPage';
 import { partnersService } from '../services/partners.service';
-import { usePartners } from '../context/partnersContext';
+import { usePartners } from '../context/usePartners';
 
 export const PartnersSubAccountDetailPage = () => {
   const { isViewer } = usePartners();

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { WholesalerPartner } from '../services/wholesalers.service';
 import { PartnerActions } from './PartnerActions';
-import { useWholesalers } from '../context/wholesalersContext';
+import { useWholesalers } from '../context/useWholesalers';
 import { StatusBadge } from '../../components/StatusBadge';
 import { T } from '../../sub-account/tokens';
 

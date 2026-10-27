@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { usePartners } from '../context/partnersContext';
+import { usePartners } from '../context/usePartners';
 import { PartnersLayout } from './PartnersLayout';
 import { ForcedTwoFactorSetup } from './ForcedTwoFactorSetup';
 

@@ -14,7 +14,7 @@ import { Dropdown } from '../../components/Dropdown';
 import { Switch } from '../../components/Switch';
 import { useSubAccountS3Client, useOnS3ClientReadyEffect } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { T, shadow, text, form } from '../tokens';
 import subAccountAxios from '../core/sub-account-axios';
 import { S3Credentials } from '../services/sub-account-s3-credentials.service';

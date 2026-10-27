@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { broadcastResponseToMainFrame } from '@azure/msal-browser/redirect-bridge';
 import { LoginPageView } from '../../components/auth/LoginPageView';
 import Skeleton from 'react-loading-skeleton';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { useSubAccountBranding } from '../context/SubAccountBrandingContext/useSubAccountBranding';
 import { isSharedConsoleHostname } from '../context/SubAccountBrandingContext/service';
 

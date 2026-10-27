@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { usePartners } from '../context/partnersContext';
+import { usePartners } from '../context/usePartners';
 import { SignOutIcon, ArrowSquareOutIcon, GearSixIcon, QuestionIcon } from '@phosphor-icons/react';
 import { partnersService } from '../services/partners.service';
 import notificationsService from '../../services/notifications.service';

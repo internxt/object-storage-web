@@ -1,5 +1,5 @@
 import { ShieldWarningIcon } from '@phosphor-icons/react';
-import { useWholesalers } from '../context/wholesalersContext';
+import { useWholesalers } from '../context/useWholesalers';
 import { WholesalersTwoFactorSetupForm } from './WholesalersTwoFactorSetupForm';
 import { T, text, card } from '../../sub-account/tokens';
 
