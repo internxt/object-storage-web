@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "format": "prettier --write **/*.{js,jsx,tsx,ts}",
+    "format": "prettier --write **/*.{js,jsx,tsx,ts,cjs,mjs}",
     "preview": "vite preview",
     "test": "vitest run --coverage",
     "start": "",
