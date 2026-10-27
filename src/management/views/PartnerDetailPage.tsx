@@ -122,6 +122,7 @@ export const PartnerDetailPage = () => {
   const [usageSeries, setUsageSeries] = useState<UsagePoint[]>([]);
   const [usageView, setUsageView] = useState<UsageView>('storage');
   const [usageLoading, setUsageLoading] = useState(true);
+  const [usageFailed, setUsageFailed] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -156,10 +157,16 @@ export const PartnerDetailPage = () => {
     if (!id) return;
     let stale = false;
     setUsageLoading(true);
+    setUsageFailed(false);
     partnersService
       .getPartnerSubAccountsUsage(id, range)
       .then((report) => !stale && setUsageSeries(toUsageSeries(report)))
-      .catch((e) => !stale && notificationsService.error({ text: apiErrorMessage(e, 'Failed to load usage') }))
+      .catch((e) => {
+        if (stale) return;
+        setUsageSeries([]);
+        setUsageFailed(true);
+        notificationsService.error({ text: apiErrorMessage(e, 'Failed to load usage') });
+      })
       .finally(() => !stale && setUsageLoading(false));
     return () => {
       stale = true;
@@ -273,6 +280,10 @@ export const PartnerDetailPage = () => {
             <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
               <div className='w-5 h-5 border-2 border-gray-20 border-t-primary rounded-full animate-spin' />
             </div>
+          ) : usageFailed ? (
+            <p role='alert' style={{ ...text.hint, color: T.red, textAlign: 'center', padding: '40px 0', margin: 0 }}>
+              Couldn't load usage for this period. Try again or pick another date range.
+            </p>
           ) : usageSeries.length === 0 ? (
             <p style={{ ...text.hint, textAlign: 'center', padding: '40px 0', margin: 0 }}>
               No usage data for this period
