@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import {
@@ -325,9 +325,9 @@ export const SubAccountDetailPage = ({
       })
       .catch((e) => notificationsService.error({ text: apiErrorMessage(e, 'Failed to load account') }))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, service]);
 
-  const fetchUsages = async () => {
+  const fetchUsages = useCallback(async () => {
     setUsagesLoading(true);
     try {
       const res = await service.getSubAccountUsages(id!, { from, to, page, perPage: PER_PAGE });
@@ -339,11 +339,11 @@ export const SubAccountDetailPage = ({
     } finally {
       setUsagesLoading(false);
     }
-  };
+  }, [service, id, from, to, page]);
 
   useEffect(() => {
     fetchUsages();
-  }, [id, from, to, page]);
+  }, [fetchUsages]);
 
   const exportUsages = async () => {
     setExporting(true);

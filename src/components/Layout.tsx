@@ -14,7 +14,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
     if (!useToken) {
       navigate('/login', { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   const onSettingsClicked = () => {
     navigate('/settings/account', {

@@ -52,7 +52,7 @@ export const GenerateAccessKeysModal = ({
           onClose();
         });
     }
-  }, [isCreateAccessKeyModalOpen]);
+  }, [isCreateAccessKeyModalOpen, onClose]);
 
   return (
     <Modal isOpen={isCreateAccessKeyModalOpen} onClose={onClose}>

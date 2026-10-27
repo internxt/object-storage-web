@@ -1,5 +1,5 @@
 import { CheckCircle, Eye, EyeSlash, Info, Warning, WarningOctagon, X } from '@phosphor-icons/react';
-import { JSX, KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { JSX, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import Tooltip from './Tooltip';
 
 export interface InputProps {
@@ -127,7 +127,7 @@ const Input = ({
 }: InputProps): JSX.Element => {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const focusInput = () => {
+  const focusInput = useCallback(() => {
     if (inputRef && inputRef.current) {
       if (variant !== 'email') {
         inputRef.current.selectionStart = inputRef.current.value.length;
@@ -135,13 +135,13 @@ const Input = ({
       }
       inputRef.current.focus();
     }
-  };
+  }, [variant]);
 
   useEffect(() => {
     if (message || autofocus) {
       focusInput();
     }
-  }, [message, autofocus, disabled]);
+  }, [message, autofocus, disabled, focusInput]);
 
   const borderColor =
     accent === 'error'

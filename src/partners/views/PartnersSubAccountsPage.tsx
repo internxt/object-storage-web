@@ -97,6 +97,7 @@ export const PartnersSubAccountsPage = () => {
 
   useEffect(() => {
     fetchSubAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, statusFilter, activeStorageSortOrder]);
 
   useEffect(() => {
@@ -105,6 +106,7 @@ export const PartnersSubAccountsPage = () => {
       fetchSubAccounts();
     }, 300);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   const handleSuspend = async (id: string) => {

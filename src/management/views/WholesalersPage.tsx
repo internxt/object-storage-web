@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { wholesalersService, Wholesaler } from '../services/wholesalers.service';
 import { WholesalersTable } from '../components/WholesalersTable';
@@ -16,7 +16,7 @@ export const WholesalersPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const fetchWholesalers = async () => {
+  const fetchWholesalers = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await wholesalersService.getWholesalers({ page, perPage: PER_PAGE });
@@ -27,11 +27,11 @@ export const WholesalersPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page]);
 
   useEffect(() => {
     fetchWholesalers();
-  }, [page]);
+  }, [fetchWholesalers]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
   const hasPrev = page > 0;

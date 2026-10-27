@@ -69,6 +69,7 @@ export const AccountsPage = () => {
 
   useEffect(() => {
     fetchSubAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, statusFilter, activeStorageSortOrder]);
 
   useEffect(() => {
@@ -77,6 +78,7 @@ export const AccountsPage = () => {
       fetchSubAccounts();
     }, 300);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchName]);
 
   const handleSearch = (value: string) => {

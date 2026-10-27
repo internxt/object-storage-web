@@ -43,22 +43,6 @@ export const Dropdown = ({ button, items, width = 'w-36', label }: DropdownProps
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getDropdownPosition = () => {
-    if (!buttonRef.current) return { top: 0, bottom: undefined, right: 0, width: 0 };
-
-    const rect = buttonRef.current.getBoundingClientRect();
-    const estimatedHeight = items.length * 36 + 8;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const shouldOpenUpward = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
-
-    return {
-      top: shouldOpenUpward ? undefined : rect.bottom + 4,
-      bottom: shouldOpenUpward ? window.innerHeight - rect.top + 4 : undefined,
-      right: window.innerWidth - rect.right,
-      width: rect.width,
-    };
-  };
-
   const [position, setPosition] = useState(() => ({
     top: 0 as number | undefined,
     bottom: undefined as number | undefined,
@@ -66,7 +50,24 @@ export const Dropdown = ({ button, items, width = 'w-36', label }: DropdownProps
     width: 0,
   }));
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
+    const getDropdownPosition = () => {
+      if (!buttonRef.current) return { top: 0, bottom: undefined, right: 0, width: 0 };
+
+      const rect = buttonRef.current.getBoundingClientRect();
+      const estimatedHeight = items.length * 36 + 8;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const shouldOpenUpward = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
+
+      return {
+        top: shouldOpenUpward ? undefined : rect.bottom + 4,
+        bottom: shouldOpenUpward ? window.innerHeight - rect.top + 4 : undefined,
+        right: window.innerWidth - rect.right,
+        width: rect.width,
+      };
+    };
+
     const next = getDropdownPosition();
     setPosition((prev) =>
       prev.top === next.top && prev.bottom === next.bottom && prev.right === next.right && prev.width === next.width

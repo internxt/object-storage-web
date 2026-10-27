@@ -243,6 +243,7 @@ const MembersTab = ({
       .getSsoConfig(entityId)
       .then((config) => setSsoConfigured(config.configured))
       .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entityId]);
 
   const onAddMember = async (email: string, password: string | undefined, role: 'admin' | 'standard') => {

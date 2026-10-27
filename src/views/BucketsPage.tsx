@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { BucketsTable, HeaderItemsTableProps } from '../components/buckets/Table';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 // import Dialog from '../components/Dialog';
 import { Bucket, bucketsService } from '../services/buckets.service';
 import notificationsService from '../services/notifications.service';
@@ -131,9 +131,10 @@ export const BucketsPage = () => {
     setIsBucketUsageModalOpened(true);
   };
 
-  const onCloseCreateBucketModal = () => {
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+  const onCloseCreateBucketModal = useCallback(() => {
     setIsCreateBucketOpened(false);
-  };
+  }, []);
 
   // const onCloseDeleteBucketModal = () => {
   //   setIsDeleteBucketDialogOpened(false);

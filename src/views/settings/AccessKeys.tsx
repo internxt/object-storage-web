@@ -1,7 +1,7 @@
 import { Gear, Key } from '@phosphor-icons/react';
 import { Dropdown } from '../../components/Dropdown';
 import { Separator } from '../../components/Separator';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AccessKey, AccessKeyPermission, accessKeysService } from '../../services/access-keys.service';
 import notificationsService from '../../services/notifications.service';
 import { AccessKeyTable } from '../../components/accessKeys/AccessKeysTable';
@@ -91,9 +91,9 @@ export const AccessKeys = () => {
     setIsPreviewGeneratedKeysModalOpen(true);
   };
 
-  const onCloseGenerateNewKeysDialog = () => {
+  const onCloseGenerateNewKeysDialog = useCallback(() => {
     setIsGenerateKeysDialogOpened(false);
-  };
+  }, []);
 
   const onDeleteKeyButtonClicked = (accessKeyToDelete: AccessKey) => {
     setAccessKeyToDelete(accessKeyToDelete);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CaretLeft, CaretRight, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import { partnersService, Partner, PartnersSummary } from '../services/partners.service';
 import { PartnersTable, SortOrder } from '../components/PartnersTable';
@@ -36,7 +36,7 @@ export const PartnersPage = () => {
     }
   };
 
-  const fetchPartners = async () => {
+  const fetchPartners = useCallback(async () => {
     const requestId = ++latestRequestId.current;
     setIsLoading(true);
     try {
@@ -57,7 +57,7 @@ export const PartnersPage = () => {
     } finally {
       if (requestId === latestRequestId.current) setIsLoading(false);
     }
-  };
+  }, [page, sortOrder, showDeleted, debouncedSearch]);
 
   useEffect(() => {
     fetchSummary();
@@ -73,7 +73,7 @@ export const PartnersPage = () => {
 
   useEffect(() => {
     fetchPartners();
-  }, [page, sortOrder, showDeleted, debouncedSearch]);
+  }, [fetchPartners]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
   const hasPrev = page > 0;

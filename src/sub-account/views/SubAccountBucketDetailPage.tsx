@@ -529,6 +529,7 @@ export const SubAccountBucketDetailPage = () => {
       credentials: { accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey },
       forcePathStyle: true,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [credentials?.accessKeyId]);
 
   const [activeTab, setActiveTab] = useState<'objects' | 'properties'>('objects');

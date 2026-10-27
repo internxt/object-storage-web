@@ -84,7 +84,7 @@ export const LoginPageView = ({
     if (isAuthenticated) {
       navigate(destination, { replace: true });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, navigate, destination]);
 
   useEffect(() => {
     trigger();

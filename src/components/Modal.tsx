@@ -1,4 +1,4 @@
-import { JSX, ReactNode, useEffect, useRef, useState } from 'react';
+import { JSX, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -65,13 +65,13 @@ const Modal = ({
   const [transitionOpacity, setTransitionOpacity] = useState<string>('opacity-0');
   const [transitionScale, setTransitionScale] = useState<string>('scale-95');
 
-  const closeLastOpenModal = () => {
+  const closeLastOpenModal = useCallback(() => {
     const openModals = document.querySelectorAll('[data-modal]');
     const lastModal = openModals[openModals.length - 1];
     if (modalRef.current === lastModal) {
       onClose();
     }
-  };
+  }, [onClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -106,7 +106,7 @@ const Modal = ({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, onClose, preventClosing]);
+  }, [isOpen, preventClosing, closeLastOpenModal]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -123,7 +123,7 @@ const Modal = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose, preventClosing]);
+  }, [isOpen, preventClosing, closeLastOpenModal]);
 
   return (
     <>

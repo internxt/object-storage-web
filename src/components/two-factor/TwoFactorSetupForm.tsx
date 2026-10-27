@@ -42,7 +42,7 @@ export const TwoFactorSetupForm = ({
     getSetup()
       .then(setSetupData)
       .catch(() => setLoadFailed(true));
-  }, []);
+  }, [getSetup]);
 
   const handleConfirm = async () => {
     setConfirming(true);

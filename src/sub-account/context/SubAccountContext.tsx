@@ -1,4 +1,4 @@
-import { createContext, useState, ReactNode, useContext, useMemo } from 'react';
+import { createContext, useState, ReactNode, useContext, useMemo, useCallback } from 'react';
 import { subAccountAuthService } from '../services/sub-account-auth.service';
 
 interface SubAccountContextType {
@@ -42,15 +42,15 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     setEmail(subAccountAuthService.getEmail());
   };
 
-  const logIn = async (email: string, password: string, code?: string) => {
+  const logIn = useCallback(async (email: string, password: string, code?: string) => {
     await subAccountAuthService.logIn(email, password, code);
     refreshClaims();
-  };
+  }, []);
 
-  const logInWithSso = async (organizationName: string) => {
+  const logInWithSso = useCallback(async (organizationName: string) => {
     await subAccountAuthService.logInWithSso(organizationName);
     refreshClaims();
-  };
+  }, []);
 
   const logOut = () => {
     subAccountAuthService.logOut();
@@ -81,7 +81,19 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
       refreshClaims,
       logOut,
     }),
-    [isAuthenticated, isAdmin, ssoEnabled, auditLogEnabled, memberId, entityId, partnerId, entityCreatedAt, email],
+    [
+      isAuthenticated,
+      isAdmin,
+      ssoEnabled,
+      auditLogEnabled,
+      memberId,
+      entityId,
+      partnerId,
+      entityCreatedAt,
+      email,
+      logIn,
+      logInWithSso,
+    ],
   );
 
   return <SubAccountContext.Provider value={value}>{children}</SubAccountContext.Provider>;

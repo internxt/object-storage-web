@@ -29,7 +29,7 @@ export const LoginPage = () => {
     if (userToken) {
       navigate('/buckets', { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (loginError) {

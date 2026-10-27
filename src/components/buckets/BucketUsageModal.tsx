@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { bucketsService, BucketUsageItem } from '../../services/buckets.service';
 import { DateRangePicker } from '../DatePicker';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
@@ -37,7 +37,7 @@ export const BucketUsageModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBucketUsageData = async () => {
+  const fetchBucketUsageData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -53,13 +53,13 @@ export const BucketUsageModal = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [bucketNumber]);
 
   useEffect(() => {
     if (isOpen) {
       fetchBucketUsageData();
     }
-  }, [isOpen, bucketNumber]);
+  }, [isOpen, fetchBucketUsageData]);
 
   const onApplyFilter = async (startDate: string, endDate: string) => {
     setIsLoading(true);

@@ -46,7 +46,7 @@ export const CreateBucketModal = ({
           onClose();
         });
     }
-  }, [isCreateBucketOpened]);
+  }, [isCreateBucketOpened, onClose]);
 
   const onBucketNameChange = (bucketName: string) => {
     if (!bucketName) {

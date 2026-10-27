@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { wholesalersService, WholesalerPartner, WholesalerUsageSummary } from '../services/wholesalers.service';
 import { WholesalersPartnersTable } from '../components/WholesalersPartnersTable';
@@ -48,7 +48,7 @@ export const WholesalersPartnersPage = () => {
     }
   };
 
-  const fetchPartners = async () => {
+  const fetchPartners = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await wholesalersService.getPartners({ page, perPage: PER_PAGE });
@@ -59,7 +59,7 @@ export const WholesalersPartnersPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page]);
 
   useEffect(() => {
     fetchUsageSummary();
@@ -67,7 +67,7 @@ export const WholesalersPartnersPage = () => {
 
   useEffect(() => {
     fetchPartners();
-  }, [page]);
+  }, [fetchPartners]);
 
   const handleDelete = async (id: string) => {
     setDeletingPartnerId(id);
