@@ -122,6 +122,32 @@ describe('managementService', () => {
     expect(seenConfig?.url).toBe('/management/sub-accounts/sa-1/reactivate');
   });
 
+  test('when deleteSubAccount is called, then it sends a DELETE to the sub-account', async () => {
+    let seenConfig: { url?: string; method?: string } | undefined;
+    managementAxios.defaults.adapter = mockAdapter((config) => {
+      seenConfig = config;
+      return { status: 204 };
+    });
+
+    await managementService.deleteSubAccount('sa-1');
+
+    expect(seenConfig?.method).toBe('delete');
+    expect(seenConfig?.url).toBe('/management/sub-accounts/sa-1');
+  });
+
+  test('when getMe is called, then it returns the caller role', async () => {
+    let seenConfig: { url?: string } | undefined;
+    managementAxios.defaults.adapter = mockAdapter((config) => {
+      seenConfig = config;
+      return { status: 200, data: { id: 'm1', email: 'a@b.com', role: 'superadmin', legacy: false } };
+    });
+
+    const me = await managementService.getMe();
+
+    expect(seenConfig?.url).toBe('/management/me');
+    expect(me).toEqual({ id: 'm1', email: 'a@b.com', role: 'superadmin', legacy: false });
+  });
+
   describe('getUsagesSummary', () => {
     test('when the backend returns usage data, then it returns the mapped summary', async () => {
       managementAxios.defaults.adapter = mockAdapter(() => ({
