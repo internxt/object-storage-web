@@ -1,7 +1,14 @@
+import type { CSSProperties } from 'react';
 import dayjs from 'dayjs';
+import { T, text } from '../../sub-account/tokens';
 
-const INPUT_CLASS =
-  'border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400';
+const labelStyle: CSSProperties = { fontSize: 12, fontWeight: 500, color: T.gray60 };
+
+const inputStyle: CSSProperties = {
+  height: 36, padding: '0 10px', borderRadius: 8, fontSize: 13,
+  border: `1px solid ${T.gray20}`, fontFamily: 'inherit',
+  color: T.gray100, background: T.white, outline: 'none',
+};
 
 interface UsageDateRangeProps {
   from: string;
@@ -11,28 +18,32 @@ interface UsageDateRangeProps {
 }
 
 export const UsageDateRange = ({ from, to, maxDays, onChange }: UsageDateRangeProps) => (
-  <>
-    <label className='text-xs text-gray-500'>From</label>
-    <input
-      type='date'
-      value={from}
-      max={dayjs(to).subtract(1, 'day').format('YYYY-MM-DD')}
-      onChange={(e) => {
-        const newFrom = e.target.value;
-        const exceedsMax = dayjs(to).diff(dayjs(newFrom), 'day') > maxDays;
-        onChange({ from: newFrom, to: exceedsMax ? dayjs(newFrom).add(maxDays, 'day').format('YYYY-MM-DD') : to });
-      }}
-      className={INPUT_CLASS}
-    />
-    <label className='text-xs text-gray-500'>To</label>
-    <input
-      type='date'
-      value={to}
-      min={dayjs(from).add(1, 'day').format('YYYY-MM-DD')}
-      max={dayjs(from).add(maxDays, 'day').format('YYYY-MM-DD')}
-      onChange={(e) => onChange({ from, to: e.target.value })}
-      className={INPUT_CLASS}
-    />
-    <span className='text-xs text-gray-400'>Max {maxDays} days</span>
-  </>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+    <label style={labelStyle}>
+      From{' '}
+      <input
+        type='date'
+        value={from}
+        max={dayjs(to).subtract(1, 'day').format('YYYY-MM-DD')}
+        onChange={(e) => {
+          const newFrom = e.target.value;
+          const exceedsMax = dayjs(to).diff(dayjs(newFrom), 'day') > maxDays;
+          onChange({ from: newFrom, to: exceedsMax ? dayjs(newFrom).add(maxDays, 'day').format('YYYY-MM-DD') : to });
+        }}
+        style={inputStyle}
+      />
+    </label>
+    <label style={labelStyle}>
+      To{' '}
+      <input
+        type='date'
+        value={to}
+        min={dayjs(from).add(1, 'day').format('YYYY-MM-DD')}
+        max={dayjs(from).add(maxDays, 'day').format('YYYY-MM-DD')}
+        onChange={(e) => onChange({ from, to: e.target.value })}
+        style={inputStyle}
+      />
+    </label>
+    <span style={text.caption}>Max {maxDays} days</span>
+  </div>
 );

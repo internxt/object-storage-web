@@ -11,6 +11,7 @@ import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { StoragePoint, StorageOverTimeChart } from '../components/StorageOverTimeChart';
 import { UsageDateRange } from '../components/UsageDateRange';
+import { T, card, text } from '../../sub-account/tokens';
 
 const PER_PAGE = 20;
 const MAX_RANGE_DAYS = 31;
@@ -187,20 +188,29 @@ export const PartnerDetailPage = () => {
       </div>
 
       {/* Usage section */}
-      <div className='bg-white rounded-xl shadow-sm p-5 flex flex-col gap-5'>
-        <div className='flex items-center gap-2 flex-wrap'>
-          <h2 className='text-sm font-semibold text-gray-700 mr-auto'>Usage</h2>
+      <div style={{ ...card, overflow: 'hidden' }}>
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap',
+            gap: 16, padding: '18px 24px', borderBottom: `1px solid ${T.gray15}`,
+          }}
+        >
+          <span style={text.heading}>Usage</span>
           <UsageDateRange from={range.from} to={range.to} maxDays={MAX_RANGE_DAYS} onChange={setRange} />
         </div>
-        {usageLoading ? (
-          <div className='flex justify-center py-10'>
-            <div className='w-5 h-5 border-2 border-gray-300 border-t-indigo-500 rounded-full animate-spin' />
-          </div>
-        ) : storageSeries.length > 0 ? (
-          <StorageOverTimeChart data={storageSeries} />
-        ) : (
-          <p className='text-center py-10 text-sm text-gray-400'>No usage data for this period</p>
-        )}
+        <div style={{ padding: 24 }}>
+          {usageLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+              <div className='w-5 h-5 border-2 border-gray-20 border-t-primary rounded-full animate-spin' />
+            </div>
+          ) : storageSeries.length > 0 ? (
+            <StorageOverTimeChart data={storageSeries} />
+          ) : (
+            <p style={{ ...text.hint, textAlign: 'center', padding: '40px 0', margin: 0 }}>
+              No usage data for this period
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Sub-accounts section */}
