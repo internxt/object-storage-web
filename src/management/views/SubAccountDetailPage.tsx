@@ -2,10 +2,9 @@ import { useEffect, useId, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { ArrowLeft, Database, Package, CaretLeft, CaretRight, DownloadSimple, WarningIcon } from '@phosphor-icons/react';
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts';
 import { managementService, SubAccountDetail, SubAccountUsage } from '../services/management.service';
+import { StorageOverTimeChart } from '../components/StorageOverTimeChart';
+import { UsageDateRange } from '../components/UsageDateRange';
 import notificationsService from '../../services/notifications.service';
 import { exportAsCSV } from '../../utils/exportUtils';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -479,31 +478,16 @@ export const SubAccountDetailPage = ({
           <div className='p-5 flex flex-col gap-5'>
             {/* Date range */}
             <div className='flex items-center gap-2 flex-wrap'>
-              <label className='text-xs text-gray-500'>From</label>
-              <input
-                type='date'
-                value={from}
-                max={dayjs(to).subtract(1, 'day').format('YYYY-MM-DD')}
-                onChange={(e) => {
-                  const newFrom = e.target.value;
-                  setFrom(newFrom);
-                  if (dayjs(to).diff(dayjs(newFrom), 'day') > MAX_RANGE_DAYS) {
-                    setTo(dayjs(newFrom).add(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD'));
-                  }
+              <UsageDateRange
+                from={from}
+                to={to}
+                maxDays={MAX_RANGE_DAYS}
+                onChange={(range) => {
+                  setFrom(range.from);
+                  setTo(range.to);
                   setPage(0);
                 }}
-                className='border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400'
               />
-              <label className='text-xs text-gray-500'>To</label>
-              <input
-                type='date'
-                value={to}
-                min={dayjs(from).add(1, 'day').format('YYYY-MM-DD')}
-                max={dayjs(from).add(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD')}
-                onChange={(e) => { setTo(e.target.value); setPage(0); }}
-                className='border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 outline-none focus:border-indigo-400'
-              />
-              <span className='text-xs text-gray-400'>Max {MAX_RANGE_DAYS} days</span>
               <button
                 disabled={exporting}
                 onClick={() => exportUsages()}
@@ -516,33 +500,7 @@ export const SubAccountDetailPage = ({
 
             {/* Chart */}
             {!usagesLoading && chartData.length > 0 && (
-              <div className='border border-gray-100 rounded-xl p-4 bg-white'>
-                <p className='text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3'>Storage over time (TB)</p>
-                <ResponsiveContainer width='100%' height={200}>
-                  <AreaChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id='colorActive' x1='0' y1='0' x2='0' y2='1'>
-                        <stop offset='5%' stopColor='#6366f1' stopOpacity={0.3} />
-                        <stop offset='95%' stopColor='#6366f1' stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id='colorDeleted' x1='0' y1='0' x2='0' y2='1'>
-                        <stop offset='5%' stopColor='#f97316' stopOpacity={0.3} />
-                        <stop offset='95%' stopColor='#f97316' stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray='3 3' stroke='#e5e7eb' />
-                    <XAxis dataKey='date' tick={{ fontSize: 10, fill: '#111827' }} tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: '#111827' }} tickLine={false} axisLine={false} width={60} tickFormatter={(v) => `${v} TB`} />
-                    <Tooltip
-                      contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
-                      formatter={(v: number) => [`${v.toFixed(2)} TB`]}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Area type='monotone' dataKey='active' name='Active Storage' stroke='#6366f1' strokeWidth={2} fill='url(#colorActive)' dot={false} />
-                    <Area type='monotone' dataKey='deleted' name='Deleted Storage' stroke='#f97316' strokeWidth={2} fill='url(#colorDeleted)' dot={false} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+              <StorageOverTimeChart data={chartData} />
             )}
 
             {/* Usage table */}

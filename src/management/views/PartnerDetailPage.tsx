@@ -6,8 +6,14 @@ import { Partner, PartnerSubAccount, partnersService } from '../services/partner
 import { StatusBadge } from '../../components/StatusBadge';
 import { ExportDateRangeModal } from '../../components/ExportDateRangeModal';
 import { exportSubAccountsUsageReport, SUB_ACCOUNTS_EXPORT_MAX_DAYS } from '../../partners/services/subAccountsExport';
+import { SubAccountsUsageReport } from '../../partners/services/partners.service';
+import notificationsService from '../../services/notifications.service';
+import { apiErrorMessage } from '../../utils/apiError';
+import { StoragePoint, StorageOverTimeChart } from '../components/StorageOverTimeChart';
+import { UsageDateRange } from '../components/UsageDateRange';
 
 const PER_PAGE = 20;
+const MAX_RANGE_DAYS = 31;
 
 const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
   <div className='bg-white rounded-xl shadow-sm p-5 flex items-center gap-4'>
@@ -25,6 +31,23 @@ const formatStorage = (bytes: number) => (bytes / 1e12).toFixed(4);
 const formatDate = (s: string | null | undefined) =>
   s && dayjs(s).isValid() ? dayjs(s).format('DD MMM YYYY') : '—';
 
+const toStorageSeries = (report: SubAccountsUsageReport): StoragePoint[] => {
+  const byDate = new Map<string, { active: number; deleted: number }>();
+  report.items.forEach(({ daily }) =>
+    daily.forEach(({ date, activeStorageTb, deletedStorageTb }) => {
+      const day = byDate.get(date) ?? { active: 0, deleted: 0 };
+      byDate.set(date, { active: day.active + activeStorageTb, deleted: day.deleted + deletedStorageTb });
+    }),
+  );
+  return [...byDate.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, { active, deleted }]) => ({
+      date: dayjs(date).format('DD MMM'),
+      active: parseFloat(active.toFixed(2)),
+      deleted: parseFloat(deleted.toFixed(2)),
+    }));
+};
+
 export const PartnerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
@@ -39,6 +62,12 @@ export const PartnerDetailPage = () => {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [range, setRange] = useState(() => ({
+    from: dayjs().subtract(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD'),
+    to: dayjs().format('YYYY-MM-DD'),
+  }));
+  const [storageSeries, setStorageSeries] = useState<StoragePoint[]>([]);
+  const [usageLoading, setUsageLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
@@ -68,6 +97,20 @@ export const PartnerDetailPage = () => {
       })
       .finally(() => setLoading(false));
   }, [id, page]);
+
+  useEffect(() => {
+    if (!id) return;
+    let stale = false;
+    setUsageLoading(true);
+    partnersService
+      .getPartnerSubAccountsUsage(id, range)
+      .then((report) => !stale && setStorageSeries(toStorageSeries(report)))
+      .catch((e) => !stale && notificationsService.error({ text: apiErrorMessage(e, 'Failed to load usage') }))
+      .finally(() => !stale && setUsageLoading(false));
+    return () => {
+      stale = true;
+    };
+  }, [id, range]);
 
   if (partnerNotFound) {
     navigate('/management/partners');
@@ -141,6 +184,23 @@ export const PartnerDetailPage = () => {
           value={formatDate(partner.providerCreatedAt)}
           label='Partner Created'
         />
+      </div>
+
+      {/* Usage section */}
+      <div className='bg-white rounded-xl shadow-sm p-5 flex flex-col gap-5'>
+        <div className='flex items-center gap-2 flex-wrap'>
+          <h2 className='text-sm font-semibold text-gray-700 mr-auto'>Usage</h2>
+          <UsageDateRange from={range.from} to={range.to} maxDays={MAX_RANGE_DAYS} onChange={setRange} />
+        </div>
+        {usageLoading ? (
+          <div className='flex justify-center py-10'>
+            <div className='w-5 h-5 border-2 border-gray-300 border-t-indigo-500 rounded-full animate-spin' />
+          </div>
+        ) : storageSeries.length > 0 ? (
+          <StorageOverTimeChart data={storageSeries} />
+        ) : (
+          <p className='text-center py-10 text-sm text-gray-400'>No usage data for this period</p>
+        )}
       </div>
 
       {/* Sub-accounts section */}
