@@ -11,6 +11,7 @@ import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { StoragePoint, StorageOverTimeChart } from '../components/StorageOverTimeChart';
 import { UsageDateRange } from '../components/UsageDateRange';
+import { ActivityPoint, DailyActivityChart } from '../components/DailyActivityChart';
 import { T, card, shadow, text } from '../../sub-account/tokens';
 
 const PER_PAGE = 20;
@@ -60,22 +61,45 @@ const formatStorage = (bytes: number) => (bytes / 1e12).toFixed(4);
 const formatDate = (s: string | null | undefined) =>
   s && dayjs(s).isValid() ? dayjs(s).format('DD MMM YYYY') : '—';
 
-const toStorageSeries = (report: SubAccountsUsageReport): StoragePoint[] => {
-  const byDate = new Map<string, { active: number; deleted: number }>();
+const GB_PER_TB = 1024;
+
+type UsagePoint = StoragePoint & ActivityPoint;
+
+const toUsageSeries = (report: SubAccountsUsageReport): UsagePoint[] => {
+  const byDate = new Map<string, Omit<UsagePoint, 'date'>>();
   report.items.forEach(({ daily }) =>
-    daily.forEach(({ date, activeStorageTb, deletedStorageTb }) => {
-      const day = byDate.get(date) ?? { active: 0, deleted: 0 };
-      byDate.set(date, { active: day.active + activeStorageTb, deleted: day.deleted + deletedStorageTb });
+    daily.forEach(({ date, activeStorageTb, deletedStorageTb, storageWroteTb, egressGb }) => {
+      const day = byDate.get(date) ?? { active: 0, deleted: 0, uploaded: 0, downloaded: 0 };
+      byDate.set(date, {
+        active: day.active + activeStorageTb,
+        deleted: day.deleted + deletedStorageTb,
+        uploaded: day.uploaded + storageWroteTb * GB_PER_TB,
+        downloaded: day.downloaded + egressGb,
+      });
     }),
   );
   return [...byDate.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, { active, deleted }]) => ({
+    .map(([date, day]) => ({
       date: dayjs(date).format('DD MMM'),
-      active: parseFloat(active.toFixed(2)),
-      deleted: parseFloat(deleted.toFixed(2)),
+      active: parseFloat(day.active.toFixed(2)),
+      deleted: parseFloat(day.deleted.toFixed(2)),
+      uploaded: parseFloat(day.uploaded.toFixed(2)),
+      downloaded: parseFloat(day.downloaded.toFixed(2)),
     }));
 };
+
+const USAGE_VIEWS = { storage: 'Storage', activity: 'Daily activity' } as const;
+
+type UsageView = keyof typeof USAGE_VIEWS;
+
+const viewButtonStyle = (selected: boolean): CSSProperties => ({
+  height: 30, padding: '0 12px', border: 'none', borderRadius: 6, cursor: 'pointer',
+  fontSize: 13, fontWeight: 500, fontFamily: 'inherit',
+  background: selected ? T.white : 'transparent',
+  color: selected ? T.gray100 : T.gray60,
+  boxShadow: selected ? shadow.sm : 'none',
+});
 
 export const PartnerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -95,7 +119,8 @@ export const PartnerDetailPage = () => {
     from: dayjs().subtract(MAX_RANGE_DAYS, 'day').format('YYYY-MM-DD'),
     to: dayjs().format('YYYY-MM-DD'),
   }));
-  const [storageSeries, setStorageSeries] = useState<StoragePoint[]>([]);
+  const [usageSeries, setUsageSeries] = useState<UsagePoint[]>([]);
+  const [usageView, setUsageView] = useState<UsageView>('storage');
   const [usageLoading, setUsageLoading] = useState(true);
 
   useEffect(() => {
@@ -133,7 +158,7 @@ export const PartnerDetailPage = () => {
     setUsageLoading(true);
     partnersService
       .getPartnerSubAccountsUsage(id, range)
-      .then((report) => !stale && setStorageSeries(toStorageSeries(report)))
+      .then((report) => !stale && setUsageSeries(toUsageSeries(report)))
       .catch((e) => !stale && notificationsService.error({ text: apiErrorMessage(e, 'Failed to load usage') }))
       .finally(() => !stale && setUsageLoading(false));
     return () => {
@@ -225,7 +250,22 @@ export const PartnerDetailPage = () => {
             gap: 16, padding: '18px 24px', borderBottom: `1px solid ${T.gray15}`,
           }}
         >
-          <span style={text.heading}>Usage</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={text.heading}>Usage</span>
+            <div role='tablist' style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 8, background: T.gray10 }}>
+              {(Object.keys(USAGE_VIEWS) as UsageView[]).map((view) => (
+                <button
+                  key={view}
+                  role='tab'
+                  aria-selected={usageView === view}
+                  onClick={() => setUsageView(view)}
+                  style={viewButtonStyle(usageView === view)}
+                >
+                  {USAGE_VIEWS[view]}
+                </button>
+              ))}
+            </div>
+          </div>
           <UsageDateRange from={range.from} to={range.to} maxDays={MAX_RANGE_DAYS} onChange={setRange} />
         </div>
         <div style={{ padding: 24 }}>
@@ -233,12 +273,14 @@ export const PartnerDetailPage = () => {
             <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
               <div className='w-5 h-5 border-2 border-gray-20 border-t-primary rounded-full animate-spin' />
             </div>
-          ) : storageSeries.length > 0 ? (
-            <StorageOverTimeChart data={storageSeries} />
-          ) : (
+          ) : usageSeries.length === 0 ? (
             <p style={{ ...text.hint, textAlign: 'center', padding: '40px 0', margin: 0 }}>
               No usage data for this period
             </p>
+          ) : usageView === 'storage' ? (
+            <StorageOverTimeChart data={usageSeries} />
+          ) : (
+            <DailyActivityChart data={usageSeries} />
           )}
         </div>
       </div>
