@@ -18,12 +18,9 @@ function removeToken(): void {
 }
 
 async function logIn(email: string, password: string, code?: string): Promise<void> {
-  console.log('[sub-account] logIn called', { email });
   const response = await subAccountAxios.post<{ token: string }>('/subaccount/login', { email, password, code });
-  console.log('[sub-account] logIn response', { status: response.status, hasToken: !!response.data.token });
   setToken(response.data.token);
   localStorage.setItem(EMAIL_KEY, email);
-  console.log('[sub-account] token saved', { role: getRole(), memberId: getMemberId(), entityId: getEntityId() });
 }
 
 async function logInWithSso(organizationName: string): Promise<void> {

@@ -44,8 +44,7 @@ const Members = () => {
       }
 
       setMembers(membersList);
-    } catch (error) {
-      console.error('Error fetching members:', error);
+    } catch {
       setTableBodyState('empty');
     }
   };
@@ -54,25 +53,17 @@ const Members = () => {
     getMembers();
   }, []);
 
-  const handleCreateMember = () => {
-    // TODO: Implement create member functionality
-    console.log('Create member clicked');
-  };
+  // TODO: Implement create member functionality
+  const handleCreateMember = () => {};
 
-  const handleViewMember = (member: Member) => {
-    // TODO: Implement view member functionality
-    console.log('View member:', member);
-  };
+  // TODO: Implement view member functionality
+  const handleViewMember = (_member: Member) => {};
 
-  const handleDeactivateMember = (member: Member) => {
-    // TODO: Implement deactivate member functionality
-    console.log('Deactivate member:', member);
-  };
+  // TODO: Implement deactivate member functionality
+  const handleDeactivateMember = (_member: Member) => {};
 
-  const handleDeleteMember = (member: Member) => {
-    // TODO: Implement delete member functionality
-    console.log('Delete member:', member);
-  };
+  // TODO: Implement delete member functionality
+  const handleDeleteMember = (_member: Member) => {};
 
   return (
     <div className="flex flex-col rounded-md bg-white gap-7 p-7">

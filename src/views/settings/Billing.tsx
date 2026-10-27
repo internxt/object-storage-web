@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Invoice, paymentsService } from '../../services/payments.service';
 import { BillingTable, BODY_STATE, HeaderItemsTableProps } from '../../components/settings/BillingTable';
 import { Separator } from '../../components/Separator';
+import notificationsService from '../../services/notifications.service';
+import { apiErrorMessage } from '../../utils/apiError';
 
 const TABLE_HEADERS: HeaderItemsTableProps[] = [
   {
@@ -31,7 +33,7 @@ const Billing = () => {
 
       setInvoices(invoicesList);
     } catch (error) {
-      console.error('Error fetching invoices:', error);
+      notificationsService.error({ text: apiErrorMessage(error, 'Failed to load invoices') });
       setTableBodyState('empty');
     }
   };

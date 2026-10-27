@@ -44,7 +44,6 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
 
   const logIn = async (email: string, password: string, code?: string) => {
     await subAccountAuthService.logIn(email, password, code);
-    console.log('[sub-account] context: logIn done, setting isAuthenticated=true');
     refreshClaims();
   };
 

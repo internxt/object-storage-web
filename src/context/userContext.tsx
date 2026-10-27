@@ -35,8 +35,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           id: 'temp-id',
           usage: 0,
         });
-      } catch (error) {
-        console.error('Error fetching user data:', error);
+      } catch {
         setUser(null);
       } finally {
         setIsLoading(false);

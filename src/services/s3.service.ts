@@ -114,7 +114,6 @@ export const s3Service = {
   },
 
   createBucket: async (client: S3Client, name: string, region: string, objectLockEnabled?: boolean): Promise<void> => {
-    if (import.meta.env.DEV) console.log('[s3] createBucket', { name, region, objectLockEnabled });
     await client.send(
       new CreateBucketCommand({
         Bucket: name,
@@ -124,7 +123,6 @@ export const s3Service = {
         ...(objectLockEnabled && { ObjectLockEnabledForBucket: true }),
       }),
     );
-    if (import.meta.env.DEV) console.log('[s3] createBucket success', { name, region, objectLockEnabled });
   },
 
   listObjects: async (

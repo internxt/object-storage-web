@@ -11,6 +11,7 @@ import { PasswordRequirements } from '../../components/FieldFeedback';
 import { Field, inputClass } from '../../components/FormField';
 import { requiredNameRules } from '../../utils/clientName';
 import { apiErrorMessage } from '../../utils/apiError';
+import notificationsService from '../../services/notifications.service';
 
 interface Props {
   isOpen: boolean;
@@ -57,8 +58,8 @@ export const CreateSubAccountModal = ({ isOpen, onClose, onSubmit, consoleUrl }:
       await navigator.clipboard.writeText(text);
       setCopiedField(field);
       setTimeout(() => setCopiedField(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
+    } catch {
+      notificationsService.error({ text: 'Failed to copy to clipboard' });
     }
   };
 

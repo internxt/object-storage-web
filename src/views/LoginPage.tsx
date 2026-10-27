@@ -66,9 +66,7 @@ export const LoginPage = () => {
       }
 
       navigate('/buckets');
-    } catch (error) {
-      // Handle error
-      console.error('Error logging in', error);
+    } catch {
       setLoginError('Invalid credentials');
     } finally {
       setIsLoggingUser(false);

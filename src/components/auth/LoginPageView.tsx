@@ -212,7 +212,9 @@ export const LoginPageView = ({
                   maxLength={6}
                   value={twoFactorCode}
                   onChange={(e) => setTwoFactorCode(e.target.value)}
-                  className={'h-[52px] bg-[#f5f5f7] border-0 rounded-xl px-5 text-[15px] text-gray-900 placeholder-gray-400 outline-none ring-0 transition-all focus:bg-[#ebebed]'}
+                  className={
+                    'h-[52px] bg-[#f5f5f7] border-0 rounded-xl px-5 text-[15px] text-gray-900 placeholder-gray-400 outline-none ring-0 transition-all focus:bg-[#ebebed]'
+                  }
                 />
               )}
 
