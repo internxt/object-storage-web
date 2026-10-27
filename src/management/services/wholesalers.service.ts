@@ -62,7 +62,12 @@ function mapWholesaler(raw: RawWholesaler): Wholesaler {
   };
 }
 
+async function deleteWholesaler(id: string): Promise<void> {
+  await managementAxios.delete(`${API}/wholesalers/${id}`);
+}
+
 export const wholesalersService = {
   createWholesaler,
   getWholesalers,
+  deleteWholesaler,
 };

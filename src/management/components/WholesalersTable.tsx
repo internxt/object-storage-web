@@ -1,10 +1,13 @@
 import { ArrowSquareOut } from '@phosphor-icons/react';
 import { Wholesaler } from '../services/wholesalers.service';
 import { T } from '../../sub-account/tokens';
+import { DeleteEntityButton, Emphasis } from './DeleteEntityButton';
 
 interface Props {
   wholesalers: Wholesaler[];
   isLoading: boolean;
+  onDelete?: (wholesaler: Wholesaler) => void;
+  deletingId?: string | null;
 }
 
 const formatDate = (date?: string | null) =>
@@ -22,6 +25,16 @@ const linkStyle: React.CSSProperties = {
   cursor: 'pointer',
 };
 
+const deleteDescription = (w: Wholesaler) => (
+  <>
+    This will permanently delete <Emphasis>{w.name}</Emphasis>. This also deletes its{' '}
+    <Emphasis>
+      {w.partnersCount} {w.partnersCount === 1 ? 'partner' : 'partners'}
+    </Emphasis>{' '}
+    and all their sub-accounts (<Emphasis>{w.activeStorageTb.toFixed(4)} TB</Emphasis>). This action cannot be undone.
+  </>
+);
+
 const COLUMNS = [
   { header: 'Name', align: 'left' as const },
   { header: 'Email', align: 'left' as const },
@@ -31,7 +44,9 @@ const COLUMNS = [
   { header: 'Stripe', align: 'left' as const },
 ];
 
-export const WholesalersTable = ({ wholesalers, isLoading }: Props) => {
+export const WholesalersTable = ({ wholesalers, isLoading, onDelete, deletingId }: Props) => {
+  const columns = onDelete ? [...COLUMNS, { header: '', align: 'right' as const }] : COLUMNS;
+
   return (
     <div style={{ overflowX: 'auto', position: 'relative' }}>
       <div
@@ -49,7 +64,7 @@ export const WholesalersTable = ({ wholesalers, isLoading }: Props) => {
       <table style={{ width: '100%', fontSize: 14, textAlign: 'left', borderCollapse: 'separate', borderSpacing: 0 }}>
         <thead>
           <tr>
-            {COLUMNS.map((col, i) => (
+            {columns.map((col, i) => (
               <th
                 key={i}
                 style={{
@@ -70,7 +85,7 @@ export const WholesalersTable = ({ wholesalers, isLoading }: Props) => {
         <tbody style={{ transition: 'opacity 200ms', opacity: isLoading ? 0.4 : 1 }}>
           {wholesalers.length === 0 && !isLoading ? (
             <tr>
-              <td colSpan={COLUMNS.length} style={{ textAlign: 'center', padding: '64px 0', color: T.gray50, fontSize: 14, fontWeight: 500 }}>
+              <td colSpan={columns.length} style={{ textAlign: 'center', padding: '64px 0', color: T.gray50, fontSize: 14, fontWeight: 500 }}>
                 No wholesalers found
               </td>
             </tr>
@@ -111,6 +126,24 @@ export const WholesalersTable = ({ wholesalers, isLoading }: Props) => {
                     <span style={{ color: T.gray20, fontSize: 14 }}>—</span>
                   )}
                 </td>
+                {onDelete && (
+                  <td
+                    style={{
+                      padding: '8px 16px',
+                      textAlign: 'right',
+                      borderBottom: idx < wholesalers.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                    }}
+                  >
+                    <DeleteEntityButton
+                      variant='icon'
+                      ariaLabel={`Delete wholesaler ${w.name}`}
+                      title='Delete wholesaler permanently?'
+                      description={deleteDescription(w)}
+                      isDeleting={deletingId === w.id}
+                      onConfirm={() => onDelete(w)}
+                    />
+                  </td>
+                )}
               </tr>
             ))
           )}

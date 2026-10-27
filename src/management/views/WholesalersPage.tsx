@@ -6,6 +6,7 @@ import { CreateWholesalerModal } from '../components/CreateWholesalerModal';
 import notificationsService from '../../services/notifications.service';
 import { T, card } from '../../sub-account/tokens';
 import { apiErrorMessage } from '../../utils/apiError';
+import { useManagement } from '../context/managementContext';
 
 const PER_PAGE = 20;
 
@@ -15,6 +16,8 @@ export const WholesalersPage = () => {
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { isSuperadmin } = useManagement();
 
   useEffect(() => {
     fetchWholesalers();
@@ -30,6 +33,23 @@ export const WholesalersPage = () => {
       notificationsService.error({ text: apiErrorMessage(err, 'Failed to load wholesalers') });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (wholesaler: Wholesaler) => {
+    setDeletingId(wholesaler.id);
+    try {
+      await wholesalersService.deleteWholesaler(wholesaler.id);
+      notificationsService.success({ text: 'Wholesaler deleted' });
+      if (wholesalers.length === 1 && page > 0) {
+        setPage((p) => p - 1);
+      } else {
+        fetchWholesalers();
+      }
+    } catch (err) {
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete wholesaler') });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -63,7 +83,12 @@ export const WholesalersPage = () => {
           </button>
         </div>
 
-        <WholesalersTable wholesalers={wholesalers} isLoading={isLoading} />
+        <WholesalersTable
+          wholesalers={wholesalers}
+          isLoading={isLoading}
+          onDelete={isSuperadmin ? handleDelete : undefined}
+          deletingId={deletingId}
+        />
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.gray15}` }}>
           <span style={{ fontSize: 13, color: T.gray50 }}>

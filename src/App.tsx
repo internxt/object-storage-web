@@ -13,7 +13,7 @@ import { UserProvider } from './context/userContext';
 import { ManagementProvider } from './management/context/managementContext';
 import { ManagementLoginPage } from './management/views/ManagementLoginPage';
 import { AccountsPage } from './management/views/AccountsPage';
-import { SubAccountDetailPage } from './management/views/SubAccountDetailPage';
+import { ManagementSubAccountDetailPage } from './management/views/ManagementSubAccountDetailPage';
 import { PartnersPage } from './management/views/PartnersPage';
 import { PartnerDetailPage } from './management/views/PartnerDetailPage';
 import { WholesalersPage } from './management/views/WholesalersPage';
@@ -85,7 +85,7 @@ export function App() {
               <Route path='/management/login' element={<ManagementLoginPage />} />
               <Route element={<ManagementAuthRoute />}>
                 <Route path='/management/accounts' element={<AccountsPage />} />
-                <Route path='/management/accounts/:id' element={<SubAccountDetailPage />} />
+                <Route path='/management/accounts/:id' element={<ManagementSubAccountDetailPage />} />
                 <Route path='/management/partners' element={<PartnersPage />} />
                 <Route path='/management/partners/:id' element={<PartnerDetailPage />} />
                 <Route path='/management/wholesalers' element={<WholesalersPage />} />

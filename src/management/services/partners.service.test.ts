@@ -96,6 +96,19 @@ describe('management partnersService', () => {
     expect(result.status).toBe('ACTIVE');
   });
 
+  test('when deletePartner is called, then it sends a DELETE to the partner', async () => {
+    let seenConfig: { url?: string; method?: string } | undefined;
+    managementAxios.defaults.adapter = mockAdapter((config) => {
+      seenConfig = config;
+      return { status: 204 };
+    });
+
+    await partnersService.deletePartner('p-1');
+
+    expect(seenConfig?.method).toBe('delete');
+    expect(seenConfig?.url).toBe('/management/partners/p-1');
+  });
+
   test('when getPartnersSummary is called, then it returns the mapped summary with sensible defaults', async () => {
     managementAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: {} }));
 

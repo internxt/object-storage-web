@@ -33,6 +33,19 @@ describe('management wholesalersService', () => {
     });
   });
 
+  test('when deleteWholesaler is called, then it sends a DELETE to the wholesaler', async () => {
+    let seenConfig: { url?: string; method?: string } | undefined;
+    managementAxios.defaults.adapter = mockAdapter((config) => {
+      seenConfig = config;
+      return { status: 204 };
+    });
+
+    await wholesalersService.deleteWholesaler('w-1');
+
+    expect(seenConfig?.method).toBe('delete');
+    expect(seenConfig?.url).toBe('/management/wholesalers/w-1');
+  });
+
   describe('getWholesalers', () => {
     test('when the backend returns a pagination envelope, then it maps the raw rows into the Wholesaler shape', async () => {
       let seenConfig: { url?: string; params?: unknown } | undefined;

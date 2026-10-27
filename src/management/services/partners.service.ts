@@ -79,6 +79,10 @@ async function getPartnerById(id: string): Promise<Partner> {
   return mapPartner(response.data);
 }
 
+async function deletePartner(id: string): Promise<void> {
+  await managementAxios.delete(`${API}/partners/${id}`);
+}
+
 async function getPartnersSummary(): Promise<PartnersSummary> {
   const response = await managementAxios.get(`${API}/partners/summary`);
   const data = response.data;
@@ -114,6 +118,7 @@ export const partnersService = {
   createPartner,
   getPartners,
   getPartnerById,
+  deletePartner,
   getPartnersSummary,
   getPartnerSubAccounts,
   getPartnerSubAccountsUsage,

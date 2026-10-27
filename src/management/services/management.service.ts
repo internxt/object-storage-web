@@ -112,6 +112,24 @@ async function reactivateSubAccount(id: string): Promise<void> {
   await managementAxios.put(`${API}/sub-accounts/${id}/reactivate`, {})
 }
 
+async function deleteSubAccount(id: string): Promise<void> {
+  await managementAxios.delete(`${API}/sub-accounts/${id}`);
+}
+
+export type ManagementRole = 'superadmin' | 'staff'
+
+export interface ManagementMe {
+  id?: string
+  email?: string
+  role: ManagementRole
+  legacy: boolean
+}
+
+async function getMe(): Promise<ManagementMe> {
+  const response = await managementAxios.get<ManagementMe>(`${API}/me`);
+  return response.data;
+}
+
 async function getUsagesSummary(): Promise<UsagesSummary | null> {
   const response = await managementAxios.get(`${API}/usages/summary`)
   const data = response.data
@@ -128,7 +146,7 @@ export interface SubAccountDetail {
   id: string
   contactEmail: string | null
   name?: string | null
-  status: 'ACTIVE' | 'SUSPENDED' | 'DELETED'
+  status: 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED'
   creationDate: string
   activeStorage: number
   deletedStorage: number
@@ -226,6 +244,8 @@ export const managementService = {
   createSubAccount,
   suspendSubAccount,
   reactivateSubAccount,
+  deleteSubAccount,
+  getMe,
   getUsagesSummary,
   getInvoices,
   getBuckets,

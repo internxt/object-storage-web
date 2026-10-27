@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { T, shadow, text } from '../../sub-account/tokens';
 
@@ -9,7 +10,7 @@ const variantStyles = {
 interface Props {
   isOpen: boolean;
   title: string;
-  description: string;
+  description: ReactNode;
   confirmLabel: string;
   variant?: keyof typeof variantStyles;
   onConfirm: () => void;
