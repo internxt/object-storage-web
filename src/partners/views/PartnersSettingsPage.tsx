@@ -17,9 +17,10 @@ import { T, text, form, shadow } from '../../sub-account/tokens';
 import { usePartners } from '../context/usePartners';
 import { TwoFactorSetupForm } from '../components/TwoFactorSetupForm';
 import { BrandingTab } from '../components/BrandingTab';
+import { IntegrationsTab } from '../components/IntegrationsTab';
 import { apiErrorMessage } from '../../utils/apiError';
 
-const Pill = ({ label, tone }: { label: string; tone: 'green' | 'gray' }) => (
+export const Pill = ({ label, tone }: { label: string; tone: 'green' | 'gray' }) => (
   <span
     style={{
       display: 'inline-flex',
@@ -98,7 +99,7 @@ function avatarInitials(email: string | null | undefined): string {
   return local.slice(0, 2).toUpperCase();
 }
 
-const SectionCard = ({
+export const SectionCard = ({
   title,
   subtitle,
   action,
@@ -1018,13 +1019,14 @@ const MembersTab = () => {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'profile' | 'usage' | 'members' | 'branding';
+type Tab = 'profile' | 'usage' | 'members' | 'branding' | 'integrations';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'profile', label: 'Profile' },
   { key: 'usage', label: 'Usage' },
   { key: 'members', label: 'Members' },
   { key: 'branding', label: 'Branding' },
+  { key: 'integrations', label: 'Integrations' },
 ];
 
 export const PartnersSettingsPage = () => {
@@ -1082,6 +1084,7 @@ export const PartnersSettingsPage = () => {
       {!isViewer && activeTab === 'usage' && <UsageTab />}
       {!isViewer && activeTab === 'members' && <MembersTab />}
       {!isViewer && activeTab === 'branding' && <BrandingTab />}
+      {!isViewer && activeTab === 'integrations' && <IntegrationsTab />}
     </div>
   );
 };
