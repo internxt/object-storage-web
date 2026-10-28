@@ -2,9 +2,10 @@ import { FormEvent, useState } from 'react';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { T, text } from '../sub-account/tokens';
 import { PASSWORD_MIN_LENGTH, validatePassword } from './auth/passwordPolicy';
-import { apiErrorMessage } from '../utils/apiError';
+import { apiErrorMessage, isTwoFactorRequiredError } from '../utils/apiError';
 import notificationsService from '../services/notifications.service';
 import { PasswordRequirements } from './FieldFeedback';
+import { TwoFactorCodeInput, TWO_FACTOR_CODE_LENGTH } from './two-factor/TwoFactorCodeInput';
 
 const PasswordField = ({
   label,
@@ -70,6 +71,8 @@ export interface ChangePasswordLabels {
   confirmPasswordPlaceholder: string;
   sameAsCurrent: string;
   mismatch: string;
+  code: string;
+  codeHint: string;
   submit: string;
   saving: string;
   success: string;
@@ -84,6 +87,8 @@ const defaultLabels: ChangePasswordLabels = {
   confirmPasswordPlaceholder: 'Repeat new password',
   sameAsCurrent: 'New password must differ from current',
   mismatch: 'Passwords do not match',
+  code: 'Verification code',
+  codeHint: 'Enter the 6-digit code from your authenticator app.',
   submit: 'Change password',
   saving: 'Saving…',
   success: 'Password changed successfully',
@@ -94,7 +99,7 @@ export const ChangePasswordForm = ({
   onSubmit,
   labels,
 }: {
-  onSubmit: (currentPassword: string, newPassword: string) => Promise<void>;
+  onSubmit: (currentPassword: string, newPassword: string, code?: string) => Promise<void>;
   labels?: Partial<ChangePasswordLabels>;
 }) => {
   const copy = { ...defaultLabels, ...labels };
@@ -103,6 +108,8 @@ export const ChangePasswordForm = ({
   const [confirm, setConfirm] = useState('');
   const [touched, setTouched] = useState({ newPassword: false, confirm: false });
   const [isSaving, setIsSaving] = useState(false);
+  const [needsCode, setNeedsCode] = useState(false);
+  const [code, setCode] = useState('');
 
   const policyErrors = touched.newPassword ? validatePassword(newPassword) : [];
   const sameAsCurrent = touched.newPassword && newPassword.length > 0 && newPassword === current;
@@ -114,7 +121,8 @@ export const ChangePasswordForm = ({
     confirm.length > 0 &&
     validatePassword(newPassword).length === 0 &&
     !sameAsCurrent &&
-    newPassword === confirm;
+    newPassword === confirm &&
+    (!needsCode || code.length === TWO_FACTOR_CODE_LENGTH);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -123,13 +131,19 @@ export const ChangePasswordForm = ({
 
     setIsSaving(true);
     try {
-      await onSubmit(current, newPassword);
+      await onSubmit(current, newPassword, needsCode ? code : undefined);
       notificationsService.success({ text: copy.success });
       setCurrent('');
       setNewPassword('');
       setConfirm('');
+      setCode('');
+      setNeedsCode(false);
       setTouched({ newPassword: false, confirm: false });
     } catch (err) {
+      if (isTwoFactorRequiredError(err)) {
+        setNeedsCode(true);
+        return;
+      }
       notificationsService.error({
         text: apiErrorMessage(err, copy.failure),
       });
@@ -167,6 +181,14 @@ export const ChangePasswordForm = ({
       />
 
       {mismatch && <p style={{ fontSize: 12, color: T.red, margin: 0 }}>{copy.mismatch}</p>}
+
+      {needsCode && (
+        <div>
+          <p style={{ ...text.label, marginBottom: 6 }}>{copy.code}</p>
+          <TwoFactorCodeInput value={code} onChange={setCode} placeholder='000000' />
+          <p style={{ fontSize: 12, color: T.gray50, margin: '6px 0 0' }}>{copy.codeHint}</p>
+        </div>
+      )}
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
         <button
