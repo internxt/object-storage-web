@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { TwoFactorCard } from '../components/TwoFactorCard';
 import { ManagementMembersCard } from '../components/ManagementMembersCard';
+import { ManagementAuditCard } from '../components/ManagementAuditCard';
 import { ChangePasswordForm } from '../../components/ChangePasswordForm';
 import { ReadField, SectionCard } from '../../sub-account/components/SettingsAtoms';
 import { useManagement } from '../context/useManagement';
@@ -34,11 +35,12 @@ const ProfileTab = () => {
   );
 };
 
-type Tab = 'profile' | 'members';
+type Tab = 'profile' | 'members' | 'audit';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'profile', label: 'Profile' },
   { key: 'members', label: 'Members' },
+  { key: 'audit', label: 'Audit log' },
 ];
 
 export const ManagementSettingsPage = () => {
@@ -92,6 +94,7 @@ export const ManagementSettingsPage = () => {
 
       {(!isOwner || activeTab === 'profile') && <ProfileTab />}
       {isOwner && activeTab === 'members' && <ManagementMembersCard />}
+      {isOwner && activeTab === 'audit' && <ManagementAuditCard />}
     </div>
   );
 };
