@@ -5,6 +5,7 @@ import { T, shadow, text } from '../../sub-account/tokens';
 const variantStyles = {
   danger: { background: T.red, color: T.white },
   success: { background: '#059669', color: T.white },
+  primary: { background: T.primary, color: T.white },
 };
 
 interface Props {
