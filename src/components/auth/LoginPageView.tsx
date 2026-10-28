@@ -1,56 +1,49 @@
-import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import {
-  BaseSyntheticEvent,
-  type CSSProperties,
-  useEffect,
-  useState,
-} from 'react'
-import { useTranslation } from 'react-i18next'
-import axios from 'axios'
-import dayjs from 'dayjs'
-import { WarningCircle } from '@phosphor-icons/react'
-import TextInput from './TextInput'
-import PasswordInput, { IFormValues } from '../PasswordInput'
-import { BrandLogo } from '../BrandLogo'
-import { isTwoFactorRequiredError } from '../../utils/apiError'
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { BaseSyntheticEvent, type CSSProperties, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+import dayjs from 'dayjs';
+import { WarningCircle } from '@phosphor-icons/react';
+import TextInput from './TextInput';
+import PasswordInput, { IFormValues } from '../PasswordInput';
+import { BrandLogo } from '../BrandLogo';
+import { isTwoFactorRequiredError } from '../../utils/apiError';
 
 // Only app-internal paths are allowed as a post-login destination, so a crafted
 // ?redirect= can never send the user to another origin.
 const getSafeRedirect = (raw: string | null): string | null => {
-  if (!raw) return null
-  const isInternalPath = raw.startsWith('/')
-  const isExternalUrl = raw.startsWith('//') || raw.startsWith('/\\')
-  return isInternalPath && !isExternalUrl ? raw : null
-}
+  if (!raw) return null;
+  const isInternalPath = raw.startsWith('/');
+  const isExternalUrl = raw.startsWith('//') || raw.startsWith('/\\');
+  return isInternalPath && !isExternalUrl ? raw : null;
+};
 
 const getLockedUntil = (error: unknown): string | undefined => {
-  if (!axios.isAxiosError(error)) return undefined
-  const data = error.response?.data as
-    | { code?: string; lockedUntil?: string }
-    | undefined
-  return data?.code === 'ACCOUNT_LOCKED' ? data.lockedUntil : undefined
-}
+  if (!axios.isAxiosError(error)) return undefined;
+  const data = error.response?.data as { code?: string; lockedUntil?: string } | undefined;
+  return data?.code === 'ACCOUNT_LOCKED' ? data.lockedUntil : undefined;
+};
 
 interface LoginBranding {
-  logoUrl: string | null
-  styles?: CSSProperties
+  logoUrl: string | null;
+  styles?: CSSProperties;
 }
 
 interface LoginPageViewProps {
-  consoleTitle: string
-  rightHeadline?: React.ReactNode
-  rightDescription?: string
-  rightFeaturePills?: string[]
-  isAuthenticated: boolean
-  logIn: (email: string, password: string, code?: string) => Promise<void>
-  redirectTo: string
-  branding?: LoginBranding
-  ssoSlot?: React.ReactNode
-  mapLoginError?: (error: unknown) => string | undefined
-  supportsTwoFactor?: boolean
-  hideLocalForm?: boolean
-  forgotPasswordPath?: string
+  consoleTitle: string;
+  rightHeadline?: React.ReactNode;
+  rightDescription?: string;
+  rightFeaturePills?: string[];
+  isAuthenticated: boolean;
+  logIn: (email: string, password: string, code?: string) => Promise<void>;
+  redirectTo: string;
+  branding?: LoginBranding;
+  ssoSlot?: React.ReactNode;
+  mapLoginError?: (error: unknown) => string | undefined;
+  supportsTwoFactor?: boolean;
+  hideLocalForm?: boolean;
+  forgotPasswordPath?: string;
 }
 
 export const LoginPageView = ({
@@ -68,85 +61,71 @@ export const LoginPageView = ({
   hideLocalForm,
   forgotPasswordPath,
 }: LoginPageViewProps) => {
-  const { t } = useTranslation('common')
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const destination =
-    getSafeRedirect(searchParams.get('redirect')) ?? redirectTo
-  const [isLoggingIn, setIsLoggingIn] = useState(false)
-  const [loginError, setLoginError] = useState<string>()
+  const { t } = useTranslation('common');
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const destination = getSafeRedirect(searchParams.get('redirect')) ?? redirectTo;
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState<string>();
   const defaultLogoUrl = branding
     ? '/logo.svg'
-    : 'https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png'
-  const [twoFactorRequired, setTwoFactorRequired] = useState(false)
-  const [twoFactorCode, setTwoFactorCode] = useState('')
+    : 'https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png';
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
 
   const {
     register,
     handleSubmit,
     trigger,
     formState: { errors, isValid },
-  } = useForm<IFormValues>({ mode: 'onChange' })
+  } = useForm<IFormValues>({ mode: 'onChange' });
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(destination, { replace: true })
+      navigate(destination, { replace: true });
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, navigate, destination]);
 
   useEffect(() => {
-    trigger()
-  }, [trigger])
+    trigger();
+  }, [trigger]);
 
   useEffect(() => {
     if (loginError) {
-      const t = setTimeout(() => setLoginError(''), 4000)
-      return () => clearTimeout(t)
+      const t = setTimeout(() => setLoginError(''), 4000);
+      return () => clearTimeout(t);
     }
-  }, [loginError])
+  }, [loginError]);
 
   const onSubmit = async (
     formData: { email: string; password: string },
     event: BaseSyntheticEvent<object, unknown, unknown> | undefined,
   ) => {
-    event?.preventDefault()
-    setLoginError('')
-    setIsLoggingIn(true)
+    event?.preventDefault();
+    setLoginError('');
+    setIsLoggingIn(true);
     try {
-      await logIn(
-        formData.email,
-        formData.password,
-        twoFactorRequired ? twoFactorCode : undefined,
-      )
-      navigate(destination)
+      await logIn(formData.email, formData.password, twoFactorRequired ? twoFactorCode : undefined);
+      navigate(destination);
     } catch (err) {
-      const lockedUntil = getLockedUntil(err)
+      const lockedUntil = getLockedUntil(err);
       if (lockedUntil) {
         setLoginError(
-          t(
-            forgotPasswordPath
-              ? 'login.accountLockedWithReset'
-              : 'login.accountLocked',
-            { time: dayjs(lockedUntil).format('HH:mm') },
-          ),
-        )
-      } else if (
-        supportsTwoFactor &&
-        !twoFactorRequired &&
-        isTwoFactorRequiredError(err)
-      ) {
-        setTwoFactorRequired(true)
+          t(forgotPasswordPath ? 'login.accountLockedWithReset' : 'login.accountLocked', {
+            time: dayjs(lockedUntil).format('HH:mm'),
+          }),
+        );
+      } else if (supportsTwoFactor && !twoFactorRequired && isTwoFactorRequiredError(err)) {
+        setTwoFactorRequired(true);
       } else {
         setLoginError(
-          twoFactorRequired
-            ? t('login.invalidCode')
-            : (mapLoginError?.(err) ?? t('login.invalidCredentials')),
-        )
+          twoFactorRequired ? t('login.invalidCode') : (mapLoginError?.(err) ?? t('login.invalidCredentials')),
+        );
       }
     } finally {
-      setIsLoggingIn(false)
+      setIsLoggingIn(false);
     }
-  }
+  };
 
   const inputClass = [
     '[&_input]:h-[52px]',
@@ -161,14 +140,13 @@ export const LoginPageView = ({
     '[&_input]:ring-0',
     '[&_input]:transition-all',
     '[&_input:focus]:bg-[#ebebed]',
-  ].join(' ')
+  ].join(' ');
 
   return (
     <div
       className="flex w-screen min-h-screen"
       style={{
-        fontFamily:
-          '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif',
         ...branding?.styles,
       }}
     >
@@ -186,19 +164,14 @@ export const LoginPageView = ({
 
         <div className="flex flex-col flex-1 justify-center max-w-[320px] gap-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-2">
-              {consoleTitle}
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-2">{consoleTitle}</p>
             <h1 className="text-[32px] font-semibold tracking-tight text-gray-900 leading-tight">
               {t('login.welcomeBack')}
             </h1>
           </div>
 
           {!hideLocalForm && (
-            <form
-              className="flex flex-col gap-2.5"
-              onSubmit={handleSubmit(onSubmit)}
-            >
+            <form className="flex flex-col gap-2.5" onSubmit={handleSubmit(onSubmit)}>
               <TextInput
                 placeholder={t('login.emailPlaceholder')}
                 inputDataCy="emailInput"
@@ -239,34 +212,25 @@ export const LoginPageView = ({
                   maxLength={6}
                   value={twoFactorCode}
                   onChange={(e) => setTwoFactorCode(e.target.value)}
-                  className={`h-[52px] bg-[#f5f5f7] border-0 rounded-xl px-5 text-[15px] text-gray-900 placeholder-gray-400 outline-none ring-0 transition-all focus:bg-[#ebebed]`}
+                  className={
+                    'h-[52px] bg-[#f5f5f7] border-0 rounded-xl px-5 text-[15px] text-gray-900 placeholder-gray-400 outline-none ring-0 transition-all focus:bg-[#ebebed]'
+                  }
                 />
               )}
 
               {loginError && (
                 <div className="flex items-center gap-1.5 px-1">
-                  <WarningCircle
-                    weight="fill"
-                    className="h-3.5 w-3.5 text-red flex-shrink-0"
-                  />
+                  <WarningCircle weight="fill" className="h-3.5 w-3.5 text-red flex-shrink-0" />
                   <span className="text-[13px] text-red">{loginError}</span>
                 </div>
               )}
 
               <button
                 type="submit"
-                disabled={
-                  !isValid ||
-                  isLoggingIn ||
-                  (twoFactorRequired && twoFactorCode.length !== 6)
-                }
+                disabled={!isValid || isLoggingIn || (twoFactorRequired && twoFactorCode.length !== 6)}
                 className="mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoggingIn
-                  ? t('login.signingIn')
-                  : twoFactorRequired
-                    ? t('login.verify')
-                    : t('login.logIn')}
+                {isLoggingIn ? t('login.signingIn') : twoFactorRequired ? t('login.verify') : t('login.logIn')}
               </button>
             </form>
           )}
@@ -310,12 +274,8 @@ export const LoginPageView = ({
         {rightHeadline && (
           <div className="relative flex flex-col h-full items-center justify-center px-16 gap-16">
             <div className="text-center">
-              <h2 className="text-4xl font-bold text-white tracking-tight leading-tight mb-4">
-                {rightHeadline}
-              </h2>
-              <p className="text-white/70 text-base max-w-xs mx-auto leading-relaxed">
-                {rightDescription}
-              </p>
+              <h2 className="text-4xl font-bold text-white tracking-tight leading-tight mb-4">{rightHeadline}</h2>
+              <p className="text-white/70 text-base max-w-xs mx-auto leading-relaxed">{rightDescription}</p>
             </div>
 
             <div className="w-full max-w-md bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 p-5 flex flex-col gap-4">
@@ -326,15 +286,10 @@ export const LoginPageView = ({
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {[t('login.mockTotalReserved'), t('login.mockUsedStorage'), t('login.mockRemaining')].map((label) => (
-                  <div
-                    key={label}
-                    className="bg-white/10 rounded-xl p-3 flex flex-col gap-2"
-                  >
+                  <div key={label} className="bg-white/10 rounded-xl p-3 flex flex-col gap-2">
                     <div className="h-1.5 w-12 rounded-full bg-white/30" />
                     <div className="h-3 w-16 rounded-full bg-white/50" />
-                    <div className="text-[10px] text-blue-100/70 leading-tight">
-                      {label}
-                    </div>
+                    <div className="text-[10px] text-blue-100/70 leading-tight">{label}</div>
                   </div>
                 ))}
               </div>
@@ -342,10 +297,7 @@ export const LoginPageView = ({
                 <div className="h-2 w-full rounded-full bg-white/15" />
                 {[0.8, 0.6, 0.9, 0.5].map((w, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <div
-                      className="h-1.5 rounded-full bg-white/25"
-                      style={{ width: `${w * 100}%` }}
-                    />
+                    <div className="h-1.5 rounded-full bg-white/25" style={{ width: `${w * 100}%` }} />
                     <div className="h-1.5 w-8 rounded-full bg-white/15 ml-auto flex-shrink-0" />
                   </div>
                 ))}
@@ -366,5 +318,5 @@ export const LoginPageView = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};

@@ -17,10 +17,7 @@ import { isSharedConsoleHostname } from '../../sub-account/context/SubAccountBra
 
 const SSO_ORG_KEY = 'subAccountSsoOrg';
 
-type ResolutionState =
-  | { kind: 'checking' }
-  | { kind: 'auto'; config: PublicSsoConfig }
-  | { kind: 'manual' };
+type ResolutionState = { kind: 'checking' } | { kind: 'auto'; config: PublicSsoConfig } | { kind: 'manual' };
 
 interface SsoLoginModalProps {
   isOpen: boolean;
@@ -43,10 +40,9 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }:
     if (!isOpen) return;
     attemptIdRef.current += 1;
     const attemptId = attemptIdRef.current;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setError(null);
     setIsLoading(false);
-    // Start every attempt from a clean slate, even if the previous one was
-    // interrupted mid-popup and left MSAL's client-side state stuck.
     subAccountSsoService.resetSsoLoginState();
 
     const startManual = () => {
@@ -54,15 +50,11 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }:
       setResolution({ kind: 'manual' });
     };
 
-    // The caller already resolved the config for this hostname (e.g. the login
-    // page's own by-hostname check) — reuse it instead of looking it up again.
     if (resolvedConfig) {
       setResolution({ kind: 'auto', config: resolvedConfig });
       return;
     }
 
-    // The shared console hostname has no custom-domain SSO association, so never
-    // attempt the hostname lookup there — go straight to the manual flow.
     if (isSharedConsoleHostname()) {
       startManual();
       return;
@@ -76,8 +68,6 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }:
         setResolution({ kind: 'auto', config });
       })
       .catch(() => {
-        // No custom-domain SSO for this hostname (404) or a network hiccup —
-        // either way, degrade silently to the manual organization-name field.
         if (attemptId !== attemptIdRef.current) return;
         startManual();
       });
@@ -117,7 +107,9 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }:
       } else if (err instanceof SsoMemberNotFoundError) {
         setError({
           kind: 'error',
-          message: t('sso.loginModal.memberNotFoundError', { email: err.azureEmail || t('sso.loginModal.usedFallback') }),
+          message: t('sso.loginModal.memberNotFoundError', {
+            email: err.azureEmail || t('sso.loginModal.usedFallback'),
+          }),
         });
       } else if (err instanceof SsoPopupBlockedError) {
         setError({
@@ -143,8 +135,7 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }:
         <div>
           <p style={{ ...text.heading, margin: 0 }}>{t('sso.loginModal.title')}</p>
           <p style={{ ...text.hint, margin: '6px 0 0' }}>
-            {resolution.kind === 'auto' &&
-              t('sso.loginModal.autoDescription', { hostname: window.location.hostname })}
+            {resolution.kind === 'auto' && t('sso.loginModal.autoDescription', { hostname: window.location.hostname })}
             {resolution.kind === 'checking' && t('sso.loginModal.checkingDescription')}
             {resolution.kind === 'manual' && t('sso.loginModal.manualDescription')}
           </p>
@@ -153,28 +144,37 @@ export const SsoLoginModal = ({ isOpen, onClose, logInWithSso, resolvedConfig }:
         {resolution.kind === 'manual' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>{t('sso.organizationNameLabel')}</label>
-            <Input value={organizationName} onChange={setOrganizationName} placeholder={t('sso.loginModal.organizationNamePlaceholder')} autofocus />
+            <Input
+              value={organizationName}
+              onChange={setOrganizationName}
+              placeholder={t('sso.loginModal.organizationNamePlaceholder')}
+              autofocus
+            />
           </div>
         )}
 
         {error && (
           <div
             style={{
-              display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', borderRadius: 8,
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8,
+              padding: '10px 12px',
+              borderRadius: 8,
               background: error.kind === 'warning' ? '#FFF7E6' : '#FDECEC',
               color: error.kind === 'warning' ? '#8A5A00' : T.red,
             }}
           >
-            <WarningCircleIcon size={18} weight='fill' style={{ flexShrink: 0, marginTop: 1 }} />
+            <WarningCircleIcon size={18} weight="fill" style={{ flexShrink: 0, marginTop: 1 }} />
             <span style={{ fontSize: 13, lineHeight: 1.45 }}>{error.message}</span>
           </div>
         )}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
-          <Button variant='secondary' type='button' onClick={handleCancel}>
+          <Button variant="secondary" type="button" onClick={handleCancel}>
             {t('actions.cancel')}
           </Button>
-          <Button type='submit' disabled={!canSubmit} loading={isLoading}>
+          <Button type="submit" disabled={!canSubmit} loading={isLoading}>
             {t('sso.loginModal.continueWithMicrosoft')}
           </Button>
         </div>

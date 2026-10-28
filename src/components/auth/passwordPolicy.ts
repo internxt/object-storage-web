@@ -13,13 +13,14 @@ const DEFAULT_MESSAGES = {
 
 export const validatePassword = (
   password: string,
-  t?: (key: string, options?: Record<string, unknown>) => string
+  t?: (key: string, options?: Record<string, unknown>) => string,
 ): string[] => {
   const message = (key: keyof typeof DEFAULT_MESSAGES, options?: Record<string, unknown>) =>
     t ? t(`login.passwordPolicy.${key}`, options) : DEFAULT_MESSAGES[key];
 
   const errors: string[] = [];
-  if (!password || password.length < PASSWORD_MIN_LENGTH) errors.push(message('minLength', { count: PASSWORD_MIN_LENGTH }));
+  if (!password || password.length < PASSWORD_MIN_LENGTH)
+    errors.push(message('minLength', { count: PASSWORD_MIN_LENGTH }));
   if (!/[a-z]/.test(password)) errors.push(message('lowercase'));
   if (!/[A-Z]/.test(password)) errors.push(message('uppercase'));
   if (!/\d/.test(password)) errors.push(message('digit'));

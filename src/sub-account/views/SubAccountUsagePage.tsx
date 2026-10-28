@@ -1,12 +1,8 @@
 import { CSSProperties, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  CalendarBlankIcon,
-  DownloadSimpleIcon,
-  InfoIcon,
-} from '@phosphor-icons/react';
+import { CalendarBlankIcon, DownloadSimpleIcon, InfoIcon } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { T, shadow, text } from '../tokens';
 import { Pagination } from '../../components/Pagination';
 import { useUsageData, UsageRecord, PAGE_SIZE_OPTIONS, MAX_RANGE_MONTHS } from '../hooks/useUsageData';
@@ -24,26 +20,43 @@ const cardStyle: CSSProperties = {
 };
 
 const sectionLabelStyle: CSSProperties = {
-  fontSize: 12, fontWeight: 500, color: T.gray60,
-  textTransform: 'uppercase', letterSpacing: '0.04em',
+  fontSize: 12,
+  fontWeight: 500,
+  color: T.gray60,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
 };
 
 const tabularNumStyle: CSSProperties = {
-  fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums',
+  fontSize: 14,
+  color: T.gray80,
+  fontVariantNumeric: 'tabular-nums',
 };
 
 const dateInputStyle: CSSProperties = {
-  height: 36, padding: '0 10px', borderRadius: 8, fontSize: 13,
-  border: `1px solid ${T.gray20}`, fontFamily: 'inherit',
-  color: T.gray100, outline: 'none',
+  height: 36,
+  padding: '0 10px',
+  borderRadius: 8,
+  fontSize: 13,
+  border: `1px solid ${T.gray20}`,
+  fontFamily: 'inherit',
+  color: T.gray100,
+  outline: 'none',
 };
 
 const toolbarButtonStyle: CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 6,
-  height: 40, padding: '0 14px',
-  border: `1px solid ${T.gray20}`, borderRadius: 8,
-  background: T.white, cursor: 'pointer', fontSize: 13,
-  color: T.gray80, fontFamily: 'inherit',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  height: 40,
+  padding: '0 14px',
+  border: `1px solid ${T.gray20}`,
+  borderRadius: 8,
+  background: T.white,
+  cursor: 'pointer',
+  fontSize: 13,
+  color: T.gray80,
+  fontFamily: 'inherit',
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -63,9 +76,7 @@ function fmtDate(iso: string): string {
 
 function exportCsv(records: UsageRecord[], headers: string[]) {
   const header = `${headers.join(',')}\n`;
-  const rows = records
-    .map(r => `${r.date},${fmtTB(r.active)},${fmtTB(r.deleted)},${r.objects}`)
-    .join('\n');
+  const rows = records.map((r) => `${r.date},${fmtTB(r.active)},${fmtTB(r.deleted)},${r.objects}`).join('\n');
   const blob = new Blob([header + rows], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -77,21 +88,44 @@ function exportCsv(records: UsageRecord[], headers: string[]) {
 
 // ─── StatStrip ────────────────────────────────────────────────────────────────
 
-interface StatItem { label: string; value: string; unit?: string; hint: string; }
+interface StatItem {
+  label: string;
+  value: string;
+  unit?: string;
+  hint: string;
+}
 
 const StatStrip = ({ stats }: { stats: StatItem[] }) => (
   <div style={{ ...cardStyle, display: 'flex' }}>
     {stats.map((s, i) => (
-      <div key={s.label} style={{
-        flex: 1, padding: '20px 24px',
-        borderLeft: i > 0 ? `1px solid ${T.gray20}` : 'none',
-      }}>
+      <div
+        key={s.label}
+        style={{
+          flex: 1,
+          padding: '20px 24px',
+          borderLeft: i > 0 ? `1px solid ${T.gray20}` : 'none',
+        }}
+      >
         <p style={{ ...sectionLabelStyle, marginBottom: 6 }}>{s.label}</p>
-        <p style={{
-          display: 'flex', alignItems: 'baseline', gap: 5, marginBottom: 4,
-        }}>
-          <span style={{ fontSize: 32, fontWeight: 600, color: T.gray100,
-            lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{s.value}</span>
+        <p
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: 5,
+            marginBottom: 4,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 32,
+              fontWeight: 600,
+              color: T.gray100,
+              lineHeight: 1.1,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {s.value}
+          </span>
           {s.unit && <span style={{ fontSize: 14, color: T.gray60 }}>{s.unit}</span>}
         </p>
         <p style={{ fontSize: 13, color: T.gray60 }}>{s.hint}</p>
@@ -104,7 +138,9 @@ const StatStrip = ({ stats }: { stats: StatItem[] }) => (
 
 const GRID = '1.4fr 1.4fr 1.4fr 1fr';
 
-interface UsageRowProps { record: UsageRecord; }
+interface UsageRowProps {
+  record: UsageRecord;
+}
 
 const UsageRow = ({ record }: UsageRowProps) => {
   const [hovered, setHovered] = useState(false);
@@ -112,8 +148,11 @@ const UsageRow = ({ record }: UsageRowProps) => {
     <div
       role="row"
       style={{
-        display: 'grid', gridTemplateColumns: GRID,
-        padding: '0 24px', height: 52, alignItems: 'center',
+        display: 'grid',
+        gridTemplateColumns: GRID,
+        padding: '0 24px',
+        height: 52,
+        alignItems: 'center',
         borderBottom: `1px solid ${T.gray15}`,
         background: hovered ? T.gray5 : '#fff',
         transition: 'background 100ms',
@@ -121,9 +160,7 @@ const UsageRow = ({ record }: UsageRowProps) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <span style={{ fontSize: 14, fontWeight: 500, color: T.gray100 }}>
-        {fmtDate(record.date)}
-      </span>
+      <span style={{ fontSize: 14, fontWeight: 500, color: T.gray100 }}>{fmtDate(record.date)}</span>
       <span style={tabularNumStyle}>{fmtTB(record.active)}</span>
       <span style={tabularNumStyle}>{fmtTB(record.deleted)}</span>
       <span style={tabularNumStyle}>{record.objects.toLocaleString('en-US')}</span>
@@ -146,12 +183,20 @@ const InfoTooltip = ({ text: tooltipText, children }: { text: string; children: 
         <div
           role="tooltip"
           style={{
-            position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)',
-            width: 240, zIndex: 50,
-            background: T.gray100, color: T.white,
-            borderRadius: 8, boxShadow: shadow.md,
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 240,
+            zIndex: 50,
+            background: T.gray100,
+            color: T.white,
+            borderRadius: 8,
+            boxShadow: shadow.md,
             padding: '8px 10px',
-            fontSize: 12, lineHeight: 1.4, textAlign: 'justify',
+            fontSize: 12,
+            lineHeight: 1.4,
+            textAlign: 'justify',
           }}
         >
           {tooltipText}
@@ -168,9 +213,19 @@ export const UsageView = () => {
   const { entityId } = useSubAccount();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const {
-    fromDate, toDate, handleFromChange, handleToChange,
-    isLoading, sorted, paged, totals,
-    pageNumber, pageSize, setPageSize, goToPrevPage, goToNextPage,
+    fromDate,
+    toDate,
+    handleFromChange,
+    handleToChange,
+    isLoading,
+    sorted,
+    paged,
+    totals,
+    pageNumber,
+    pageSize,
+    setPageSize,
+    goToPrevPage,
+    goToNextPage,
   } = useUsageData(entityId);
 
   const stats: StatItem[] = [
@@ -203,30 +258,36 @@ export const UsageView = () => {
   ];
 
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', gap: 16,
-      maxWidth: 1200, margin: '0 auto', width: '100%', padding: '8px 0 32px',
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 16,
+        maxWidth: 1200,
+        margin: '0 auto',
+        width: '100%',
+        padding: '8px 0 32px',
+      }}
+    >
       <StatStrip stats={stats} />
 
       {/* Account Usage card */}
       <div style={{ ...cardStyle, overflow: 'hidden' }}>
         {/* Card header */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '18px 24px', gap: 16,
-          borderBottom: `1px solid ${T.gray15}`,
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '18px 24px',
+            gap: 16,
+            borderBottom: `1px solid ${T.gray15}`,
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ ...text.heading }}>
-              {t('usage.cardTitle')}
-            </span>
+            <span style={{ ...text.heading }}>{t('usage.cardTitle')}</span>
             <InfoTooltip text={t('usage.cardInfoTooltip')}>
-              <InfoIcon
-                size={16}
-                color={T.gray50}
-                aria-label={t('usage.cardInfoTooltip')}
-              />
+              <InfoIcon size={16} color={T.gray50} aria-label={t('usage.cardInfoTooltip')} />
             </InfoTooltip>
           </div>
 
@@ -234,45 +295,63 @@ export const UsageView = () => {
             {/* Date range picker */}
             <div style={{ position: 'relative' }}>
               <button
-                onClick={() => setShowDatePicker(p => !p)}
+                onClick={() => setShowDatePicker((p) => !p)}
                 style={{ ...toolbarButtonStyle, gap: 8, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
               >
                 <CalendarBlankIcon size={16} color={T.gray50} />
                 {dateRangeLabel}
               </button>
               {showDatePicker && (
-                <div style={{
-                  position: 'absolute', right: 0, top: 44, zIndex: 40,
-                  background: '#fff', border: `1px solid ${T.gray20}`,
-                  borderRadius: 10, boxShadow: shadow.md,
-                  padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10,
-                }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 44,
+                    zIndex: 40,
+                    background: '#fff',
+                    border: `1px solid ${T.gray20}`,
+                    borderRadius: 10,
+                    boxShadow: shadow.md,
+                    padding: '14px 16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
+                  }}
+                >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>{t('usage.fromLabel')}</label>
                     <input
-                      type="date" value={fromDate}
+                      type="date"
+                      value={fromDate}
                       max={toDate}
                       min={dayjs(toDate).subtract(MAX_RANGE_MONTHS, 'month').format('YYYY-MM-DD')}
-                      onChange={e => handleFromChange(e.target.value)}
+                      onChange={(e) => handleFromChange(e.target.value)}
                       style={dateInputStyle}
                     />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <label style={{ fontSize: 12, fontWeight: 500, color: T.gray60 }}>{t('usage.toLabel')}</label>
                     <input
-                      type="date" value={toDate}
+                      type="date"
+                      value={toDate}
                       min={fromDate}
                       max={dayjs(fromDate).add(MAX_RANGE_MONTHS, 'month').format('YYYY-MM-DD')}
-                      onChange={e => handleToChange(e.target.value)}
+                      onChange={(e) => handleToChange(e.target.value)}
                       style={dateInputStyle}
                     />
                   </div>
                   <button
                     onClick={() => setShowDatePicker(false)}
                     style={{
-                      height: 34, borderRadius: 8, background: T.primary,
-                      color: '#fff', border: 'none', fontSize: 13, fontWeight: 500,
-                      cursor: 'pointer', fontFamily: 'inherit',
+                      height: 34,
+                      borderRadius: 8,
+                      background: T.primary,
+                      color: '#fff',
+                      border: 'none',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
                     }}
                   >
                     {t('usage.apply')}
@@ -294,14 +373,20 @@ export const UsageView = () => {
         </div>
 
         {/* Table header */}
-        <div role="row" style={{
-          display: 'grid', gridTemplateColumns: GRID,
-          padding: '10px 24px',
-          background: T.gray5,
-          borderBottom: `1px solid ${T.gray15}`,
-        }}>
+        <div
+          role="row"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: GRID,
+            padding: '10px 24px',
+            background: T.gray5,
+            borderBottom: `1px solid ${T.gray15}`,
+          }}
+        >
           {HEADERS.map((label) => (
-            <span key={label} style={sectionLabelStyle}>{label}</span>
+            <span key={label} style={sectionLabelStyle}>
+              {label}
+            </span>
           ))}
         </div>
 
@@ -316,7 +401,7 @@ export const UsageView = () => {
             <p style={{ fontSize: 13, color: T.gray50, marginTop: 4 }}>{t('usage.emptyHint')}</p>
           </div>
         ) : (
-          paged.map(r => <UsageRow key={r.date} record={r} />)
+          paged.map((r) => <UsageRow key={r.date} record={r} />)
         )}
 
         <Pagination

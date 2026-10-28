@@ -12,12 +12,18 @@ const POSITIVE = '#10b981';
 const NEGATIVE = '#ef4444';
 
 const labelStyle = {
-  fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as const,
-  letterSpacing: '0.14em', color: T.gray60,
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.14em',
+  color: T.gray60,
 };
 
 const metricStyle = {
-  fontSize: 48, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1,
+  fontSize: 48,
+  fontWeight: 600,
+  letterSpacing: '-0.02em',
+  lineHeight: 1,
 };
 
 const unitStyle = { fontSize: 20, fontWeight: 500, color: T.gray50 };
@@ -51,15 +57,33 @@ export const StatsHeader = ({ data, topClient: top }: Props) => {
       </div>
 
       {/* MoM Growth */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, padding: '28px 40px', borderLeft: `1px solid ${T.gray20}` }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          flex: 1,
+          padding: '28px 40px',
+          borderLeft: `1px solid ${T.gray20}`,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <p style={labelStyle}>MoM Growth</p>
           <span
             style={{ fontSize: 11, lineHeight: 1, color: T.gray20, cursor: 'default', userSelect: 'none' }}
             onMouseEnter={() => setShowPeriod(true)}
             onMouseLeave={() => setShowPeriod(false)}
-          >ⓘ</span>
-          <span style={{ fontSize: 11, fontStyle: 'italic', color: T.gray50, visibility: showPeriod ? 'visible' : 'hidden' }}>
+          >
+            ⓘ
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              fontStyle: 'italic',
+              color: T.gray50,
+              visibility: showPeriod ? 'visible' : 'hidden',
+            }}
+          >
             {momPeriodLabel()}
           </span>
         </div>
@@ -69,7 +93,8 @@ export const StatsHeader = ({ data, topClient: top }: Props) => {
           ) : (
             <>
               <span style={{ ...metricStyle, color: data.momGrowthPercent >= 0 ? POSITIVE : NEGATIVE }}>
-                {data.momGrowthPercent > 0 ? '+' : ''}{data.momGrowthPercent.toFixed(2)}
+                {data.momGrowthPercent > 0 ? '+' : ''}
+                {data.momGrowthPercent.toFixed(2)}
               </span>
               <span style={unitStyle}>%</span>
             </>
@@ -78,7 +103,16 @@ export const StatsHeader = ({ data, topClient: top }: Props) => {
       </div>
 
       {/* Top Client */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, padding: '28px 40px', borderLeft: `1px solid ${T.gray20}` }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          flex: 1,
+          padding: '28px 40px',
+          borderLeft: `1px solid ${T.gray20}`,
+        }}
+      >
         <p style={labelStyle}>Top Client</p>
         {top ? (
           <>
@@ -86,7 +120,16 @@ export const StatsHeader = ({ data, topClient: top }: Props) => {
               <span style={{ ...metricStyle, color: POSITIVE }}>{tbDisplay(top.activeStorage)}</span>
               <span style={unitStyle}>TB</span>
             </div>
-            <span style={{ fontSize: 11, color: T.gray50, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 }}>
+            <span
+              style={{
+                fontSize: 11,
+                color: T.gray50,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: 200,
+              }}
+            >
               {top.email ?? top.id}
             </span>
           </>

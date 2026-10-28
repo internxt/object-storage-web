@@ -1,4 +1,11 @@
-import { contrastColour, darkenColour, DEFAULT_PRIMARY_COLOUR, HEX_COLOUR_PATTERN, hexToRgb, mixWithWhite } from '../../../utils/brandColour';
+import {
+  contrastColour,
+  darkenColour,
+  DEFAULT_PRIMARY_COLOUR,
+  HEX_COLOUR_PATTERN,
+  hexToRgb,
+  mixWithWhite,
+} from '../../../utils/brandColour';
 import { NEW_CONSOLE_URL } from '../../../utils/consoleUrl';
 import { SubAccountBranding } from '../../services/sub-account-branding.service';
 import { BRANDING_CACHE_KEY, BrandingStyles } from './constants';
@@ -11,7 +18,8 @@ export function mapToBranding(value: unknown): SubAccountBranding | null {
 
   const { logoUrl, primaryColor } = value;
   if (logoUrl !== null && typeof logoUrl !== 'string') return null;
-  if (primaryColor !== null && (typeof primaryColor !== 'string' || !HEX_COLOUR_PATTERN.test(primaryColor))) return null;
+  if (primaryColor !== null && (typeof primaryColor !== 'string' || !HEX_COLOUR_PATTERN.test(primaryColor)))
+    return null;
 
   return {
     logoUrl,

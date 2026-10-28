@@ -1,10 +1,10 @@
-import { ShieldWarningIcon } from '@phosphor-icons/react'
-import { usePartners } from '../context/partnersContext'
-import { TwoFactorSetupForm } from './TwoFactorSetupForm'
-import { T, text, card } from '../../sub-account/tokens'
+import { ShieldWarningIcon } from '@phosphor-icons/react';
+import { usePartners } from '../context/usePartners';
+import { TwoFactorSetupForm } from './TwoFactorSetupForm';
+import { T, text, card } from '../../sub-account/tokens';
 
 export const ForcedTwoFactorSetup = () => {
-  const { clearTwoFactorSetupRequired } = usePartners()
+  const { clearTwoFactorSetupRequired } = usePartners();
 
   return (
     <div
@@ -36,8 +36,8 @@ export const ForcedTwoFactorSetup = () => {
             </div>
             <p style={{ ...text.heading, margin: 0 }}>Set up two-factor authentication</p>
             <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
-              Your administrator reset two-factor authentication on this account. You must set it
-              up again before you can continue.
+              Your administrator reset two-factor authentication on this account. You must set it up again before you
+              can continue.
             </p>
           </div>
 
@@ -45,5 +45,5 @@ export const ForcedTwoFactorSetup = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

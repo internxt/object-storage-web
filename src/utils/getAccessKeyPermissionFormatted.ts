@@ -1,15 +1,15 @@
-import { AccessKeyPermission } from '../services/access-keys.service'
+import { AccessKeyPermission } from '../services/access-keys.service';
 
 export function getAccessPermissionFormatted(permission: AccessKeyPermission) {
   switch (permission) {
     case 'read':
-      return 'Read only'
+      return 'Read only';
     case 'write':
-      return 'Write only'
+      return 'Write only';
     case 'read-write':
-      return 'Read and Write'
+      return 'Read and Write';
 
     default:
-      return permission
+      return permission;
   }
 }

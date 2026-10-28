@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { WholesalerPartner } from '../services/wholesalers.service';
 import { PartnerActions } from './PartnerActions';
-import { useWholesalers } from '../context/wholesalersContext';
+import { useWholesalers } from '../context/useWholesalers';
 import { StatusBadge } from '../../components/StatusBadge';
 import { T } from '../../sub-account/tokens';
 
@@ -40,13 +40,18 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, onRena
     <div style={{ overflowX: 'auto', position: 'relative' }}>
       <div
         style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-          overflow: 'hidden', transition: 'opacity 300ms',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 2,
+          overflow: 'hidden',
+          transition: 'opacity 300ms',
           opacity: isLoading ? 1 : 0,
         }}
       >
         <div style={{ height: '100%', background: 'rgba(0,102,255,0.3)', width: '100%' }}>
-          <div className='animate-loading-bar' style={{ height: '100%', background: T.primary }} />
+          <div className="animate-loading-bar" style={{ height: '100%', background: T.primary }} />
         </div>
       </div>
 
@@ -58,7 +63,10 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, onRena
                 key={i}
                 style={{
                   padding: '12px 16px',
-                  fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
                   color: T.gray50,
                   borderBottom: `1px solid ${T.gray15}`,
                   background: T.gray5,
@@ -74,7 +82,10 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, onRena
         <tbody style={{ transition: 'opacity 200ms', opacity: isLoading ? 0.4 : 1 }}>
           {partners.length === 0 && !isLoading ? (
             <tr>
-              <td colSpan={COLUMNS.length} style={{ textAlign: 'center', padding: '64px 0', color: T.gray50, fontSize: 14, fontWeight: 500 }}>
+              <td
+                colSpan={COLUMNS.length}
+                style={{ textAlign: 'center', padding: '64px 0', color: T.gray50, fontSize: 14, fontWeight: 500 }}
+              >
                 No partners found
               </td>
             </tr>
@@ -84,28 +95,78 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, onRena
                 key={p.id}
                 style={{ transition: 'background 120ms', cursor: 'pointer' }}
                 onClick={() => navigate(`/wholesalers/partners/${p.id}`, { state: { partner: p } })}
-                onMouseEnter={(e) => { e.currentTarget.style.background = T.gray5; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = T.gray5;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
               >
-                <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
-                  <span style={{ fontSize: 14, color: T.gray80 }}>{p.name ?? <span style={{ color: T.gray50 }}>—</span>}</span>
+                <td
+                  style={{
+                    padding: '14px 16px',
+                    borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                  }}
+                >
+                  <span style={{ fontSize: 14, color: T.gray80 }}>
+                    {p.name ?? <span style={{ color: T.gray50 }}>—</span>}
+                  </span>
                 </td>
-                <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
-                  <span style={{ fontSize: 14, color: T.gray60 }}>{p.email ?? <span style={{ color: T.gray20 }}>—</span>}</span>
+                <td
+                  style={{
+                    padding: '14px 16px',
+                    borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                  }}
+                >
+                  <span style={{ fontSize: 14, color: T.gray60 }}>
+                    {p.email ?? <span style={{ color: T.gray20 }}>—</span>}
+                  </span>
                 </td>
-                <td style={{ padding: '14px 16px', textAlign: 'right', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
-                  <span style={{ fontSize: 14, color: T.gray50, fontVariantNumeric: 'tabular-nums' }}>{p.subAccountsCount}</span>
+                <td
+                  style={{
+                    padding: '14px 16px',
+                    textAlign: 'right',
+                    borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                  }}
+                >
+                  <span style={{ fontSize: 14, color: T.gray50, fontVariantNumeric: 'tabular-nums' }}>
+                    {p.subAccountsCount}
+                  </span>
                 </td>
-                <td style={{ padding: '14px 16px', textAlign: 'right', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
-                  <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>{formatStorage(p.activeStorageTb)}</span>
+                <td
+                  style={{
+                    padding: '14px 16px',
+                    textAlign: 'right',
+                    borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                  }}
+                >
+                  <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
+                    {formatStorage(p.activeStorageTb)}
+                  </span>
                 </td>
-                <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
+                <td
+                  style={{
+                    padding: '14px 16px',
+                    borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                  }}
+                >
                   <StatusBadge status={p.status} />
                 </td>
-                <td style={{ padding: '14px 16px', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
+                <td
+                  style={{
+                    padding: '14px 16px',
+                    borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                  }}
+                >
                   <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>{formatDate(p.createdAt)}</span>
                 </td>
-                <td style={{ padding: '14px 16px', textAlign: 'right', borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none' }}>
+                <td
+                  style={{
+                    padding: '14px 16px',
+                    textAlign: 'right',
+                    borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                  }}
+                >
                   {!isViewer && (
                     <PartnerActions
                       partner={p}

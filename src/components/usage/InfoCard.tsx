@@ -13,34 +13,26 @@ interface InfoCardProps {
   tooltip?: string;
 }
 
-export const InfoCard = ({
-  value,
-  name,
-  icon,
-  subValues,
-  isWider,
-  className,
-  tooltip,
-}: InfoCardProps) => {
+export const InfoCard = ({ value, name, icon, subValues, isWider, className, tooltip }: InfoCardProps) => {
   return (
     <div
       className={`flex flex-col gap-4 bg-white shadow-sm rounded-b-sm rounded-t-xs p-4 border-t-4 border-primary min-h-[120px] ${
         isWider ? 'min-w-[500px] w-auto' : 'max-w-[300px] w-full'
       } ${className || ''}`}
     >
-      <div className='flex flex-row items-center justify-between h-full'>
-        <div className='flex flex-row items-center gap-4'>
+      <div className="flex flex-row items-center justify-between h-full">
+        <div className="flex flex-row items-center gap-4">
           {icon && (
-            <div className='flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full'>
-              <div className='text-blue-600'>{icon}</div>
+            <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full">
+              <div className="text-blue-600">{icon}</div>
             </div>
           )}
-          <div className='flex flex-col gap-1'>
-            <p className='font-medium text-lg'>{value}</p>
-            <div className='flex flex-row gap-2 items-center text-black/60'>
-              <p className='text-sm'>{name}</p>
+          <div className="flex flex-col gap-1">
+            <p className="font-medium text-lg">{value}</p>
+            <div className="flex flex-row gap-2 items-center text-black/60">
+              <p className="text-sm">{name}</p>
               {tooltip && (
-                <Tooltip title={tooltip} popsFrom='bottom' className='text-xs'>
+                <Tooltip title={tooltip} popsFrom="bottom" className="text-xs">
                   <Info size={16} />
                 </Tooltip>
               )}
@@ -49,15 +41,11 @@ export const InfoCard = ({
         </div>
 
         {subValues && (
-          <div className='flex flex-col gap-2'>
+          <div className="flex flex-col gap-2">
             {subValues.map((subValue, index) => (
-              <div key={index} className='flex flex-row items-center gap-8'>
-                <span className='text-sm text-gray-600 whitespace-nowrap'>
-                  {subValue.label}
-                </span>
-                <span className='text-sm font-medium text-black'>
-                  {subValue.value}
-                </span>
+              <div key={index} className="flex flex-row items-center gap-8">
+                <span className="text-sm text-gray-600 whitespace-nowrap">{subValue.label}</span>
+                <span className="text-sm font-medium text-black">{subValue.value}</span>
               </div>
             ))}
           </div>
@@ -83,7 +71,7 @@ export const CapacityCard = ({
   return (
     <InfoCard
       value={totalCapacity}
-      name='Total Capacity'
+      name="Total Capacity"
       icon={<Database size={32} />}
       subValues={[
         { label: 'Used Capacity', value: usedCapacity },

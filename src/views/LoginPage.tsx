@@ -7,7 +7,7 @@ import { localStorageService } from '../services/localStorage.service';
 import { BaseSyntheticEvent, useEffect, useState } from 'react';
 import Button from '../components/Button';
 import { WarningCircle } from '@phosphor-icons/react';
-import { useUser } from '../context/userContext';
+import { useUser } from '../context/useUser';
 // import { userService } from '../services/user.service'; // Temporarily commented out - not needed during login
 
 export const LoginPage = () => {
@@ -29,7 +29,7 @@ export const LoginPage = () => {
     if (userToken) {
       navigate('/buckets', { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (loginError) {
@@ -41,7 +41,7 @@ export const LoginPage = () => {
 
   const onSubmit = async (
     formData: { email: string; password: string },
-    event: BaseSyntheticEvent<object, unknown, unknown> | undefined
+    event: BaseSyntheticEvent<object, unknown, unknown> | undefined,
   ) => {
     event?.preventDefault();
     const { email, password } = formData;
@@ -66,9 +66,7 @@ export const LoginPage = () => {
       }
 
       navigate('/buckets');
-    } catch (error) {
-      // Handle error
-      console.error('Error logging in', error);
+    } catch {
       setLoginError('Invalid credentials');
     } finally {
       setIsLoggingUser(false);
@@ -76,26 +74,21 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className='flex flex-col w-screen min-h-screen items-center justify-center'>
-      <div className='flex flex-col w-full bg-white p-10 rounded-md gap-5 max-w-[440px] items-center'>
+    <div className="flex flex-col w-screen min-h-screen items-center justify-center">
+      <div className="flex flex-col w-full bg-white p-10 rounded-md gap-5 max-w-[440px] items-center">
         <img
-          src='https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png'
-          alt='Internxt logo'
+          src="https://s1.cdn.cloudstoragecdn.com/market/reseller/oem_partner/__ID__/logo/ZDNLcqHNzXS64lR9RoAUOZRugDNRoPzsjSdiODTYoMpVNq5qUD.png"
+          alt="Internxt logo"
           width={240}
           height={60}
         />
-        <h1 className='text-lg font-medium text-center'>
-          Object Storage Console
-        </h1>
-        <form
-          className='flex flex-col w-full gap-4'
-          onSubmit={handleSubmit(onSubmit)}
-        >
+        <h1 className="text-lg font-medium text-center">Object Storage Console</h1>
+        <form className="flex flex-col w-full gap-4" onSubmit={handleSubmit(onSubmit)}>
           <TextInput
             placeholder={'Email or Username'}
-            inputDataCy='emailInput'
-            label='email'
-            type='email'
+            inputDataCy="emailInput"
+            label="email"
+            type="email"
             register={register}
             minLength={{ value: 1, message: 'Email must not be empty' }}
             error={errors.email}
@@ -103,29 +96,23 @@ export const LoginPage = () => {
 
           <PasswordInput
             placeholder={'Password'}
-            inputDataCy='passwordInput'
-            label='password'
+            inputDataCy="passwordInput"
+            label="password"
             register={register}
             required={true}
             minLength={{ value: 1, message: 'Password must not be empty' }}
             error={errors.password}
           />
           {loginError && (
-            <div className='flex flex-row items-start pt-1'>
-              <div className='flex h-5 flex-row items-center'>
-                <WarningCircle weight='fill' className='mr-1 h-4 text-red' />
+            <div className="flex flex-row items-start pt-1">
+              <div className="flex h-5 flex-row items-center">
+                <WarningCircle weight="fill" className="mr-1 h-4 text-red" />
               </div>
-              <span className='font-base w-56 text-sm text-red'>
-                {loginError}
-              </span>
+              <span className="font-base w-56 text-sm text-red">{loginError}</span>
             </div>
           )}
-          <Button
-            disabled={!isValid || isLoggingUser}
-            loading={isLoggingUser}
-            type='submit'
-          >
-            <p className='text-white font-medium'>Sign in</p>
+          <Button disabled={!isValid || isLoggingUser} loading={isLoggingUser} type="submit">
+            <p className="text-white font-medium">Sign in</p>
           </Button>
         </form>
       </div>

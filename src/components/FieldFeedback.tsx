@@ -1,13 +1,7 @@
 import { AlertCircle } from 'lucide-react';
 import { T } from '../sub-account/tokens';
 
-export const PasswordRequirements = ({
-  errors,
-  variant = 'box',
-}: {
-  errors: string[];
-  variant?: 'box' | 'list';
-}) =>
+export const PasswordRequirements = ({ errors, variant = 'box' }: { errors: string[]; variant?: 'box' | 'list' }) =>
   variant === 'list' ? (
     <ul
       style={{
@@ -26,12 +20,12 @@ export const PasswordRequirements = ({
       ))}
     </ul>
   ) : (
-    <div className='p-2 bg-red/10 border border-red rounded-md mt-2'>
-      <div className='flex items-start gap-2'>
-        <AlertCircle className='w-4 h-4 text-red flex-shrink-0 mt-0.5' />
-        <div className='text-xs text-red-dark'>
-          <p className='font-medium mb-1'>Password must contain:</p>
-          <ul className='space-y-1'>
+    <div className="p-2 bg-red/10 border border-red rounded-md mt-2">
+      <div className="flex items-start gap-2">
+        <AlertCircle className="w-4 h-4 text-red flex-shrink-0 mt-0.5" />
+        <div className="text-xs text-red-dark">
+          <p className="font-medium mb-1">Password must contain:</p>
+          <ul className="space-y-1">
             {errors.map((error) => (
               <li key={error}>• {error}</li>
             ))}

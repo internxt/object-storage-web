@@ -1,15 +1,8 @@
 import { useState } from 'react';
 import Input from './Input';
-import {
-  FieldErrorMessage,
-  PasswordRequirements,
-} from './FieldFeedback';
+import { FieldErrorMessage, PasswordRequirements } from './FieldFeedback';
 import { validatePassword } from './auth/passwordPolicy';
-
-const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
-
-export type MemberEmailErrorCode = 'required' | 'invalid';
-export type MemberPasswordErrorCode = 'required' | 'policy';
+import { memberEmailError, memberPasswordError } from './memberValidation';
 
 export interface MemberCredentialLabels {
   emailRequired: string;
@@ -23,23 +16,6 @@ const defaultLabels: MemberCredentialLabels = {
   emailInvalid: 'Invalid email',
   passwordRequired: 'Password is required',
   passwordPolicy: 'Password does not meet the requirements',
-};
-
-export const memberEmailError = (
-  email: string,
-): MemberEmailErrorCode | undefined => {
-  if (!email) return 'required';
-  return EMAIL_PATTERN.test(email) ? undefined : 'invalid';
-};
-
-export const memberPasswordError = (
-  password: string,
-  optional = false,
-): MemberPasswordErrorCode | undefined => {
-  if (!password) return optional ? undefined : 'required';
-  return validatePassword(password).length > 0
-    ? 'policy'
-    : undefined;
 };
 
 export const MemberEmailField = ({
@@ -64,14 +40,10 @@ export const MemberEmailField = ({
         onChange={onChange}
         onBlur={() => setTouched(true)}
         placeholder={placeholder}
-        variant='email'
+        variant="email"
         accent={error ? 'error' : undefined}
       />
-      {error && (
-        <FieldErrorMessage
-          message={error === 'required' ? copy.emailRequired : copy.emailInvalid}
-        />
-      )}
+      {error && <FieldErrorMessage message={error === 'required' ? copy.emailRequired : copy.emailInvalid} />}
     </>
   );
 };
@@ -91,13 +63,8 @@ export const MemberPasswordField = ({
 }) => {
   const copy = { ...defaultLabels, ...labels };
   const [touched, setTouched] = useState(false);
-  const error =
-    touched || value.length > 0
-      ? memberPasswordError(value, optional)
-      : undefined;
-  const requirements = value
-    ? validatePassword(value)
-    : [];
+  const error = touched || value.length > 0 ? memberPasswordError(value, optional) : undefined;
+  const requirements = value ? validatePassword(value) : [];
 
   return (
     <>
@@ -106,17 +73,11 @@ export const MemberPasswordField = ({
         onChange={onChange}
         onBlur={() => setTouched(true)}
         placeholder={placeholder}
-        variant='password'
+        variant="password"
         accent={error ? 'error' : undefined}
       />
       {requirements.length > 0 && <PasswordRequirements errors={requirements} />}
-      {error && (
-        <FieldErrorMessage
-          message={
-            error === 'required' ? copy.passwordRequired : copy.passwordPolicy
-          }
-        />
-      )}
+      {error && <FieldErrorMessage message={error === 'required' ? copy.passwordRequired : copy.passwordPolicy} />}
     </>
   );
 };

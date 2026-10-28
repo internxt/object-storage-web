@@ -41,7 +41,9 @@ describe('management wholesalersService', () => {
         return {
           status: 200,
           data: {
-            items: [{ id: 'w1', name: 'Acme', email: 'a@b.com', customerId: 'cus_1', partnersCount: 3, activeStorageTb: 4.2 }],
+            items: [
+              { id: 'w1', name: 'Acme', email: 'a@b.com', customerId: 'cus_1', partnersCount: 3, activeStorageTb: 4.2 },
+            ],
             total: 1,
           },
         };
@@ -54,7 +56,15 @@ describe('management wholesalersService', () => {
       expect(result).toEqual({
         total: 1,
         wholesalers: [
-          { id: 'w1', name: 'Acme', email: 'a@b.com', customerId: 'cus_1', partnersCount: 3, activeStorageTb: 4.2, createdAt: '' },
+          {
+            id: 'w1',
+            name: 'Acme',
+            email: 'a@b.com',
+            customerId: 'cus_1',
+            partnersCount: 3,
+            activeStorageTb: 4.2,
+            createdAt: '',
+          },
         ],
       });
     });

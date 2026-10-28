@@ -1,17 +1,12 @@
-import { ReactNode, useEffect, useRef, useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { usePartners } from '../context/partnersContext'
-import {
-  SignOutIcon,
-  ArrowSquareOutIcon,
-  GearSixIcon,
-  QuestionIcon,
-} from '@phosphor-icons/react'
-import { partnersService } from '../services/partners.service'
-import notificationsService from '../../services/notifications.service'
-import { T, shadow } from '../../sub-account/tokens'
-import { useSubAccountBranding } from '../../sub-account/context/SubAccountBrandingContext/useSubAccountBranding'
-import { BrandLogo } from '../../components/BrandLogo'
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { usePartners } from '../context/usePartners';
+import { SignOutIcon, ArrowSquareOutIcon, GearSixIcon, QuestionIcon } from '@phosphor-icons/react';
+import { partnersService } from '../services/partners.service';
+import notificationsService from '../../services/notifications.service';
+import { T, shadow } from '../../sub-account/tokens';
+import { useSubAccountBranding } from '../../sub-account/context/SubAccountBrandingContext/useSubAccountBranding';
+import { BrandLogo } from '../../components/BrandLogo';
 
 const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
   height: '100%',
@@ -24,27 +19,21 @@ const navLinkStyle = ({ isActive }: { isActive: boolean }) => ({
   color: isActive ? T.gray100 : T.gray60,
   textDecoration: 'none',
   whiteSpace: 'nowrap',
-})
+});
 
-const AvatarMenu = ({
-  initials,
-  onLogout,
-}: {
-  initials: string
-  onLogout: () => void
-}) => {
-  const [open, setOpen] = useState(false)
-  const navigate = useNavigate()
-  const ref = useRef<HTMLDivElement>(null)
+const AvatarMenu = ({ initials, onLogout }: { initials: string; onLogout: () => void }) => {
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -91,8 +80,8 @@ const AvatarMenu = ({
           <button
             role="menuitem"
             onClick={() => {
-              setOpen(false)
-              navigate('/partners/settings')
+              setOpen(false);
+              navigate('/partners/settings');
             }}
             style={{
               display: 'flex',
@@ -141,36 +130,33 @@ const AvatarMenu = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
 export const PartnersLayout = ({ children }: { children: ReactNode }) => {
-  const { logOut, partnerInfo } = usePartners()
-  const { branding, styles } = useSubAccountBranding()
-  const navigate = useNavigate()
-  const [billingLoading, setBillingLoading] = useState(false)
+  const { logOut, partnerInfo } = usePartners();
+  const { branding, styles } = useSubAccountBranding();
+  const navigate = useNavigate();
+  const [billingLoading, setBillingLoading] = useState(false);
 
   const openBilling = async () => {
-    setBillingLoading(true)
+    setBillingLoading(true);
     try {
-      const { url } = await partnersService.createBillingPortalSession()
-      window.open(url, '_blank')
+      const { url } = await partnersService.createBillingPortalSession();
+      window.open(url, '_blank');
     } catch {
-      notificationsService.error({ text: 'Failed to open billing portal' })
+      notificationsService.error({ text: 'Failed to open billing portal' });
     } finally {
-      setBillingLoading(false)
+      setBillingLoading(false);
     }
-  }
+  };
 
   const handleLogOut = () => {
-    logOut()
-    navigate('/partners/login')
-  }
+    logOut();
+    navigate('/partners/login');
+  };
 
-  const initials = (partnerInfo?.name ?? partnerInfo?.email ?? '?')
-    .trim()
-    .slice(0, 2)
-    .toUpperCase()
+  const initials = (partnerInfo?.name ?? partnerInfo?.email ?? '?').trim().slice(0, 2).toUpperCase();
 
   return (
     <div
@@ -266,12 +252,7 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
         <div style={{ flex: 1 }} />
 
         <button
-          onClick={() =>
-            window.open(
-              'https://help.internxt.com/en/collections/10286865-internxt-s3',
-              '_blank',
-            )
-          }
+          onClick={() => window.open('https://help.internxt.com/en/collections/10286865-internxt-s3', '_blank')}
           aria-label="Help"
           title="Help"
           style={{
@@ -294,11 +275,7 @@ export const PartnersLayout = ({ children }: { children: ReactNode }) => {
         <AvatarMenu initials={initials} onLogout={handleLogOut} />
       </header>
 
-      <main
-        style={{ flex: 1, padding: 24, overflow: 'auto', background: T.gray5 }}
-      >
-        {children}
-      </main>
+      <main style={{ flex: 1, padding: 24, overflow: 'auto', background: T.gray5 }}>{children}</main>
     </div>
-  )
-}
+  );
+};

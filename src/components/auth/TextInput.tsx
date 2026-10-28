@@ -1,9 +1,4 @@
-import {
-  FieldError,
-  Path,
-  UseFormRegister,
-  ValidationRule,
-} from 'react-hook-form';
+import { FieldError, Path, UseFormRegister, ValidationRule } from 'react-hook-form';
 import { JSX } from 'react';
 import { IFormValues } from '../PasswordInput';
 
@@ -43,9 +38,7 @@ export default function TextInput({
   autoFocus,
   inputDataCy,
 }: Readonly<InputProps>): JSX.Element {
-  const borderColor = error
-    ? 'border-red-200 border-2'
-    : 'border-gray-30 disabled:border-gray-10';
+  const borderColor = error ? 'border-red-200 border-2' : 'border-gray-30 disabled:border-gray-10';
 
   const placeholderColor = 'placeholder-gray-30';
 

@@ -34,6 +34,7 @@ export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: Bucket
 
   useEffect(() => {
     if (!isOpen || !client) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
     fetchAllBuckets(client)
       .then(setBuckets)
@@ -43,6 +44,7 @@ export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: Bucket
 
   useEffect(() => {
     if (!isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearch('');
       setBuckets([]);
     }
@@ -56,32 +58,38 @@ export const BucketPicker = ({ client, isOpen, excludedNames, onSelect }: Bucket
   if (!isOpen) return null;
 
   return (
-    <div className='border border-gray-20 rounded-lg p-2 flex flex-col gap-2'>
-      <Input variant='search' value={search} onChange={setSearch} onClear={() => setSearch('')} placeholder={t('permissions.searchBucketPlaceholder')} />
-      <div className='max-h-[160px] overflow-y-auto'>
+    <div className="border border-gray-20 rounded-lg p-2 flex flex-col gap-2">
+      <Input
+        variant="search"
+        value={search}
+        onChange={setSearch}
+        onClear={() => setSearch('')}
+        placeholder={t('permissions.searchBucketPlaceholder')}
+      />
+      <div className="max-h-[160px] overflow-y-auto">
         {!excludedNames.has(ALL_BUCKETS) && (
           <button
-            type='button'
+            type="button"
             onClick={() => onSelect(ALL_BUCKETS)}
-            className='flex items-center justify-between gap-2 w-full px-2 py-2 text-left bg-transparent border-none cursor-pointer hover:bg-gray-10 rounded'
+            className="flex items-center justify-between gap-2 w-full px-2 py-2 text-left bg-transparent border-none cursor-pointer hover:bg-gray-10 rounded"
           >
-            <span className='text-sm font-medium text-gray-80'>{t('permissions.allBuckets')}</span>
+            <span className="text-sm font-medium text-gray-80">{t('permissions.allBuckets')}</span>
           </button>
         )}
         {isLoading ? (
-          <p className='text-xs text-gray-60 px-2 py-2 m-0'>{t('permissions.loadingBuckets')}</p>
+          <p className="text-xs text-gray-60 px-2 py-2 m-0">{t('permissions.loadingBuckets')}</p>
         ) : filteredBuckets.length === 0 ? (
-          <p className='text-xs text-gray-60 px-2 py-2 m-0'>{t('permissions.noBucketsFound')}</p>
+          <p className="text-xs text-gray-60 px-2 py-2 m-0">{t('permissions.noBucketsFound')}</p>
         ) : (
           filteredBuckets.map((b) => (
             <button
               key={b.name}
-              type='button'
+              type="button"
               onClick={() => onSelect(b.name)}
-              className='flex items-center justify-between gap-2 w-full px-2 py-2 text-left bg-transparent border-none cursor-pointer hover:bg-gray-10 rounded'
+              className="flex items-center justify-between gap-2 w-full px-2 py-2 text-left bg-transparent border-none cursor-pointer hover:bg-gray-10 rounded"
             >
-              <span className='text-sm text-gray-80'>{b.name}</span>
-              <span className='text-xs text-gray-60'>{b.region}</span>
+              <span className="text-sm text-gray-80">{b.name}</span>
+              <span className="text-xs text-gray-60">{b.region}</span>
             </button>
           ))
         )}

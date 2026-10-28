@@ -1,10 +1,6 @@
 import { BucketUsageItem } from '../services/buckets.service';
 
-export type MetricType =
-  | 'activeStorage'
-  | 'deletedStorage'
-  | 'egress'
-  | 'ingress';
+export type MetricType = 'activeStorage' | 'deletedStorage' | 'egress' | 'ingress';
 
 export interface MetricOption {
   value: MetricType;
@@ -64,10 +60,7 @@ export const formatTransferValue = (valueInGB: number): string => {
   return formatStorageValue(valueInGB);
 };
 
-export const formatMetricValue = (
-  value: number,
-  metricType: MetricType
-): string => {
+export const formatMetricValue = (value: number, metricType: MetricType): string => {
   const option = METRIC_OPTIONS.find((opt) => opt.value === metricType);
 
   if (!option) {
@@ -85,7 +78,7 @@ export const formatMetricValue = (
 
 export const transformBucketUsageForChart = (
   usageData: BucketUsageItem[],
-  selectedMetric: MetricType
+  selectedMetric: MetricType,
 ): ChartDataPoint[] => {
   return usageData
     .map((item) => ({
@@ -106,10 +99,7 @@ export const formatChartDate = (timestamp: number): string => {
   });
 };
 
-export const aggregateUsageByDate = (
-  usageData: BucketUsageItem[],
-  selectedMetric: MetricType
-): ChartDataPoint[] => {
+export const aggregateUsageByDate = (usageData: BucketUsageItem[], selectedMetric: MetricType): ChartDataPoint[] => {
   const aggregated = new Map<string, ChartDataPoint>();
 
   usageData.forEach((item) => {
@@ -132,7 +122,5 @@ export const aggregateUsageByDate = (
     }
   });
 
-  return Array.from(aggregated.values()).sort(
-    (a, b) => a.timestamp - b.timestamp
-  );
+  return Array.from(aggregated.values()).sort((a, b) => a.timestamp - b.timestamp);
 };

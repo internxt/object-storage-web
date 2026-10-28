@@ -1,11 +1,11 @@
-import PrettySize from 'pretty-bytes'
+import PrettySize from 'pretty-bytes';
 
 export function bytesToString(size: number): string {
-  return PrettySize(size)
+  return PrettySize(size);
 }
 
 const sizeService = {
   bytesToString,
-}
+};
 
-export default sizeService
+export default sizeService;

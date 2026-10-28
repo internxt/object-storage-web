@@ -22,19 +22,14 @@ interface BucketsTableProps {
   isLoading?: boolean;
 }
 
-export const AccessKeyTable = ({
-  headers,
-  accessKeys,
-  onDeleteAccessKey,
-  isLoading = false,
-}: BucketsTableProps) => {
+export const AccessKeyTable = ({ headers, accessKeys, onDeleteAccessKey, isLoading = false }: BucketsTableProps) => {
   if (isLoading) {
     return (
-      <table className='w-full'>
+      <table className="w-full">
         <thead>
-          <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
+          <tr className="w-full h-12 bg-gray-10 text-black text-sm">
             {headers.map((header) => (
-              <th key={header.key} className='w-[33%] px-5 text-left'>
+              <th key={header.key} className="w-[33%] px-5 text-left">
                 {header.title}
               </th>
             ))}
@@ -48,44 +43,33 @@ export const AccessKeyTable = ({
   }
 
   return (
-    <table className='w-full'>
+    <table className="w-full">
       <thead>
-        <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
+        <tr className="w-full h-12 bg-gray-10 text-black text-sm">
           {headers.map((header) => (
-            <th key={header.key} className='w-[33%] px-5 text-left'>
+            <th key={header.key} className="w-[33%] px-5 text-left">
               {header.title}
             </th>
           ))}
 
-          <th className='w-[1%]' />
+          <th className="w-[1%]" />
         </tr>
       </thead>
       <tbody>
         {accessKeys.length > 0 ? (
           accessKeys.map((accessKey) => (
-            <tr
-              className='w-full h-12 text-sm text-gray-500'
-              key={accessKey.accessKeyId}
-            >
-              <td className='w-[35%] pl-5'>{accessKey.name}</td>
-              <td className='w-[31%] px-5'>{accessKey.accessKeyId}</td>
+            <tr className="w-full h-12 text-sm text-gray-500" key={accessKey.accessKeyId}>
+              <td className="w-[35%] pl-5">{accessKey.name}</td>
+              <td className="w-[31%] px-5">{accessKey.accessKeyId}</td>
 
-              <td className='w-[35%] px-5'>
-                {formattedDate('DD-MMM-YYYY', accessKey.creationDate)}
-              </td>
-              <td className='w-[1%] px-5'>
+              <td className="w-[35%] px-5">{formattedDate('DD-MMM-YYYY', accessKey.creationDate)}</td>
+              <td className="w-[1%] px-5">
                 <Dropdown
-                  button={
-                    <DotsThreeVertical
-                      size={28}
-                      weight='bold'
-                      className='hover:bg-gray-200 rounded-full p-1'
-                    />
-                  }
+                  button={<DotsThreeVertical size={28} weight="bold" className="hover:bg-gray-200 rounded-full p-1" />}
                   items={[
                     {
                       label: 'Delete',
-                      icon: <Trash size={18} className='text-red-600' />,
+                      icon: <Trash size={18} className="text-red-600" />,
                       onClick: () => onDeleteAccessKey(accessKey),
                     },
                   ]}
@@ -94,8 +78,8 @@ export const AccessKeyTable = ({
             </tr>
           ))
         ) : (
-          <tr className='w-full h-12 text-sm text-gray-500'>
-            <td colSpan={headers.length} className='text-center'>
+          <tr className="w-full h-12 text-sm text-gray-500">
+            <td colSpan={headers.length} className="text-center">
               No access keys found
             </td>
           </tr>

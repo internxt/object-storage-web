@@ -7,16 +7,26 @@ import { displayName } from '../../utils/displayName';
 import { T } from '../../sub-account/tokens';
 
 const rowStyle: CSSProperties = {
-  display: 'grid', gridTemplateColumns: '24px 1fr 100px 40px 40px', alignItems: 'center', gap: 10,
-  padding: '0 24px', height: 48, borderBottom: `1px solid ${T.gray15}`,
+  display: 'grid',
+  gridTemplateColumns: '24px 1fr 100px 40px 40px',
+  alignItems: 'center',
+  gap: 10,
+  padding: '0 24px',
+  height: 48,
+  borderBottom: `1px solid ${T.gray15}`,
 };
 
 const nameStyle: CSSProperties = {
-  fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+  fontSize: 14,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 };
 
 const sizeStyle: CSSProperties = {
-  fontSize: 13, color: T.gray60, textAlign: 'right',
+  fontSize: 13,
+  color: T.gray60,
+  textAlign: 'right',
 };
 
 interface ObjectRowProps {
@@ -33,15 +43,18 @@ export const ObjectRow = ({ obj, onOpen, onDownload, onPreview }: ObjectRowProps
         type="button"
         onClick={onOpen}
         style={{
-          ...rowStyle, width: '100%', textAlign: 'left', background: 'none',
-          border: 'none', borderBottom: `1px solid ${T.gray15}`,
-          cursor: 'pointer', fontFamily: 'inherit',
+          ...rowStyle,
+          width: '100%',
+          textAlign: 'left',
+          background: 'none',
+          border: 'none',
+          borderBottom: `1px solid ${T.gray15}`,
+          cursor: 'pointer',
+          fontFamily: 'inherit',
         }}
       >
         <FolderIcon size={18} color={T.primary} weight="fill" />
-        <span style={{ ...nameStyle, color: T.primary, fontWeight: 500 }}>
-          {displayName(obj.key)}
-        </span>
+        <span style={{ ...nameStyle, color: T.primary, fontWeight: 500 }}>{displayName(obj.key)}</span>
         <span style={sizeStyle}>—</span>
       </button>
     );
@@ -50,9 +63,7 @@ export const ObjectRow = ({ obj, onOpen, onDownload, onPreview }: ObjectRowProps
   return (
     <div style={rowStyle}>
       <FileIcon size={18} color={T.gray50} />
-      <span style={{ ...nameStyle, color: T.gray80, fontWeight: 400 }}>
-        {displayName(obj.key)}
-      </span>
+      <span style={{ ...nameStyle, color: T.gray80, fontWeight: 400 }}>{displayName(obj.key)}</span>
       <span style={sizeStyle}>{prettyBytes(obj.size)}</span>
       <IconButton aria-label={`Preview ${displayName(obj.key)}`} onClick={onPreview} style={{ color: T.gray60 }}>
         <EyeIcon size={16} />

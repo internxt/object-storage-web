@@ -33,7 +33,7 @@ const PasswordField = ({
   const [isVisible, setIsVisible] = useState(false);
 
   return (
-    <div className='relative'>
+    <div className="relative">
       <input
         type={isVisible ? 'text' : 'password'}
         placeholder={placeholder}
@@ -46,9 +46,9 @@ const PasswordField = ({
         }`}
       />
       <button
-        type='button'
+        type="button"
         onClick={() => setIsVisible((visible) => !visible)}
-        className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-40 hover:text-gray-80'
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-40 hover:text-gray-80"
         tabIndex={-1}
       >
         {isVisible ? <EyeIcon size={18} /> : <EyeSlashIcon size={18} />}
@@ -86,6 +86,7 @@ export const ResetPasswordView = ({
   const canSubmit = meetsPolicy && confirmPassword === newPassword && !isSubmitting;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSubmitError(undefined);
   }, [newPassword, confirmPassword]);
 
@@ -123,17 +124,17 @@ export const ResetPasswordView = ({
   if (!token || isLinkInvalid) {
     return (
       <AuthPageLayout {...layoutProps} title={t('login.resetPasswordInvalidLinkTitle')}>
-        <div className='flex flex-col gap-5'>
-          <p className='text-[15px] text-gray-60 leading-relaxed'>{t('login.resetPasswordInvalidLinkMessage')}</p>
+        <div className="flex flex-col gap-5">
+          <p className="text-[15px] text-gray-60 leading-relaxed">{t('login.resetPasswordInvalidLinkMessage')}</p>
           <Link
             to={forgotPasswordPath}
-            className='w-full h-[52px] flex items-center justify-center rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] no-underline transition-colors'
+            className="w-full h-[52px] flex items-center justify-center rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] no-underline transition-colors"
           >
             {t('login.requestNewLink')}
           </Link>
           <Link
             to={loginPath}
-            className='self-start px-1 text-[13px] text-gray-60 no-underline hover:text-gray-100 transition-colors'
+            className="self-start px-1 text-[13px] text-gray-60 no-underline hover:text-gray-100 transition-colors"
           >
             {t('login.backToLogin')}
           </Link>
@@ -144,7 +145,7 @@ export const ResetPasswordView = ({
 
   return (
     <AuthPageLayout {...layoutProps} title={t('login.resetPasswordTitle')}>
-      <form className='flex flex-col gap-2.5' onSubmit={onSubmit}>
+      <form className="flex flex-col gap-2.5" onSubmit={onSubmit}>
         <PasswordField
           placeholder={t('login.newPasswordPlaceholder')}
           value={newPassword}
@@ -153,10 +154,10 @@ export const ResetPasswordView = ({
         />
 
         {policyErrors.length > 0 && (
-          <ul className='flex flex-col gap-0.5 px-1'>
+          <ul className="flex flex-col gap-0.5 px-1">
             {policyErrors.map((error) => (
-              <li key={error} className='flex items-center gap-1.5 text-[13px] text-red'>
-                <span className='w-1 h-1 rounded-full bg-red flex-shrink-0' />
+              <li key={error} className="flex items-center gap-1.5 text-[13px] text-red">
+                <span className="w-1 h-1 rounded-full bg-red flex-shrink-0" />
                 {error}
               </li>
             ))}
@@ -172,30 +173,30 @@ export const ResetPasswordView = ({
         />
 
         {mismatch && (
-          <div className='flex items-center gap-1.5 px-1'>
-            <WarningCircleIcon weight='fill' className='h-3.5 w-3.5 text-red flex-shrink-0' />
-            <span className='text-[13px] text-red'>{t('login.passwordMismatch')}</span>
+          <div className="flex items-center gap-1.5 px-1">
+            <WarningCircleIcon weight="fill" className="h-3.5 w-3.5 text-red flex-shrink-0" />
+            <span className="text-[13px] text-red">{t('login.passwordMismatch')}</span>
           </div>
         )}
 
         {submitError && (
-          <div className='flex items-center gap-1.5 px-1'>
-            <WarningCircleIcon weight='fill' className='h-3.5 w-3.5 text-red flex-shrink-0' />
-            <span className='text-[13px] text-red'>{submitError}</span>
+          <div className="flex items-center gap-1.5 px-1">
+            <WarningCircleIcon weight="fill" className="h-3.5 w-3.5 text-red flex-shrink-0" />
+            <span className="text-[13px] text-red">{submitError}</span>
           </div>
         )}
 
         <button
-          type='submit'
+          type="submit"
           disabled={!canSubmit}
-          className='mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+          className="mt-1 w-full h-[52px] rounded-xl bg-[var(--sub-account-primary,#0071e3)] hover:bg-[var(--sub-account-primary-dark,#0077ed)] active:bg-[var(--sub-account-primary-dark,#006edb)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] text-[15px] font-medium tracking-[-0.01em] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? t('login.savingPassword') : t('login.setNewPassword')}
         </button>
 
         <Link
           to={loginPath}
-          className='self-start px-1 text-[13px] text-gray-60 no-underline hover:text-gray-100 transition-colors'
+          className="self-start px-1 text-[13px] text-gray-60 no-underline hover:text-gray-100 transition-colors"
         >
           {t('login.backToLogin')}
         </Link>

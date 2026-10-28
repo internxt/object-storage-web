@@ -1,13 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  DotsThreeVerticalIcon,
-  EyeIcon,
-  HardDrivesIcon,
-  PlusIcon,
-  TrashIcon,
-} from '@phosphor-icons/react';
+import { DotsThreeVerticalIcon, EyeIcon, HardDrivesIcon, PlusIcon, TrashIcon } from '@phosphor-icons/react';
 import { s3Service } from '../../services/s3.service';
 import notificationsService from '../../services/notifications.service';
 import { SubAccountRegion } from '../../services/buckets.service';
@@ -20,7 +14,7 @@ import { Dropdown } from '../../components/Dropdown';
 import { Switch } from '../../components/Switch';
 import { useSubAccountS3Client, useOnS3ClientReadyEffect } from '../hooks/useSubAccountS3Client';
 import { S3Client } from '@aws-sdk/client-s3';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { T, shadow, text, form } from '../tokens';
 import subAccountAxios from '../core/sub-account-axios';
 import { S3Credentials } from '../services/sub-account-s3-credentials.service';
@@ -39,7 +33,6 @@ interface BucketRecord {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
 
 const createRegionS3Client = (endpoint: string, region: string, credentials: S3Credentials) =>
   new S3Client({
@@ -179,10 +172,7 @@ const BucketRow = ({ bucket, regionName, onOpen, onDelete }: BucketRowProps) => 
       <span style={{ fontSize: 14, color: T.gray60 }}>{formatDate(bucket.creationDate)}</span>
 
       {/* Actions */}
-      <div
-        style={{ display: 'flex', justifyContent: 'center' }}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div style={{ display: 'flex', justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
         {/* TODO: hide based on user permissions once available */}
         {isRowHovered && (
           <Dropdown
@@ -253,110 +243,106 @@ const BucketsTable = ({
   const { t } = useTranslation('subaccount');
   const TABLE_HEADERS = [t('buckets.columnName'), t('buckets.columnRegion'), t('buckets.columnCreated'), ''];
   return (
-  <div
-    style={{
-      background: '#fff',
-      border: `1px solid ${T.gray20}`,
-      borderRadius: 12,
-      boxShadow: shadow.sm,
-      overflow: 'hidden',
-    }}
-  >
-    {/* Card header */}
     <div
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '20px 24px',
-        gap: 16,
+        background: '#fff',
+        border: `1px solid ${T.gray20}`,
+        borderRadius: 12,
+        boxShadow: shadow.sm,
+        overflow: 'hidden',
       }}
     >
-      <div>
-        <p style={{ fontSize: 16, fontWeight: 600, color: T.gray100 }}>{t('buckets.title')}</p>
-        <p style={{ fontSize: 13, color: T.gray50, marginTop: 2 }}>
-          {t('buckets.totalCount', { count: totalCount })}
-        </p>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <div style={{ width: 280 }}>
-          <Input
-            variant="search"
-            placeholder={t('buckets.searchPlaceholder')}
-            value={search}
-            maxLength={63}
-            onChange={onSearchChange}
-            onClear={() => onSearchChange('')}
-          />
-        </div>
-        {/* TODO: hide based on user permissions once available */}
-        <button
-          onClick={onCreateOpen}
-          className="flex items-center gap-2 h-10 px-[18px] bg-[var(--primary,#0066FF)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] border-none rounded-lg cursor-pointer text-sm font-medium whitespace-nowrap"
-        >
-          <PlusIcon size={18} weight="bold" />
-          {t('buckets.createBucket')}
-        </button>
-      </div>
-    </div>
-
-    {/* Table header */}
-    <div
-      role="row"
-      style={{
-        display: 'grid',
-        gridTemplateColumns: GRID,
-        padding: '10px 24px',
-        background: T.gray5,
-        borderTop: `1px solid ${T.gray15}`,
-        borderBottom: `1px solid ${T.gray15}`,
-      }}
-    >
-      {TABLE_HEADERS.map((h, i) => (
-        <span
-          key={i}
-          style={{
-            fontSize: 12,
-            fontWeight: 500,
-            color: T.gray60,
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-          }}
-        >
-          {h}
-        </span>
-      ))}
-    </div>
-
-    {/* Body */}
-    {isLoading ? (
-      <div style={{ padding: '40px 24px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
-        {t('buckets.loading')}
-      </div>
-    ) : buckets.length === 0 ? (
-      <div style={{ padding: '56px 24px', textAlign: 'center' }}>
-        <p style={{ fontSize: 14, fontWeight: 500, color: T.gray80 }}>{t('buckets.noBucketsFound')}</p>
-        {search && (
-          <p style={{ fontSize: 13, color: T.gray50, marginTop: 4 }}>
-            {t('buckets.tryDifferentSearch')}
+      {/* Card header */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '20px 24px',
+          gap: 16,
+        }}
+      >
+        <div>
+          <p style={{ fontSize: 16, fontWeight: 600, color: T.gray100 }}>{t('buckets.title')}</p>
+          <p style={{ fontSize: 13, color: T.gray50, marginTop: 2 }}>
+            {t('buckets.totalCount', { count: totalCount })}
           </p>
-        )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <div style={{ width: 280 }}>
+            <Input
+              variant="search"
+              placeholder={t('buckets.searchPlaceholder')}
+              value={search}
+              maxLength={63}
+              onChange={onSearchChange}
+              onClear={() => onSearchChange('')}
+            />
+          </div>
+          {/* TODO: hide based on user permissions once available */}
+          <button
+            onClick={onCreateOpen}
+            className="flex items-center gap-2 h-10 px-[18px] bg-[var(--primary,#0066FF)] text-[color:var(--sub-account-primary-contrast,#FFFFFF)] border-none rounded-lg cursor-pointer text-sm font-medium whitespace-nowrap"
+          >
+            <PlusIcon size={18} weight="bold" />
+            {t('buckets.createBucket')}
+          </button>
+        </div>
       </div>
-    ) : (
-      buckets.map((b) => {
-        const region = regions.find((r) => r.slug === b.regionSlug);
-        return (
-          <BucketRow
-            key={b.name}
-            bucket={b}
-            regionName={region?.name ?? b.regionSlug ?? '—'}
-            onOpen={() => onOpen(b)}
-            onDelete={() => onDelete(b)}
-          />
-        );
-      })
-    )}
-  </div>
+
+      {/* Table header */}
+      <div
+        role="row"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: GRID,
+          padding: '10px 24px',
+          background: T.gray5,
+          borderTop: `1px solid ${T.gray15}`,
+          borderBottom: `1px solid ${T.gray15}`,
+        }}
+      >
+        {TABLE_HEADERS.map((h, i) => (
+          <span
+            key={i}
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: T.gray60,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}
+          >
+            {h}
+          </span>
+        ))}
+      </div>
+
+      {/* Body */}
+      {isLoading ? (
+        <div style={{ padding: '40px 24px', textAlign: 'center', color: T.gray50, fontSize: 14 }}>
+          {t('buckets.loading')}
+        </div>
+      ) : buckets.length === 0 ? (
+        <div style={{ padding: '56px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 14, fontWeight: 500, color: T.gray80 }}>{t('buckets.noBucketsFound')}</p>
+          {search && <p style={{ fontSize: 13, color: T.gray50, marginTop: 4 }}>{t('buckets.tryDifferentSearch')}</p>}
+        </div>
+      ) : (
+        buckets.map((b) => {
+          const region = regions.find((r) => r.slug === b.regionSlug);
+          return (
+            <BucketRow
+              key={b.name}
+              bucket={b}
+              regionName={region?.name ?? b.regionSlug ?? '—'}
+              onOpen={() => onOpen(b)}
+              onDelete={() => onDelete(b)}
+            />
+          );
+        })
+      )}
+    </div>
   );
 };
 
@@ -382,15 +368,21 @@ const INITIAL_FORM_STATE = {
 };
 
 const CreateBucketModal = ({
-  isOpen, onClose, regions, credentials, bucketNames, onCreated, entityId, memberId,
+  isOpen,
+  onClose,
+  regions,
+  credentials,
+  bucketNames,
+  onCreated,
+  entityId,
+  memberId,
 }: CreateBucketModalProps) => {
   const { t } = useTranslation('subaccount');
   const [formState, setFormState] = useState(INITIAL_FORM_STATE);
   const [isCreating, setIsCreating] = useState(false);
 
   const { bucketName, selectedRegionSlug, versioningEnabled, objectLockEnabled, logging } = formState;
-  const updateForm = (patch: Partial<typeof INITIAL_FORM_STATE>) =>
-    setFormState((prev) => ({ ...prev, ...patch }));
+  const updateForm = (patch: Partial<typeof INITIAL_FORM_STATE>) => setFormState((prev) => ({ ...prev, ...patch }));
 
   const canSubmitLogging = !logging.enabled || (!!logging.target && !!logging.prefix.trim());
 
@@ -398,6 +390,7 @@ const CreateBucketModal = ({
     if (isOpen) {
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormState(INITIAL_FORM_STATE);
   }, [isOpen]);
 
@@ -492,7 +485,13 @@ const CreateBucketModal = ({
             autoFocus
             style={inputStyle}
           />
-          <p style={{ ...form.hint, marginTop: 0, color: bucketName && !isValidBucketName(bucketName) ? T.red : form.hint.color }}>
+          <p
+            style={{
+              ...form.hint,
+              marginTop: 0,
+              color: bucketName && !isValidBucketName(bucketName) ? T.red : form.hint.color,
+            }}
+          >
             {t('buckets.createModal.bucketNameHint')}
           </p>
         </div>
@@ -520,9 +519,7 @@ const CreateBucketModal = ({
             <span style={{ ...text.label }}>{t('buckets.createModal.versioningLabel')}</span>
             <Switch checked={versioningEnabled} onChange={onToggleVersioning} disabled={isCreating} />
           </div>
-          <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
-            {t('buckets.createModal.versioningHint')}
-          </p>
+          <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>{t('buckets.createModal.versioningHint')}</p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -535,9 +532,7 @@ const CreateBucketModal = ({
             />
           </div>
           <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
-            {!versioningEnabled
-              ? t('buckets.createModal.objectLockVersioningRequired')
-              : ''}
+            {!versioningEnabled ? t('buckets.createModal.objectLockVersioningRequired') : ''}
             {t('buckets.createModal.objectLockHint')}
           </p>
         </div>
@@ -601,11 +596,14 @@ export const SubAccountBucketsPage = () => {
   };
 
   const fetchRegions = () =>
-    subAccountAxios.get<SubAccountRegion[]>('/subaccount/regions')
+    subAccountAxios
+      .get<SubAccountRegion[]>('/subaccount/regions')
       .then((r) => setRegions(Array.isArray(r.data) ? r.data : []))
       .catch(() => {});
 
-  useEffect(() => { fetchRegions(); }, []);
+  useEffect(() => {
+    fetchRegions();
+  }, []);
 
   const fetchAllBuckets = async (s3Client: S3Client, signal?: AbortSignal) => {
     const buckets: { name: string; region?: string; creationDate?: Date }[] = [];
@@ -628,11 +626,13 @@ export const SubAccountBucketsPage = () => {
     setIsLoading(true);
     try {
       const buckets = await fetchAllBuckets(s3Client, controller.signal);
-      setAllBuckets(buckets.map((bucket) => ({
-        name: bucket.name,
-        regionSlug: bucket.region ?? '',
-        creationDate: bucket.creationDate,
-      })));
+      setAllBuckets(
+        buckets.map((bucket) => ({
+          name: bucket.name,
+          regionSlug: bucket.region ?? '',
+          creationDate: bucket.creationDate,
+        })),
+      );
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
         notificationsService.error({ text: (err as Error).message });
@@ -644,9 +644,13 @@ export const SubAccountBucketsPage = () => {
     }
   };
 
-  useOnS3ClientReadyEffect(client, (readyClient) => {
-    refreshBuckets(readyClient);
-  }, []);
+  useOnS3ClientReadyEffect(
+    client,
+    (readyClient) => {
+      refreshBuckets(readyClient);
+    },
+    [],
+  );
 
   const { bucketNames, regionCount } = useMemo(() => {
     const names: string[] = [];
@@ -670,6 +674,7 @@ export const SubAccountBucketsPage = () => {
   // Clamp page when the filtered set shrinks (e.g. after a delete or a narrower search).
   useEffect(() => {
     if (pageNumber > pageCount) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPageNumber(pageCount);
     }
   }, [pageNumber, pageCount]);

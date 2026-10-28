@@ -1,11 +1,6 @@
 import { Member } from '../../services/user.service';
 import { LoadingRowSkeleton } from '../LoadingSkeleton';
-import {
-  DotsThreeVertical,
-  Eye,
-  Trash,
-  UserMinus,
-} from '@phosphor-icons/react';
+import { DotsThreeVertical, Eye, Trash, UserMinus } from '@phosphor-icons/react';
 import { Dropdown } from '../Dropdown';
 
 export interface HeaderItemsTableProps {
@@ -29,26 +24,24 @@ const getStatusBadge = (status: string) => {
 
   if (statusLower === 'active') {
     return (
-      <div className='flex items-center justify-center rounded-sm bg-badge-active-bg px-2 py-1 w-fit'>
-        <p className='text-xs font-medium text-badge-active-text m-1'>Active</p>
+      <div className="flex items-center justify-center rounded-sm bg-badge-active-bg px-2 py-1 w-fit">
+        <p className="text-xs font-medium text-badge-active-text m-1">Active</p>
       </div>
     );
   } else if (statusLower === 'inactive') {
     return (
-      <div className='flex items-center justify-center rounded-sm bg-badge-inactive-bg px-2 py-1 w-fit'>
-        <p className='text-xs font-medium text-badge-inactive-text m-1'>
-          Inactive
-        </p>
+      <div className="flex items-center justify-center rounded-sm bg-badge-inactive-bg px-2 py-1 w-fit">
+        <p className="text-xs font-medium text-badge-inactive-text m-1">Inactive</p>
       </div>
     );
   }
 
   return (
-    <div className='flex flex-row items-center gap-3'>
-      <div className='h-3 w-3 rounded-full border border-black/30 p-[1px]'>
-        <div className='h-full w-full rounded-full bg-gray-400' />
+    <div className="flex flex-row items-center gap-3">
+      <div className="h-3 w-3 rounded-full border border-black/30 p-[1px]">
+        <div className="h-full w-full rounded-full bg-gray-400" />
       </div>
-      <p className='text-sm'>{status}</p>
+      <p className="text-sm">{status}</p>
     </div>
   );
 };
@@ -65,83 +58,76 @@ export const MembersTable = ({
     switch (key) {
       case 'member':
         return (
-          <div className='flex flex-col'>
-            <p className='text-primary font-medium'>
+          <div className="flex flex-col">
+            <p className="text-primary font-medium">
               {member.firstName} {member.lastName}
             </p>
-            <p className='text-sm text-gray-500'>{member.email}</p>
+            <p className="text-sm text-gray-500">{member.email}</p>
           </div>
         );
       case 'status':
         return getStatusBadge(member.status);
       case 'role':
-        return <p className='text-black'>{member.memberRole}</p>;
+        return <p className="text-black">{member.memberRole}</p>;
       default:
         return '-';
     }
   };
 
   return (
-    <table className='w-full'>
+    <table className="w-full">
       <thead>
-        <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
+        <tr className="w-full h-12 bg-gray-10 text-black text-sm">
           {headers.map((header) => (
-            <th key={header.key} className='w-[33%] px-5 text-left'>
+            <th key={header.key} className="w-[33%] px-5 text-left">
               {header.title}
             </th>
           ))}
-          <th className='w-[1%]' />
+          <th className="w-[1%]" />
         </tr>
       </thead>
       <tbody>
         {bodyState === 'loading' && (
-          <LoadingRowSkeleton
-            numberOfColumns={headers.length + 1}
-            numberOfRows={5}
-            itemWidth='25%'
-          />
+          <LoadingRowSkeleton numberOfColumns={headers.length + 1} numberOfRows={5} itemWidth="25%" />
         )}
         {bodyState === 'empty' && (
           <tr>
-            <td
-              colSpan={headers.length + 1}
-              className='text-center py-4 text-sm text-gray-400'
-            >
+            <td colSpan={headers.length + 1} className="text-center py-4 text-sm text-gray-400">
               No members found
             </td>
           </tr>
         )}
         {bodyState === 'items' &&
           members.map((member) => (
-            <tr key={member.id} className='w-full h-12 text-sm text-gray-500'>
+            <tr key={member.id} className="w-full h-12 text-sm text-gray-500">
               {headers.map((header) => (
-                <td key={header.key} className='px-5 text-left'>
+                <td key={header.key} className="px-5 text-left">
                   {renderCellValue(member, header.key)}
                 </td>
               ))}
-              <td className='w-[1%] px-5 hidden'>
+              <td className="w-[1%] px-5 hidden">
                 <Dropdown
                   button={
                     <DotsThreeVertical
                       size={28}
-                      weight='bold'
-                      className='hover:bg-gray-20 rounded-full p-1 cursor-pointer'
+                      weight="bold"
+                      className="hover:bg-gray-20 rounded-full p-1 cursor-pointer"
                     />
                   }
                   items={[
                     {
                       label: 'View',
-                      icon: <Eye size={18} className='text-blue-600' />,
+                      icon: <Eye size={18} className="text-blue-600" />,
                       onClick: () => onViewMemberClicked(member),
                     },
                     {
                       label: 'Deactivate',
-                      icon: <UserMinus size={18} className='text-orange-600' />,
+                      icon: <UserMinus size={18} className="text-orange-600" />,
                       onClick: () => onDeactivateMemberClicked(member),
                     },
                     {
                       label: 'Delete',
-                      icon: <Trash size={18} className='text-red-600' />,
+                      icon: <Trash size={18} className="text-red-600" />,
                       onClick: () => onDeleteMemberClicked(member),
                     },
                   ]}

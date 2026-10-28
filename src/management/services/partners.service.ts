@@ -38,7 +38,13 @@ export interface PartnerSubAccount {
   customerId: string | null;
 }
 
-async function createPartner(dto: { name: string; email: string; password: string; country: string; postalCode: string }): Promise<void> {
+async function createPartner(dto: {
+  name: string;
+  email: string;
+  password: string;
+  country: string;
+  postalCode: string;
+}): Promise<void> {
   await managementAxios.post(`${API}/partners`, dto);
 }
 
@@ -52,14 +58,27 @@ async function getPartners(params: {
 }): Promise<PartnersResponse> {
   const response = await managementAxios.get(`${API}/partners`, { params });
   const data = response.data;
-  const rawItems: any[] = Array.isArray(data) ? data : (data.items ?? []);
+  const rawItems: PartnerRaw[] = Array.isArray(data) ? data : (data.items ?? []);
   return {
     partners: rawItems.map(mapPartner),
     total: data.total ?? rawItems.length,
   };
 }
 
-function mapPartner(raw: any): Partner {
+interface PartnerRaw {
+  id: string;
+  storageProviderId: string;
+  name?: string | null;
+  email?: string | null;
+  status?: string;
+  providerCreatedAt?: string | null;
+  activeStorageTb?: number;
+  subAccountsCount?: number;
+  createdAt?: string;
+  customerId?: string | null;
+}
+
+function mapPartner(raw: PartnerRaw): Partner {
   return {
     id: raw.id,
     storageProviderId: raw.storageProviderId,
@@ -103,9 +122,12 @@ async function getPartnerSubAccountsUsage(
   partnerId: string,
   params: { from: string; to: string },
 ): Promise<SubAccountsUsageReport> {
-  const response = await managementAxios.get<SubAccountsUsageReport>(`${API}/partners/${partnerId}/usages/sub-accounts`, {
-    params,
-  });
+  const response = await managementAxios.get<SubAccountsUsageReport>(
+    `${API}/partners/${partnerId}/usages/sub-accounts`,
+    {
+      params,
+    },
+  );
   const report = response.data;
   return { ...report, items: report.items.map((item) => ({ ...item, status: toConsoleStatus(item.status) })) };
 }

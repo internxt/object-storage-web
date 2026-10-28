@@ -1,8 +1,5 @@
-import { useEffect, useState } from 'react';
-import {
-  bucketsService,
-  BucketUsageItem,
-} from '../../services/buckets.service';
+import { useCallback, useEffect, useState } from 'react';
+import { bucketsService, BucketUsageItem } from '../../services/buckets.service';
 import { DateRangePicker } from '../DatePicker';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
@@ -36,18 +33,11 @@ export const BucketUsageModal = ({
   bucketRegion,
 }: BucketUsageModalProps) => {
   const [usageData, setUsageData] = useState<BucketUsageItem[]>([]);
-  const [selectedMetric, setSelectedMetric] =
-    useState<MetricType>('activeStorage');
+  const [selectedMetric, setSelectedMetric] = useState<MetricType>('activeStorage');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchBucketUsageData();
-    }
-  }, [isOpen, bucketNumber]);
-
-  const fetchBucketUsageData = async () => {
+  const fetchBucketUsageData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -56,29 +46,28 @@ export const BucketUsageModal = ({
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 30);
 
-      const data = await bucketsService.getAllBucketUsage(
-        startDate,
-        endDate,
-        bucketNumber
-      );
+      const data = await bucketsService.getAllBucketUsage(startDate, endDate, bucketNumber);
       setUsageData(data);
     } catch (err) {
       setError(apiErrorMessage(err, 'Failed to load bucket usage'));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [bucketNumber]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchBucketUsageData();
+    }
+  }, [isOpen, fetchBucketUsageData]);
 
   const onApplyFilter = async (startDate: string, endDate: string) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const data = await bucketsService.getAllBucketUsage(
-        new Date(startDate),
-        new Date(endDate),
-        bucketNumber
-      );
+      const data = await bucketsService.getAllBucketUsage(new Date(startDate), new Date(endDate), bucketNumber);
       setUsageData(data);
     } catch (err) {
       setError(apiErrorMessage(err, 'Failed to load bucket usage'));
@@ -87,12 +76,9 @@ export const BucketUsageModal = ({
     }
   };
 
-  const chartData: ChartDataPoint[] =
-    usageData.length > 0 ? aggregateUsageByDate(usageData, selectedMetric) : [];
+  const chartData: ChartDataPoint[] = usageData.length > 0 ? aggregateUsageByDate(usageData, selectedMetric) : [];
 
-  const selectedMetricOption = METRIC_OPTIONS.find(
-    (option) => option.value === selectedMetric
-  )!;
+  const selectedMetricOption = METRIC_OPTIONS.find((option) => option.value === selectedMetric)!;
 
   const config = {
     value: {
@@ -105,53 +91,39 @@ export const BucketUsageModal = ({
   if (!isOpen) return null;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      maxWidth='max-w-7xl'
-      width='w-[95vw]'
-    >
-      <div className='flex flex-col gap-5 w-full'>
-        <div className='flex flex-row justify-between items-center w-full'>
-          <div className='flex flex-col'>
-            <h1 className='text-xl font-bold text-black'>{bucketName} Usage</h1>
-            <p className='text-sm text-gray-600'>Region: {bucketRegion}</p>
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-7xl" width="w-[95vw]">
+      <div className="flex flex-col gap-5 w-full">
+        <div className="flex flex-row justify-between items-center w-full">
+          <div className="flex flex-col">
+            <h1 className="text-xl font-bold text-black">{bucketName} Usage</h1>
+            <p className="text-sm text-gray-600">Region: {bucketRegion}</p>
           </div>
-          <button
-            onClick={onClose}
-            className='group p-2 hover:bg-gray-100 rounded-full'
-          >
-            <X className='text-black group-hover:text-white' size={20} />
+          <button onClick={onClose} className="group p-2 hover:bg-gray-100 rounded-full">
+            <X className="text-black group-hover:text-white" size={20} />
           </button>
         </div>
 
-        <div className='flex flex-row justify-between items-center w-full'>
-          <div className='flex flex-row gap-4 items-end'>
-            <div className='flex flex-col gap-1'>
-              <label className='text-sm text-gray-600'>Metric</label>
+        <div className="flex flex-row justify-between items-center w-full">
+          <div className="flex flex-row gap-4 items-end">
+            <div className="flex flex-col gap-1">
+              <label className="text-sm text-gray-600">Metric</label>
               <Dropdown
-                width='w-64'
+                width="w-64"
                 button={
-                  <div className='flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center'>
-                    <div className='flex flex-row gap-2 items-center'>
-                      <div
-                        className='w-3 h-3 rounded-full'
-                        style={{ backgroundColor: selectedMetricOption.color }}
-                      />
-                      <p className='text-black'>{selectedMetricOption.label}</p>
+                  <div className="flex w-full border border-black/10 flex-row justify-between py-2 px-4 rounded-md items-center">
+                    <div className="flex flex-row gap-2 items-center">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: selectedMetricOption.color }} />
+                      <p className="text-black">{selectedMetricOption.label}</p>
                     </div>
-                    <CaretDown size={14} className='text-black' />
+                    <CaretDown size={14} className="text-black" />
                   </div>
                 }
                 items={METRIC_OPTIONS.map((option) => ({
                   label: option.label,
                   onClick: () => setSelectedMetric(option.value),
                   render: () => (
-                    <div className='flex flex-row items-center gap-3 px-4 py-2'>
-                      <div
-                        className='w-3 h-3 rounded-full'
-                        style={{ backgroundColor: option.color }}
-                      />
+                    <div className="flex flex-row items-center gap-3 px-4 py-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: option.color }} />
                       <span>{option.label}</span>
                     </div>
                   ),
@@ -160,61 +132,51 @@ export const BucketUsageModal = ({
             </div>
           </div>
 
-          <div className='flex flex-col w-full justify-end items-end gap-2'>
-            <DateRangePicker
-              onApplyFilterButtonClicked={onApplyFilter}
-              returnISOString={true}
-            />
+          <div className="flex flex-col w-full justify-end items-end gap-2">
+            <DateRangePicker onApplyFilterButtonClicked={onApplyFilter} returnISOString={true} />
           </div>
         </div>
 
         {error && (
-          <div className='flex items-center justify-center p-4 bg-red/10 border border-red rounded-md'>
-            <p className='text-red'>{error}</p>
+          <div className="flex items-center justify-center p-4 bg-red/10 border border-red rounded-md">
+            <p className="text-red">{error}</p>
           </div>
         )}
 
         {isLoading && (
-          <div className='flex flex-col w-full justify-between h-full'>
-            <Skeleton className='h-[500px] w-full rounded-md !bg-gray-100' />
+          <div className="flex flex-col w-full justify-between h-full">
+            <Skeleton className="h-[500px] w-full rounded-md !bg-gray-100" />
           </div>
         )}
 
         {!isLoading && !error && chartData.length > 0 && (
-          <div className='flex flex-col w-full justify-between h-full'>
-            <ChartContainer config={config} className='h-[500px] w-full'>
-              <AreaChart
-                data={chartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray='3 3' className='stroke-muted' />
+          <div className="flex flex-col w-full justify-between h-full">
+            <ChartContainer config={config} className="h-[500px] w-full">
+              <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
-                  dataKey='timestamp'
+                  dataKey="timestamp"
                   tickFormatter={formatChartDate}
-                  className='text-xs fill-muted-foreground'
-                  type='number'
+                  className="text-xs fill-muted-foreground"
+                  type="number"
                   domain={['dataMin', 'dataMax']}
-                  scale='time'
-                  interval='preserveStartEnd'
+                  scale="time"
+                  interval="preserveStartEnd"
                 />
                 <YAxis
-                  tickFormatter={(value: number) =>
-                    formatMetricValue(value, selectedMetric)
-                  }
-                  className='text-xs fill-muted-foreground'
+                  tickFormatter={(value: number) => formatMetricValue(value, selectedMetric)}
+                  className="text-xs fill-muted-foreground"
                 />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
-                      labelFormatter={(timestamp) =>
-                        new Date(Number(timestamp)).toLocaleDateString('sv-SE')
-                      }
+                      labelFormatter={(timestamp) => new Date(Number(timestamp)).toLocaleDateString('sv-SE')}
                     />
                   }
                 />
                 <Area
-                  type='monotone'
-                  dataKey='value'
+                  type="monotone"
+                  dataKey="value"
                   stroke={selectedMetricOption.color}
                   fill={selectedMetricOption.color}
                   fillOpacity={0.2}
@@ -226,11 +188,8 @@ export const BucketUsageModal = ({
         )}
 
         {!isLoading && !error && chartData.length === 0 && (
-          <div className='flex items-center justify-center p-8 bg-gray-50 rounded-md'>
-            <p className='text-gray-600'>
-              No usage data available for this bucket in the selected date
-              range.
-            </p>
+          <div className="flex items-center justify-center p-8 bg-gray-50 rounded-md">
+            <p className="text-gray-600">No usage data available for this bucket in the selected date range.</p>
           </div>
         )}
       </div>

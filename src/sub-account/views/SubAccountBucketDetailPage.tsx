@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -44,7 +44,7 @@ import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useSubAccountS3Client, useOnS3ClientReadyEffect } from '../hooks/useSubAccountS3Client';
 import { useObjectPagination } from '../hooks/useObjectPagination';
 import { useFileRetention } from '../hooks/useFileRetention';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { DeleteBucketConfirmModal } from '../components/DeleteBucketConfirmModal';
 import { RetentionConfirmModal } from '../components/RetentionConfirmModal';
 import { ShareModal } from '../components/ShareModal';
@@ -63,12 +63,10 @@ function versionRowId(obj: S3Object): string {
 
 function getFileIcon(name: string) {
   const ext = name.split('.').pop()?.toLowerCase() ?? '';
-  if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext))
-    return <FileVideoIcon size={18} color={T.gray50} />;
+  if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) return <FileVideoIcon size={18} color={T.gray50} />;
   if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'].includes(ext))
     return <FileImageIcon size={18} color={T.gray50} />;
-  if (['zip', 'tar', 'gz', 'rar', '7z'].includes(ext))
-    return <FileZipIcon size={18} color={T.gray50} />;
+  if (['zip', 'tar', 'gz', 'rar', '7z'].includes(ext)) return <FileZipIcon size={18} color={T.gray50} />;
   if (['txt', 'md', 'csv', 'log', 'json', 'yaml', 'yml', 'xml', 'pdf'].includes(ext))
     return <FileTextIcon size={18} color={T.gray50} />;
   return <FileIcon size={18} color={T.gray50} />;
@@ -80,33 +78,65 @@ const Pill = ({ type }: { type: 'public' | 'private' }) => {
   const { t } = useTranslation('subaccount');
   const pub = type === 'public';
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 500,
-      background: pub ? T.primaryBg8 : T.gray10,
-      color: pub ? T.primary : T.gray80,
-    }}>
-      <span style={{
-        width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-        background: pub ? T.primary : T.gray50,
-      }} />
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '4px 10px',
+        borderRadius: 999,
+        fontSize: 12,
+        fontWeight: 500,
+        background: pub ? T.primaryBg8 : T.gray10,
+        color: pub ? T.primary : T.gray80,
+      }}
+    >
+      <span
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          flexShrink: 0,
+          background: pub ? T.primary : T.gray50,
+        }}
+      />
       {pub ? t('bucketDetail.public') : t('bucketDetail.private')}
     </span>
   );
 };
 
-const ReadField = ({ label, value, mono = false, fullWidth = false }:
-  { label: string; value: string; mono?: boolean; fullWidth?: boolean }) => (
+const ReadField = ({
+  label,
+  value,
+  mono = false,
+  fullWidth = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  fullWidth?: boolean;
+}) => (
   <div style={{ gridColumn: fullWidth ? '1 / -1' : undefined, display: 'flex', flexDirection: 'column', gap: 4 }}>
-    <span style={{
-      fontSize: 12, fontWeight: 500, color: T.gray60,
-      letterSpacing: '0.04em', textTransform: 'uppercase',
-    }}>{label}</span>
-    <span style={{
-      fontSize: 14, color: T.gray100, lineHeight: 1.5,
-      fontFamily: mono ? 'var(--font-mono,monospace)' : undefined,
-      wordBreak: 'break-all',
-    }}>
+    <span
+      style={{
+        fontSize: 12,
+        fontWeight: 500,
+        color: T.gray60,
+        letterSpacing: '0.04em',
+        textTransform: 'uppercase',
+      }}
+    >
+      {label}
+    </span>
+    <span
+      style={{
+        fontSize: 14,
+        color: T.gray100,
+        lineHeight: 1.5,
+        fontFamily: mono ? 'var(--font-mono,monospace)' : undefined,
+        wordBreak: 'break-all',
+      }}
+    >
       {value || '—'}
     </span>
   </div>
@@ -115,22 +145,29 @@ const ReadField = ({ label, value, mono = false, fullWidth = false }:
 const ConfigError = ({ section }: { section: string }) => {
   const { t } = useTranslation('subaccount');
   return (
-  <div className="flex max-w-[480px] flex-col gap-2 rounded-xl border border-[#fecaca] bg-[#fef2f2] p-4">
-    <span className="text-xs font-medium uppercase tracking-wider text-[var(--red,#E03131)]">
-      {section}
-    </span>
-    <p className="m-0 text-[13px] leading-normal text-[var(--gray-60,#636367)]">
-      {t('bucketDetail.configErrorText')}
-    </p>
-  </div>
+    <div className="flex max-w-[480px] flex-col gap-2 rounded-xl border border-[#fecaca] bg-[#fef2f2] p-4">
+      <span className="text-xs font-medium uppercase tracking-wider text-[var(--red,#E03131)]">{section}</span>
+      <p className="m-0 text-[13px] leading-normal text-[var(--gray-60,#636367)]">
+        {t('bucketDetail.configErrorText')}
+      </p>
+    </div>
   );
 };
 
 // ─── Breadcrumb ───────────────────────────────────────────────────────────────
 
-const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
-  bucketName: string; prefix: string;
-  onBuckets: () => void; onBucket: () => void; onSegment: (p: string) => void;
+const Breadcrumb = ({
+  bucketName,
+  prefix,
+  onBuckets,
+  onBucket,
+  onSegment,
+}: {
+  bucketName: string;
+  prefix: string;
+  onBuckets: () => void;
+  onBucket: () => void;
+  onSegment: (p: string) => void;
 }) => {
   const { t } = useTranslation('subaccount');
   const parts = prefix ? prefix.split('/').filter(Boolean) : [];
@@ -140,13 +177,17 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
       key={label}
       onClick={active ? undefined : onClick}
       style={{
-        fontSize: 13, fontWeight: 500, cursor: active ? 'default' : 'pointer',
+        fontSize: 13,
+        fontWeight: 500,
+        cursor: active ? 'default' : 'pointer',
         color: active ? T.gray100 : T.gray50,
-        background: 'none', border: 'none', padding: 0,
+        background: 'none',
+        border: 'none',
+        padding: 0,
         whiteSpace: 'nowrap',
       }}
-      onMouseEnter={e => !active && (e.currentTarget.style.color = T.gray80)}
-      onMouseLeave={e => !active && (e.currentTarget.style.color = T.gray50)}
+      onMouseEnter={(e) => !active && (e.currentTarget.style.color = T.gray80)}
+      onMouseLeave={(e) => !active && (e.currentTarget.style.color = T.gray50)}
     >
       {label}
     </button>
@@ -159,13 +200,10 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
   // Collapse middle segments into a dropdown once there's more than one to hide,
   // keeping the first segment after the bucket and the last two (parent + active).
   const collapse = parts.length > 3;
-  const hiddenParts = collapse
-    ? parts.slice(1, parts.length - 2).map((seg, idx) => ({ seg, i: idx + 1 }))
-    : [];
-  const visibleParts = (collapse
-    ? [parts[0], parts[parts.length - 2], parts[parts.length - 1]]
-    : parts
-  ).map((seg, idx) => ({ seg, i: collapse ? [0, parts.length - 2, parts.length - 1][idx] : idx }));
+  const hiddenParts = collapse ? parts.slice(1, parts.length - 2).map((seg, idx) => ({ seg, i: idx + 1 })) : [];
+  const visibleParts = (collapse ? [parts[0], parts[parts.length - 2], parts[parts.length - 1]] : parts).map(
+    (seg, idx) => ({ seg, i: collapse ? [0, parts.length - 2, parts.length - 1][idx] : idx }),
+  );
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -185,7 +223,10 @@ const Breadcrumb = ({ bucketName, prefix, onBuckets, onBucket, onSegment }: {
                       aria-label={t('bucketDetail.showHiddenFolders')}
                       title={t('bucketDetail.showHiddenFolders')}
                       style={{
-                        display: 'flex', alignItems: 'center', color: T.gray50, cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: T.gray50,
+                        cursor: 'pointer',
                       }}
                     >
                       <DotsThreeIcon size={16} weight="bold" />
@@ -226,7 +267,19 @@ interface ObjectRowProps {
   onPreview: (obj: S3Object) => void;
 }
 
-const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFileClick, onDownload, onDelete, onCopyPath, onShare, onPreview }: ObjectRowProps) => {
+const ObjectRow = ({
+  obj,
+  selected,
+  showVersions,
+  onSelect,
+  onFolderClick,
+  onFileClick,
+  onDownload,
+  onDelete,
+  onCopyPath,
+  onShare,
+  onPreview,
+}: ObjectRowProps) => {
   const { t } = useTranslation('subaccount');
   const [hovered, setHovered] = useState(false);
   const [triggerHovered, setTriggerHovered] = useState(false);
@@ -236,21 +289,27 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
     <div
       role="row"
       style={{
-        display: 'grid', gridTemplateColumns: showVersions ? GRID_COLS_VERSIONS : GRID_COLS, alignItems: 'center',
-        padding: '0 16px', height: 52,
+        display: 'grid',
+        gridTemplateColumns: showVersions ? GRID_COLS_VERSIONS : GRID_COLS,
+        alignItems: 'center',
+        padding: '0 16px',
+        height: 52,
         borderBottom: `1px solid ${T.gray15}`,
         background: selected ? T.primaryBg4 : hovered ? T.gray5 : '#fff',
-        transition: 'background 100ms', cursor: 'pointer', position: 'relative',
+        transition: 'background 100ms',
+        cursor: 'pointer',
+        position: 'relative',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={() => obj.isFolder ? onFolderClick(obj.key) : onFileClick(obj)}
+      onClick={() => (obj.isFolder ? onFolderClick(obj.key) : onFileClick(obj))}
     >
       {/* Checkbox */}
-      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center' }}>
         <input
-          type="checkbox" checked={selected}
-          onChange={e => onSelect(e.target.checked)}
+          type="checkbox"
+          checked={selected}
+          onChange={(e) => onSelect(e.target.checked)}
           style={{ cursor: 'pointer', width: 16, height: 16 }}
           aria-label={t('bucketDetail.selectObject', { name })}
         />
@@ -258,16 +317,18 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
 
       {/* Name */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-        {obj.isFolder
-          ? <FolderIcon size={18} color={T.primary} weight="fill" />
-          : getFileIcon(name)
-        }
-        <span style={{
-          fontSize: 14, fontWeight: obj.isFolder ? 500 : 400,
-          color: obj.isFolder ? T.primary : T.gray80,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          textDecoration: hovered && obj.isFolder ? 'underline' : 'none',
-        }}>
+        {obj.isFolder ? <FolderIcon size={18} color={T.primary} weight="fill" /> : getFileIcon(name)}
+        <span
+          style={{
+            fontSize: 14,
+            fontWeight: obj.isFolder ? 500 : 400,
+            color: obj.isFolder ? T.primary : T.gray80,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            textDecoration: hovered && obj.isFolder ? 'underline' : 'none',
+          }}
+        >
           {name}
         </span>
       </div>
@@ -278,52 +339,67 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
       </span>
 
       {/* Last modified */}
-      <span style={{ fontSize: 13, color: T.gray60 }}>
-        {obj.isFolder ? '—' : formatDateTime(obj.lastModified)}
-      </span>
+      <span style={{ fontSize: 13, color: T.gray60 }}>{obj.isFolder ? '—' : formatDateTime(obj.lastModified)}</span>
 
       {/* Version ID */}
       {showVersions && (
-        <span style={{
-          fontSize: 12, color: T.gray60, fontFamily: 'var(--font-mono,monospace)',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
+        <span
+          style={{
+            fontSize: 12,
+            color: T.gray60,
+            fontFamily: 'var(--font-mono,monospace)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {!obj.isFolder && obj.versionId && obj.versionId !== 'null' ? obj.versionId : '—'}
         </span>
       )}
 
       {/* Actions */}
-      <div
-        style={{ display: 'flex', justifyContent: 'center' }}
-        onClick={e => e.stopPropagation()}
-      >
+      <div style={{ display: 'flex', justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
         {hovered && (
           <Dropdown
             button={
               <span
-                aria-label={t('bucketDetail.objectActions')} title={t('bucketDetail.objectActions')}
+                aria-label={t('bucketDetail.objectActions')}
+                title={t('bucketDetail.objectActions')}
                 onMouseEnter={() => setTriggerHovered(true)}
                 onMouseLeave={() => setTriggerHovered(false)}
                 style={{
-                  width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 32,
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   background: triggerHovered ? T.gray10 : 'transparent',
-                  borderRadius: 6, color: T.gray60,
+                  borderRadius: 6,
+                  color: T.gray60,
                 }}
               >
                 <DotsThreeVerticalIcon size={18} weight="bold" />
               </span>
             }
             items={[
-              ...(!obj.isFolder ? [{
-                label: t('bucketDetail.preview'),
-                icon: <EyeIcon size={15} />,
-                onClick: () => onPreview(obj),
-              }] : []),
-              ...(!obj.isFolder ? [{
-                label: t('bucketDetail.download'),
-                icon: <DownloadSimpleIcon size={15} />,
-                onClick: () => onDownload(obj),
-              }] : []),
+              ...(!obj.isFolder
+                ? [
+                    {
+                      label: t('bucketDetail.preview'),
+                      icon: <EyeIcon size={15} />,
+                      onClick: () => onPreview(obj),
+                    },
+                  ]
+                : []),
+              ...(!obj.isFolder
+                ? [
+                    {
+                      label: t('bucketDetail.download'),
+                      icon: <DownloadSimpleIcon size={15} />,
+                      onClick: () => onDownload(obj),
+                    },
+                  ]
+                : []),
               {
                 label: t('bucketDetail.copyPath'),
                 icon: <CopyIcon size={15} />,
@@ -349,45 +425,81 @@ const ObjectRow = ({ obj, selected, showVersions, onSelect, onFolderClick, onFil
 
 // ─── EmptyState ───────────────────────────────────────────────────────────────
 
-const EmptyState = ({ searchQuery, onCreateFolder, onUpload }:
-  { searchQuery: string; onCreateFolder: () => void; onUpload: () => void }) => {
+const EmptyState = ({
+  searchQuery,
+  onCreateFolder,
+  onUpload,
+}: {
+  searchQuery: string;
+  onCreateFolder: () => void;
+  onUpload: () => void;
+}) => {
   const { t } = useTranslation('subaccount');
   return (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '56px 24px', gap: 12 }}>
-    <div style={{
-      width: 56, height: 56, borderRadius: '50%', background: T.gray10,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4,
-    }}>
-      <FolderIcon size={28} color={T.gray50} />
-    </div>
-    <p style={{ fontSize: 15, fontWeight: 600, color: T.gray100, margin: 0 }}>
-      {searchQuery ? t('bucketDetail.noMatchingObjects') : t('bucketDetail.folderEmpty')}
-    </p>
-    <p style={{ fontSize: 13, color: T.gray50, margin: 0, textAlign: 'center', maxWidth: 300 }}>
-      {searchQuery
-        ? t('bucketDetail.noMatchingObjectsHint', { searchQuery })
-        : t('bucketDetail.folderEmptyHint')}
-    </p>
-    {!searchQuery && (
-      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-        <button onClick={onCreateFolder} style={{
-          display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-          border: `1px solid ${T.gray20}`, borderRadius: 8, background: '#fff',
-          color: T.gray80, fontSize: 13, fontWeight: 500,
-          cursor: 'pointer',
-        }}>
-          <FolderPlusIcon size={15} /> {t('bucketDetail.createFolder')}
-        </button>
-        <button onClick={onUpload} style={{
-          display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-          border: 'none', borderRadius: 8, background: T.primary,
-          color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-        }}>
-          <UploadSimpleIcon size={15} weight="bold" /> {t('bucketDetail.uploadFiles')}
-        </button>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '56px 24px', gap: 12 }}>
+      <div
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: '50%',
+          background: T.gray10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 4,
+        }}
+      >
+        <FolderIcon size={28} color={T.gray50} />
       </div>
-    )}
-  </div>
+      <p style={{ fontSize: 15, fontWeight: 600, color: T.gray100, margin: 0 }}>
+        {searchQuery ? t('bucketDetail.noMatchingObjects') : t('bucketDetail.folderEmpty')}
+      </p>
+      <p style={{ fontSize: 13, color: T.gray50, margin: 0, textAlign: 'center', maxWidth: 300 }}>
+        {searchQuery ? t('bucketDetail.noMatchingObjectsHint', { searchQuery }) : t('bucketDetail.folderEmptyHint')}
+      </p>
+      {!searchQuery && (
+        <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+          <button
+            onClick={onCreateFolder}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              height: 36,
+              padding: '0 14px',
+              border: `1px solid ${T.gray20}`,
+              borderRadius: 8,
+              background: '#fff',
+              color: T.gray80,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            <FolderPlusIcon size={15} /> {t('bucketDetail.createFolder')}
+          </button>
+          <button
+            onClick={onUpload}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              height: 36,
+              padding: '0 14px',
+              border: 'none',
+              borderRadius: 8,
+              background: T.primary,
+              color: '#fff',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            <UploadSimpleIcon size={15} weight="bold" /> {t('bucketDetail.uploadFiles')}
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -403,11 +515,11 @@ export const SubAccountBucketDetailPage = () => {
   const { entityId, memberId, isAdmin } = useSubAccount();
   const { credentials } = useSubAccountS3Client(entityId, memberId);
 
-  const endpointRef = useRef(searchParams.get('endpoint'));
-  const regionRef = useRef(searchParams.get('region'));
+  const [endpointParam] = useState(() => searchParams.get('endpoint'));
+  const [regionParam] = useState(() => searchParams.get('region'));
 
-  const resolvedEndpoint = endpointRef.current ?? (credentials ? new URL(credentials.endpoint).host : undefined);
-  const resolvedRegion = regionRef.current ?? credentials?.region;
+  const resolvedEndpoint = endpointParam ?? (credentials ? new URL(credentials.endpoint).host : undefined);
+  const resolvedRegion = regionParam ?? credentials?.region;
 
   const client = useMemo(() => {
     if (!credentials) return null;
@@ -417,6 +529,7 @@ export const SubAccountBucketDetailPage = () => {
       credentials: { accessKeyId: credentials.accessKeyId, secretAccessKey: credentials.secretAccessKey },
       forcePathStyle: true,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [credentials?.accessKeyId]);
 
   const [activeTab, setActiveTab] = useState<'objects' | 'properties'>('objects');
@@ -426,7 +539,12 @@ export const SubAccountBucketDetailPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showVersions, setShowVersions] = useLocalStorage('showVersions', false);
   const {
-    state: pagination, setPageSize, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
+    state: pagination,
+    setPageSize,
+    goToPrevPage,
+    goToNextPage,
+    recordPage,
+    reset: resetPagination,
   } = useObjectPagination();
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [versioning, setVersioning] = useState<{
@@ -435,17 +553,30 @@ export const SubAccountBucketDetailPage = () => {
     isChanging: boolean;
     confirmation: boolean | null;
   }>({
-    status: 'Unversioned', isLoading: true, isChanging: false, confirmation: null,
+    status: 'Unversioned',
+    isLoading: true,
+    isChanging: false,
+    confirmation: null,
   });
   const [objectLockConfig, setObjectLockConfig] = useState<{
-    lockEnabledAtCreation: boolean; enabled: boolean; mode?: RetentionMode; days?: number; years?: number;
+    lockEnabledAtCreation: boolean;
+    enabled: boolean;
+    mode?: RetentionMode;
+    days?: number;
+    years?: number;
   }>({ lockEnabledAtCreation: false, enabled: false });
   const [isSavingBucketRetention, setIsSavingBucketRetention] = useState(false);
   const [pendingRetention, setPendingRetention] = useState<{
-    mode: RetentionMode; scale: 'days' | 'years'; value: number;
+    mode: RetentionMode;
+    scale: 'days' | 'years';
+    value: number;
   } | null>(null);
   const [loggingConfig, setLoggingConfig] = useState({ enabled: false, targetBucket: '', targetPrefix: '' });
-  const [persistedLoggingConfig, setPersistedLoggingConfig] = useState({ enabled: false, targetBucket: '', targetPrefix: '' });
+  const [persistedLoggingConfig, setPersistedLoggingConfig] = useState({
+    enabled: false,
+    targetBucket: '',
+    targetPrefix: '',
+  });
   const [isSavingLogging, setIsSavingLogging] = useState(false);
   const [bucketsList, setBucketsList] = useState<string[]>([]);
   const [configStatus, setConfigStatus] = useState<{
@@ -474,76 +605,104 @@ export const SubAccountBucketDetailPage = () => {
   const [folderName, setFolderName] = useState('');
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
 
-  useOnS3ClientReadyEffect(client, (c) => {
-    if (!bucketName) {
-      return;
-    }
-    s3Service.getBucketVisibility(c, bucketName).then(setVisibility).catch(() => {});
-  }, [bucketName]);
+  useOnS3ClientReadyEffect(
+    client,
+    (c) => {
+      if (!bucketName) {
+        return;
+      }
+      s3Service
+        .getBucketVisibility(c, bucketName)
+        .then(setVisibility)
+        .catch(() => {});
+    },
+    [bucketName],
+  );
 
-  useOnS3ClientReadyEffect(client, (c) => {
-    if (!bucketName) { 
-      return; 
-    }
-    const handle = setTimeout(() => loadObjects(c), searchQuery ? 300 : 0);
-    return () => clearTimeout(handle);
-  }, [bucketName, prefix, searchQuery, showVersions, pagination.pageSize, pagination.pageNumber]);
+  useOnS3ClientReadyEffect(
+    client,
+    (c) => {
+      if (!bucketName) {
+        return;
+      }
+      // loadObjects is declared further below in this component and reused by several handlers;
+      // moving it above this effect isn't a safe local reorder.
+      // eslint-disable-next-line react-hooks/immutability
+      const handle = setTimeout(() => loadObjects(c), searchQuery ? 300 : 0);
+      return () => clearTimeout(handle);
+    },
+    [bucketName, prefix, searchQuery, showVersions, pagination.pageSize, pagination.pageNumber],
+  );
 
-  useOnS3ClientReadyEffect(client, (c) => {
-    if (!bucketName || activeTab !== 'properties') {
-      return;
-    }
+  useOnS3ClientReadyEffect(
+    client,
+    (c) => {
+      if (!bucketName || activeTab !== 'properties') {
+        return;
+      }
 
-    let cancelled = false;
-    setConfigStatus({ versioning: 'loading', objectLock: 'loading', logging: 'loading' });
+      let cancelled = false;
+      setConfigStatus({ versioning: 'loading', objectLock: 'loading', logging: 'loading' });
 
-    s3Service.getBucketVersioning(c, bucketName)
-      .then(v => {
-        if (cancelled) return;
-        setVersioning(prev => ({ ...prev, status: v.status, isLoading: false }));
-        setConfigStatus(prev => ({ ...prev, versioning: 'ready' }));
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setVersioning(prev => ({ ...prev, isLoading: false }));
-        setConfigStatus(prev => ({ ...prev, versioning: 'error' }));
-        notificationsService.error({ text: t('bucketDetail.versioningLoadError') });
-      });
+      s3Service
+        .getBucketVersioning(c, bucketName)
+        .then((v) => {
+          if (cancelled) return;
+          setVersioning((prev) => ({ ...prev, status: v.status, isLoading: false }));
+          setConfigStatus((prev) => ({ ...prev, versioning: 'ready' }));
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setVersioning((prev) => ({ ...prev, isLoading: false }));
+          setConfigStatus((prev) => ({ ...prev, versioning: 'error' }));
+          notificationsService.error({ text: t('bucketDetail.versioningLoadError') });
+        });
 
-    s3Service.getObjectLockConfig(c, bucketName)
-      .then(cfg => {
-        if (cancelled) return;
-        setObjectLockConfig(cfg);
-        setConfigStatus(prev => ({ ...prev, objectLock: 'ready' }));
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setConfigStatus(prev => ({ ...prev, objectLock: 'error' }));
-        notificationsService.error({ text: t('bucketDetail.objectLockLoadError') });
-      });
+      s3Service
+        .getObjectLockConfig(c, bucketName)
+        .then((cfg) => {
+          if (cancelled) return;
+          setObjectLockConfig(cfg);
+          setConfigStatus((prev) => ({ ...prev, objectLock: 'ready' }));
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setConfigStatus((prev) => ({ ...prev, objectLock: 'error' }));
+          notificationsService.error({ text: t('bucketDetail.objectLockLoadError') });
+        });
 
-    s3Service.getBucketLogging(c, bucketName)
-      .then((l) => {
-        if (cancelled) return;
-        const cfg = { enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '' };
-        setLoggingConfig(cfg);
-        setPersistedLoggingConfig(cfg);
-        setConfigStatus(prev => ({ ...prev, logging: 'ready' }));
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setConfigStatus(prev => ({ ...prev, logging: 'error' }));
-        notificationsService.error({ text: t('bucketDetail.loggingLoadError') });
-      });
+      s3Service
+        .getBucketLogging(c, bucketName)
+        .then((l) => {
+          if (cancelled) return;
+          const cfg = { enabled: l.enabled, targetBucket: l.targetBucket ?? '', targetPrefix: l.targetPrefix ?? '' };
+          setLoggingConfig(cfg);
+          setPersistedLoggingConfig(cfg);
+          setConfigStatus((prev) => ({ ...prev, logging: 'ready' }));
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setConfigStatus((prev) => ({ ...prev, logging: 'error' }));
+          notificationsService.error({ text: t('bucketDetail.loggingLoadError') });
+        });
 
-    return () => { cancelled = true; };
-  }, [bucketName, activeTab]);
+      return () => {
+        cancelled = true;
+      };
+    },
+    [bucketName, activeTab],
+  );
 
-  useOnS3ClientReadyEffect(client, (c) => {
-    s3Service.listBuckets(c)
-      .then((result) => setBucketsList(result.buckets.map((b) => b.name)))
-      .catch(() => {});
-  }, []);
+  useOnS3ClientReadyEffect(
+    client,
+    (c) => {
+      s3Service
+        .listBuckets(c)
+        .then((result) => setBucketsList(result.buckets.map((b) => b.name)))
+        .catch(() => {});
+    },
+    [],
+  );
 
   const requestBucketRetention = (mode: RetentionMode, scale: 'days' | 'years', value: number) => {
     if (!client || !bucketName) return;
@@ -556,9 +715,19 @@ export const SubAccountBucketDetailPage = () => {
     setIsSavingBucketRetention(true);
     try {
       await s3Service.setObjectLockConfig(
-        client, bucketName, mode, scale === 'days' ? value : undefined, scale === 'years' ? value : undefined,
+        client,
+        bucketName,
+        mode,
+        scale === 'days' ? value : undefined,
+        scale === 'years' ? value : undefined,
       );
-      setObjectLockConfig(prev => ({ ...prev, enabled: true, mode, days: scale === 'days' ? value : undefined, years: scale === 'years' ? value : undefined }));
+      setObjectLockConfig((prev) => ({
+        ...prev,
+        enabled: true,
+        mode,
+        days: scale === 'days' ? value : undefined,
+        years: scale === 'years' ? value : undefined,
+      }));
       notificationsService.success({ text: t('bucketDetail.objectRetentionUpdated') });
       setPendingRetention(null);
     } catch {
@@ -573,7 +742,7 @@ export const SubAccountBucketDetailPage = () => {
     setIsSavingBucketRetention(true);
     try {
       await s3Service.clearObjectLockConfig(client, bucketName);
-      setObjectLockConfig(prev => ({ ...prev, enabled: false }));
+      setObjectLockConfig((prev) => ({ ...prev, enabled: false }));
       notificationsService.success({ text: t('bucketDetail.objectRetentionDisabled') });
     } catch {
       notificationsService.error({ text: t('bucketDetail.objectRetentionDisableFailed') });
@@ -587,7 +756,10 @@ export const SubAccountBucketDetailPage = () => {
     fileRetention.setRetention(null);
     if (!client || !bucketName || obj.isFolder) return;
     const result = await s3Service.getObjectRetention(
-      client, bucketName, obj.key, obj.versionId !== 'null' ? obj.versionId : undefined,
+      client,
+      bucketName,
+      obj.key,
+      obj.versionId !== 'null' ? obj.versionId : undefined,
     );
     fileRetention.setRetention(
       result?.mode && result.retainUntilDate
@@ -601,7 +773,11 @@ export const SubAccountBucketDetailPage = () => {
     fileRetention.setIsSaving(true);
     try {
       await s3Service.setObjectRetention(
-        client, bucketName, selectedFile.key, mode, retainUntilDate,
+        client,
+        bucketName,
+        selectedFile.key,
+        mode,
+        retainUntilDate,
         selectedFile.versionId !== 'null' ? selectedFile.versionId : undefined,
       );
       fileRetention.setRetention({ mode, retainUntilDate });
@@ -614,36 +790,56 @@ export const SubAccountBucketDetailPage = () => {
   };
 
   const onToggleVersioning = (next: boolean) => {
-    if (!client || !bucketName || versioning.isLoading || versioning.isChanging || next === (versioning.status === 'Enabled')) return;
+    if (
+      !client ||
+      !bucketName ||
+      versioning.isLoading ||
+      versioning.isChanging ||
+      next === (versioning.status === 'Enabled')
+    )
+      return;
     if (!next && objectLockConfig.lockEnabledAtCreation) return;
-    setVersioning(prev => ({ ...prev, confirmation: next }));
+    setVersioning((prev) => ({ ...prev, confirmation: next }));
   };
 
   const confirmVersioningChange = async () => {
     if (!client || !bucketName || versioning.confirmation === null) return;
     const next = versioning.confirmation;
-    setVersioning(prev => ({ ...prev, isChanging: true }));
+    setVersioning((prev) => ({ ...prev, isChanging: true }));
     try {
       await s3Service.setBucketVersioning(client, bucketName, next);
-      setVersioning(prev => ({ ...prev, status: next ? 'Enabled' : 'Suspended', confirmation: null, isChanging: false }));
-      notificationsService.success({ text: next ? t('bucketDetail.versioningEnabled') : t('bucketDetail.versioningDisabled') });
+      setVersioning((prev) => ({
+        ...prev,
+        status: next ? 'Enabled' : 'Suspended',
+        confirmation: null,
+        isChanging: false,
+      }));
+      notificationsService.success({
+        text: next ? t('bucketDetail.versioningEnabled') : t('bucketDetail.versioningDisabled'),
+      });
     } catch {
-      setVersioning(prev => ({ ...prev, isChanging: false }));
+      setVersioning((prev) => ({ ...prev, isChanging: false }));
       notificationsService.error({ text: t('bucketDetail.versioningUpdateFailed') });
     }
   };
 
-  const cancelVersioningChange = () => setVersioning(prev => ({ ...prev, confirmation: null }));
+  const cancelVersioningChange = () => setVersioning((prev) => ({ ...prev, confirmation: null }));
 
   const onSaveLogging = async () => {
     if (!client || !bucketName) return;
     setIsSavingLogging(true);
     try {
       await s3Service.setBucketLogging(
-        client, bucketName, loggingConfig.enabled, loggingConfig.targetBucket, loggingConfig.targetPrefix,
+        client,
+        bucketName,
+        loggingConfig.enabled,
+        loggingConfig.targetBucket,
+        loggingConfig.targetPrefix,
       );
       setPersistedLoggingConfig(loggingConfig);
-      notificationsService.success({ text: loggingConfig.enabled ? t('bucketDetail.loggingEnabled') : t('bucketDetail.loggingDisabled') });
+      notificationsService.success({
+        text: loggingConfig.enabled ? t('bucketDetail.loggingEnabled') : t('bucketDetail.loggingDisabled'),
+      });
     } catch {
       notificationsService.error({ text: t('bucketDetail.loggingUpdateFailed') });
     } finally {
@@ -658,22 +854,28 @@ export const SubAccountBucketDetailPage = () => {
     try {
       if (showVersions) {
         const result = await s3Service.listObjectVersions(
-          s3, bucketName, prefix + searchQuery,
-          pagination.pageMarker?.keyMarker, pagination.pageMarker?.versionIdMarker, pagination.pageSize,
+          s3,
+          bucketName,
+          prefix + searchQuery,
+          pagination.pageMarker?.keyMarker,
+          pagination.pageMarker?.versionIdMarker,
+          pagination.pageSize,
         );
         setObjects(result.objects);
         recordPage(result);
       } else {
         const result = await s3Service.listObjects(
-          s3, bucketName, prefix + searchQuery, pagination.pageMarker?.continuationToken, pagination.pageSize,
+          s3,
+          bucketName,
+          prefix + searchQuery,
+          pagination.pageMarker?.continuationToken,
+          pagination.pageSize,
         );
         setObjects(result.objects);
         recordPage(result);
       }
     } catch (err) {
-      const msg = isAccessDeniedError(err)
-        ? t('bucketDetail.insufficientPermissions')
-        : (err as Error).message;
+      const msg = isAccessDeniedError(err) ? t('bucketDetail.insufficientPermissions') : (err as Error).message;
       notificationsService.error({ text: msg });
     } finally {
       setIsLoading(false);
@@ -682,8 +884,8 @@ export const SubAccountBucketDetailPage = () => {
 
   const navigateToPrefix = (newPrefix: string) => {
     const next: Record<string, string> = {};
-    if (endpointRef.current) next.endpoint = endpointRef.current;
-    if (regionRef.current) next.region = regionRef.current;
+    if (endpointParam) next.endpoint = endpointParam;
+    if (regionParam) next.region = regionParam;
     if (newPrefix) next.prefix = newPrefix;
     setSearchParams(next);
     setSearchQuery('');
@@ -692,27 +894,28 @@ export const SubAccountBucketDetailPage = () => {
 
   const displayObjects = objects;
 
-  const allSelected = displayObjects.length > 0 && displayObjects.every(o => selectedVersions.has(versionRowId(o)));
-  const selectionHasFolder = displayObjects.some(o => o.isFolder && selectedVersions.has(versionRowId(o)));
+  const allSelected = displayObjects.length > 0 && displayObjects.every((o) => selectedVersions.has(versionRowId(o)));
+  const selectionHasFolder = displayObjects.some((o) => o.isFolder && selectedVersions.has(versionRowId(o)));
 
   const [isCheckingFolderEmptiness, setIsCheckingFolderEmptiness] = useState(false);
   const [selectionHasNonEmptyFolder, setSelectionHasNonEmptyFolder] = useState(false);
 
   useEffect(() => {
     const folderKeys = displayObjects
-      .filter(o => o.isFolder && selectedVersions.has(versionRowId(o)))
-      .map(o => o.key);
+      .filter((o) => o.isFolder && selectedVersions.has(versionRowId(o)))
+      .map((o) => o.key);
 
     if (!client || !bucketName || folderKeys.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectionHasNonEmptyFolder(false);
       return;
     }
 
     let cancelled = false;
     setIsCheckingFolderEmptiness(true);
-    Promise.all(folderKeys.map(key => s3Service.listObjects(client, bucketName, key, undefined, 1)))
-      .then(results => {
-        if (!cancelled) setSelectionHasNonEmptyFolder(results.some(r => r.objects.length > 0));
+    Promise.all(folderKeys.map((key) => s3Service.listObjects(client, bucketName, key, undefined, 1)))
+      .then((results) => {
+        if (!cancelled) setSelectionHasNonEmptyFolder(results.some((r) => r.objects.length > 0));
       })
       .catch(() => {
         if (!cancelled) setSelectionHasNonEmptyFolder(true);
@@ -721,18 +924,20 @@ export const SubAccountBucketDetailPage = () => {
         if (!cancelled) setIsCheckingFolderEmptiness(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [client, bucketName, selectedVersions, displayObjects]);
 
   const isDeleteSelectedDisabled = selectionHasFolder && (isCheckingFolderEmptiness || selectionHasNonEmptyFolder);
 
-  const onSelectAll = (v: boolean) =>
-    setSelectedVersions(v ? new Set(displayObjects.map(versionRowId)) : new Set());
+  const onSelectAll = (v: boolean) => setSelectedVersions(v ? new Set(displayObjects.map(versionRowId)) : new Set());
 
   const onSelectKey = (rowId: string, v: boolean) =>
-    setSelectedVersions(prev => {
+    setSelectedVersions((prev) => {
       const s = new Set(prev);
-      if (v) s.add(rowId); else s.delete(rowId);
+      if (v) s.add(rowId);
+      else s.delete(rowId);
       return s;
     });
 
@@ -784,7 +989,9 @@ export const SubAccountBucketDetailPage = () => {
       setPreviewUrl(url);
     } catch (err) {
       setPreviewError(
-        isAccessDeniedError(err) ? "You don't have permission to preview this file." : 'Could not generate preview link.',
+        isAccessDeniedError(err)
+          ? "You don't have permission to preview this file."
+          : 'Could not generate preview link.',
       );
     } finally {
       setIsPreviewLoading(false);
@@ -825,8 +1032,8 @@ export const SubAccountBucketDetailPage = () => {
     setIsDeletingSelected(true);
     try {
       const items = displayObjects
-        .filter(o => selectedVersions.has(versionRowId(o)))
-        .map(o => ({ key: o.key, versionId: o.versionId }));
+        .filter((o) => selectedVersions.has(versionRowId(o)))
+        .map((o) => ({ key: o.key, versionId: o.versionId }));
       await s3Service.deleteObjects(client, bucketName, items);
       notificationsService.success({ text: t('bucketDetail.objectsDeleted', { count: selectedVersions.size }) });
       setIsDeleteDialogOpen(false);
@@ -856,14 +1063,20 @@ export const SubAccountBucketDetailPage = () => {
     }
   };
 
-  const region = regionRef.current ?? '—';
-  const endpoint = endpointRef.current ?? '';
+  const region = regionParam ?? '—';
+  const endpoint = endpointParam ?? '';
 
   const inputShared: React.CSSProperties = {
-    height: 40, padding: '0 12px',
-    border: `1px solid ${T.gray20}`, borderRadius: 8,
-    fontSize: 14, color: T.gray100, outline: 'none', background: T.gray10,
-    width: '100%', boxSizing: 'border-box',
+    height: 40,
+    padding: '0 12px',
+    border: `1px solid ${T.gray20}`,
+    borderRadius: 8,
+    fontSize: 14,
+    color: T.gray100,
+    outline: 'none',
+    background: T.gray10,
+    width: '100%',
+    boxSizing: 'border-box',
   };
 
   const isLoggingDirty =
@@ -872,35 +1085,57 @@ export const SubAccountBucketDetailPage = () => {
     loggingConfig.targetPrefix !== persistedLoggingConfig.targetPrefix;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1200,
-      margin: '0 auto', width: '100%', padding: '8px 0 32px' }}>
-
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 16,
+        maxWidth: 1200,
+        margin: '0 auto',
+        width: '100%',
+        padding: '8px 0 32px',
+      }}
+    >
       {/* ── Bucket header ──────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <button
           onClick={() => navigate('/subaccount/buckets')}
-          aria-label={t('bucketDetail.backToBuckets')} title={t('bucketDetail.backToBuckets')}
+          aria-label={t('bucketDetail.backToBuckets')}
+          title={t('bucketDetail.backToBuckets')}
           style={{
-            width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: `1px solid ${T.gray20}`, borderRadius: 8,
-            background: '#fff', cursor: 'pointer', color: T.gray80, flexShrink: 0,
+            width: 36,
+            height: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: `1px solid ${T.gray20}`,
+            borderRadius: 8,
+            background: '#fff',
+            cursor: 'pointer',
+            color: T.gray80,
+            flexShrink: 0,
           }}
         >
           <ArrowLeftIcon size={18} />
         </button>
 
-        <div style={{
-          width: 40, height: 40, borderRadius: 8, flexShrink: 0,
-          background: T.primaryBg8,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 8,
+            flexShrink: 0,
+            background: T.primaryBg8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <DatabaseIcon size={20} color={T.primary} weight="duotone" />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 600, color: T.gray100, margin: 0, lineHeight: 1.2 }}>
-            {bucketName}
-          </h1>
+          <h1 style={{ fontSize: 22, fontWeight: 600, color: T.gray100, margin: 0, lineHeight: 1.2 }}>{bucketName}</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 13, color: T.gray50 }}>{region}</span>
             <span style={{ width: 3, height: 3, borderRadius: '50%', background: T.gray50, flexShrink: 0 }} />
@@ -910,20 +1145,21 @@ export const SubAccountBucketDetailPage = () => {
       </div>
 
       {/* ── Main card ──────────────────────────────────────────────────────── */}
-      <div style={{
-        display: 'flex',
-        background: '#fff',
-        border: `1px solid ${T.gray20}`,
-        borderRadius: 12,
-        boxShadow: shadow.sm,
-        overflow: 'hidden',
-        height: 'calc(100vh - 220px)',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          background: '#fff',
+          border: `1px solid ${T.gray20}`,
+          borderRadius: 12,
+          boxShadow: shadow.sm,
+          overflow: 'hidden',
+          height: 'calc(100vh - 220px)',
+        }}
+      >
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, overflowY: 'auto' }}>
-
           {/* Tabs */}
           <div style={{ display: 'flex', borderBottom: `1px solid ${T.gray15}`, padding: '0 20px' }}>
-            {(['objects', 'properties'] as const).map(tab => (
+            {(['objects', 'properties'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => {
@@ -934,8 +1170,14 @@ export const SubAccountBucketDetailPage = () => {
                   setActiveTab(tab);
                 }}
                 style={{
-                  padding: '14px 16px', fontSize: 14, fontWeight: 500, cursor: 'pointer',
-                  background: 'none', border: 'none', borderBottom: '2px solid', marginBottom: -1,
+                  padding: '14px 16px',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: '2px solid',
+                  marginBottom: -1,
                   borderBottomColor: activeTab === tab ? T.primary : 'transparent',
                   color: activeTab === tab ? T.primary : T.gray50,
                   transition: 'color 120ms, border-color 120ms',
@@ -949,13 +1191,18 @@ export const SubAccountBucketDetailPage = () => {
           {/* ── Objects tab ──────────────────────────────────────────────── */}
           {activeTab === 'objects' && (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-
               {/* Toolbar */}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '14px 20px', gap: 12, borderBottom: `1px solid ${T.gray15}`,
-                flexWrap: 'wrap',
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '14px 20px',
+                  gap: 12,
+                  borderBottom: `1px solid ${T.gray15}`,
+                  flexWrap: 'wrap',
+                }}
+              >
                 <Breadcrumb
                   bucketName={bucketName!}
                   prefix={prefix}
@@ -970,9 +1217,17 @@ export const SubAccountBucketDetailPage = () => {
                       disabled={isDeleteSelectedDisabled}
                       title={isDeleteSelectedDisabled ? t('bucketDetail.deleteSelectedDisabledTitle') : undefined}
                       style={{
-                        display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-                        border: '1px solid #fca5a5', borderRadius: 8, background: '#fff5f5',
-                        color: '#E50B00', fontSize: 13, fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        height: 36,
+                        padding: '0 14px',
+                        border: '1px solid #fca5a5',
+                        borderRadius: 8,
+                        background: '#fff5f5',
+                        color: '#E50B00',
+                        fontSize: 13,
+                        fontWeight: 500,
                         cursor: isDeleteSelectedDisabled ? 'not-allowed' : 'pointer',
                         opacity: isDeleteSelectedDisabled ? 0.5 : 1,
                       }}
@@ -981,13 +1236,25 @@ export const SubAccountBucketDetailPage = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => { setFolderName(''); setIsCreateFolderOpen(true); }}
+                    onClick={() => {
+                      setFolderName('');
+                      setIsCreateFolderOpen(true);
+                    }}
                     title={t('bucketDetail.createFolder')}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-                      border: `1px solid ${T.gray20}`, borderRadius: 8, background: '#fff',
-                      color: T.gray80, fontSize: 13, fontWeight: 500,
-                      cursor: 'pointer', whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      height: 36,
+                      padding: '0 14px',
+                      border: `1px solid ${T.gray20}`,
+                      borderRadius: 8,
+                      background: '#fff',
+                      color: T.gray80,
+                      fontSize: 13,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     <FolderPlusIcon size={16} /> {t('bucketDetail.createFolder')}
@@ -996,10 +1263,19 @@ export const SubAccountBucketDetailPage = () => {
                     onClick={() => setIsUploadOpen(true)}
                     title={t('bucketDetail.uploadFiles')}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px',
-                      border: 'none', borderRadius: 8, background: T.primary,
-                      color: '#fff', fontSize: 13, fontWeight: 500,
-                      cursor: 'pointer', whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      height: 36,
+                      padding: '0 14px',
+                      border: 'none',
+                      borderRadius: 8,
+                      background: T.primary,
+                      color: '#fff',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     <UploadSimpleIcon size={16} weight="bold" /> {t('bucketDetail.uploadFiles')}
@@ -1008,10 +1284,16 @@ export const SubAccountBucketDetailPage = () => {
               </div>
 
               {/* Search + count */}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '12px 20px', gap: 12, borderBottom: `1px solid ${T.gray15}`,
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 20px',
+                  gap: 12,
+                  borderBottom: `1px solid ${T.gray15}`,
+                }}
+              >
                 <div style={{ width: 340 }}>
                   <Input
                     variant="search"
@@ -1022,13 +1304,21 @@ export const SubAccountBucketDetailPage = () => {
                   />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <span style={{
-                    fontSize: 13, color: T.gray50,
-                    whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums',
-                  }}>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      color: T.gray50,
+                      whiteSpace: 'nowrap',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
                     {t('bucketDetail.objectCount', { count: displayObjects.length })}
                   </span>
-                  <Switch label={t('bucketDetail.showVersions')} checked={showVersions} onChange={onShowVersionsChange} />
+                  <Switch
+                    label={t('bucketDetail.showVersions')}
+                    checked={showVersions}
+                    onChange={onShowVersionsChange}
+                  />
                 </div>
               </div>
 
@@ -1045,28 +1335,52 @@ export const SubAccountBucketDetailPage = () => {
               />
 
               {/* Table header */}
-              <div role="row" style={{
-                display: 'grid', gridTemplateColumns: showVersions ? GRID_COLS_VERSIONS : GRID_COLS,
-                padding: '10px 16px',
-                background: T.gray5,
-                borderBottom: `1px solid ${T.gray15}`,
-              }}>
+              <div
+                role="row"
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: showVersions ? GRID_COLS_VERSIONS : GRID_COLS,
+                  padding: '10px 16px',
+                  background: T.gray5,
+                  borderBottom: `1px solid ${T.gray15}`,
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <input
-                    type="checkbox" checked={allSelected}
-                    onChange={e => onSelectAll(e.target.checked)}
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={(e) => onSelectAll(e.target.checked)}
                     style={{ cursor: 'pointer', width: 16, height: 16 }}
                     aria-label={t('bucketDetail.selectAll')}
                   />
                 </div>
                 {(showVersions
-                  ? [t('bucketDetail.columnName'), t('bucketDetail.columnSize'), t('bucketDetail.columnLastModified'), t('bucketDetail.columnVersionId'), '']
-                  : [t('bucketDetail.columnName'), t('bucketDetail.columnSize'), t('bucketDetail.columnLastModified'), '']
+                  ? [
+                      t('bucketDetail.columnName'),
+                      t('bucketDetail.columnSize'),
+                      t('bucketDetail.columnLastModified'),
+                      t('bucketDetail.columnVersionId'),
+                      '',
+                    ]
+                  : [
+                      t('bucketDetail.columnName'),
+                      t('bucketDetail.columnSize'),
+                      t('bucketDetail.columnLastModified'),
+                      '',
+                    ]
                 ).map((h, i) => (
-                  <span key={i} style={{
-                    fontSize: 12, fontWeight: 500, color: T.gray60,
-                    textTransform: 'uppercase', letterSpacing: '0.04em',
-                  }}>{h}</span>
+                  <span
+                    key={i}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 500,
+                      color: T.gray60,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {h}
+                  </span>
                 ))}
               </div>
 
@@ -1078,17 +1392,20 @@ export const SubAccountBucketDetailPage = () => {
               ) : displayObjects.length === 0 ? (
                 <EmptyState
                   searchQuery={searchQuery}
-                  onCreateFolder={() => { setFolderName(''); setIsCreateFolderOpen(true); }}
+                  onCreateFolder={() => {
+                    setFolderName('');
+                    setIsCreateFolderOpen(true);
+                  }}
                   onUpload={() => setIsUploadOpen(true)}
                 />
               ) : (
-                displayObjects.map(obj => (
+                displayObjects.map((obj) => (
                   <ObjectRow
                     key={versionRowId(obj)}
                     obj={obj}
                     selected={selectedVersions.has(versionRowId(obj))}
                     showVersions={showVersions}
-                    onSelect={v => onSelectKey(versionRowId(obj), v)}
+                    onSelect={(v) => onSelectKey(versionRowId(obj), v)}
                     onFolderClick={navigateToPrefix}
                     onFileClick={onFileClick}
                     onDownload={onDownload}
@@ -1103,8 +1420,8 @@ export const SubAccountBucketDetailPage = () => {
           )}
 
           {/* ── Properties tab ──────────────────────────────────────────── */}
-          {activeTab === 'properties' && (
-            isPropertiesLoading ? (
+          {activeTab === 'properties' &&
+            (isPropertiesLoading ? (
               <div className="flex justify-center px-6 py-24">
                 <Loader
                   type="spinner"
@@ -1115,20 +1432,30 @@ export const SubAccountBucketDetailPage = () => {
                 />
               </div>
             ) : (
-            <div className="flex flex-col gap-6 px-6 pt-6 pb-8">
-              <div className="grid grid-cols-2 gap-x-8 gap-y-5">
-                <ReadField label={t('bucketDetail.fieldBucketName')} value={bucketName!} mono />
-                <ReadField label={t('bucketDetail.fieldRegion')} value={region} />
-                <ReadField label={t('bucketDetail.fieldVisibility')} value={visibility === 'public' ? t('bucketDetail.public') : t('bucketDetail.private')} />
-                <ReadField label={t('bucketDetail.fieldEndpoint')} value={endpoint ? `https://${endpoint}` : '—'} mono fullWidth />
-                <div className="col-span-full flex flex-wrap items-start gap-12">
+              <div className="flex flex-col gap-6 px-6 pt-6 pb-8">
+                <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+                  <ReadField label={t('bucketDetail.fieldBucketName')} value={bucketName!} mono />
+                  <ReadField label={t('bucketDetail.fieldRegion')} value={region} />
+                  <ReadField
+                    label={t('bucketDetail.fieldVisibility')}
+                    value={visibility === 'public' ? t('bucketDetail.public') : t('bucketDetail.private')}
+                  />
+                  <ReadField
+                    label={t('bucketDetail.fieldEndpoint')}
+                    value={endpoint ? `https://${endpoint}` : '—'}
+                    mono
+                    fullWidth
+                  />
+                  <div className="col-span-full flex flex-wrap items-start gap-12">
                     {configStatus.versioning === 'error' ? (
                       <ConfigError section={t('bucketDetail.sectionVersioning')} />
                     ) : (
                       <VersioningControl
                         status={versioning.status}
                         loading={versioning.isLoading}
-                        disabled={versioning.isLoading || versioning.isChanging || objectLockConfig.lockEnabledAtCreation}
+                        disabled={
+                          versioning.isLoading || versioning.isChanging || objectLockConfig.lockEnabledAtCreation
+                        }
                         onChange={onToggleVersioning}
                       />
                     )}
@@ -1177,25 +1504,26 @@ export const SubAccountBucketDetailPage = () => {
                   </div>
                 </div>
 
-              {isAdmin && (
-                <div className="flex items-center justify-between gap-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] p-5">
-                  <div>
-                    <p className="m-0 text-sm font-semibold text-[var(--gray-100,#18181B)]">{t('bucketDetail.deleteBucketTitle')}</p>
-                    <p className="mt-0.5 text-[13px] text-[var(--gray-60,#636367)]">
-                      {t('bucketDetail.deleteBucketDescription')}
-                    </p>
+                {isAdmin && (
+                  <div className="flex items-center justify-between gap-4 rounded-xl border border-[#fecaca] bg-[#fef2f2] p-5">
+                    <div>
+                      <p className="m-0 text-sm font-semibold text-[var(--gray-100,#18181B)]">
+                        {t('bucketDetail.deleteBucketTitle')}
+                      </p>
+                      <p className="mt-0.5 text-[13px] text-[var(--gray-60,#636367)]">
+                        {t('bucketDetail.deleteBucketDescription')}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setIsDeleteBucketOpen(true)}
+                      className="h-10 cursor-pointer whitespace-nowrap rounded-lg border-none bg-[var(--red,#E03131)] px-4 text-sm font-medium text-white"
+                    >
+                      {t('bucketDetail.deleteBucketButton')}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setIsDeleteBucketOpen(true)}
-                    className="h-10 cursor-pointer whitespace-nowrap rounded-lg border-none bg-[var(--red,#E03131)] px-4 text-sm font-medium text-white"
-                  >
-                    {t('bucketDetail.deleteBucketButton')}
-                  </button>
-                </div>
-              )}
-            </div>
-            )
-          )}
+                )}
+              </div>
+            ))}
         </div>
 
         {/* Side panel */}
@@ -1210,7 +1538,10 @@ export const SubAccountBucketDetailPage = () => {
             onCopyPath={onCopyPath}
             onShare={onShare}
             onPreview={onPreview}
-            onDelete={obj => { setSelectedFile(null); onDeleteSingle(obj); }}
+            onDelete={(obj) => {
+              setSelectedFile(null);
+              onDeleteSingle(obj);
+            }}
             onShowAllVersions={onShowAllVersions}
             onSaveRetention={objectLockConfig.enabled ? onSaveFileRetention : undefined}
           />
@@ -1236,10 +1567,16 @@ export const SubAccountBucketDetailPage = () => {
         primaryAction={t('actions.confirm')}
         secondaryAction={t('actions.cancel')}
         primaryActionColor="primary"
-        title={versioning.confirmation ? t('bucketDetail.versioningConfirmEnableTitle') : t('bucketDetail.versioningConfirmSuspendTitle')}
-        subtitle={versioning.confirmation
-          ? t('bucketDetail.versioningConfirmEnableSubtitle')
-          : t('bucketDetail.versioningConfirmSuspendSubtitle')}
+        title={
+          versioning.confirmation
+            ? t('bucketDetail.versioningConfirmEnableTitle')
+            : t('bucketDetail.versioningConfirmSuspendTitle')
+        }
+        subtitle={
+          versioning.confirmation
+            ? t('bucketDetail.versioningConfirmEnableSubtitle')
+            : t('bucketDetail.versioningConfirmSuspendSubtitle')
+        }
       />
 
       <RetentionConfirmModal
@@ -1308,27 +1645,37 @@ export const SubAccountBucketDetailPage = () => {
 
       <Modal isOpen={isCreateFolderOpen} onClose={() => !isCreatingFolder && setIsCreateFolderOpen(false)}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 400 }}>
-          <p style={{ ...text.heading, margin: 0 }}>
-            {t('bucketDetail.createFolderModalTitle')}
-          </p>
+          <p style={{ ...text.heading, margin: 0 }}>{t('bucketDetail.createFolderModalTitle')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label htmlFor="folder-name" style={{ ...text.label }}>
               {t('bucketDetail.folderNameLabel')}
             </label>
             <input
-              id="folder-name" type="text" placeholder={t('bucketDetail.folderNamePlaceholder')}
+              id="folder-name"
+              type="text"
+              placeholder={t('bucketDetail.folderNamePlaceholder')}
               value={folderName}
-              onChange={e => setFolderName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && onCreateFolder()}
+              onChange={(e) => setFolderName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && onCreateFolder()}
               autoFocus
               style={inputShared}
             />
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-            <Button variant="secondary" type="button" onClick={() => setIsCreateFolderOpen(false)} disabled={isCreatingFolder}>
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setIsCreateFolderOpen(false)}
+              disabled={isCreatingFolder}
+            >
               {t('actions.cancel')}
             </Button>
-            <Button type="button" disabled={!folderName.trim() || isCreatingFolder} loading={isCreatingFolder} onClick={onCreateFolder}>
+            <Button
+              type="button"
+              disabled={!folderName.trim() || isCreatingFolder}
+              loading={isCreatingFolder}
+              onClick={onCreateFolder}
+            >
               {t('actions.create')}
             </Button>
           </div>

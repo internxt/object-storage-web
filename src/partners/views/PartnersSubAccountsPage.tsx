@@ -1,40 +1,28 @@
-import { useEffect, useState } from 'react'
-import {
-  MagnifyingGlass,
-  CaretLeft,
-  CaretRight,
-  FunnelSimple,
-  DownloadSimpleIcon,
-} from '@phosphor-icons/react'
-import {
-  partnersService,
-  PartnersUsageSummary,
-} from '../services/partners.service'
-import { exportSubAccountsUsage, SUB_ACCOUNTS_EXPORT_MAX_DAYS } from '../services/subAccountsExport'
-import { resolveConsoleUrl } from '../../utils/consoleUrl'
-import {
-  CreateSubAccountDto,
-  SubAccount,
-} from '../../management/services/management.service'
-import { PartnersSubAccountsTable } from '../../management/components/PartnersSubAccountsTable'
-import { SortOrder } from '../../management/components/SubAccountsTable'
-import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal'
-import notificationsService from '../../services/notifications.service'
-import { usePartners } from '../context/partnersContext'
-import { T, card, shadow } from '../../sub-account/tokens'
-import Button from '../../components/Button'
-import { ExportDateRangeModal } from '../../components/ExportDateRangeModal'
-import { apiErrorMessage } from '../../utils/apiError'
+import { useEffect, useState } from 'react';
+import { MagnifyingGlass, CaretLeft, CaretRight, FunnelSimple, DownloadSimpleIcon } from '@phosphor-icons/react';
+import { partnersService, PartnersUsageSummary } from '../services/partners.service';
+import { exportSubAccountsUsage, SUB_ACCOUNTS_EXPORT_MAX_DAYS } from '../services/subAccountsExport';
+import { resolveConsoleUrl } from '../../utils/consoleUrl';
+import { CreateSubAccountDto, SubAccount } from '../../management/services/management.service';
+import { PartnersSubAccountsTable } from '../../management/components/PartnersSubAccountsTable';
+import { SortOrder } from '../../management/components/SubAccountsTable';
+import { CreateSubAccountModal } from '../../management/components/CreateSubAccountModal';
+import notificationsService from '../../services/notifications.service';
+import { usePartners } from '../context/usePartners';
+import { T, card, shadow } from '../../sub-account/tokens';
+import Button from '../../components/Button';
+import { ExportDateRangeModal } from '../../components/ExportDateRangeModal';
+import { apiErrorMessage } from '../../utils/apiError';
 
-const ACCENT = '#6366f1'
-const POSITIVE = '#10b981'
+const ACCENT = '#6366f1';
+const POSITIVE = '#10b981';
 
 const STATUS_OPTIONS = [
   { label: 'All', value: '' },
   { label: 'Active', value: 'ACTIVE' },
   { label: 'Suspended', value: 'SUSPENDED' },
   { label: 'Pending deletion', value: 'PENDING_DELETION' },
-] as const
+] as const;
 
 const labelStyle = {
   fontSize: 10,
@@ -42,160 +30,153 @@ const labelStyle = {
   textTransform: 'uppercase' as const,
   letterSpacing: '0.14em',
   color: T.gray60,
-}
+};
 
 const metricStyle = {
   fontSize: 48,
   fontWeight: 600,
   letterSpacing: '-0.02em',
   lineHeight: 1,
-}
+};
 
-const unitStyle = { fontSize: 20, fontWeight: 500, color: T.gray50 }
+const unitStyle = { fontSize: 20, fontWeight: 500, color: T.gray50 };
 
-const PER_PAGE = 20
+const PER_PAGE = 20;
 
 export const PartnersSubAccountsPage = () => {
-  const { isViewer, partnerInfo } = usePartners()
-  const [usageSummary, setUsageSummary] = useState<PartnersUsageSummary | null>(
-    null,
-  )
-  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([])
-  const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(0)
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
-  const [activeStorageSortOrder, setActiveStorageSortOrder] = useState<
-    SortOrder | undefined
-  >('desc')
-  const [pendingAccountId, setPendingAccountId] = useState<string | null>(null)
-  const [exportableCount, setExportableCount] = useState<number | null>(null)
-
-  useEffect(() => {
-    fetchUsageSummary()
-  }, [])
-
-  useEffect(() => {
-    fetchSubAccounts()
-  }, [page, statusFilter, activeStorageSortOrder])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPage(0)
-      fetchSubAccounts()
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [search])
+  const { isViewer, partnerInfo } = usePartners();
+  const [usageSummary, setUsageSummary] = useState<PartnersUsageSummary | null>(null);
+  const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [activeStorageSortOrder, setActiveStorageSortOrder] = useState<SortOrder | undefined>('desc');
+  const [pendingAccountId, setPendingAccountId] = useState<string | null>(null);
+  const [exportableCount, setExportableCount] = useState<number | null>(null);
 
   const fetchUsageSummary = async () => {
     partnersService
       .getSubAccounts({ page: 0, perPage: 1 })
       .then((res) => setExportableCount(res.total))
-      .catch(() => setExportableCount(null))
+      .catch(() => setExportableCount(null));
     try {
-      const data = await partnersService.getUsageSummary()
-      setUsageSummary(data)
+      const data = await partnersService.getUsageSummary();
+      setUsageSummary(data);
     } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load usage summary') })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load usage summary') });
     }
-  }
+  };
   const fetchSubAccounts = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const res = await partnersService.getSubAccounts({
         page,
         perPage: PER_PAGE,
         search: search || undefined,
-        status: (statusFilter || undefined) as
-          | 'ACTIVE'
-          | 'SUSPENDED'
-          | 'PENDING_DELETION'
-          | 'DELETED'
-          | undefined,
+        status: (statusFilter || undefined) as 'ACTIVE' | 'SUSPENDED' | 'PENDING_DELETION' | 'DELETED' | undefined,
         sortBy: activeStorageSortOrder ? 'activeStorage' : undefined,
         sortOrder: activeStorageSortOrder,
-      })
-      setSubAccounts(res.subAccounts)
-      setTotal(res.total)
+      });
+      setSubAccounts(res.subAccounts);
+      setTotal(res.total);
     } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load accounts') })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to load accounts') });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchUsageSummary();
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSubAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, statusFilter, activeStorageSortOrder]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(0);
+      fetchSubAccounts();
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const handleSuspend = async (id: string) => {
-    setPendingAccountId(id)
+    setPendingAccountId(id);
     try {
-      await partnersService.suspendSubAccount(id)
-      notificationsService.success({ text: 'Account suspended' })
-      fetchSubAccounts()
+      await partnersService.suspendSubAccount(id);
+      notificationsService.success({ text: 'Account suspended' });
+      fetchSubAccounts();
     } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to suspend account') })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to suspend account') });
     } finally {
-      setPendingAccountId(null)
+      setPendingAccountId(null);
     }
-  }
+  };
 
   const handleReactivate = async (id: string) => {
-    setPendingAccountId(id)
+    setPendingAccountId(id);
     try {
-      await partnersService.reactivateSubAccount(id)
-      notificationsService.success({ text: 'Account reactivated' })
-      fetchSubAccounts()
+      await partnersService.reactivateSubAccount(id);
+      notificationsService.success({ text: 'Account reactivated' });
+      fetchSubAccounts();
     } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to reactivate account') })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to reactivate account') });
     } finally {
-      setPendingAccountId(null)
+      setPendingAccountId(null);
     }
-  }
+  };
 
   const handleDelete = async (id: string) => {
-    setPendingAccountId(id)
+    setPendingAccountId(id);
     try {
-      await partnersService.deleteSubAccount(id)
-      notificationsService.success({ text: 'Account deleted' })
-      fetchSubAccounts()
-      fetchUsageSummary()
+      await partnersService.deleteSubAccount(id);
+      notificationsService.success({ text: 'Account deleted' });
+      fetchSubAccounts();
+      fetchUsageSummary();
     } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete account') })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete account') });
     } finally {
-      setPendingAccountId(null)
+      setPendingAccountId(null);
     }
-  }
+  };
 
   const handleChangePassword = async (id: string, newPassword: string) => {
-    await partnersService.changeSubAccountPassword(id, newPassword)
-    notificationsService.success({ text: 'Password changed' })
-  }
+    await partnersService.changeSubAccountPassword(id, newPassword);
+    notificationsService.success({ text: 'Password changed' });
+  };
 
   const handleRename = async (id: string, name: string) => {
-    await partnersService.updateSubAccountName(id, name)
-    setSubAccounts((current) =>
-      current.map((acc) => (acc.id === id ? { ...acc, name } : acc)),
-    )
-  }
+    await partnersService.updateSubAccountName(id, name);
+    setSubAccounts((current) => current.map((acc) => (acc.id === id ? { ...acc, name } : acc)));
+  };
 
   const handleCreate = async (dto: CreateSubAccountDto) => {
-    await partnersService.createSubAccount(dto)
-    notificationsService.success({ text: 'Sub-account created' })
-    setPage(0)
-    fetchSubAccounts()
-    fetchUsageSummary()
-  }
+    await partnersService.createSubAccount(dto);
+    notificationsService.success({ text: 'Sub-account created' });
+    setPage(0);
+    fetchSubAccounts();
+    fetchUsageSummary();
+  };
 
-  const consoleUrl = resolveConsoleUrl(partnerInfo?.createdAt ?? null)
+  const consoleUrl = resolveConsoleUrl(partnerInfo?.createdAt ?? null);
 
-  const totalPages = Math.ceil(total / PER_PAGE)
-  const fromItem = total === 0 ? 0 : page * PER_PAGE + 1
-  const toItem = Math.min((page + 1) * PER_PAGE, total)
+  const totalPages = Math.ceil(total / PER_PAGE);
+  const fromItem = total === 0 ? 0 : page * PER_PAGE + 1;
+  const toItem = Math.min((page + 1) * PER_PAGE, total);
 
-  const hasPrev = page > 0
-  const hasNext = page < totalPages - 1
+  const hasPrev = page > 0;
+  const hasNext = page < totalPages - 1;
 
   return (
     <div className="flex flex-col gap-5">
@@ -213,9 +194,7 @@ export const PartnersSubAccountsPage = () => {
           >
             <p style={labelStyle}>Active Storage</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ ...metricStyle, color: ACCENT }}>
-                {usageSummary.activeStorageTb.toFixed(2)}
-              </span>
+              <span style={{ ...metricStyle, color: ACCENT }}>{usageSummary.activeStorageTb.toFixed(2)}</span>
               <span style={unitStyle}>TB</span>
             </div>
           </div>
@@ -231,9 +210,7 @@ export const PartnersSubAccountsPage = () => {
           >
             <p style={labelStyle}>Sub-Accounts</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ ...metricStyle, color: POSITIVE }}>
-                {usageSummary.totalSubAccounts}
-              </span>
+              <span style={{ ...metricStyle, color: POSITIVE }}>{usageSummary.totalSubAccounts}</span>
             </div>
           </div>
         </div>
@@ -260,11 +237,7 @@ export const PartnersSubAccountsPage = () => {
             >
               Sub-Accounts
             </h2>
-            {total > 0 && (
-              <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>
-                {total} accounts total
-              </p>
-            )}
+            {total > 0 && <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{total} accounts total</p>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span title="Export usage for a date range (.xlsx)">
@@ -324,11 +297,7 @@ export const PartnersSubAccountsPage = () => {
               background: T.white,
             }}
           >
-            <MagnifyingGlass
-              size={15}
-              color={T.gray50}
-              style={{ flexShrink: 0 }}
-            />
+            <MagnifyingGlass size={15} color={T.gray50} style={{ flexShrink: 0 }} />
             <input
               type="text"
               autoComplete="off"
@@ -366,16 +335,11 @@ export const PartnersSubAccountsPage = () => {
               }}
             >
               <FunnelSimple size={14} />
-              {statusFilter
-                ? STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label
-                : 'Filter'}
+              {statusFilter ? STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label : 'Filter'}
             </button>
             {filterMenuOpen && (
               <>
-                <div
-                  style={{ position: 'fixed', inset: 0, zIndex: 10 }}
-                  onClick={() => setFilterMenuOpen(false)}
-                />
+                <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setFilterMenuOpen(false)} />
                 <div
                   style={{
                     position: 'absolute',
@@ -394,9 +358,9 @@ export const PartnersSubAccountsPage = () => {
                     <button
                       key={opt.value}
                       onClick={() => {
-                        setStatusFilter(opt.value)
-                        setPage(0)
-                        setFilterMenuOpen(false)
+                        setStatusFilter(opt.value);
+                        setPage(0);
+                        setFilterMenuOpen(false);
                       }}
                       style={{
                         display: 'flex',
@@ -408,24 +372,19 @@ export const PartnersSubAccountsPage = () => {
                         fontSize: 14,
                         border: 'none',
                         cursor: 'pointer',
-                        background:
-                          statusFilter === opt.value ? T.primaryBg : 'transparent',
+                        background: statusFilter === opt.value ? T.primaryBg : 'transparent',
                         color: statusFilter === opt.value ? T.primary : T.gray80,
                         fontWeight: statusFilter === opt.value ? 500 : 400,
                       }}
                       onMouseEnter={(e) => {
-                        if (statusFilter !== opt.value)
-                          e.currentTarget.style.background = T.gray5
+                        if (statusFilter !== opt.value) e.currentTarget.style.background = T.gray5;
                       }}
                       onMouseLeave={(e) => {
-                        if (statusFilter !== opt.value)
-                          e.currentTarget.style.background = 'transparent'
+                        if (statusFilter !== opt.value) e.currentTarget.style.background = 'transparent';
                       }}
                     >
                       {opt.label}
-                      {statusFilter === opt.value && (
-                        <span style={{ color: T.primary }}>✓</span>
-                      )}
+                      {statusFilter === opt.value && <span style={{ color: T.primary }}>✓</span>}
                     </button>
                   ))}
                 </div>
@@ -446,8 +405,8 @@ export const PartnersSubAccountsPage = () => {
           pendingAccountId={pendingAccountId}
           sortOrder={activeStorageSortOrder}
           onSortActiveStorage={(order: SortOrder) => {
-            setPage(0)
-            setActiveStorageSortOrder(order)
+            setPage(0);
+            setActiveStorageSortOrder(order);
           }}
           readOnly={isViewer}
         />
@@ -522,9 +481,7 @@ export const PartnersSubAccountsPage = () => {
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         onExport={exportSubAccountsUsage}
-        successText={(count) =>
-          `Exported usage for ${count} ${count === 1 ? 'sub-account' : 'sub-accounts'}`
-        }
+        successText={(count) => `Exported usage for ${count} ${count === 1 ? 'sub-account' : 'sub-accounts'}`}
         title="Export sub-account usage"
         description={`Choose the date range to include in the .xlsx (up to ${SUB_ACCOUNTS_EXPORT_MAX_DAYS} days). To match an invoice, use the same start and end dates shown on it.`}
         maxRangeDays={SUB_ACCOUNTS_EXPORT_MAX_DAYS}
@@ -536,5 +493,5 @@ export const PartnersSubAccountsPage = () => {
         consoleUrl={consoleUrl}
       />
     </div>
-  )
-}
+  );
+};

@@ -12,7 +12,7 @@ import { PreviewModal } from '../components/objects/PreviewModal';
 import { BrandLogo } from '../components/BrandLogo';
 import { useObjectPagination } from '../sub-account/hooks/useObjectPagination';
 import { publicShareService, shareService, ShareListItem, ShareMetadata } from '../services/share.service';
-import { useSubAccount } from '../sub-account/context/SubAccountContext';
+import { useSubAccount } from '../sub-account/context/useSubAccount';
 import { getBrandingStyles, mapToBranding } from '../sub-account/context/SubAccountBrandingContext/service';
 import { hasApiErrorStatus } from '../utils/apiError';
 import { displayName } from '../utils/displayName';
@@ -35,11 +35,13 @@ export const SharePage = () => {
   const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
   const [isListLoading, setIsListLoading] = useState(false);
   const [preview, setPreview] = useState<{
-    fileName: string; kind: PreviewKind | null; url: string | null; isLoading: boolean; error: string | null;
+    fileName: string;
+    kind: PreviewKind | null;
+    url: string | null;
+    isLoading: boolean;
+    error: string | null;
   } | null>(null);
-  const {
-    state: pagination, goToPrevPage, goToNextPage, recordPage, reset: resetPagination,
-  } = useObjectPagination();
+  const { state: pagination, goToPrevPage, goToNextPage, recordPage, reset: resetPagination } = useObjectPagination();
 
   const dataSource = isPublicShare ? publicShareService : shareService;
 
@@ -60,6 +62,7 @@ export const SharePage = () => {
 
   useEffect(() => {
     if (!token) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMetadata(null);
     setObjects([]);
     setCurrentPrefix(null);
@@ -114,6 +117,7 @@ export const SharePage = () => {
   // Changing pageNumber selects a different pageMarker, so it is what triggers fetching
   // prev/next pages. `loadList` is intentionally omitted: it is recreated every render.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (currentPrefix !== null) loadList(currentPrefix, pagination.pageMarker?.continuationToken);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPrefix, pagination.pageNumber]);
@@ -192,11 +196,14 @@ export const SharePage = () => {
         icon={<LinkBreakIcon size={28} color={T.gray50} />}
         title="This link isn't available"
         subtitle="The share link is invalid, has expired or was revoked. If it was shared with your team, log in to open it."
-        action={(
-          <Link to={`/subaccount/login?redirect=${returnTo}`} style={{ fontSize: 14, fontWeight: 500, color: T.primary }}>
+        action={
+          <Link
+            to={`/subaccount/login?redirect=${returnTo}`}
+            style={{ fontSize: 14, fontWeight: 500, color: T.primary }}
+          >
             Members: log in
           </Link>
-        )}
+        }
       />
     );
   } else if (!metadata) {
@@ -253,18 +260,48 @@ export const SharePage = () => {
   }
 
   return (
-    <div style={{ ...brandingStyles, minHeight: '100vh', background: T.gray5, padding: `${PAGE_VERTICAL_PADDING}px 16px` }}>
-      <div style={{
-        ...card, maxWidth: 720, margin: '0 auto', padding: 0, overflow: 'hidden',
-        display: 'flex', flexDirection: 'column', maxHeight: `calc(100vh - ${PAGE_VERTICAL_PADDING * 2}px)`,
-      }}>
+    <div
+      style={{ ...brandingStyles, minHeight: '100vh', background: T.gray5, padding: `${PAGE_VERTICAL_PADDING}px 16px` }}
+    >
+      <div
+        style={{
+          ...card,
+          maxWidth: 720,
+          margin: '0 auto',
+          padding: 0,
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: `calc(100vh - ${PAGE_VERTICAL_PADDING * 2}px)`,
+        }}
+      >
         {/* Header */}
-        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${T.gray15}`, display: 'flex', alignItems: 'center', gap: 12 }}>
-          {metadata && isFolderShare(metadata)
-            ? <FolderIcon size={22} color={T.primary} weight="fill" />
-            : <FileIcon size={22} color={T.gray50} />}
+        <div
+          style={{
+            padding: '20px 24px',
+            borderBottom: `1px solid ${T.gray15}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          {metadata && isFolderShare(metadata) ? (
+            <FolderIcon size={22} color={T.primary} weight="fill" />
+          ) : (
+            <FileIcon size={22} color={T.gray50} />
+          )}
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 15, fontWeight: 600, color: T.gray100, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <p
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: T.gray100,
+                margin: 0,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {metadata?.name ?? 'Shared content'}
             </p>
             <p style={{ fontSize: 12, color: T.gray50, margin: 0 }}>Shared via Internxt Object Storage</p>
@@ -272,8 +309,8 @@ export const SharePage = () => {
           {branding?.logoUrl && (
             <BrandLogo
               logoUrl={branding.logoUrl}
-              fallbackLogoUrl=''
-              fallbackAlt=''
+              fallbackLogoUrl=""
+              fallbackAlt=""
               style={{ marginLeft: 'auto', flexShrink: 0, maxHeight: 32, maxWidth: 160, objectPosition: 'right' }}
             />
           )}

@@ -1,50 +1,51 @@
-import { useEffect, useState } from 'react'
-import { WarningCircleIcon } from '@phosphor-icons/react'
-import Modal from '../../components/Modal'
-import Input from '../../components/Input'
-import Button from '../../components/Button'
-import notificationsService from '../../services/notifications.service'
-import { T, text, form } from '../../sub-account/tokens'
-import { PASSWORD_MIN_LENGTH, validatePassword } from '../../components/auth/passwordPolicy'
-import { apiErrorMessage } from '../../utils/apiError'
+import { useEffect, useState } from 'react';
+import { WarningCircleIcon } from '@phosphor-icons/react';
+import Modal from '../../components/Modal';
+import Input from '../../components/Input';
+import Button from '../../components/Button';
+import notificationsService from '../../services/notifications.service';
+import { T, text, form } from '../../sub-account/tokens';
+import { PASSWORD_MIN_LENGTH, validatePassword } from '../../components/auth/passwordPolicy';
+import { apiErrorMessage } from '../../utils/apiError';
 
 interface Props {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (newPassword: string) => Promise<void>
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (newPassword: string) => Promise<void>;
 }
 
 export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
-  const [touched, setTouched] = useState(false)
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [touched, setTouched] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
-      setNewPassword('')
-      setConfirmPassword('')
-      setIsSaving(false)
-      setTouched(false)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNewPassword('');
+      setConfirmPassword('');
+      setIsSaving(false);
+      setTouched(false);
     }
-  }, [isOpen])
+  }, [isOpen]);
 
-  const policyErrors = validatePassword(newPassword)
-  const showPolicyErrors = touched && policyErrors.length > 0
-  const canSubmit = policyErrors.length === 0 && newPassword === confirmPassword
+  const policyErrors = validatePassword(newPassword);
+  const showPolicyErrors = touched && policyErrors.length > 0;
+  const canSubmit = policyErrors.length === 0 && newPassword === confirmPassword;
 
   const handleSubmit = async () => {
-    if (!canSubmit) return
-    setIsSaving(true)
+    if (!canSubmit) return;
+    setIsSaving(true);
     try {
-      await onSubmit(newPassword)
-      onClose()
+      await onSubmit(newPassword);
+      onClose();
     } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to change password') })
+      notificationsService.error({ text: apiErrorMessage(err, 'Failed to change password') });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -64,8 +65,8 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
             autoComplete="new-password"
             value={newPassword}
             onChange={(v) => {
-              setNewPassword(v)
-              setTouched(true)
+              setNewPassword(v);
+              setTouched(true);
             }}
             placeholder={`At least ${PASSWORD_MIN_LENGTH} characters`}
             variant="password"
@@ -85,15 +86,9 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
                 border: `1px solid ${T.red}`,
               }}
             >
-              <WarningCircleIcon
-                size={16}
-                color={T.red}
-                style={{ flexShrink: 0, marginTop: 1 }}
-              />
+              <WarningCircleIcon size={16} color={T.red} style={{ flexShrink: 0, marginTop: 1 }} />
               <div style={{ fontSize: 12, color: T.red }}>
-                <p style={{ fontWeight: 500, margin: '0 0 4px' }}>
-                  Password must contain:
-                </p>
+                <p style={{ fontWeight: 500, margin: '0 0 4px' }}>Password must contain:</p>
                 <ul
                   style={{
                     margin: 0,
@@ -120,17 +115,11 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
             onChange={setConfirmPassword}
             placeholder="Repeat new password"
             variant="password"
-            accent={
-              confirmPassword.length > 0 && newPassword !== confirmPassword
-                ? 'error'
-                : undefined
-            }
+            accent={confirmPassword.length > 0 && newPassword !== confirmPassword ? 'error' : undefined}
           />
         </div>
         {confirmPassword.length > 0 && newPassword !== confirmPassword && (
-          <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-            Passwords do not match
-          </p>
+          <p style={{ fontSize: 12, color: T.red, margin: 0 }}>Passwords do not match</p>
         )}
         <div
           style={{
@@ -140,24 +129,14 @@ export const ChangePasswordModal = ({ isOpen, onClose, onSubmit }: Props) => {
             paddingTop: 4,
           }}
         >
-          <Button
-            variant="secondary"
-            type="button"
-            onClick={onClose}
-            disabled={isSaving}
-          >
+          <Button variant="secondary" type="button" onClick={onClose} disabled={isSaving}>
             Cancel
           </Button>
-          <Button
-            type="button"
-            disabled={!canSubmit || isSaving}
-            loading={isSaving}
-            onClick={handleSubmit}
-          >
+          <Button type="button" disabled={!canSubmit || isSaving} loading={isSaving} onClick={handleSubmit}>
             Change password
           </Button>
         </div>
       </div>
     </Modal>
-  )
-}
+  );
+};

@@ -25,7 +25,11 @@ export const PublicSharingSection = ({ entityId }: { entityId: string }) => {
       setIsEnabled(settings.publicSharingEnabled);
       setIsConfirmingDisable(false);
       notificationsService.success({
-        text: t(settings.publicSharingEnabled ? 'settings.account.publicSharingEnabled' : 'settings.account.publicSharingDisabled'),
+        text: t(
+          settings.publicSharingEnabled
+            ? 'settings.account.publicSharingEnabled'
+            : 'settings.account.publicSharingDisabled',
+        ),
       });
     } catch (err) {
       notificationsService.error({ text: apiErrorMessage(err, t('settings.account.publicSharingUpdateFailed')) });
@@ -51,7 +55,7 @@ export const PublicSharingSection = ({ entityId }: { entityId: string }) => {
         />
       }
     >
-      <p className='text-sm text-gray-60'>{t('settings.account.publicSharingDescription')}</p>
+      <p className="text-sm text-gray-60">{t('settings.account.publicSharingDescription')}</p>
       <Dialog
         isOpen={isConfirmingDisable}
         onClose={() => setIsConfirmingDisable(false)}
@@ -60,7 +64,7 @@ export const PublicSharingSection = ({ entityId }: { entityId: string }) => {
         isLoading={isSaving}
         primaryAction={t('settings.account.publicSharingDisableConfirm')}
         secondaryAction={t('actions.cancel')}
-        primaryActionColor='danger'
+        primaryActionColor="danger"
         title={t('settings.account.publicSharingDisableTitle')}
         subtitle={t('settings.account.publicSharingDisableSubtitle')}
       />

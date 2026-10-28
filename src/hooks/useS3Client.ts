@@ -19,7 +19,8 @@ export const useS3Client = (): S3ClientState => {
   const clientRef = useRef<S3Client | null>(null);
 
   useEffect(() => {
-    s3CredentialsService.getCredentials()
+    s3CredentialsService
+      .getCredentials()
       .then((credentials) => {
         if (clientRef.current) {
           clientRef.current.destroy();

@@ -6,7 +6,7 @@ export type Branding = {
   logoUrl: string | null;
   primaryColor: string | null;
   consoleHostname: string | null;
-}
+};
 async function getBranding(): Promise<Branding> {
   const response = await partnersAxios.get<Branding>(API);
   return response.data;

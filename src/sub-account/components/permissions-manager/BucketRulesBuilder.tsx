@@ -11,23 +11,29 @@ interface BucketRulesBuilderProps {
   onChange: (rules: BucketRule[]) => void;
 }
 
-const AccessLevelSelector = ({ value, onChange }: { value: AccessLevel; onChange: (accessLevel: AccessLevel) => void }) => {
+const AccessLevelSelector = ({
+  value,
+  onChange,
+}: {
+  value: AccessLevel;
+  onChange: (accessLevel: AccessLevel) => void;
+}) => {
   const { t } = useTranslation('subaccount');
   return (
-  <div className='flex gap-2'>
-    {ACCESS_LEVELS.map((p) => (
-      <button
-        key={p}
-        type='button'
-        onClick={() => onChange(p)}
-        className={`px-3 py-1 rounded-full text-xs font-medium border-none cursor-pointer ${
-          value === p ? 'bg-gray-100 text-white' : 'bg-gray-10 text-gray-60'
-        }`}
-      >
-        {t(`permissions.accessLevel.${p}`)}
-      </button>
-    ))}
-  </div>
+    <div className="flex gap-2">
+      {ACCESS_LEVELS.map((p) => (
+        <button
+          key={p}
+          type="button"
+          onClick={() => onChange(p)}
+          className={`px-3 py-1 rounded-full text-xs font-medium border-none cursor-pointer ${
+            value === p ? 'bg-gray-100 text-white' : 'bg-gray-10 text-gray-60'
+          }`}
+        >
+          {t(`permissions.accessLevel.${p}`)}
+        </button>
+      ))}
+    </div>
   );
 };
 
@@ -47,31 +53,31 @@ export const BucketRulesBuilder = ({ client, rules, onChange }: BucketRulesBuild
   const removeBucket = (index: number) => onChange(rules.filter((_, i) => i !== index));
 
   return (
-    <div className='flex flex-col gap-2 min-h-0 overflow-y-auto'>
+    <div className="flex flex-col gap-2 min-h-0 overflow-y-auto">
       <button
-        type='button'
+        type="button"
         onClick={() => setIsPickerOpen((v) => !v)}
-        className='self-start flex items-center gap-1 text-sm font-medium text-primary bg-transparent border-none cursor-pointer py-1'
+        className="self-start flex items-center gap-1 text-sm font-medium text-primary bg-transparent border-none cursor-pointer py-1"
       >
-        <PlusIcon size={14} weight='bold' />
+        <PlusIcon size={14} weight="bold" />
         {t('permissions.addBucket')}
       </button>
 
       <BucketPicker client={client} isOpen={isPickerOpen} excludedNames={usedBucketNames} onSelect={addBucket} />
 
       {rules.length === 0 ? (
-        <p className='text-xs text-gray-60 m-0'>{t('permissions.noBucketsAssigned')}</p>
+        <p className="text-xs text-gray-60 m-0">{t('permissions.noBucketsAssigned')}</p>
       ) : (
         rules.map((rule, index) => (
-          <div key={rule.bucketName} className='border border-gray-20 rounded-lg p-3'>
-            <div className='flex items-center justify-between mb-2'>
-              <span className='text-sm font-medium text-gray-100'>
+          <div key={rule.bucketName} className="border border-gray-20 rounded-lg p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-100">
                 {rule.bucketName === ALL_BUCKETS ? t('permissions.allBuckets') : rule.bucketName}
               </span>
               <button
-                type='button'
+                type="button"
                 onClick={() => removeBucket(index)}
-                className='bg-transparent border-none cursor-pointer text-gray-60 hover:text-gray-80 flex items-center'
+                className="bg-transparent border-none cursor-pointer text-gray-60 hover:text-gray-80 flex items-center"
               >
                 <XIcon size={16} />
               </button>

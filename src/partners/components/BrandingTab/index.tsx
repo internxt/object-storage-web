@@ -28,7 +28,7 @@ export function BrandingTab() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function save () {
+  async function save() {
     setSaving(true);
     try {
       const response = await brandingService.updateBranding({
@@ -43,7 +43,7 @@ export function BrandingTab() {
     } finally {
       setSaving(false);
     }
-  };
+  }
 
   function reset() {
     setBranding(initialState);
@@ -51,10 +51,17 @@ export function BrandingTab() {
 
   function updateBranding(changes: Partial<BrandingFormValues>) {
     setBranding((current) => ({ ...current, ...changes }));
-  };
+  }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, 0.8fr)', gap: 24, alignItems: 'start' }}>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, 0.8fr)',
+        gap: 24,
+        alignItems: 'start',
+      }}
+    >
       <BrandingForm
         branding={branding}
         loading={loading}
@@ -67,4 +74,4 @@ export function BrandingTab() {
       <BrandingPreview logoUrl={branding.logoUrl} primaryColor={branding.primaryColor} />
     </div>
   );
-};
+}

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 type DropdownItem = {
@@ -16,12 +16,7 @@ interface DropdownProps {
   width?: string;
 }
 
-export const Dropdown = ({
-  button,
-  items,
-  width = 'w-36',
-  label,
-}: DropdownProps) => {
+export const Dropdown = ({ button, items, width = 'w-36', label }: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -48,38 +43,48 @@ export const Dropdown = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getDropdownPosition = () => {
-    if (!buttonRef.current) return { top: 0, bottom: undefined, right: 0, width: 0 };
+  const [position, setPosition] = useState(() => ({
+    top: 0 as number | undefined,
+    bottom: undefined as number | undefined,
+    right: 0,
+    width: 0,
+  }));
 
-    const rect = buttonRef.current.getBoundingClientRect();
-    const estimatedHeight = items.length * 36 + 8;
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const shouldOpenUpward =
-      spaceBelow < estimatedHeight && rect.top > estimatedHeight;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    const getDropdownPosition = () => {
+      if (!buttonRef.current) return { top: 0, bottom: undefined, right: 0, width: 0 };
 
-    return {
-      top: shouldOpenUpward ? undefined : rect.bottom + 4,
-      bottom: shouldOpenUpward ? window.innerHeight - rect.top + 4 : undefined,
-      right: window.innerWidth - rect.right,
-      width: rect.width,
+      const rect = buttonRef.current.getBoundingClientRect();
+      const estimatedHeight = items.length * 36 + 8;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const shouldOpenUpward = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
+
+      return {
+        top: shouldOpenUpward ? undefined : rect.bottom + 4,
+        bottom: shouldOpenUpward ? window.innerHeight - rect.top + 4 : undefined,
+        right: window.innerWidth - rect.right,
+        width: rect.width,
+      };
     };
-  };
 
-  const position = getDropdownPosition();
+    const next = getDropdownPosition();
+    setPosition((prev) =>
+      prev.top === next.top && prev.bottom === next.bottom && prev.right === next.right && prev.width === next.width
+        ? prev
+        : next,
+    );
+  });
 
   const widthClass = width?.match(/w-[^\s]+/)?.[0] || '';
   const otherClasses = width?.replace(widthClass, '').trim() || '';
 
   return (
-    <div
-      className='relative flex flex-col gap-1'
-      ref={ref}
-      onClick={(e) => e.stopPropagation()}
-    >
+    <div className="relative flex flex-col gap-1" ref={ref} onClick={(e) => e.stopPropagation()}>
       {label && (
-        <div className='flex flex-col gap-1 w-full'>
-          <label className='flex items-center gap-1'>
-            <span className={`text-sm text-gray-80`}>{label}</span>
+        <div className="flex flex-col gap-1 w-full">
+          <label className="flex items-center gap-1">
+            <span className={'text-sm text-gray-80'}>{label}</span>
           </label>
         </div>
       )}
@@ -87,7 +92,7 @@ export const Dropdown = ({
       <button
         ref={buttonRef}
         onClick={handleToggle}
-        className='cursor-pointer w-full'
+        className="cursor-pointer w-full"
         onMouseDown={(e) => e.stopPropagation()}
       >
         {button}
@@ -100,54 +105,45 @@ export const Dropdown = ({
             className={`fixed bg-white rounded shadow-lg ${otherClasses}`}
             style={{
               top: position.top !== undefined ? `${position.top}px` : undefined,
-              bottom:
-                position.bottom !== undefined ? `${position.bottom}px` : undefined,
+              bottom: position.bottom !== undefined ? `${position.bottom}px` : undefined,
               right: `${position.right}px`,
               zIndex: 9999,
               maxHeight: '60vh',
               overflowY: 'auto',
-              width:
-                widthClass === 'w-full' ? `${position.width}px` : undefined,
-              minWidth:
-                widthClass !== 'w-full' ? `${position.width}px` : undefined,
+              width: widthClass === 'w-full' ? `${position.width}px` : undefined,
+              minWidth: widthClass !== 'w-full' ? `${position.width}px` : undefined,
             }}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className='flex flex-col'>
-              {items.map(
-                ({ label, icon, disabled = false, onClick, render }, index) => (
-                  <button
-                    key={label ?? `dropdown-item-${index}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onClick();
-                      setIsOpen(false);
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    className={`px-4 py-2 text-left flex items-center justify-between ${
-                      disabled
-                        ? 'text-black/30 !cursor-no-drop'
-                        : 'text-gray-700 hover:bg-gray-10'
-                    }`}
-                    disabled={disabled}
-                  >
-                    {render ? (
-                      render()
-                    ) : (
-                      <div className='flex justify-between items-center w-full gap-2'>
-                        <span className='flex-1'>{label}</span>
-                        {icon && (
-                          <span className='flex items-center'>{icon}</span>
-                        )}
-                      </div>
-                    )}
-                  </button>
-                )
-              )}
+            <div className="flex flex-col">
+              {items.map(({ label, icon, disabled = false, onClick, render }, index) => (
+                <button
+                  key={label ?? `dropdown-item-${index}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClick();
+                    setIsOpen(false);
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className={`px-4 py-2 text-left flex items-center justify-between ${
+                    disabled ? 'text-black/30 !cursor-no-drop' : 'text-gray-700 hover:bg-gray-10'
+                  }`}
+                  disabled={disabled}
+                >
+                  {render ? (
+                    render()
+                  ) : (
+                    <div className="flex justify-between items-center w-full gap-2">
+                      <span className="flex-1">{label}</span>
+                      {icon && <span className="flex items-center">{icon}</span>}
+                    </div>
+                  )}
+                </button>
+              ))}
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );

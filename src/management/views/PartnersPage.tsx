@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CaretLeft, CaretRight, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import { partnersService, Partner, PartnersSummary } from '../services/partners.service';
 import { PartnersTable, SortOrder } from '../components/PartnersTable';
@@ -27,22 +27,6 @@ export const PartnersPage = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const latestRequestId = useRef(0);
 
-  useEffect(() => {
-    fetchSummary();
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPage(0);
-      setDebouncedSearch(search.trim());
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  useEffect(() => {
-    fetchPartners();
-  }, [page, sortOrder, showDeleted, debouncedSearch]);
-
   const fetchSummary = async () => {
     try {
       const data = await partnersService.getPartnersSummary();
@@ -52,7 +36,7 @@ export const PartnersPage = () => {
     }
   };
 
-  const fetchPartners = async () => {
+  const fetchPartners = useCallback(async () => {
     const requestId = ++latestRequestId.current;
     setIsLoading(true);
     try {
@@ -73,7 +57,25 @@ export const PartnersPage = () => {
     } finally {
       if (requestId === latestRequestId.current) setIsLoading(false);
     }
-  };
+  }, [page, sortOrder, showDeleted, debouncedSearch]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSummary();
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(0);
+      setDebouncedSearch(search.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchPartners();
+  }, [fetchPartners]);
 
   const totalPages = Math.ceil(total / PER_PAGE);
   const hasPrev = page > 0;
@@ -82,87 +84,88 @@ export const PartnersPage = () => {
   const toItem = Math.min((page + 1) * PER_PAGE, total);
 
   return (
-    <div className='flex flex-col gap-5'>
+    <div className="flex flex-col gap-5">
       {/* Stats */}
       <div
-        className='bg-white rounded-2xl overflow-hidden'
+        className="bg-white rounded-2xl overflow-hidden"
         style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)' }}
       >
-        <div className='px-10 pt-9 pb-3'>
-          <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>
-            Partners Overview
-          </p>
+        <div className="px-10 pt-9 pb-3">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Partners Overview</p>
         </div>
-        <div className='px-10 pb-9 flex items-center gap-0'>
+        <div className="px-10 pb-9 flex items-center gap-0">
           {/* Total Partners */}
-          <div className='flex flex-col gap-2 flex-1'>
-            <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>
-              Total Partners
-            </p>
-            <div className='flex items-baseline gap-2'>
-              <span className='text-5xl font-semibold tracking-tight leading-none' style={{ color: '#6366f1' }}>
+          <div className="flex flex-col gap-2 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Total Partners</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-5xl font-semibold tracking-tight leading-none" style={{ color: '#6366f1' }}>
                 {summary?.totalPartners ?? '—'}
               </span>
             </div>
           </div>
 
-          <div className='w-px bg-gray-100 self-stretch mx-10' />
+          <div className="w-px bg-gray-100 self-stretch mx-10" />
 
           {/* Total Active Storage */}
-          <div className='flex flex-col gap-2 flex-1'>
-            <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>
-              Total Active Storage
-            </p>
-            <div className='flex items-baseline gap-2'>
-              <span className='text-5xl font-semibold tracking-tight leading-none' style={{ color: '#6366f1' }}>
+          <div className="flex flex-col gap-2 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Total Active Storage</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-5xl font-semibold tracking-tight leading-none" style={{ color: '#6366f1' }}>
                 {tbDisplay(summary?.activeStorageTb)}
               </span>
-              <span className='text-xl font-medium text-gray-400'>TB</span>
+              <span className="text-xl font-medium text-gray-400">TB</span>
             </div>
           </div>
 
-          <div className='w-px bg-gray-100 self-stretch mx-10' />
+          <div className="w-px bg-gray-100 self-stretch mx-10" />
 
           {/* Placeholder third stat */}
-          <div className='flex flex-col gap-2 flex-1'>
-            <p className='text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400'>
-              MoM Growth
-            </p>
-            <div className='flex items-baseline gap-2'>
-              <span className='text-5xl font-semibold tracking-tight leading-none text-gray-300'>-</span>
-              <span className='text-xl font-medium text-gray-300'>%</span>
+          <div className="flex flex-col gap-2 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">MoM Growth</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-5xl font-semibold tracking-tight leading-none text-gray-300">-</span>
+              <span className="text-xl font-medium text-gray-300">%</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className='bg-white rounded-xl shadow-sm p-6'>
-        <div className='flex items-center justify-between mb-5'>
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className='text-base font-semibold text-gray-900'>Partners</h2>
-            {total > 0 && (
-              <p className='text-xs text-gray-400 mt-0.5'>{total} partners total</p>
-            )}
+            <h2 className="text-base font-semibold text-gray-900">Partners</h2>
+            {total > 0 && <p className="text-xs text-gray-400 mt-0.5">{total} partners total</p>}
           </div>
-          <div className='flex items-center gap-4'>
-            <label className='flex items-center gap-2 cursor-pointer select-none'>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
-                type='checkbox'
+                type="checkbox"
                 checked={showDeleted}
-                onChange={(e) => { setPage(0); setShowDeleted(e.target.checked); }}
-                className='w-4 h-4 rounded border-gray-300 text-indigo accent-indigo cursor-pointer'
+                onChange={(e) => {
+                  setPage(0);
+                  setShowDeleted(e.target.checked);
+                }}
+                className="w-4 h-4 rounded border-gray-300 text-indigo accent-indigo cursor-pointer"
               />
-              <span className='text-sm text-gray-500'>Show deleted</span>
+              <span className="text-sm text-gray-500">Show deleted</span>
             </label>
             <button
               onClick={() => setIsCreateModalOpen(true)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                height: 40, padding: '0 18px',
-                background: T.primary, color: T.white,
-                border: 'none', borderRadius: 8, cursor: 'pointer',
-                fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 40,
+                padding: '0 18px',
+                background: T.primary,
+                color: T.white,
+                border: 'none',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 14,
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
               }}
             >
               Create Partner
@@ -170,14 +173,14 @@ export const PartnersPage = () => {
           </div>
         </div>
 
-        <div className='flex items-center gap-2 mb-4 px-3 max-w-sm border border-gray-200 rounded-lg bg-white'>
-          <MagnifyingGlassIcon size={15} className='text-gray-400 shrink-0' />
+        <div className="flex items-center gap-2 mb-4 px-3 max-w-sm border border-gray-200 rounded-lg bg-white">
+          <MagnifyingGlassIcon size={15} className="text-gray-400 shrink-0" />
           <input
-            type='text'
-            placeholder='Search by name or email…'
+            type="text"
+            placeholder="Search by name or email…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className='flex-1 py-2 text-sm text-gray-700 bg-transparent outline-none border-none'
+            className="flex-1 py-2 text-sm text-gray-700 bg-transparent outline-none border-none"
           />
         </div>
 
@@ -185,30 +188,33 @@ export const PartnersPage = () => {
           partners={partners}
           isLoading={isLoading}
           sortOrder={sortOrder}
-          onSortActiveStorage={(order) => { setPage(0); setSortOrder(order); }}
+          onSortActiveStorage={(order) => {
+            setPage(0);
+            setSortOrder(order);
+          }}
         />
 
         {/* Pagination */}
-        <div className='flex items-center justify-between mt-4 pt-4 border-t border-gray-50'>
-          <span className='text-xs text-gray-400'>
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
+          <span className="text-xs text-gray-400">
             Showing {fromItem}–{toItem} of {total} partners
           </span>
-          <div className='flex items-center gap-1'>
+          <div className="flex items-center gap-1">
             <button
               disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
-              className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+              className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <CaretLeft size={14} />
               Prev
             </button>
-            <span className='px-3 py-1.5 text-sm text-gray-500'>
+            <span className="px-3 py-1.5 text-sm text-gray-500">
               {page + 1} / {Math.max(1, totalPages)}
             </span>
             <button
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
-              className='flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+              className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Next
               <CaretRight size={14} />

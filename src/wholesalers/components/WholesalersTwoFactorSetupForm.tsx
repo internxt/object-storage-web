@@ -44,7 +44,9 @@ export const WholesalersTwoFactorSetupForm = ({
   };
 
   if (loadFailed) {
-    return <p style={{ fontSize: 13, color: T.red, margin: 0 }}>Failed to load the setup information. Please try again.</p>;
+    return (
+      <p style={{ fontSize: 13, color: T.red, margin: 0 }}>Failed to load the setup information. Please try again.</p>
+    );
   }
 
   if (!setup) {
@@ -58,7 +60,7 @@ export const WholesalersTwoFactorSetupForm = ({
       </p>
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <img src={setup.qrCode} alt='Two-factor authentication QR code' width={180} height={180} />
+        <img src={setup.qrCode} alt="Two-factor authentication QR code" width={180} height={180} />
       </div>
 
       <div>
@@ -82,17 +84,17 @@ export const WholesalersTwoFactorSetupForm = ({
 
       <div>
         <p style={{ ...text.label, marginBottom: 6 }}>Enter the 6-digit code</p>
-        <Input value={code} onChange={setCode} placeholder='123456' maxLength={CODE_LENGTH} variant='default' />
+        <Input value={code} onChange={setCode} placeholder="123456" maxLength={CODE_LENGTH} variant="default" />
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
         {onCancel && (
-          <Button variant='secondary' type='button' onClick={onCancel} disabled={isConfirming}>
+          <Button variant="secondary" type="button" onClick={onCancel} disabled={isConfirming}>
             Cancel
           </Button>
         )}
         <Button
-          type='button'
+          type="button"
           onClick={handleConfirm}
           disabled={isConfirming || code.length !== CODE_LENGTH}
           loading={isConfirming}

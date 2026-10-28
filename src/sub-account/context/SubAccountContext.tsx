@@ -1,52 +1,17 @@
-import { createContext, useState, ReactNode, useContext, useMemo } from 'react';
+import { useState, ReactNode, useMemo, useCallback } from 'react';
 import { subAccountAuthService } from '../services/sub-account-auth.service';
-
-interface SubAccountContextType {
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  ssoEnabled: boolean;
-  auditLogEnabled: boolean;
-  memberId: string | null;
-  entityId: string | null;
-  partnerId: string | null;
-  entityCreatedAt: string | null;
-  email: string | null;
-  logIn: (email: string, password: string, code?: string) => Promise<void>;
-  logInWithSso: (organizationName: string) => Promise<void>;
-  refreshClaims: () => void;
-  logOut: () => void;
-}
-
-const SubAccountContext = createContext<SubAccountContextType | undefined>(undefined);
+import { SubAccountContext } from './useSubAccount';
 
 export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => !!subAccountAuthService.getToken(),
-  );
-  const [isAdmin, setIsAdmin] = useState(
-    () => subAccountAuthService.getRole() === 'admin',
-  );
-  const [ssoEnabled, setSsoEnabled] = useState(
-    () => subAccountAuthService.getSsoEnabled(),
-  );
-  const [auditLogEnabled, setAuditLogEnabled] = useState(
-    () => subAccountAuthService.getAuditLogEnabled(),
-  );
-  const [memberId, setMemberId] = useState(
-    () => subAccountAuthService.getMemberId(),
-  );
-  const [entityId, setEntityId] = useState(
-    () => subAccountAuthService.getEntityId(),
-  );
-  const [partnerId, setPartnerId] = useState(
-    () => subAccountAuthService.getPartnerId(),
-  );
-  const [entityCreatedAt, setEntityCreatedAt] = useState(
-    () => subAccountAuthService.getEntityCreatedAt(),
-  );
-  const [email, setEmail] = useState(
-    () => subAccountAuthService.getEmail(),
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!subAccountAuthService.getToken());
+  const [isAdmin, setIsAdmin] = useState(() => subAccountAuthService.getRole() === 'admin');
+  const [ssoEnabled, setSsoEnabled] = useState(() => subAccountAuthService.getSsoEnabled());
+  const [auditLogEnabled, setAuditLogEnabled] = useState(() => subAccountAuthService.getAuditLogEnabled());
+  const [memberId, setMemberId] = useState(() => subAccountAuthService.getMemberId());
+  const [entityId, setEntityId] = useState(() => subAccountAuthService.getEntityId());
+  const [partnerId, setPartnerId] = useState(() => subAccountAuthService.getPartnerId());
+  const [entityCreatedAt, setEntityCreatedAt] = useState(() => subAccountAuthService.getEntityCreatedAt());
+  const [email, setEmail] = useState(() => subAccountAuthService.getEmail());
 
   const refreshClaims = () => {
     setIsAuthenticated(!!subAccountAuthService.getToken());
@@ -60,16 +25,15 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
     setEmail(subAccountAuthService.getEmail());
   };
 
-  const logIn = async (email: string, password: string, code?: string) => {
+  const logIn = useCallback(async (email: string, password: string, code?: string) => {
     await subAccountAuthService.logIn(email, password, code);
-    console.log('[sub-account] context: logIn done, setting isAuthenticated=true');
     refreshClaims();
-  };
+  }, []);
 
-  const logInWithSso = async (organizationName: string) => {
+  const logInWithSso = useCallback(async (organizationName: string) => {
     await subAccountAuthService.logInWithSso(organizationName);
     refreshClaims();
-  };
+  }, []);
 
   const logOut = () => {
     subAccountAuthService.logOut();
@@ -85,17 +49,35 @@ export const SubAccountProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const value = useMemo(
-    () => ({ isAuthenticated, isAdmin, ssoEnabled, auditLogEnabled, memberId, entityId, partnerId, entityCreatedAt, email, logIn, logInWithSso, refreshClaims, logOut }),
-    [isAuthenticated, isAdmin, ssoEnabled, auditLogEnabled, memberId, entityId, partnerId, entityCreatedAt, email],
+    () => ({
+      isAuthenticated,
+      isAdmin,
+      ssoEnabled,
+      auditLogEnabled,
+      memberId,
+      entityId,
+      partnerId,
+      entityCreatedAt,
+      email,
+      logIn,
+      logInWithSso,
+      refreshClaims,
+      logOut,
+    }),
+    [
+      isAuthenticated,
+      isAdmin,
+      ssoEnabled,
+      auditLogEnabled,
+      memberId,
+      entityId,
+      partnerId,
+      entityCreatedAt,
+      email,
+      logIn,
+      logInWithSso,
+    ],
   );
 
   return <SubAccountContext.Provider value={value}>{children}</SubAccountContext.Provider>;
-};
-
-export const useSubAccount = (): SubAccountContextType => {
-  const context = useContext(SubAccountContext);
-  if (!context) {
-    throw new Error('useSubAccount must be used within a SubAccountProvider');
-  }
-  return context;
 };

@@ -18,45 +18,47 @@ const LIGHT_COLOUR_LUMINANCE_THRESHOLD = 160;
  */
 export function contrastColour(hexColour: string): '#FFFFFF' | '#18181B' {
   const hex = hexColour.slice(1);
-  const fullHex = hex.length === 3
-    ? hex.replace(/./g, (part) => part.repeat(2))
-    : hex;
-  const [red, green, blue] = [0, 2, 4].map((offset) =>
-    Number.parseInt(fullHex.slice(offset, offset + 2), 16),
-  );
+  const fullHex = hex.length === 3 ? hex.replace(/./g, (part) => part.repeat(2)) : hex;
+  const [red, green, blue] = [0, 2, 4].map((offset) => Number.parseInt(fullHex.slice(offset, offset + 2), 16));
   const luminance = (red * 299 + green * 587 + blue * 114) / 1000;
 
   return luminance >= LIGHT_COLOUR_LUMINANCE_THRESHOLD ? '#18181B' : '#FFFFFF';
 }
-export function validateLogoUrl(value: string): { isValid: true; error?: undefined } | { isValid: false; error: string } {
+export function validateLogoUrl(
+  value: string,
+): { isValid: true; error?: undefined } | { isValid: false; error: string } {
   if (!value) return { isValid: true };
 
   try {
     const url = new URL(value);
     if (url.protocol === 'https:') {
-      return { isValid: true }
+      return { isValid: true };
     }
-    return { isValid: false, error: 'Logo URL must use HTTPS' }
+    return { isValid: false, error: 'Logo URL must use HTTPS' };
   } catch {
-     return { isValid: false, error: 'Logo URL must be a valid HTTPS URL' }
+    return { isValid: false, error: 'Logo URL must be a valid HTTPS URL' };
   }
 }
 
-export function validatePrimaryColour(value: string): { isValid: true; error?: undefined } | { isValid: false; error: string }{
+export function validatePrimaryColour(
+  value: string,
+): { isValid: true; error?: undefined } | { isValid: false; error: string } {
   if (!value) return { isValid: true };
 
   if (HEX_COLOUR_PATTERN.test(value)) return { isValid: true };
-  return { isValid: false, error: 'Use a valid hex colour, for example #0066FF' }
+  return { isValid: false, error: 'Use a valid hex colour, for example #0066FF' };
 }
 
-export function validateConsoleHostname(value: string): { isValid: true; error?: undefined } | { isValid: false; error: string } {
+export function validateConsoleHostname(
+  value: string,
+): { isValid: true; error?: undefined } | { isValid: false; error: string } {
   if (!value) return { isValid: true };
 
   if (RESERVED_CONSOLE_HOSTNAMES.has(value.trim().toLowerCase())) {
     return { isValid: false, error: 'This hostname is reserved and cannot be used as a custom domain' };
   }
   if (HOSTNAME_PATTERN.test(value)) return { isValid: true };
-  return { isValid: false, error: 'Use a valid hostname, for example acme.cloud.internxt.com' }
+  return { isValid: false, error: 'Use a valid hostname, for example acme.cloud.internxt.com' };
 }
 
 export function getErrorMessage(error: unknown): string {

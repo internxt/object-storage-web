@@ -53,12 +53,7 @@ export interface UsageSummary {
   totalIngress: number;
 }
 
-const getUsagePage = async (
-  from: string,
-  to: string,
-  page?: number,
-  perPage?: number
-): Promise<UsageResponse> => {
+const getUsagePage = async (from: string, to: string, page?: number, perPage?: number): Promise<UsageResponse> => {
   const usageResponse = await axiosInstance.get<UsageResponse>(
     `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/usages`,
     {
@@ -68,17 +63,13 @@ const getUsagePage = async (
         ...(page !== undefined && { page }),
         ...(perPage !== undefined && { perPage }),
       },
-    }
+    },
   );
 
   return usageResponse.data;
 };
 
-const getAllUsageData = async (
-  from: string,
-  to: string,
-  perPage?: number
-): Promise<UsageResponseItem[]> => {
+const getAllUsageData = async (from: string, to: string, perPage?: number): Promise<UsageResponseItem[]> => {
   let allItems: UsageResponseItem[] = [];
   let currentPage = 0;
   let hasMoreData = true;
@@ -102,10 +93,7 @@ const getAllUsageData = async (
   return allItems;
 };
 
-const getUsage = async (
-  from: string,
-  to: string
-): Promise<{ usage: Usage[]; summary: UsageSummary }> => {
+const getUsage = async (from: string, to: string): Promise<{ usage: Usage[]; summary: UsageSummary }> => {
   const allUsageItems = await getAllUsageData(from, to);
 
   const usage = allUsageItems.map((usage: UsageResponseItem) => ({
@@ -127,23 +115,12 @@ const getUsage = async (
     storageRead: usage.storageRead,
   }));
 
-  usage.sort(
-    (a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime()
-  );
+  usage.sort((a, b) => new Date(b.endTime).getTime() - new Date(a.endTime).getTime());
 
-  const totalApiCalls = allUsageItems.reduce(
-    (sum, item) => sum + item.apiCalls,
-    0
-  );
+  const totalApiCalls = allUsageItems.reduce((sum, item) => sum + item.apiCalls, 0);
   const totalEgress = allUsageItems.reduce((sum, item) => sum + item.egress, 0);
-  const totalIngress = allUsageItems.reduce(
-    (sum, item) => sum + item.ingress,
-    0
-  );
-  const usedCapacity = allUsageItems.reduce(
-    (sum, item) => sum + item.activeStorage,
-    0
-  );
+  const totalIngress = allUsageItems.reduce((sum, item) => sum + item.ingress, 0);
+  const usedCapacity = allUsageItems.reduce((sum, item) => sum + item.activeStorage, 0);
 
   const totalCapacity = 1;
   const remainingCapacity = totalCapacity * 1024 - usedCapacity;

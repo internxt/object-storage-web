@@ -7,6 +7,7 @@ export function usePublicSharingEnabled(entityId: string | null) {
 
   useEffect(() => {
     if (!entityId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsEnabled(null);
     setHasLoadFailed(false);
     subAccountSettingsService

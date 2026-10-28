@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
@@ -7,7 +7,8 @@ import { COUNTRIES, getFlagEmoji } from '../../utils/countries';
 import { apiErrorMessage } from '../../utils/apiError';
 import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, validatePassword } from '../../components/auth/passwordPolicy';
 import { PasswordRequirements } from '../../components/FieldFeedback';
-import { Field, inputClass } from '../../components/FormField';
+import { Field } from '../../components/FormField';
+import { inputClass } from '../../components/inputClass';
 import { requiredNameRules } from '../../utils/clientName';
 
 interface Props {
@@ -32,12 +33,12 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     reset,
     formState: { errors, isValid },
   } = useForm<FormValues>({ mode: 'all' });
 
-  const password = watch('password');
+  const password = useWatch({ control, name: 'password' });
   const passwordErrors = password ? validatePassword(password) : [];
   const isPasswordValid = !!password && passwordErrors.length === 0;
 
@@ -62,33 +63,33 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} maxWidth='max-w-md'>
-      <div className='flex flex-col gap-4'>
-        <h2 className='text-lg font-semibold text-gray-900'>Create Wholesaler</h2>
+    <Modal isOpen={isOpen} onClose={handleClose} maxWidth="max-w-md">
+      <div className="flex flex-col gap-4">
+        <h2 className="text-lg font-semibold text-gray-900">Create Wholesaler</h2>
 
-        <form onSubmit={handleSubmit(onFormSubmit)} className='flex flex-col gap-3'>
-          <Field label='Name' error={errors.name?.message}>
+        <form onSubmit={handleSubmit(onFormSubmit)} className="flex flex-col gap-3">
+          <Field label="Name" error={errors.name?.message}>
             <input
               {...register('name', requiredNameRules())}
-              placeholder='Wholesaler name'
+              placeholder="Wholesaler name"
               className={inputClass(errors.name)}
             />
           </Field>
 
-          <Field label='Contact Email' error={errors.email?.message}>
+          <Field label="Contact Email" error={errors.email?.message}>
             <input
               {...register('email', {
                 required: 'Email is required',
                 pattern: { value: /^\S+@\S+\.\S+$/, message: 'Invalid email' },
               })}
-              type='email'
-              placeholder='contact@example.com'
+              type="email"
+              placeholder="contact@example.com"
               className={inputClass(errors.email)}
             />
           </Field>
 
-          <Field label='Password' error={errors.password?.message}>
-            <div className='relative'>
+          <Field label="Password" error={errors.password?.message}>
+            <div className="relative">
               <input
                 {...register('password', {
                   required: 'Password is required',
@@ -96,13 +97,13 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
                     validatePassword(value).length === 0 || 'Password does not meet the requirements',
                 })}
                 type={showPassword ? 'text' : 'password'}
-                placeholder='••••••••'
+                placeholder="••••••••"
                 className={`${inputClass(errors.password)} pr-10`}
               />
               <button
-                type='button'
+                type="button"
                 onClick={() => setShowPassword((s) => !s)}
-                className='absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600'
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 tabIndex={-1}
               >
                 {showPassword ? <Eye size={16} /> : <EyeSlash size={16} />}
@@ -112,22 +113,22 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
               <PasswordRequirements errors={passwordErrors} />
             ) : (
               !password && (
-                <span className='text-xs text-gray-500'>
-                  {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters, with uppercase and lowercase letters, a
-                  digit and a special character.
+                <span className="text-xs text-gray-500">
+                  {PASSWORD_MIN_LENGTH}–{PASSWORD_MAX_LENGTH} characters, with uppercase and lowercase letters, a digit
+                  and a special character.
                 </span>
               )
             )}
           </Field>
 
-          <Field label='Country' error={errors.country?.message}>
-            <div className='relative'>
+          <Field label="Country" error={errors.country?.message}>
+            <div className="relative">
               <select
                 {...register('country', { required: 'Country is required' })}
                 className={`${inputClass(errors.country)} appearance-none bg-white pr-8`}
-                defaultValue=''
+                defaultValue=""
               >
-                <option value='' disabled>
+                <option value="" disabled>
                   Select a country
                 </option>
                 {COUNTRIES.map((c) => (
@@ -136,27 +137,25 @@ export const CreateWholesalerModal = ({ isOpen, onClose, onSubmit }: Props) => {
                   </option>
                 ))}
               </select>
-              <span className='pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400'>
-                ▾
-              </span>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">▾</span>
             </div>
           </Field>
 
-          <Field label='Postal Code' error={errors.postalCode?.message}>
+          <Field label="Postal Code" error={errors.postalCode?.message}>
             <input
               {...register('postalCode', { required: 'Postal code is required' })}
-              placeholder='12345'
+              placeholder="12345"
               className={inputClass(errors.postalCode)}
             />
           </Field>
 
-          {error && <p className='text-sm text-red'>{error}</p>}
+          {error && <p className="text-sm text-red">{error}</p>}
 
-          <div className='flex justify-end gap-3 pt-2'>
-            <Button variant='secondary' type='button' onClick={handleClose} disabled={isSubmitting}>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="secondary" type="button" onClick={handleClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type='submit' disabled={!isValid || !isPasswordValid || isSubmitting} loading={isSubmitting}>
+            <Button type="submit" disabled={!isValid || !isPasswordValid || isSubmitting} loading={isSubmitting}>
               Create
             </Button>
           </div>

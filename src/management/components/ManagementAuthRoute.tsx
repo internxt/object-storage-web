@@ -1,12 +1,12 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useManagement } from '../context/managementContext';
+import { useManagement } from '../context/useManagement';
 import { ManagementLayout } from './ManagementLayout';
 
 export const ManagementAuthRoute = () => {
   const { isAuthenticated } = useManagement();
 
   if (!isAuthenticated) {
-    return <Navigate to='/management/login' replace />;
+    return <Navigate to="/management/login" replace />;
   }
 
   return (

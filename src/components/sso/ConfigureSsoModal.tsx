@@ -5,11 +5,7 @@ import Modal from '../Modal';
 import Input from '../Input';
 import Button from '../Button';
 import { T, text, form } from '../../sub-account/tokens';
-import {
-  SSO_ERROR_CODES,
-  SsoConfig,
-  getSsoErrorCode,
-} from '../../sub-account/services/sub-account-sso.service';
+import { SSO_ERROR_CODES, SsoConfig, getSsoErrorCode } from '../../sub-account/services/sub-account-sso.service';
 
 const ORG_NAME_REGEX = /^[a-z0-9][a-z0-9-]{2,62}$/;
 const GUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -22,7 +18,13 @@ interface ConfigureSsoModalProps {
   onConfigured: (config: SsoConfig) => void;
 }
 
-export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose, onConfigured }: ConfigureSsoModalProps) => {
+export const ConfigureSsoModal = ({
+  isOpen,
+  configure,
+  hasOtherMembers,
+  onClose,
+  onConfigured,
+}: ConfigureSsoModalProps) => {
   const { t } = useTranslation('subaccount');
   const [organizationName, setOrganizationName] = useState('');
   const [tenantId, setTenantId] = useState('');
@@ -34,6 +36,7 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
 
   useEffect(() => {
     if (!isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOrganizationName('');
       setTenantId('');
       setClientId('');
@@ -76,9 +79,7 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: 4 }}>
         <div>
           <p style={{ ...text.heading, margin: 0 }}>{t('sso.configureModal.title')}</p>
-          <p style={{ ...text.hint, margin: '6px 0 0' }}>
-            {t('sso.configureModal.description')}
-          </p>
+          <p style={{ ...text.hint, margin: '6px 0 0' }}>{t('sso.configureModal.description')}</p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -90,15 +91,13 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
             accent={orgNameError ? 'error' : undefined}
             message={orgNameError}
           />
-          <p style={form.hint}>
-            {t('sso.configureModal.organizationNameHint')}
-          </p>
+          <p style={form.hint}>{t('sso.configureModal.organizationNameHint')}</p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <label style={form.label}>{t('sso.providerLabel')}</label>
-          <select value='azure-ad' disabled style={{ ...form.select, color: T.gray60 }}>
-            <option value='azure-ad'>{t('sso.providerValue')}</option>
+          <select value="azure-ad" disabled style={{ ...form.select, color: T.gray60 }}>
+            <option value="azure-ad">{t('sso.providerValue')}</option>
           </select>
         </div>
 
@@ -117,38 +116,44 @@ export const ConfigureSsoModal = ({ isOpen, configure, hasOtherMembers, onClose,
         </div>
 
         {hasOtherMembers && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', borderRadius: 8, background: '#FFF7E6', color: '#8A5A00' }}>
-            <WarningCircleIcon size={18} weight='fill' style={{ flexShrink: 0, marginTop: 1 }} />
-            <span style={{ fontSize: 13, lineHeight: 1.45 }}>
-              {t('sso.configureModal.hasOtherMembersWarning')}
-            </span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8,
+              padding: '10px 12px',
+              borderRadius: 8,
+              background: '#FFF7E6',
+              color: '#8A5A00',
+            }}
+          >
+            <WarningCircleIcon size={18} weight="fill" style={{ flexShrink: 0, marginTop: 1 }} />
+            <span style={{ fontSize: 13, lineHeight: 1.45 }}>{t('sso.configureModal.hasOtherMembersWarning')}</span>
           </div>
         )}
 
         <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer' }}>
           <input
-            type='checkbox'
+            type="checkbox"
             checked={acknowledged}
             onChange={(e) => setAcknowledged(e.target.checked)}
             style={{ marginTop: 2 }}
           />
-          <span style={{ ...text.body, fontSize: 13 }}>
-            {t('sso.configureModal.acknowledgeCheckbox')}
-          </span>
+          <span style={{ ...text.body, fontSize: 13 }}>{t('sso.configureModal.acknowledgeCheckbox')}</span>
         </label>
 
         {submitError && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: T.red }}>
-            <WarningCircleIcon size={16} weight='fill' style={{ flexShrink: 0 }} />
+            <WarningCircleIcon size={16} weight="fill" style={{ flexShrink: 0 }} />
             <span style={{ fontSize: 13 }}>{submitError}</span>
           </div>
         )}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
-          <Button variant='secondary' type='button' onClick={onClose} disabled={isLoading}>
+          <Button variant="secondary" type="button" onClick={onClose} disabled={isLoading}>
             {t('actions.cancel')}
           </Button>
-          <Button type='submit' disabled={!canSubmit} loading={isLoading}>
+          <Button type="submit" disabled={!canSubmit} loading={isLoading}>
             {t('sso.configureModal.save')}
           </Button>
         </div>

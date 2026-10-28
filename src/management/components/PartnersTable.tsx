@@ -17,35 +17,37 @@ const formatDate = (date?: string | null) =>
 
 const formatStorage = (value?: number) => {
   if (value == null) return '—';
-  if (value === 0) return <span className='text-gray-300'>0.0000</span>;
+  if (value === 0) return <span className="text-gray-300">0.0000</span>;
   return value.toFixed(4);
 };
 
 const COL_HEADERS = [
-  { label: 'ID',                  align: 'left'  },
-  { label: 'Name',                align: 'left'  },
-  { label: 'Email',               align: 'left'  },
-  { label: 'Sub-accounts',        align: 'right' },
+  { label: 'ID', align: 'left' },
+  { label: 'Name', align: 'left' },
+  { label: 'Email', align: 'left' },
+  { label: 'Sub-accounts', align: 'right' },
   { label: 'Active Storage (TB)', align: 'right' },
-  { label: 'Status',              align: 'left'  },
-  { label: 'Partner Created',    align: 'left'  },
-  { label: 'Created',             align: 'left'  },
-  { label: 'Stripe',              align: 'left'  },
+  { label: 'Status', align: 'left' },
+  { label: 'Partner Created', align: 'left' },
+  { label: 'Created', align: 'left' },
+  { label: 'Stripe', align: 'left' },
 ] as const;
 
 export const PartnersTable = ({ partners, isLoading, sortOrder, onSortActiveStorage }: Props) => {
   const navigate = useNavigate();
 
   return (
-    <div className='overflow-x-auto relative'>
+    <div className="overflow-x-auto relative">
       {/* Loading bar */}
-      <div className={`absolute top-0 left-0 right-0 h-[2px] overflow-hidden transition-opacity duration-300 ${isLoading ? 'opacity-100' : 'opacity-0'}`}>
-        <div className='h-full bg-indigo-400/30 w-full'>
-          <div className='h-full bg-indigo-400 animate-loading-bar' />
+      <div
+        className={`absolute top-0 left-0 right-0 h-[2px] overflow-hidden transition-opacity duration-300 ${isLoading ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <div className="h-full bg-indigo-400/30 w-full">
+          <div className="h-full bg-indigo-400 animate-loading-bar" />
         </div>
       </div>
 
-      <table className='w-full text-sm text-left border-separate border-spacing-0'>
+      <table className="w-full text-sm text-left border-separate border-spacing-0">
         <thead>
           <tr>
             {COL_HEADERS.map((h, i) => {
@@ -53,21 +55,25 @@ export const PartnersTable = ({ partners, isLoading, sortOrder, onSortActiveStor
               return (
                 <th
                   key={i}
-                  onClick={isActiveStorage ? () => onSortActiveStorage?.(sortOrder === 'asc' ? 'desc' : 'asc') : undefined}
+                  onClick={
+                    isActiveStorage ? () => onSortActiveStorage?.(sortOrder === 'asc' ? 'desc' : 'asc') : undefined
+                  }
                   className={`px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-400 border-b border-gray-100 bg-white whitespace-nowrap ${h.align === 'right' ? 'text-right' : ''} ${isActiveStorage ? 'cursor-pointer hover:text-gray-600 select-none' : ''}`}
                 >
                   {isActiveStorage ? (
-                    <span className='inline-flex items-center gap-1 justify-end w-full'>
+                    <span className="inline-flex items-center gap-1 justify-end w-full">
                       {h.label}
                       {sortOrder === 'asc' ? (
-                        <ArrowUp size={11} weight='bold' className='text-indigo-400' />
+                        <ArrowUp size={11} weight="bold" className="text-indigo-400" />
                       ) : sortOrder === 'desc' ? (
-                        <ArrowDown size={11} weight='bold' className='text-indigo-400' />
+                        <ArrowDown size={11} weight="bold" className="text-indigo-400" />
                       ) : (
-                        <ArrowUp size={11} weight='bold' className='text-gray-200' />
+                        <ArrowUp size={11} weight="bold" className="text-gray-200" />
                       )}
                     </span>
-                  ) : h.label}
+                  ) : (
+                    h.label
+                  )}
                 </th>
               );
             })}
@@ -76,55 +82,69 @@ export const PartnersTable = ({ partners, isLoading, sortOrder, onSortActiveStor
         <tbody className={`transition-opacity duration-200 ${isLoading ? 'opacity-40' : 'opacity-100'}`}>
           {partners.length === 0 && !isLoading ? (
             <tr>
-              <td colSpan={COL_HEADERS.length} className='text-center py-16 text-gray-300 text-sm font-medium'>
+              <td colSpan={COL_HEADERS.length} className="text-center py-16 text-gray-300 text-sm font-medium">
                 No partners found
               </td>
             </tr>
           ) : (
             partners.map((p, idx) => (
-              <tr key={p.id} className='group hover:bg-gray-50/80 transition-colors cursor-default'>
+              <tr key={p.id} className="group hover:bg-gray-50/80 transition-colors cursor-default">
                 <td
                   className={`px-4 py-3.5 ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
                   onClick={() => navigate(`/management/partners/${p.id}`, { state: { partner: p } })}
                 >
-                  <span className='font-mono text-[11px] text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2 cursor-pointer tracking-tight'>
+                  <span className="font-mono text-[11px] text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2 cursor-pointer tracking-tight">
                     {p.storageProviderId.slice(0, 8)}…{p.storageProviderId.slice(-4)}
                   </span>
                 </td>
-                <td className={`px-4 py-3.5 text-[13px] text-gray-700 ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                  {p.name ?? <span className='text-gray-300'>—</span>}
+                <td
+                  className={`px-4 py-3.5 text-[13px] text-gray-700 ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
+                >
+                  {p.name ?? <span className="text-gray-300">—</span>}
                 </td>
-                <td className={`px-4 py-3.5 text-[13px] text-gray-500 ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                  {p.email ?? <span className='text-gray-300'>—</span>}
+                <td
+                  className={`px-4 py-3.5 text-[13px] text-gray-500 ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
+                >
+                  {p.email ?? <span className="text-gray-300">—</span>}
                 </td>
-                <td className={`px-4 py-3.5 text-right font-mono text-[12px] text-gray-500 tabular-nums ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <td
+                  className={`px-4 py-3.5 text-right font-mono text-[12px] text-gray-500 tabular-nums ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
+                >
                   {p.subAccountsCount}
                 </td>
-                <td className={`px-4 py-3.5 text-right font-mono text-[12px] text-gray-700 tabular-nums ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <td
+                  className={`px-4 py-3.5 text-right font-mono text-[12px] text-gray-700 tabular-nums ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
+                >
                   {formatStorage(p.activeStorageTb)}
                 </td>
                 <td className={`px-4 py-3.5 ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
                   <StatusBadge status={p.status} />
                 </td>
-                <td className={`px-4 py-3.5 text-[12px] text-gray-500 whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <td
+                  className={`px-4 py-3.5 text-[12px] text-gray-500 whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
+                >
                   {formatDate(p.providerCreatedAt)}
                 </td>
-                <td className={`px-4 py-3.5 text-[12px] text-gray-500 whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <td
+                  className={`px-4 py-3.5 text-[12px] text-gray-500 whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
+                >
                   {formatDate(p.createdAt)}
                 </td>
-                <td className={`px-4 py-3.5 text-[12px] whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <td
+                  className={`px-4 py-3.5 text-[12px] whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
+                >
                   {p.customerId ? (
                     <a
                       href={`https://dashboard.stripe.com/customers/${p.customerId}`}
-                      target='_blank'
-                      rel='noopener noreferrer'
+                      target="_blank"
+                      rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className='inline-flex items-center gap-1 text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2'
+                      className="inline-flex items-center gap-1 text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2"
                     >
                       View <ArrowSquareOut size={12} />
                     </a>
                   ) : (
-                    <span className='text-gray-300'>—</span>
+                    <span className="text-gray-300">—</span>
                   )}
                 </td>
               </tr>

@@ -1,5 +1,5 @@
 import { ShieldWarningIcon } from '@phosphor-icons/react';
-import { useWholesalers } from '../context/wholesalersContext';
+import { useWholesalers } from '../context/useWholesalers';
 import { WholesalersTwoFactorSetupForm } from './WholesalersTwoFactorSetupForm';
 import { T, text, card } from '../../sub-account/tokens';
 
@@ -32,7 +32,7 @@ export const WholesalersForcedTwoFactorSetup = () => {
                 color: T.red,
               }}
             >
-              <ShieldWarningIcon size={20} weight='fill' />
+              <ShieldWarningIcon size={20} weight="fill" />
             </div>
             <p style={{ ...text.heading, margin: 0 }}>Set up two-factor authentication</p>
             <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
