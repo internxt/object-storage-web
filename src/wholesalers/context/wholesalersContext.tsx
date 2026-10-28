@@ -1,18 +1,7 @@
-import { createContext, useState, ReactNode, useContext, useMemo, useEffect } from 'react';
+import { useState, ReactNode, useMemo, useEffect } from 'react';
 import { wholesalersAuthService } from '../services/wholesalers-auth.service';
 import { wholesalersService } from '../services/wholesalers.service';
-
-interface WholesalersContextType {
-  isAuthenticated: boolean;
-  isViewer: boolean;
-  wholesalerEmail: string | null;
-  twoFactorSetupRequired: boolean;
-  clearTwoFactorSetupRequired: () => void;
-  logIn: (email: string, password: string, code?: string) => Promise<void>;
-  logOut: () => void;
-}
-
-const WholesalersContext = createContext<WholesalersContextType | undefined>(undefined);
+import { WholesalersContext } from './useWholesalers';
 
 export const WholesalersProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!wholesalersAuthService.getToken());
@@ -22,6 +11,7 @@ export const WholesalersProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (!isAuthenticated) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWholesalerEmail(null);
       return;
     }
@@ -65,12 +55,4 @@ export const WholesalersProvider = ({ children }: { children: ReactNode }) => {
   );
 
   return <WholesalersContext.Provider value={value}>{children}</WholesalersContext.Provider>;
-};
-
-export const useWholesalers = (): WholesalersContextType => {
-  const context = useContext(WholesalersContext);
-  if (!context) {
-    throw new Error('useWholesalers must be used within a WholesalersProvider');
-  }
-  return context;
 };

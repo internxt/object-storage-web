@@ -1,7 +1,6 @@
 import { Usage } from '../services/usage.service';
 
-const toCommaDecimal = (value: number, decimals: number): string =>
-  value.toFixed(decimals).replace('.', ',');
+const toCommaDecimal = (value: number, decimals: number): string => value.toFixed(decimals).replace('.', ',');
 
 export const downloadBlob = (blob: Blob, filename: string): void => {
   const url = URL.createObjectURL(blob);
@@ -18,11 +17,7 @@ export const downloadBlob = (blob: Blob, filename: string): void => {
  * @param numericFields Set of field names whose values should use comma as decimal separator.
  * @param filename      Filename without extension.
  */
-export const exportAsCSV = (
-  data: Record<string, unknown>[],
-  numericFields: Set<string>,
-  filename: string,
-): void => {
+export const exportAsCSV = (data: Record<string, unknown>[], numericFields: Set<string>, filename: string): void => {
   if (data.length === 0) return;
 
   const headers = Object.keys(data[0]);
@@ -30,9 +25,7 @@ export const exportAsCSV = (
     headers
       .map((h) => {
         const val = row[h] ?? '';
-        return numericFields.has(h) && typeof val === 'number'
-          ? toCommaDecimal(val, 9)
-          : String(val);
+        return numericFields.has(h) && typeof val === 'number' ? toCommaDecimal(val, 9) : String(val);
       })
       .join(';'),
   );
@@ -134,20 +127,12 @@ const transformUsageData = (usageData: Usage[]): Record<string, unknown>[] =>
     'Storage Read (TB)': (usage.storageRead || 0) / 1024,
   }));
 
-export const generateExportFilename = (
-  startDate: string,
-  endDate: string,
-  prefix = 'account_usage_export',
-): string => {
+export const generateExportFilename = (startDate: string, endDate: string, prefix = 'account_usage_export'): string => {
   const fmt = (d: string) => new Date(d).toISOString().split('T')[0];
   return `${prefix}_${fmt(startDate)}_to_${fmt(endDate)}`;
 };
 
-export const exportUsageData = (
-  usageData: Usage[],
-  startDate: string,
-  endDate: string,
-): void => {
+export const exportUsageData = (usageData: Usage[], startDate: string, endDate: string): void => {
   const data = transformUsageData(usageData);
   const filename = generateExportFilename(startDate, endDate);
   exportAsCSV(data, USAGE_NUMERIC_FIELDS, filename);

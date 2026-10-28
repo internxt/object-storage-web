@@ -54,7 +54,16 @@ describe('managementService', () => {
     test('when the backend returns a bare array (no pagination envelope), then it still maps the rows', async () => {
       managementAxios.defaults.adapter = mockAdapter(() => ({
         status: 200,
-        data: [{ id: 'sa-1', email: 'a@b.com', status: 'DELETED', activeStorageBytes: 0, deletedStorageBytes: 0, createdAt: '' }],
+        data: [
+          {
+            id: 'sa-1',
+            email: 'a@b.com',
+            status: 'DELETED',
+            activeStorageBytes: 0,
+            deletedStorageBytes: 0,
+            createdAt: '',
+          },
+        ],
       }));
 
       const result = await managementService.getSubAccounts({});

@@ -16,10 +16,11 @@ function removeToken(): void {
 }
 
 async function logIn(email: string, password: string, code?: string): Promise<{ twoFactorSetupRequired: boolean }> {
-  const response = await partnersAxios.post<{ token: string; twoFactorSetupRequired: boolean }>(
-    '/partners/login',
-    { email, password, code }
-  );
+  const response = await partnersAxios.post<{ token: string; twoFactorSetupRequired: boolean }>('/partners/login', {
+    email,
+    password,
+    code,
+  });
   setToken(response.data.token);
   return { twoFactorSetupRequired: response.data.twoFactorSetupRequired };
 }
@@ -28,11 +29,7 @@ async function requestPasswordReset(email: string): Promise<void> {
   const captchaHeaders = await captchaService.tryGetHeaders('ForgotPassword');
 
   try {
-    await partnersAxios.post(
-      '/partners/forgot-password',
-      { email },
-      { headers: captchaHeaders },
-    );
+    await partnersAxios.post('/partners/forgot-password', { email }, { headers: captchaHeaders });
   } catch (err) {
     if (captchaService.isCaptchaRejection(err)) throw new CaptchaUnavailableError();
     throw err;

@@ -1,17 +1,17 @@
-import { JSX, useEffect, useState } from 'react'
-import Button from './Button'
+import { JSX, useEffect, useState } from 'react';
+import Button from './Button';
 
 export interface DialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onPrimaryAction: () => void
-  onSecondaryAction: () => void
-  title: string
-  subtitle: string
-  primaryAction: string
-  secondaryAction: string
-  primaryActionColor: 'primary' | 'danger'
-  isLoading?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  onPrimaryAction: () => void;
+  onSecondaryAction: () => void;
+  title: string;
+  subtitle: string;
+  primaryAction: string;
+  secondaryAction: string;
+  primaryActionColor: 'primary' | 'danger';
+  isLoading?: boolean;
 }
 
 /**
@@ -63,53 +63,49 @@ const Dialog = ({
   primaryActionColor,
   isLoading,
 }: DialogProps): JSX.Element => {
-  const [isVisible, setIsVisible] = useState(isOpen)
-  const [transitionOpacity, setTransitionOpacity] =
-    useState<string>('opacity-0')
-  const [transitionScale, setTransitionScale] = useState<string>('scale-95')
+  const [isVisible, setIsVisible] = useState(isOpen);
+  const [transitionOpacity, setTransitionOpacity] = useState<string>('opacity-0');
+  const [transitionScale, setTransitionScale] = useState<string>('scale-95');
 
   useEffect(() => {
     if (isOpen) {
       const timeout = setTimeout(() => {
-        setTransitionOpacity('opacity-100')
-        setTransitionScale('scale-100')
-      }, 10)
-      setIsVisible(true)
-      return () => clearTimeout(timeout)
+        setTransitionOpacity('opacity-100');
+        setTransitionScale('scale-100');
+      }, 10);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsVisible(true);
+      return () => clearTimeout(timeout);
     } else {
-      setTransitionOpacity('opacity-0')
-      setTransitionScale('scale-95')
+      setTransitionOpacity('opacity-0');
+      setTransitionScale('scale-95');
       const timeout = setTimeout(() => {
-        setIsVisible(false)
-      }, 150)
-      return () => clearTimeout(timeout)
+        setIsVisible(false);
+      }, 150);
+      return () => clearTimeout(timeout);
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onClose()
+        onClose();
       }
-    }
+    };
 
     if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown)
+      window.addEventListener('keydown', handleKeyDown);
     }
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isOpen, onClose])
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   return (
     <>
       {isVisible && (
-        <div
-          className={`fixed inset-0 z-50 ${
-            isOpen ? '' : 'pointer-events-none'
-          }`}
-        >
+        <div className={`fixed inset-0 z-50 ${isOpen ? '' : 'pointer-events-none'}`}>
           <div
             className={`absolute inset-0 bg-gray-100/50 transition-opacity
              duration-150 dark:bg-black/75
@@ -141,19 +137,13 @@ const Dialog = ({
             </div>
 
             <div className="mt-5 flex justify-end space-x-2">
-              <Button
-                variant="secondary"
-                onClick={onSecondaryAction}
-                disabled={isLoading}
-              >
+              <Button variant="secondary" onClick={onSecondaryAction} disabled={isLoading}>
                 {secondaryAction}
               </Button>
               <Button
                 onClick={onPrimaryAction}
                 loading={isLoading}
-                variant={
-                  primaryActionColor === 'primary' ? 'primary' : 'destructive'
-                }
+                variant={primaryActionColor === 'primary' ? 'primary' : 'destructive'}
               >
                 {primaryAction}
               </Button>
@@ -162,7 +152,7 @@ const Dialog = ({
         </div>
       )}
     </>
-  )
-}
+  );
+};
 
-export default Dialog
+export default Dialog;

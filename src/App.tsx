@@ -1,9 +1,4 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthRoute } from './components/AuthRoute';
 import { BucketsPage } from './views/BucketsPage';
 import { LoginPage } from './views/LoginPage';
@@ -64,77 +59,77 @@ export function App() {
       <ManagementProvider>
         <PartnersProvider>
           <WholesalersProvider>
-          <SubAccountProvider>
-          <SubAccountBrandingProvider>
-            <Router>
-            <Routes>
-              <Route path='/login' element={<LoginPage />} />
+            <SubAccountProvider>
+              <SubAccountBrandingProvider>
+                <Router>
+                  <Routes>
+                    <Route path="/login" element={<LoginPage />} />
 
-              <Route element={<AuthRoute />}>
-                <Route path='/buckets' element={<BucketsPage />} />
-                <Route path='/settings/:tab' element={<SettingsPage />} />
-                <Route path='/usage' element={<UsagePage />} />
-              </Route>
+                    <Route element={<AuthRoute />}>
+                      <Route path="/buckets" element={<BucketsPage />} />
+                      <Route path="/settings/:tab" element={<SettingsPage />} />
+                      <Route path="/usage" element={<UsagePage />} />
+                    </Route>
 
-              <Route path='/' element={<Navigate to={getLoginPathForHost()} />} />
+                    <Route path="/" element={<Navigate to={getLoginPathForHost()} />} />
 
-              {/* Share links */}
-              <Route path='/share/:token' element={<SharePage />} />
+                    {/* Share links */}
+                    <Route path="/share/:token" element={<SharePage />} />
 
-              {/* Management console */}
-              <Route path='/management/login' element={<ManagementLoginPage />} />
-              <Route element={<ManagementAuthRoute />}>
-                <Route path='/management/accounts' element={<AccountsPage />} />
-                <Route path='/management/accounts/:id' element={<ManagementSubAccountDetailPage />} />
-                <Route path='/management/partners' element={<PartnersPage />} />
-                <Route path='/management/partners/:id' element={<PartnerDetailPage />} />
-                <Route path='/management/wholesalers' element={<WholesalersPage />} />
-                <Route path='/management/settings' element={<ManagementSettingsPage />} />
-              </Route>
-              <Route path='/management' element={<Navigate to='/management/accounts' />} />
+                    {/* Management console */}
+                    <Route path="/management/login" element={<ManagementLoginPage />} />
+                    <Route element={<ManagementAuthRoute />}>
+                      <Route path="/management/accounts" element={<AccountsPage />} />
+                      <Route path="/management/accounts/:id" element={<ManagementSubAccountDetailPage />} />
+                      <Route path="/management/partners" element={<PartnersPage />} />
+                      <Route path="/management/partners/:id" element={<PartnerDetailPage />} />
+                      <Route path="/management/wholesalers" element={<WholesalersPage />} />
+                      <Route path="/management/settings" element={<ManagementSettingsPage />} />
+                    </Route>
+                    <Route path="/management" element={<Navigate to="/management/accounts" />} />
 
-              {/* Partners console */}
-              <Route path='/partners/login' element={<PartnersLoginPage />} />
-              <Route path='/partners/forgot-password' element={<PartnersForgotPasswordPage />} />
-              <Route path='/partners/reset-password' element={<PartnersResetPasswordPage />} />
-              <Route element={<PartnersAuthRoute />}>
-                <Route path='/partners' element={<Navigate to='/partners/sub-accounts' />} />
-                <Route path='/partners/sub-accounts' element={<PartnersSubAccountsPage />} />
-                <Route path='/partners/sub-accounts/:id' element={<PartnersSubAccountDetailPage />} />
-                <Route path='/partners/settings' element={<PartnersSettingsPage />} />
-              </Route>
+                    {/* Partners console */}
+                    <Route path="/partners/login" element={<PartnersLoginPage />} />
+                    <Route path="/partners/forgot-password" element={<PartnersForgotPasswordPage />} />
+                    <Route path="/partners/reset-password" element={<PartnersResetPasswordPage />} />
+                    <Route element={<PartnersAuthRoute />}>
+                      <Route path="/partners" element={<Navigate to="/partners/sub-accounts" />} />
+                      <Route path="/partners/sub-accounts" element={<PartnersSubAccountsPage />} />
+                      <Route path="/partners/sub-accounts/:id" element={<PartnersSubAccountDetailPage />} />
+                      <Route path="/partners/settings" element={<PartnersSettingsPage />} />
+                    </Route>
 
-              {/* Wholesalers console — hidden behind a feature flag until the panel ships */}
-              {import.meta.env.VITE_ENABLE_WHOLESALER_PANEL === 'true' && (
-                <>
-                  <Route path='/wholesalers/login' element={<WholesalersLoginPage />} />
-                  <Route element={<WholesalersAuthRoute />}>
-                    <Route path='/wholesalers' element={<Navigate to='/wholesalers/partners' />} />
-                    <Route path='/wholesalers/partners' element={<WholesalersPartnersPage />} />
-                    <Route path='/wholesalers/partners/:id' element={<WholesalersPartnerDetailPage />} />
-                    <Route path='/wholesalers/settings' element={<WholesalersSettingsPage />} />
-                  </Route>
-                </>
-              )}
+                    {/* Wholesalers console — hidden behind a feature flag until the panel ships */}
+                    {import.meta.env.VITE_ENABLE_WHOLESALER_PANEL === 'true' && (
+                      <>
+                        <Route path="/wholesalers/login" element={<WholesalersLoginPage />} />
+                        <Route element={<WholesalersAuthRoute />}>
+                          <Route path="/wholesalers" element={<Navigate to="/wholesalers/partners" />} />
+                          <Route path="/wholesalers/partners" element={<WholesalersPartnersPage />} />
+                          <Route path="/wholesalers/partners/:id" element={<WholesalersPartnerDetailPage />} />
+                          <Route path="/wholesalers/settings" element={<WholesalersSettingsPage />} />
+                        </Route>
+                      </>
+                    )}
 
-              {/* Sub-account console */}
-              <Route path='/subaccount/login' element={<SubAccountLoginPage />} />
-              <Route path='/subaccount/forgot-password' element={<SubAccountForgotPasswordPage />} />
-              <Route path='/subaccount/reset-password' element={<SubAccountResetPasswordPage />} />
-              <Route element={<SubAccountAuthRoute />}>
-                <Route path='/subaccount/buckets' element={<SubAccountBucketsPage />} />
-                <Route path='/subaccount/buckets/:bucketName' element={<SubAccountBucketDetailPage />} />
-                <Route path='/subaccount/usage' element={<SubAccountUsagePage />} />
-                <Route path='/subaccount/shared' element={<SubAccountSharedPage />} />
-                <Route path='/subaccount/settings' element={<SubAccountSettingsPage />} />
-              </Route>
-              <Route path='/subaccount' element={<Navigate to='/subaccount/buckets' />} />
+                    {/* Sub-account console */}
+                    <Route path="/subaccount/login" element={<SubAccountLoginPage />} />
+                    <Route path="/subaccount/forgot-password" element={<SubAccountForgotPasswordPage />} />
+                    <Route path="/subaccount/reset-password" element={<SubAccountResetPasswordPage />} />
+                    <Route element={<SubAccountAuthRoute />}>
+                      <Route path="/subaccount/buckets" element={<SubAccountBucketsPage />} />
+                      <Route path="/subaccount/buckets/:bucketName" element={<SubAccountBucketDetailPage />} />
+                      <Route path="/subaccount/usage" element={<SubAccountUsagePage />} />
+                      <Route path="/subaccount/shared" element={<SubAccountSharedPage />} />
+                      <Route path="/subaccount/settings" element={<SubAccountSettingsPage />} />
+                    </Route>
+                    <Route path="/subaccount" element={<Navigate to="/subaccount/buckets" />} />
 
-              {/* <Route path="*" element={<NotFoundPage />} /> */}
-            </Routes>
-            </Router>
-          </SubAccountBrandingProvider>
-          </SubAccountProvider>
+                    {/* <Route path="*" element={<NotFoundPage />} /> */}
+                  </Routes>
+                </Router>
+              </SubAccountBrandingProvider>
+            </SubAccountProvider>
           </WholesalersProvider>
         </PartnersProvider>
       </ManagementProvider>

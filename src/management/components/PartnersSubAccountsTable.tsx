@@ -1,30 +1,30 @@
-import { useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { useNavigate } from 'react-router-dom'
-import { DotsThree, InfoIcon, WarningIcon } from '@phosphor-icons/react'
-import { SubAccount } from '../services/management.service'
-import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable'
-import { ConfirmActionModal } from './ConfirmActionModal'
-import { ChangePasswordModal } from './ChangePasswordModal'
-import { EditClientNameModal } from '../../components/EditClientNameModal'
-import { PartnerInfo } from '../../partners/services/partners.service'
-import { T, shadow } from '../../sub-account/tokens'
-import { StatusBadge } from '../../components/StatusBadge'
-import { getStorageLimitStatus, StorageLimit, STORAGE_LIMIT_LABELS, toStorageLimit } from '../../utils/storageLimits'
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
+import { DotsThree, InfoIcon, WarningIcon } from '@phosphor-icons/react';
+import { SubAccount } from '../services/management.service';
+import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable';
+import { ConfirmActionModal } from './ConfirmActionModal';
+import { ChangePasswordModal } from './ChangePasswordModal';
+import { EditClientNameModal } from '../../components/EditClientNameModal';
+import { PartnerInfo } from '../../partners/services/partners.service';
+import { T, shadow } from '../../sub-account/tokens';
+import { StatusBadge } from '../../components/StatusBadge';
+import { getStorageLimitStatus, StorageLimit, STORAGE_LIMIT_LABELS, toStorageLimit } from '../../utils/storageLimits';
 
 interface Props {
-  subAccounts: SubAccount[]
-  partnerInfo?: PartnerInfo | null
-  onSuspend: (id: string) => void
-  onReactivate: (id: string) => void
-  onDelete: (id: string) => void
-  onChangePassword: (id: string, newPassword: string) => Promise<void>
-  onRename: (id: string, name: string) => Promise<void>
-  isLoading: boolean
-  pendingAccountId?: string | null
-  sortOrder?: SortOrder
-  onSortActiveStorage?: (order: SortOrder) => void
-  readOnly?: boolean
+  subAccounts: SubAccount[];
+  partnerInfo?: PartnerInfo | null;
+  onSuspend: (id: string) => void;
+  onReactivate: (id: string) => void;
+  onDelete: (id: string) => void;
+  onChangePassword: (id: string, newPassword: string) => Promise<void>;
+  onRename: (id: string, name: string) => Promise<void>;
+  isLoading: boolean;
+  pendingAccountId?: string | null;
+  sortOrder?: SortOrder;
+  onSortActiveStorage?: (order: SortOrder) => void;
+  readOnly?: boolean;
 }
 
 const formatDate = (date?: string) =>
@@ -34,17 +34,25 @@ const formatDate = (date?: string) =>
         month: 'short',
         year: 'numeric',
       })
-    : '—'
+    : '—';
 
 const formatStorage = (value?: number) => {
-  if (value == null) return '—'
-  if (value === 0) return <span style={{ color: T.gray80 }}>0.00</span>
-  return value.toFixed(4)
-}
+  if (value == null) return '—';
+  if (value === 0) return <span style={{ color: T.gray80 }}>0.00</span>;
+  return value.toFixed(4);
+};
 
 const WARNING_COLOR = '#d97706';
 
-const LIMIT_TEXT_STYLE = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: T.gray50, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' } as const;
+const LIMIT_TEXT_STYLE = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 4,
+  fontSize: 12,
+  color: T.gray50,
+  whiteSpace: 'nowrap',
+  fontVariantNumeric: 'tabular-nums',
+} as const;
 
 const StorageLimitCell = ({ used, limit }: { used?: number; limit: StorageLimit }) => {
   if (limit.type === 'none') return <span style={{ fontSize: 13, color: T.gray50 }}>{STORAGE_LIMIT_LABELS.none}</span>;
@@ -58,14 +66,15 @@ const StorageLimitCell = ({ used, limit }: { used?: number; limit: StorageLimit 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 104 }}>
         {typeLabel}
         <span style={LIMIT_TEXT_STYLE}>
-          {usedTb.toFixed(2)} TB used · <span style={reached ? { color: T.gray100, fontWeight: 600 } : undefined}>alert at {limit.valueTb} TB</span>
+          {usedTb.toFixed(2)} TB used ·{' '}
+          <span style={reached ? { color: T.gray100, fontWeight: 600 } : undefined}>alert at {limit.valueTb} TB</span>
           {reached && (
             <span
               title={`Usage alert reached: ${usedTb.toFixed(2)} TB used, usage alert ${limit.valueTb} TB`}
-              aria-label='Usage alert reached'
+              aria-label="Usage alert reached"
               style={{ display: 'inline-flex', flexShrink: 0 }}
             >
-              <WarningIcon size={14} weight='fill' color={WARNING_COLOR} />
+              <WarningIcon size={14} weight="fill" color={WARNING_COLOR} />
             </span>
           )}
         </span>
@@ -96,50 +105,48 @@ const ActionsMenu = ({
   onChangePassword,
   onRename,
 }: {
-  account: SubAccount
-  canChangePassword: boolean
-  onSuspend: (id: string) => void
-  onReactivate: (id: string) => void
-  onDelete: (id: string) => void
-  onChangePassword: (id: string, newPassword: string) => Promise<void>
-  onRename: (id: string, name: string) => Promise<void>
+  account: SubAccount;
+  canChangePassword: boolean;
+  onSuspend: (id: string) => void;
+  onReactivate: (id: string) => void;
+  onDelete: (id: string) => void;
+  onChangePassword: (id: string, newPassword: string) => Promise<void>;
+  onRename: (id: string, name: string) => Promise<void>;
 }) => {
-  const [open, setOpen] = useState(false)
-  const [coords, setCoords] = useState({ top: 0, right: 0 })
-  const [confirmAction, setConfirmAction] = useState<
-    'suspend' | 'reactivate' | 'delete' | null
-  >(null)
-  const [changePasswordOpen, setChangePasswordOpen] = useState(false)
-  const [renameOpen, setRenameOpen] = useState(false)
-  const btnRef = useRef<HTMLButtonElement>(null)
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, right: 0 });
+  const [confirmAction, setConfirmAction] = useState<'suspend' | 'reactivate' | 'delete' | null>(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   const handleOpen = () => {
     if (btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect()
-      setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+      const rect = btnRef.current.getBoundingClientRect();
+      setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
     }
-    setOpen((o) => !o)
-  }
+    setOpen((o) => !o);
+  };
 
   useEffect(() => {
-    if (!open) return
-    const close = () => setOpen(false)
-    window.addEventListener('scroll', close, true)
-    window.addEventListener('resize', close)
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
     return () => {
-      window.removeEventListener('scroll', close, true)
-      window.removeEventListener('resize', close)
-    }
-  }, [open])
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [open]);
 
   const handleConfirm = () => {
-    if (confirmAction === 'suspend') onSuspend(account.id)
-    else if (confirmAction === 'reactivate') onReactivate(account.id)
-    else if (confirmAction === 'delete') onDelete(account.id)
-    setConfirmAction(null)
-  }
+    if (confirmAction === 'suspend') onSuspend(account.id);
+    else if (confirmAction === 'reactivate') onReactivate(account.id);
+    else if (confirmAction === 'delete') onDelete(account.id);
+    setConfirmAction(null);
+  };
 
-  if (account.status === 'DELETED' || account.status === 'PENDING_DELETION') return null
+  if (account.status === 'DELETED' || account.status === 'PENDING_DELETION') return null;
 
   return (
     <div>
@@ -155,12 +162,12 @@ const ActionsMenu = ({
           cursor: 'pointer',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.color = T.gray80
-          e.currentTarget.style.background = T.gray10
+          e.currentTarget.style.color = T.gray80;
+          e.currentTarget.style.background = T.gray10;
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.color = T.gray50
-          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = T.gray50;
+          e.currentTarget.style.background = 'transparent';
         }}
       >
         <DotsThree size={17} weight="bold" />
@@ -168,10 +175,7 @@ const ActionsMenu = ({
       {open &&
         createPortal(
           <>
-            <div
-              style={{ position: 'fixed', inset: 0, zIndex: 40 }}
-              onClick={() => setOpen(false)}
-            />
+            <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
             <div
               style={{
                 position: 'fixed',
@@ -189,8 +193,8 @@ const ActionsMenu = ({
             >
               <button
                 onClick={() => {
-                  setRenameOpen(true)
-                  setOpen(false)
+                  setRenameOpen(true);
+                  setOpen(false);
                 }}
                 style={{
                   display: 'block',
@@ -204,10 +208,10 @@ const ActionsMenu = ({
                   cursor: 'pointer',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = T.gray5
+                  e.currentTarget.style.background = T.gray5;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.background = 'transparent';
                 }}
               >
                 Edit name
@@ -221,18 +225,17 @@ const ActionsMenu = ({
                   padding: '0 8px 0 0',
                 }}
                 onMouseEnter={(e) => {
-                  if (canChangePassword)
-                    e.currentTarget.style.background = T.gray5
+                  if (canChangePassword) e.currentTarget.style.background = T.gray5;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.background = 'transparent';
                 }}
               >
                 <button
                   onClick={() => {
-                    if (!canChangePassword) return
-                    setChangePasswordOpen(true)
-                    setOpen(false)
+                    if (!canChangePassword) return;
+                    setChangePasswordOpen(true);
+                    setOpen(false);
                   }}
                   disabled={!canChangePassword}
                   style={{
@@ -261,8 +264,8 @@ const ActionsMenu = ({
               {account.status !== 'SUSPENDED' ? (
                 <button
                   onClick={() => {
-                    setConfirmAction('suspend')
-                    setOpen(false)
+                    setConfirmAction('suspend');
+                    setOpen(false);
                   }}
                   style={{
                     display: 'block',
@@ -276,10 +279,10 @@ const ActionsMenu = ({
                     cursor: 'pointer',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#fef2f2'
+                    e.currentTarget.style.background = '#fef2f2';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent'
+                    e.currentTarget.style.background = 'transparent';
                   }}
                 >
                   Suspend
@@ -287,8 +290,8 @@ const ActionsMenu = ({
               ) : (
                 <button
                   onClick={() => {
-                    setConfirmAction('reactivate')
-                    setOpen(false)
+                    setConfirmAction('reactivate');
+                    setOpen(false);
                   }}
                   style={{
                     display: 'block',
@@ -302,23 +305,21 @@ const ActionsMenu = ({
                     cursor: 'pointer',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#ecfdf5'
+                    e.currentTarget.style.background = '#ecfdf5';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent'
+                    e.currentTarget.style.background = 'transparent';
                   }}
                 >
                   Reactivate
                 </button>
               )}
 
-              <div
-                style={{ height: 1, background: T.gray15, margin: '4px 0' }}
-              />
+              <div style={{ height: 1, background: T.gray15, margin: '4px 0' }} />
               <button
                 onClick={() => {
-                  setConfirmAction('delete')
-                  setOpen(false)
+                  setConfirmAction('delete');
+                  setOpen(false);
                 }}
                 style={{
                   display: 'block',
@@ -332,10 +333,10 @@ const ActionsMenu = ({
                   cursor: 'pointer',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#fef2f2'
+                  e.currentTarget.style.background = '#fef2f2';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.background = 'transparent';
                 }}
               >
                 Delete
@@ -383,8 +384,8 @@ const ActionsMenu = ({
         onSubmit={(name) => onRename(account.id, name)}
       />
     </div>
-  )
-}
+  );
+};
 
 export const PartnersSubAccountsTable = ({
   subAccounts,
@@ -400,14 +401,14 @@ export const PartnersSubAccountsTable = ({
   onSortActiveStorage,
   readOnly = false,
 }: Props) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   /**
    * The partner can update the password if the sub account is not automatically
    * created by, for example, an external service.
    * In other words, if this this value is false, then the sub account is created
    * manually and the password can be updated
    */
-  const canChangePassword = !partnerInfo?.automaticSubAccountCreationEnabled
+  const canChangePassword = !partnerInfo?.automaticSubAccountCreationEnabled;
 
   const linkStyle: React.CSSProperties = {
     fontSize: 13,
@@ -415,7 +416,7 @@ export const PartnersSubAccountsTable = ({
     textDecoration: 'underline',
     textUnderlineOffset: 2,
     cursor: 'pointer',
-  }
+  };
 
   const columns: ColumnDef[] = [
     {
@@ -435,17 +436,11 @@ export const PartnersSubAccountsTable = ({
     },
     {
       header: 'Name',
-      cell: (acc) => (
-        <span style={{ fontSize: 14, color: acc.name ? T.gray80 : T.gray50 }}>
-          {acc.name ?? '—'}
-        </span>
-      ),
+      cell: (acc) => <span style={{ fontSize: 14, color: acc.name ? T.gray80 : T.gray50 }}>{acc.name ?? '—'}</span>,
     },
     {
       header: 'Account Email',
-      cell: (acc) => (
-        <span style={{ color: T.gray60, fontSize: 14 }}>{acc.email}</span>
-      ),
+      cell: (acc) => <span style={{ color: T.gray60, fontSize: 14 }}>{acc.email}</span>,
     },
     {
       header: 'Active Storage (TB)',
@@ -480,14 +475,14 @@ export const PartnersSubAccountsTable = ({
     },
     {
       header: 'Storage Limit',
-      cell: (acc) => <StorageLimitCell used={acc.activeStorage} limit={toStorageLimit(acc.storageQuotaTb, acc.usageAlertTb)} />,
+      cell: (acc) => (
+        <StorageLimitCell used={acc.activeStorage} limit={toStorageLimit(acc.storageQuotaTb, acc.usageAlertTb)} />
+      ),
     },
     {
       header: 'Created',
       cell: (acc) => (
-        <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>
-          {formatDate(acc.creationDate)}
-        </span>
+        <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>{formatDate(acc.creationDate)}</span>
       ),
     },
     {
@@ -538,7 +533,7 @@ export const PartnersSubAccountsTable = ({
           },
         ]
       : []),
-  ]
+  ];
 
   return (
     <SubAccountsTable
@@ -548,5 +543,5 @@ export const PartnersSubAccountsTable = ({
       sortOrder={sortOrder}
       onSortActiveStorage={onSortActiveStorage}
     />
-  )
-}
+  );
+};

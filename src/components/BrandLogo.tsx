@@ -30,6 +30,7 @@ export function BrandLogo({
   const source = logoUrl ?? fallbackLogoUrl;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadFailed(false);
   }, [source]);
 

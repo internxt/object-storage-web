@@ -1,34 +1,32 @@
-import { useEffect, useState } from 'react'
-import { bucketsService, Region } from '../../services/buckets.service'
-import notificationsService from '../../services/notifications.service'
-import { LoadingRowSkeleton } from '../../components/LoadingSkeleton'
-import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion'
-import { Separator } from '../../components/Separator'
-import { apiErrorMessage } from '../../utils/apiError'
+import { useEffect, useState } from 'react';
+import { bucketsService, Region } from '../../services/buckets.service';
+import notificationsService from '../../services/notifications.service';
+import { LoadingRowSkeleton } from '../../components/LoadingSkeleton';
+import { getFlagAndNameFromRegion } from '../../utils/getFlagAndNameFromRegion';
+import { Separator } from '../../components/Separator';
+import { apiErrorMessage } from '../../utils/apiError';
 
-const TABLE_COLUMNS_COUNT = 3
+const TABLE_COLUMNS_COUNT = 3;
 
 export const Regions = () => {
-  const [regions, setRegions] = useState<Region[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    setIsLoading(true)
-
     bucketsService
       .getRegions()
       .then((regions) => {
-        setRegions(regions)
+        setRegions(regions);
       })
       .catch((err) => {
         notificationsService.error({
           text: apiErrorMessage(err, 'Failed to load regions'),
-        })
+        });
       })
       .finally(() => {
-        setIsLoading(false)
-      })
-  }, [])
+        setIsLoading(false);
+      });
+  }, []);
 
   return (
     <div className="flex flex-col rounded-md bg-white gap-7 p-7">
@@ -45,23 +43,16 @@ export const Regions = () => {
           </tr>
         </thead>
         <tbody>
-          {isLoading && (
-            <LoadingRowSkeleton numberOfColumns={3} numberOfRows={3} />
-          )}
+          {isLoading && <LoadingRowSkeleton numberOfColumns={3} numberOfRows={3} />}
           {!isLoading && (
             <>
               {regions.length > 0 ? (
                 regions.map((region) => (
-                  <tr
-                    className="w-full h-12 text-sm text-gray-500"
-                    key={region.id}
-                  >
+                  <tr className="w-full h-12 text-sm text-gray-500" key={region.id}>
                     <td className="pl-5">
                       <div className="flex flex-row gap-2 items-center">
                         <p>{getFlagAndNameFromRegion(region.region).flag}</p>
-                        <p className="text-black">
-                          {getFlagAndNameFromRegion(region.region).name}
-                        </p>
+                        <p className="text-black">{getFlagAndNameFromRegion(region.region).name}</p>
                       </div>
                     </td>
                     <td className="w-[80%] px-5">
@@ -77,25 +68,16 @@ export const Regions = () => {
                     <td className="px-5">
                       <div className="flex flex-row items-center gap-3">
                         <div className="h-3 w-3 rounded-full border border-black/30 p-[1px]">
-                          <div
-                            className={`h-full w-full rounded-full  ${
-                              region.enabled ? 'bg-green' : 'bg-red'
-                            }`}
-                          />
+                          <div className={`h-full w-full rounded-full  ${region.enabled ? 'bg-green' : 'bg-red'}`} />
                         </div>
-                        <p className="text-sm">
-                          {region.enabled ? 'Active' : 'Inactive'}
-                        </p>
+                        <p className="text-sm">{region.enabled ? 'Active' : 'Inactive'}</p>
                       </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td
-                    className="text-center py-4 text-sm text-gray-400"
-                    colSpan={TABLE_COLUMNS_COUNT}
-                  >
+                  <td className="text-center py-4 text-sm text-gray-400" colSpan={TABLE_COLUMNS_COUNT}>
                     There are no results to show
                   </td>
                 </tr>
@@ -105,5 +87,5 @@ export const Regions = () => {
         </tbody>
       </table>
     </div>
-  )
-}
+  );
+};

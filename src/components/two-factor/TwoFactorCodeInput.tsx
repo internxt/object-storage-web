@@ -1,12 +1,12 @@
-import Input from '../Input'
+import Input from '../Input';
 
-export const TWO_FACTOR_CODE_LENGTH = 6
+export const TWO_FACTOR_CODE_LENGTH = 6;
 
 interface TwoFactorCodeInputProps {
-  value: string
-  onChange: (code: string) => void
-  placeholder?: string
-  error?: string
+  value: string;
+  onChange: (code: string) => void;
+  placeholder?: string;
+  error?: string;
 }
 
 export const TwoFactorCodeInput = ({ value, onChange, placeholder, error }: TwoFactorCodeInputProps) => (
@@ -20,4 +20,4 @@ export const TwoFactorCodeInput = ({ value, onChange, placeholder, error }: TwoF
     accent={error ? 'error' : undefined}
     message={error}
   />
-)
+);

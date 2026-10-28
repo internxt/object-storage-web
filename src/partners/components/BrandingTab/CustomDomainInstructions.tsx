@@ -2,17 +2,7 @@ import { T, text } from '../../../sub-account/tokens';
 
 const EXAMPLE_HOSTNAME = 'panel.yourdomain.com';
 
-function Record({
-  title,
-  purpose,
-  name,
-  value,
-}: {
-  title: string;
-  purpose: string;
-  name: string;
-  value: string;
-}) {
+function Record({ title, purpose, name, value }: { title: string; purpose: string; name: string; value: string }) {
   return (
     <div>
       <p style={{ ...text.bodyMed, margin: '0 0 2px' }}>{title}</p>
@@ -31,9 +21,15 @@ function Record({
           gap: 2,
         }}
       >
-        <div><span style={{ color: T.gray50 }}>Type:</span> CNAME</div>
-        <div style={{ wordBreak: 'break-all' }}><span style={{ color: T.gray50 }}>Name:</span> {name}</div>
-        <div style={{ wordBreak: 'break-all' }}><span style={{ color: T.gray50 }}>Value:</span> {value}</div>
+        <div>
+          <span style={{ color: T.gray50 }}>Type:</span> CNAME
+        </div>
+        <div style={{ wordBreak: 'break-all' }}>
+          <span style={{ color: T.gray50 }}>Name:</span> {name}
+        </div>
+        <div style={{ wordBreak: 'break-all' }}>
+          <span style={{ color: T.gray50 }}>Value:</span> {value}
+        </div>
       </div>
     </div>
   );
@@ -49,12 +45,16 @@ export function CustomDomainInstructions({ hostname }: { hostname?: string }) {
       </summary>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 12 }}>
         <p style={{ ...text.hint, margin: 0 }}>
-          To use a custom domain, create a CNAME record with whoever manages your domain's DNS
-          (Cloudflare, GoDaddy, Route 53, etc.).{' '}
+          To use a custom domain, create a CNAME record with whoever manages your domain's DNS (Cloudflare, GoDaddy,
+          Route 53, etc.).{' '}
           {hostname ? (
-            <>Using the hostname you entered above, <code>{hostname}</code>.</>
+            <>
+              Using the hostname you entered above, <code>{hostname}</code>.
+            </>
           ) : (
-            <>This example uses <code>{EXAMPLE_HOSTNAME}</code> — replace it with the hostname you configure above.</>
+            <>
+              This example uses <code>{EXAMPLE_HOSTNAME}</code> — replace it with the hostname you configure above.
+            </>
           )}
         </p>
 
@@ -73,9 +73,9 @@ export function CustomDomainInstructions({ hostname }: { hostname?: string }) {
               orange/proxied), or this won't work.
             </li>
             <li>
-              DNS changes can take a while to propagate. If verification doesn't succeed right after creating
-              the record, wait a bit and try again before reaching out, if it's still failing after a
-              reasonable amount of time, contact us via support.
+              DNS changes can take a while to propagate. If verification doesn't succeed right after creating the
+              record, wait a bit and try again before reaching out, if it's still failing after a reasonable amount of
+              time, contact us via support.
             </li>
           </ul>
         </div>

@@ -2,12 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
-import {
-  MemberEmailField,
-  MemberPasswordField,
-  memberEmailError,
-  memberPasswordError,
-} from '../../components/MemberCredentialFields';
+import { MemberEmailField, MemberPasswordField } from '../../components/MemberCredentialFields';
+import { memberEmailError, memberPasswordError } from '../../components/memberValidation';
 import { PASSWORD_MIN_LENGTH } from '../../components/auth/passwordPolicy';
 import { text, form } from '../tokens';
 
@@ -27,6 +23,7 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
 
   useEffect(() => {
     if (!isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEmail('');
       setPassword('');
       setRole('standard');
@@ -40,8 +37,7 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
     passwordPolicy: t('addMemberModal.passwordPolicy'),
   };
 
-  const canSubmit =
-    !memberEmailError(email) && (ssoEnabled || !memberPasswordError(password));
+  const canSubmit = !memberEmailError(email) && (ssoEnabled || !memberPasswordError(password));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,24 +75,22 @@ export const AddMemberModal = ({ isOpen, isLoading, ssoEnabled, onClose, onAdd }
             />
           </div>
         ) : (
-          <p style={form.hint}>
-            {t('addMemberModal.ssoHint')}
-          </p>
+          <p style={form.hint}>{t('addMemberModal.ssoHint')}</p>
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <label style={form.label}>{t('addMemberModal.roleLabel')}</label>
           <select value={role} onChange={(e) => setRole(e.target.value as 'admin' | 'standard')} style={form.select}>
-            <option value='standard'>{t('addMemberModal.roleStandard')}</option>
-            <option value='admin'>{t('addMemberModal.roleAdmin')}</option>
+            <option value="standard">{t('addMemberModal.roleStandard')}</option>
+            <option value="admin">{t('addMemberModal.roleAdmin')}</option>
           </select>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
-          <Button variant='secondary' type='button' onClick={onClose} disabled={isLoading}>
+          <Button variant="secondary" type="button" onClick={onClose} disabled={isLoading}>
             {t('actions.cancel')}
           </Button>
-          <Button type='submit' disabled={!canSubmit || isLoading} loading={isLoading}>
+          <Button type="submit" disabled={!canSubmit || isLoading} loading={isLoading}>
             {t('addMemberModal.submit')}
           </Button>
         </div>

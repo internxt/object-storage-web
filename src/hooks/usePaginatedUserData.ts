@@ -1,24 +1,24 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react';
 
 export const usePaginatedUsageData = <T>(data: T[], itemsPerPage = 20) => {
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const totalItems = data.length
-  const totalPages = Math.ceil(totalItems / itemsPerPage)
+  const totalItems = data.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return data.slice(startIndex, startIndex + itemsPerPage)
-  }, [data, currentPage, itemsPerPage])
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return data.slice(startIndex, startIndex + itemsPerPage);
+  }, [data, currentPage, itemsPerPage]);
 
   const pageInfo = useMemo(() => {
-    const from = (currentPage - 1) * itemsPerPage + 1
-    const to = Math.min(currentPage * itemsPerPage, totalItems)
+    const from = (currentPage - 1) * itemsPerPage + 1;
+    const to = Math.min(currentPage * itemsPerPage, totalItems);
     return {
       from,
       to,
-    }
-  }, [currentPage, itemsPerPage, totalItems])
+    };
+  }, [currentPage, itemsPerPage, totalItems]);
 
   return {
     currentPage,
@@ -29,5 +29,5 @@ export const usePaginatedUsageData = <T>(data: T[], itemsPerPage = 20) => {
     totalPages,
     hasNextPage: currentPage < totalPages,
     hasPrevPage: currentPage > 1,
-  }
-}
+  };
+};

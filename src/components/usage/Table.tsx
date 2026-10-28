@@ -58,11 +58,11 @@ export const UsageTable = ({ headers, bodyState, usage }: UsageTableProps) => {
   };
 
   return (
-    <table className='w-full'>
+    <table className="w-full">
       <thead>
-        <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
+        <tr className="w-full h-12 bg-gray-10 text-black text-sm">
           {headers.map((header) => (
-            <th key={header.key} className='px-5 text-left'>
+            <th key={header.key} className="px-5 text-left">
               {header.title}
             </th>
           ))}
@@ -70,30 +70,20 @@ export const UsageTable = ({ headers, bodyState, usage }: UsageTableProps) => {
       </thead>
       <tbody>
         {bodyState === 'loading' && (
-          <LoadingRowSkeleton
-            numberOfColumns={headers.length}
-            numberOfRows={5}
-            itemWidth='25%'
-          />
+          <LoadingRowSkeleton numberOfColumns={headers.length} numberOfRows={5} itemWidth="25%" />
         )}
         {bodyState === 'empty' && (
           <tr>
-            <td
-              colSpan={headers.length}
-              className='text-center py-4 text-sm text-gray-400'
-            >
+            <td colSpan={headers.length} className="text-center py-4 text-sm text-gray-400">
               There are no results to show
             </td>
           </tr>
         )}
         {bodyState === 'items' &&
           usage.map((usageItem) => (
-            <tr
-              key={usageItem.id}
-              className='w-full h-12 text-sm text-gray-500'
-            >
+            <tr key={usageItem.id} className="w-full h-12 text-sm text-gray-500">
               {headers.map((header) => (
-                <td key={header.key} className='px-5 text-left'>
+                <td key={header.key} className="px-5 text-left">
                   {renderCellValue(usageItem, header.key)}
                 </td>
               ))}

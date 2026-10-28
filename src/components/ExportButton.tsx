@@ -29,7 +29,7 @@ export const ExportButton = ({ onExport, successText, title, disabled = false, v
 
   return (
     <span title={title}>
-      <Button variant={variant} className='!text-sm' onClick={handleClick} disabled={disabled} loading={isExporting}>
+      <Button variant={variant} className="!text-sm" onClick={handleClick} disabled={disabled} loading={isExporting}>
         {!isExporting && <DownloadSimpleIcon size={16} />}
         <span>{isExporting ? 'Exporting…' : 'Export'}</span>
       </Button>

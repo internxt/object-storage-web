@@ -41,7 +41,7 @@ const PasswordField = ({
           }}
         />
         <button
-          type='button'
+          type="button"
           onClick={() => setShow((s) => !s)}
           aria-label={show ? 'Hide password' : 'Show password'}
           style={{
@@ -104,13 +104,9 @@ export const ChangePasswordForm = ({
   const [touched, setTouched] = useState({ newPassword: false, confirm: false });
   const [isSaving, setIsSaving] = useState(false);
 
-  const policyErrors = touched.newPassword
-    ? validatePassword(newPassword)
-    : [];
-  const sameAsCurrent =
-    touched.newPassword && newPassword.length > 0 && newPassword === current;
-  const mismatch =
-    touched.confirm && confirm.length > 0 && newPassword !== confirm;
+  const policyErrors = touched.newPassword ? validatePassword(newPassword) : [];
+  const sameAsCurrent = touched.newPassword && newPassword.length > 0 && newPassword === current;
+  const mismatch = touched.confirm && confirm.length > 0 && newPassword !== confirm;
 
   const isValid =
     current.length > 0 &&
@@ -143,15 +139,8 @@ export const ChangePasswordForm = ({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-    >
-      <PasswordField
-        label={copy.oldPassword}
-        value={current}
-        onChange={setCurrent}
-      />
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <PasswordField label={copy.oldPassword} value={current} onChange={setCurrent} />
 
       <PasswordField
         label={copy.newPassword}
@@ -163,15 +152,9 @@ export const ChangePasswordForm = ({
         }}
       />
 
-      {sameAsCurrent && (
-        <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-          {copy.sameAsCurrent}
-        </p>
-      )}
+      {sameAsCurrent && <p style={{ fontSize: 12, color: T.red, margin: 0 }}>{copy.sameAsCurrent}</p>}
 
-      {!sameAsCurrent && policyErrors.length > 0 && (
-        <PasswordRequirements errors={policyErrors} variant='list' />
-      )}
+      {!sameAsCurrent && policyErrors.length > 0 && <PasswordRequirements errors={policyErrors} variant="list" />}
 
       <PasswordField
         label={copy.confirmPassword}
@@ -183,17 +166,11 @@ export const ChangePasswordForm = ({
         }}
       />
 
-      {mismatch && (
-        <p style={{ fontSize: 12, color: T.red, margin: 0 }}>
-          {copy.mismatch}
-        </p>
-      )}
+      {mismatch && <p style={{ fontSize: 12, color: T.red, margin: 0 }}>{copy.mismatch}</p>}
 
-      <div
-        style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}
-      >
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
         <button
-          type='submit'
+          type="submit"
           disabled={isSaving || !isValid}
           style={{
             height: 40,

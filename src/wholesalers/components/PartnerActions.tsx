@@ -7,9 +7,14 @@ import { EditClientNameModal } from '../../components/EditClientNameModal';
 import { T, shadow } from '../../sub-account/tokens';
 
 const menuItemStyle: React.CSSProperties = {
-  display: 'block', width: '100%', textAlign: 'left',
-  padding: '8px 16px', fontSize: 14,
-  background: 'transparent', border: 'none', cursor: 'pointer',
+  display: 'block',
+  width: '100%',
+  textAlign: 'left',
+  padding: '8px 16px',
+  fontSize: 14,
+  background: 'transparent',
+  border: 'none',
+  cursor: 'pointer',
 };
 
 export const PartnerActions = ({
@@ -58,10 +63,10 @@ export const PartnerActions = ({
   const confirmModal = (
     <ConfirmActionModal
       isOpen={isConfirmOpen}
-      title='Delete partner permanently?'
-      description='This will permanently delete the partner, all its sub-accounts and their storage. This action cannot be undone.'
-      confirmLabel='Delete'
-      variant='danger'
+      title="Delete partner permanently?"
+      description="This will permanently delete the partner, all its sub-accounts and their storage. This action cannot be undone."
+      confirmLabel="Delete"
+      variant="danger"
       onConfirm={() => {
         setIsConfirmOpen(false);
         onDelete(partner.id);
@@ -77,10 +82,19 @@ export const PartnerActions = ({
           disabled={isDeleting}
           onClick={() => setIsConfirmOpen(true)}
           style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            height: 36, padding: '0 12px', borderRadius: 8,
-            fontSize: 13, fontWeight: 500,
-            color: T.red, background: T.white, border: `1px solid ${T.gray20}`, boxShadow: shadow.sm,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            height: 36,
+            padding: '0 12px',
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 500,
+            color: T.red,
+            background: T.white,
+            border: `1px solid ${T.gray20}`,
+            boxShadow: shadow.sm,
             cursor: isDeleting ? 'not-allowed' : 'pointer',
             opacity: isDeleting ? 0.4 : 1,
           }}
@@ -107,8 +121,11 @@ export const PartnerActions = ({
         onClick={openMenu}
         aria-label={`Actions for partner ${partner.name ?? partner.email ?? partner.id}`}
         style={{
-          padding: 6, borderRadius: 8,
-          color: T.gray50, background: 'transparent', border: 'none',
+          padding: 6,
+          borderRadius: 8,
+          color: T.gray50,
+          background: 'transparent',
+          border: 'none',
           cursor: isDeleting ? 'not-allowed' : 'pointer',
           opacity: isDeleting ? 0.4 : 1,
         }}
@@ -122,7 +139,7 @@ export const PartnerActions = ({
           e.currentTarget.style.background = 'transparent';
         }}
       >
-        <DotsThree size={17} weight='bold' />
+        <DotsThree size={17} weight="bold" />
       </button>
 
       {isMenuOpen &&
@@ -131,9 +148,17 @@ export const PartnerActions = ({
             <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setIsMenuOpen(false)} />
             <div
               style={{
-                position: 'fixed', top: coords.top, right: coords.right,
-                background: T.white, border: `1px solid ${T.gray15}`, borderRadius: 12,
-                boxShadow: shadow.lg, minWidth: 144, zIndex: 50, overflow: 'hidden', padding: '4px 0',
+                position: 'fixed',
+                top: coords.top,
+                right: coords.right,
+                background: T.white,
+                border: `1px solid ${T.gray15}`,
+                borderRadius: 12,
+                boxShadow: shadow.lg,
+                minWidth: 144,
+                zIndex: 50,
+                overflow: 'hidden',
+                padding: '4px 0',
               }}
             >
               {onRename && (

@@ -4,7 +4,7 @@ import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import Dialog from '../../components/Dialog';
 import { Pagination } from '../../components/Pagination';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { shareService, ShareListItem } from '../services/share.service';
 import { usePublicSharingEnabled } from '../hooks/usePublicSharingEnabled';
 import { SharesTable } from '../components/shares/SharesTable';
@@ -44,6 +44,7 @@ export const SubAccountSharedPage = () => {
 
   useEffect(() => {
     if (!entityId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
     shareService
       .listShares(entityId)
@@ -86,8 +87,7 @@ export const SubAccountSharedPage = () => {
     const query = search.toLowerCase().trim();
     if (!query) return shares;
     return shares.filter(
-      (share) =>
-        shareResourcePath(share).toLowerCase().includes(query) || share.creator.toLowerCase().includes(query),
+      (share) => shareResourcePath(share).toLowerCase().includes(query) || share.creator.toLowerCase().includes(query),
     );
   }, [shares, search]);
 
@@ -95,6 +95,7 @@ export const SubAccountSharedPage = () => {
 
   useEffect(() => {
     if (pageNumber > pageCount) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPageNumber(pageCount);
     }
   }, [pageNumber, pageCount]);

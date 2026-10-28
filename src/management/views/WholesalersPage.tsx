@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { wholesalersService, Wholesaler } from '../services/wholesalers.service';
 import { WholesalersTable } from '../components/WholesalersTable';
@@ -19,11 +19,7 @@ export const WholesalersPage = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const { isSuperadmin } = useManagement();
 
-  useEffect(() => {
-    fetchWholesalers();
-  }, [page]);
-
-  const fetchWholesalers = async () => {
+  const fetchWholesalers = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await wholesalersService.getWholesalers({ page, perPage: PER_PAGE });
@@ -34,7 +30,12 @@ export const WholesalersPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchWholesalers();
+  }, [fetchWholesalers]);
 
   const handleDelete = async (wholesaler: Wholesaler) => {
     setDeletingId(wholesaler.id);
@@ -65,18 +66,24 @@ export const WholesalersPage = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>Wholesalers</h2>
-            {total > 0 && (
-              <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{total} wholesalers total</p>
-            )}
+            {total > 0 && <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{total} wholesalers total</p>}
           </div>
           <button
             onClick={() => setIsCreateModalOpen(true)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              height: 40, padding: '0 18px',
-              background: T.primary, color: T.white,
-              border: 'none', borderRadius: 8, cursor: 'pointer',
-              fontSize: 14, fontWeight: 500, whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              height: 40,
+              padding: '0 18px',
+              background: T.primary,
+              color: T.white,
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: 14,
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
             }}
           >
             Create Wholesaler
@@ -90,7 +97,16 @@ export const WholesalersPage = () => {
           deletingId={deletingId}
         />
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.gray15}` }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 16,
+            paddingTop: 16,
+            borderTop: `1px solid ${T.gray15}`,
+          }}
+        >
           <span style={{ fontSize: 13, color: T.gray50 }}>
             Showing {fromItem}–{toItem} of {total} wholesalers
           </span>
@@ -99,11 +115,18 @@ export const WholesalersPage = () => {
               disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                height: 32, padding: '0 12px',
-                fontSize: 13, fontWeight: 500, color: T.gray80,
-                border: `1px solid ${T.gray20}`, borderRadius: 8,
-                background: T.white, cursor: hasPrev ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                height: 32,
+                padding: '0 12px',
+                fontSize: 13,
+                fontWeight: 500,
+                color: T.gray80,
+                border: `1px solid ${T.gray20}`,
+                borderRadius: 8,
+                background: T.white,
+                cursor: hasPrev ? 'pointer' : 'not-allowed',
                 opacity: hasPrev ? 1 : 0.4,
               }}
             >
@@ -117,11 +140,18 @@ export const WholesalersPage = () => {
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
               style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                height: 32, padding: '0 12px',
-                fontSize: 13, fontWeight: 500, color: T.gray80,
-                border: `1px solid ${T.gray20}`, borderRadius: 8,
-                background: T.white, cursor: hasNext ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                height: 32,
+                padding: '0 12px',
+                fontSize: 13,
+                fontWeight: 500,
+                color: T.gray80,
+                border: `1px solid ${T.gray20}`,
+                borderRadius: 8,
+                background: T.white,
+                cursor: hasNext ? 'pointer' : 'not-allowed',
                 opacity: hasNext ? 1 : 0.4,
               }}
             >

@@ -59,16 +59,13 @@ const getBuckets = async (): Promise<Bucket[]> => {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 2);
 
-  const usageResponse = await axiosInstance.get(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets/usages`,
-    {
-      params: {
-        from: yesterday.toISOString(),
-        to: today.toISOString(),
-        perPage: 100,
-      },
-    }
-  );
+  const usageResponse = await axiosInstance.get(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets/usages`, {
+    params: {
+      from: yesterday.toISOString(),
+      to: today.toISOString(),
+      perPage: 100,
+    },
+  });
 
   const uniqueBuckets = new Map<string, Bucket>();
 
@@ -93,27 +90,20 @@ const getBuckets = async (): Promise<Bucket[]> => {
 };
 
 const createBucket = async (name: Bucket['name'], region: Bucket['region']) => {
-  return axiosInstance.post(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets`,
-    {
-      name,
-      region,
-    }
-  );
+  return axiosInstance.post(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets`, {
+    name,
+    region,
+  });
 };
 
 const deleteBucket = (bucketName: Bucket['name'], region: Bucket['region']) => {
   return axiosInstance.delete(
-    `${
-      import.meta.env.VITE_OBJECT_STORAGE_API_URL
-    }/users/buckets/${bucketName}?region=${region}`
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets/${bucketName}?region=${region}`,
   );
 };
 
 const getRegions = async (): Promise<Region[]> => {
-  const regions = await axiosInstance.get(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/regions`
-  );
+  const regions = await axiosInstance.get(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/regions`);
 
   return regions.data;
 };
@@ -123,23 +113,20 @@ const getBucketUsage = async (
   endDate: Date,
   bucketNumber?: number,
   page?: number,
-  perPage?: number
+  perPage?: number,
 ): Promise<BucketUsageResponse> => {
   const fromDate = startDate.toISOString();
   const toDate = endDate.toISOString();
 
-  const response = await axiosInstance.get(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets/usages`,
-    {
-      params: {
-        from: fromDate,
-        to: toDate,
-        ...(page !== undefined && { page }),
-        ...(perPage !== undefined && { perPage }),
-        ...(bucketNumber !== undefined && { bucketId: bucketNumber }),
-      },
-    }
-  );
+  const response = await axiosInstance.get(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/buckets/usages`, {
+    params: {
+      from: fromDate,
+      to: toDate,
+      ...(page !== undefined && { page }),
+      ...(perPage !== undefined && { perPage }),
+      ...(bucketNumber !== undefined && { bucketId: bucketNumber }),
+    },
+  });
 
   return response.data;
 };
@@ -148,20 +135,14 @@ const getAllBucketUsage = async (
   startDate: Date,
   endDate: Date,
   bucketNumber?: number,
-  perPage?: number
+  perPage?: number,
 ): Promise<BucketUsageItem[]> => {
   let allItems: BucketUsageItem[] = [];
   let currentPage = 0;
   let hasMoreData = true;
 
   while (hasMoreData) {
-    const response = await getBucketUsage(
-      startDate,
-      endDate,
-      bucketNumber,
-      currentPage,
-      perPage ?? 50
-    );
+    const response = await getBucketUsage(startDate, endDate, bucketNumber, currentPage, perPage ?? 50);
 
     allItems = [...allItems, ...response.items];
 
@@ -178,19 +159,14 @@ const getAllBucketUsage = async (
   return allItems;
 };
 
-const getBucketsFromUsage = async (): Promise<
-  { bucketNumber: number; name: string; region: string }[]
-> => {
+const getBucketsFromUsage = async (): Promise<{ bucketNumber: number; name: string; region: string }[]> => {
   const today = new Date();
   const monthAgo = new Date();
   monthAgo.setDate(monthAgo.getDate() - 30);
 
   const allUsageData = await getAllBucketUsage(monthAgo, today);
 
-  const uniqueBuckets = new Map<
-    number,
-    { bucketNumber: number; name: string; region: string }
-  >();
+  const uniqueBuckets = new Map<number, { bucketNumber: number; name: string; region: string }>();
 
   allUsageData.forEach((item) => {
     if (!uniqueBuckets.has(item.bucketNumber)) {
@@ -206,9 +182,7 @@ const getBucketsFromUsage = async (): Promise<
 };
 
 const getSubAccountRegions = async (): Promise<SubAccountRegion[]> => {
-  const response = await axiosInstance.get(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/regions`
-  );
+  const response = await axiosInstance.get(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/subaccount/regions`);
   return response.data;
 };
 

@@ -1,55 +1,53 @@
-import { useEffect, useState } from 'react'
-import { partnersService } from '../services/partners.service'
-import notificationsService from '../../services/notifications.service'
-import Input from '../../components/Input'
-import Button from '../../components/Button'
-import { T, form } from '../../sub-account/tokens'
-import { apiErrorMessage } from '../../utils/apiError'
+import { useEffect, useState } from 'react';
+import { partnersService } from '../services/partners.service';
+import notificationsService from '../../services/notifications.service';
+import Input from '../../components/Input';
+import Button from '../../components/Button';
+import { T, form } from '../../sub-account/tokens';
+import { apiErrorMessage } from '../../utils/apiError';
 
 interface TwoFactorSetupFormProps {
-  onComplete: () => void
-  onCancel?: () => void
+  onComplete: () => void;
+  onCancel?: () => void;
 }
 
 export const TwoFactorSetupForm = ({ onComplete, onCancel }: TwoFactorSetupFormProps) => {
-  const [setupData, setSetupData] = useState<{ secret: string; qrCode: string } | null>(null)
-  const [loadError, setLoadError] = useState(false)
-  const [code, setCode] = useState('')
-  const [confirming, setConfirming] = useState(false)
+  const [setupData, setSetupData] = useState<{ secret: string; qrCode: string } | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [code, setCode] = useState('');
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     partnersService
       .getTwoFactorSetup()
       .then(setSetupData)
       .catch((err) => {
-        notificationsService.error({ text: apiErrorMessage(err, 'Failed to load the setup information') })
-        setLoadError(true)
-      })
-  }, [])
+        notificationsService.error({ text: apiErrorMessage(err, 'Failed to load the setup information') });
+        setLoadError(true);
+      });
+  }, []);
 
   const handleConfirm = async () => {
-    setConfirming(true)
+    setConfirming(true);
     try {
-      await partnersService.enableTwoFactor(code)
-      notificationsService.success({ text: 'Two-factor authentication enabled' })
-      onComplete()
+      await partnersService.enableTwoFactor(code);
+      notificationsService.success({ text: 'Two-factor authentication enabled' });
+      onComplete();
     } catch {
-      notificationsService.error({ text: 'Invalid code' })
+      notificationsService.error({ text: 'Invalid code' });
     } finally {
-      setConfirming(false)
+      setConfirming(false);
     }
-  }
+  };
 
   if (loadError) {
     return (
-      <p style={{ fontSize: 13, color: T.red, margin: 0 }}>
-        Failed to load the setup information. Please try again.
-      </p>
-    )
+      <p style={{ fontSize: 13, color: T.red, margin: 0 }}>Failed to load the setup information. Please try again.</p>
+    );
   }
 
   if (!setupData) {
-    return <p style={{ fontSize: 13, color: T.gray50, margin: 0 }}>Loading…</p>
+    return <p style={{ fontSize: 13, color: T.gray50, margin: 0 }}>Loading…</p>;
   }
 
   return (
@@ -93,5 +91,5 @@ export const TwoFactorSetupForm = ({ onComplete, onCancel }: TwoFactorSetupFormP
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

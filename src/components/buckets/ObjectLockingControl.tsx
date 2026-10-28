@@ -22,8 +22,20 @@ interface ObjectLockingControlProps {
   onDisable: () => void;
 }
 
-const Option = ({ title, description, badge, selected, disabled, onSelect }: {
-  title: string; description: string; badge?: string; selected: boolean; disabled?: boolean; onSelect: () => void;
+const Option = ({
+  title,
+  description,
+  badge,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  title: string;
+  description: string;
+  badge?: string;
+  selected: boolean;
+  disabled?: boolean;
+  onSelect: () => void;
 }) => (
   <label className={`flex items-start gap-2.5 ${disabled ? 'cursor-default' : 'cursor-pointer'}`}>
     <input
@@ -48,7 +60,12 @@ const Option = ({ title, description, badge, selected, disabled, onSelect }: {
 );
 
 export const ObjectLockingControl = ({
-  lockEnabledAtCreation, retentionConfig, disabled = false, isSaving = false, onSave, onDisable,
+  lockEnabledAtCreation,
+  retentionConfig,
+  disabled = false,
+  isSaving = false,
+  onSave,
+  onDisable,
 }: ObjectLockingControlProps) => {
   const { t } = useTranslation('subaccount');
   const [retentionOpen, setRetentionOpen] = useState(retentionConfig.enabled);
@@ -57,6 +74,7 @@ export const ObjectLockingControl = ({
   const [value, setValue] = useState<string>(String(retentionConfig.days ?? retentionConfig.years ?? ''));
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRetentionOpen(retentionConfig.enabled);
     setMode(retentionConfig.mode ?? RetentionMode.COMPLIANCE);
     setScale(retentionConfig.years ? 'years' : retentionConfig.days ? 'days' : '');
@@ -69,7 +87,9 @@ export const ObjectLockingControl = ({
   if (!lockEnabledAtCreation) {
     return (
       <div className="flex max-w-[480px] flex-col gap-2">
-        <span className="text-xs font-medium uppercase tracking-[0.04em] text-gray-60">{t('objectLockingControl.title')}</span>
+        <span className="text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+          {t('objectLockingControl.title')}
+        </span>
         <p className="m-0 text-[13px] leading-normal text-gray-60">
           {t('objectLockingControl.notEnabledAtCreationDescription')}
         </p>
@@ -82,11 +102,11 @@ export const ObjectLockingControl = ({
 
   return (
     <div className="flex max-w-[480px] flex-col gap-3.5">
-      <span className="text-xs font-medium uppercase tracking-[0.04em] text-gray-60">{t('objectLockingControl.title')}</span>
+      <span className="text-xs font-medium uppercase tracking-[0.04em] text-gray-60">
+        {t('objectLockingControl.title')}
+      </span>
 
-      <p className="m-0 text-[13px] leading-normal text-gray-60">
-        {t('objectLockingControl.description')}
-      </p>
+      <p className="m-0 text-[13px] leading-normal text-gray-60">{t('objectLockingControl.description')}</p>
 
       <div className="flex items-center justify-between">
         <span className="text-sm text-gray-100">{t('objectLockingControl.enableRetentionLabel')}</span>
@@ -102,13 +122,15 @@ export const ObjectLockingControl = ({
 
       {retentionOpen && (
         <>
-          <p className="m-0 text-[13px] text-gray-60">
-            {t('objectLockingControl.applyNoticeDescription')}
-          </p>
+          <p className="m-0 text-[13px] text-gray-60">{t('objectLockingControl.applyNoticeDescription')}</p>
 
           <Option
             title={t('objectLockingControl.governanceModeTitle')}
-            badge={retentionConfig.enabled && retentionConfig.mode === RetentionMode.GOVERNANCE ? t('objectLockingControl.enabledBadge') : undefined}
+            badge={
+              retentionConfig.enabled && retentionConfig.mode === RetentionMode.GOVERNANCE
+                ? t('objectLockingControl.enabledBadge')
+                : undefined
+            }
             description={t('objectLockingControl.governanceDescription')}
             selected={mode === RetentionMode.GOVERNANCE}
             disabled={disabled}
@@ -116,7 +138,11 @@ export const ObjectLockingControl = ({
           />
           <Option
             title={t('objectLockingControl.complianceModeTitle')}
-            badge={retentionConfig.enabled && retentionConfig.mode === RetentionMode.COMPLIANCE ? t('objectLockingControl.enabledBadge') : undefined}
+            badge={
+              retentionConfig.enabled && retentionConfig.mode === RetentionMode.COMPLIANCE
+                ? t('objectLockingControl.enabledBadge')
+                : undefined
+            }
             description={t('objectLockingControl.complianceDescription')}
             selected={mode === RetentionMode.COMPLIANCE}
             disabled={disabled}
@@ -125,7 +151,9 @@ export const ObjectLockingControl = ({
 
           <div className="flex gap-3">
             <div className="flex flex-1 flex-col gap-1.5">
-              <label htmlFor="lock-time-scale" className="text-xs text-gray-60">{t('objectLockingControl.timeScaleLabel')}</label>
+              <label htmlFor="lock-time-scale" className="text-xs text-gray-60">
+                {t('objectLockingControl.timeScaleLabel')}
+              </label>
               <select
                 id="lock-time-scale"
                 value={scale}
@@ -133,13 +161,17 @@ export const ObjectLockingControl = ({
                 onChange={(e) => setScale(e.target.value as TimeScale)}
                 className={`${inputClass} cursor-pointer`}
               >
-                <option value="" disabled>{t('objectLockingControl.selectTimeScale')}</option>
+                <option value="" disabled>
+                  {t('objectLockingControl.selectTimeScale')}
+                </option>
                 <option value="days">{t('objectLockingControl.days')}</option>
                 <option value="years">{t('objectLockingControl.years')}</option>
               </select>
             </div>
             <div className="flex flex-1 flex-col gap-1.5">
-              <label htmlFor="lock-retention-time" className="text-xs text-gray-60">{t('objectLockingControl.retentionTimeLabel')}</label>
+              <label htmlFor="lock-retention-time" className="text-xs text-gray-60">
+                {t('objectLockingControl.retentionTimeLabel')}
+              </label>
               <input
                 id="lock-retention-time"
                 type="number"

@@ -14,11 +14,7 @@ function removeToken(): void {
   localStorage.removeItem(WHOLESALERS_TOKEN_KEY);
 }
 
-async function logIn(
-  email: string,
-  password: string,
-  code?: string,
-): Promise<{ twoFactorSetupRequired: boolean }> {
+async function logIn(email: string, password: string, code?: string): Promise<{ twoFactorSetupRequired: boolean }> {
   const response = await wholesalersAxios.post<{ token: string; twoFactorSetupRequired?: boolean }>(
     '/wholesalers/login',
     { email, password, code },

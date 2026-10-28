@@ -30,6 +30,7 @@ export const usePolicyEditor = ({ isOpen, onFetchPermissions }: Params) => {
 
   useEffect(() => {
     if (!isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditor(EMPTY_EDITOR);
       setLoadStatus('idle');
       return;
@@ -63,8 +64,7 @@ export const usePolicyEditor = ({ isOpen, onFetchPermissions }: Params) => {
 
   // Switch from the JSON editor back to the builder, seeding it from the current
   // JSON. Only safe when the JSON isn't custom; otherwise the caller must reset.
-  const switchToBuilder = (statements: PolicyStatement[]) =>
-    setBuilderRules(PolicyToBucketRules.toRules(statements));
+  const switchToBuilder = (statements: PolicyStatement[]) => setBuilderRules(PolicyToBucketRules.toRules(statements));
 
   const resetToBuilder = () => setBuilderRules([]);
 

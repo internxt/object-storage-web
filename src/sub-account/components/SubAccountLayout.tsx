@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useSubAccount } from '../context/SubAccountContext';
+import { useSubAccount } from '../context/useSubAccount';
 import { useSubAccountBranding } from '../context/SubAccountBrandingContext/useSubAccountBranding';
 import { ConsoleTopBar } from './ConsoleTopBar';
 import { subAccountBillingService } from '../services/sub-account-billing.service';
@@ -36,7 +36,7 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
   ];
   const tabs = isAdmin ? tabsAdmin : tabsMember;
 
-  const activeTab = tabs.find(tab => pathname.startsWith(tab.key))?.key ?? tabs[0].key;
+  const activeTab = tabs.find((tab) => pathname.startsWith(tab.key))?.key ?? tabs[0].key;
 
   if (isLoading) return <SubAccountConsoleSkeleton />;
 
@@ -71,9 +71,7 @@ export const SubAccountLayout = ({ children }: { children: ReactNode }) => {
         user={{ email: email ?? undefined, initials: toInitials(email) }}
         billing={isAdmin && !partnerId ? { loading: billingLoading, onClick: openBilling } : undefined}
       />
-      <main style={{ flex: 1, padding: '24px 28px', overflow: 'auto' }}>
-        {children}
-      </main>
+      <main style={{ flex: 1, padding: '24px 28px', overflow: 'auto' }}>{children}</main>
     </div>
   );
 };
@@ -82,44 +80,61 @@ export function SubAccountConsoleSkeleton() {
   const { t } = useTranslation('subaccount');
   return (
     <SkeletonTheme baseColor={T.gray15} highlightColor={T.gray10}>
-    <div aria-busy='true' aria-label={t('shared.loadingBrandingAriaLabel')} className='min-h-screen' style={{ background: T.gray5 }}>
-      <header className='h-14 px-8 flex items-center justify-between' style={{ background: T.white, borderBottom: `1px solid ${T.gray20}` }}>
-        <Skeleton height={18} width={132} />
-        <div className='flex items-center gap-6'>
-          <Skeleton height={16} width={58} />
-          <Skeleton height={16} width={48} />
-          <Skeleton circle height={30} width={30} />
-        </div>
-      </header>
-      <main className='max-w-[1200px] mx-auto px-7 py-8 flex flex-col gap-4'>
-        <div className='flex gap-4'>
-          {[0, 1, 2].map((index) => (
-            <div key={index} className='flex-1 rounded-xl p-5 flex flex-col gap-3' style={{ background: T.white, border: `1px solid ${T.gray20}` }}>
-              <Skeleton height={12} width={88} />
-              <Skeleton height={30} width={64} />
-              <Skeleton height={12} width={120} />
+      <div
+        aria-busy="true"
+        aria-label={t('shared.loadingBrandingAriaLabel')}
+        className="min-h-screen"
+        style={{ background: T.gray5 }}
+      >
+        <header
+          className="h-14 px-8 flex items-center justify-between"
+          style={{ background: T.white, borderBottom: `1px solid ${T.gray20}` }}
+        >
+          <Skeleton height={18} width={132} />
+          <div className="flex items-center gap-6">
+            <Skeleton height={16} width={58} />
+            <Skeleton height={16} width={48} />
+            <Skeleton circle height={30} width={30} />
+          </div>
+        </header>
+        <main className="max-w-[1200px] mx-auto px-7 py-8 flex flex-col gap-4">
+          <div className="flex gap-4">
+            {[0, 1, 2].map((index) => (
+              <div
+                key={index}
+                className="flex-1 rounded-xl p-5 flex flex-col gap-3"
+                style={{ background: T.white, border: `1px solid ${T.gray20}` }}
+              >
+                <Skeleton height={12} width={88} />
+                <Skeleton height={30} width={64} />
+                <Skeleton height={12} width={120} />
+              </div>
+            ))}
+          </div>
+          <div className="rounded-xl overflow-hidden" style={{ background: T.white, border: `1px solid ${T.gray20}` }}>
+            <div className="p-6 flex justify-between items-center">
+              <div className="flex flex-col gap-2">
+                <Skeleton height={18} width={88} />
+                <Skeleton height={14} width={128} />
+              </div>
+              <Skeleton height={40} width={148} borderRadius={8} />
             </div>
-          ))}
-        </div>
-        <div className='rounded-xl overflow-hidden' style={{ background: T.white, border: `1px solid ${T.gray20}` }}>
-          <div className='p-6 flex justify-between items-center'>
-            <div className='flex flex-col gap-2'>
-              <Skeleton height={18} width={88} />
-              <Skeleton height={14} width={128} />
+            <div
+              className="h-10 px-6 flex items-center gap-20"
+              style={{ background: T.gray5, borderTop: `1px solid ${T.gray20}`, borderBottom: `1px solid ${T.gray20}` }}
+            >
+              <Skeleton height={10} width={64} />
+              <Skeleton height={10} width={64} />
+              <Skeleton height={10} width={64} />
             </div>
-            <Skeleton height={40} width={148} borderRadius={8} />
+            <div className="p-6 flex flex-col gap-4">
+              {[0, 1, 2].map((index) => (
+                <Skeleton key={index} height={28} />
+              ))}
+            </div>
           </div>
-          <div className='h-10 px-6 flex items-center gap-20' style={{ background: T.gray5, borderTop: `1px solid ${T.gray20}`, borderBottom: `1px solid ${T.gray20}` }}>
-            <Skeleton height={10} width={64} />
-            <Skeleton height={10} width={64} />
-            <Skeleton height={10} width={64} />
-          </div>
-          <div className='p-6 flex flex-col gap-4'>
-            {[0, 1, 2].map((index) => <Skeleton key={index} height={28} />)}
-          </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
     </SkeletonTheme>
   );
 }

@@ -29,13 +29,18 @@ export const SubAccountsTable = ({ subAccounts, columns, isLoading, sortOrder, o
     <div style={{ overflowX: 'auto', position: 'relative' }}>
       <div
         style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-          overflow: 'hidden', transition: 'opacity 300ms',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 2,
+          overflow: 'hidden',
+          transition: 'opacity 300ms',
           opacity: isLoading ? 1 : 0,
         }}
       >
         <div style={{ height: '100%', background: 'rgba(0,102,255,0.3)', width: '100%' }}>
-          <div className='animate-loading-bar' style={{ height: '100%', background: T.primary }} />
+          <div className="animate-loading-bar" style={{ height: '100%', background: T.primary }} />
         </div>
       </div>
       <table style={{ width: '100%', fontSize: 14, textAlign: 'left', borderCollapse: 'separate', borderSpacing: 0 }}>
@@ -49,7 +54,10 @@ export const SubAccountsTable = ({ subAccounts, columns, isLoading, sortOrder, o
                   onClick={isSortable ? handleActiveStorageSort : undefined}
                   style={{
                     padding: '12px 16px',
-                    fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em',
+                    fontSize: 10,
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
                     color: T.gray50,
                     borderBottom: `1px solid ${T.gray15}`,
                     background: T.gray5,
@@ -60,17 +68,27 @@ export const SubAccountsTable = ({ subAccounts, columns, isLoading, sortOrder, o
                   }}
                 >
                   {isSortable ? (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end', width: '100%' }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        justifyContent: 'flex-end',
+                        width: '100%',
+                      }}
+                    >
                       {col.header}
                       {sortOrder === 'asc' ? (
-                        <ArrowUp size={11} weight='bold' color={T.primary} />
+                        <ArrowUp size={11} weight="bold" color={T.primary} />
                       ) : sortOrder === 'desc' ? (
-                        <ArrowDown size={11} weight='bold' color={T.primary} />
+                        <ArrowDown size={11} weight="bold" color={T.primary} />
                       ) : (
-                        <ArrowUp size={11} weight='bold' color={T.gray20} />
+                        <ArrowUp size={11} weight="bold" color={T.gray20} />
                       )}
                     </span>
-                  ) : col.header}
+                  ) : (
+                    col.header
+                  )}
                 </th>
               );
             })}
@@ -79,7 +97,10 @@ export const SubAccountsTable = ({ subAccounts, columns, isLoading, sortOrder, o
         <tbody style={{ transition: 'opacity 200ms', opacity: isLoading ? 0.4 : 1 }}>
           {subAccounts.length === 0 && !isLoading ? (
             <tr>
-              <td colSpan={columns.length} style={{ textAlign: 'center', padding: '64px 0', color: T.gray50, fontSize: 14, fontWeight: 500 }}>
+              <td
+                colSpan={columns.length}
+                style={{ textAlign: 'center', padding: '64px 0', color: T.gray50, fontSize: 14, fontWeight: 500 }}
+              >
                 No sub-accounts found
               </td>
             </tr>
@@ -88,8 +109,12 @@ export const SubAccountsTable = ({ subAccounts, columns, isLoading, sortOrder, o
               <tr
                 key={acc.id}
                 style={{ transition: 'background 120ms' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = T.gray5; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = T.gray5;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
               >
                 {columns.map((col, i) => (
                   <td

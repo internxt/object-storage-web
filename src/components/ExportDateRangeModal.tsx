@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import Modal from './Modal';
 import Button from './Button';
-import { Field, inputClass } from './FormField';
+import { Field } from './FormField';
+import { inputClass } from './inputClass';
 import { ExportButton } from './ExportButton';
 
 export interface ExportDateRange {
@@ -49,6 +50,7 @@ export const ExportDateRangeModal = ({
   const [range, setRange] = useState<ExportDateRange>(() => lastDays(defaultRangeDays));
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (isOpen) setRange(lastDays(defaultRangeDays));
   }, [isOpen, defaultRangeDays]);
 
@@ -62,26 +64,26 @@ export const ExportDateRangeModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth='max-w-md'>
-      <div className='flex flex-col gap-4'>
-        <div className='flex flex-col gap-1'>
-          <h2 className='text-lg font-semibold text-gray-100'>{title}</h2>
-          {description && <p className='text-sm text-gray-60'>{description}</p>}
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-md">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold text-gray-100">{title}</h2>
+          {description && <p className="text-sm text-gray-60">{description}</p>}
         </div>
 
-        <div className='grid grid-cols-2 gap-3'>
-          <Field label='From'>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="From">
             <input
-              type='date'
+              type="date"
               value={range.from}
               max={range.to ? dayjs(range.to).subtract(1, 'day').format(DAY_FORMAT) : today}
               onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
               className={inputClass()}
             />
           </Field>
-          <Field label='To (not included)'>
+          <Field label="To (not included)">
             <input
-              type='date'
+              type="date"
               value={range.to}
               min={range.from ? dayjs(range.from).add(1, 'day').format(DAY_FORMAT) : undefined}
               max={today}
@@ -91,14 +93,14 @@ export const ExportDateRangeModal = ({
           </Field>
         </div>
 
-        {error && <p className='text-sm text-red'>{error}</p>}
+        {error && <p className="text-sm text-red">{error}</p>}
 
-        <div className='flex justify-end gap-3 pt-2'>
-          <Button variant='secondary' onClick={onClose}>
+        <div className="flex justify-end gap-3 pt-2">
+          <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
           <ExportButton
-            variant='primary'
+            variant="primary"
             onExport={handleExport}
             successText={successText}
             title={error ?? `${range.from} to ${range.to}`}

@@ -1,20 +1,20 @@
 export function isValidBucketName(name: string): boolean {
-  const MIN_LENGTH = 3
-  const MAX_LENGTH = 63
+  const MIN_LENGTH = 3;
+  const MAX_LENGTH = 63;
 
   if (!name || name.length < MIN_LENGTH || name.length > MAX_LENGTH) {
-    return false
+    return false;
   }
 
   if (name.includes('..') || name.includes('-.') || name.includes('.-')) {
-    return false
+    return false;
   }
 
   // Reject names formatted as an IP address (e.g. 123.45.678.90)
   if (/^\d+\.\d+\.\d+\.\d+$/.test(name)) {
-    return false
+    return false;
   }
 
-  const pattern = /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/
-  return pattern.test(name)
+  const pattern = /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/;
+  return pattern.test(name);
 }

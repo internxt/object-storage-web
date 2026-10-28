@@ -1,9 +1,4 @@
-import {
-  FieldError,
-  Path,
-  UseFormRegister,
-  ValidationRule,
-} from 'react-hook-form';
+import { FieldError, Path, UseFormRegister, ValidationRule } from 'react-hook-form';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { useState } from 'react';
 
@@ -81,15 +76,11 @@ const PasswordInput = ({
         }}
       />
       <button
-        type='button'
-        className='absolute inset-y-0 right-0 flex items-center pr-3'
+        type="button"
+        className="absolute inset-y-0 right-0 flex items-center pr-3"
         onClick={() => setShowPassword(!showPassword)}
       >
-        {showPassword ? (
-          <Eye className='h-5 w-5 text-gray-400' />
-        ) : (
-          <EyeSlash className='h-5 w-5 text-gray-400' />
-        )}
+        {showPassword ? <Eye className="h-5 w-5 text-gray-400" /> : <EyeSlash className="h-5 w-5 text-gray-400" />}
       </button>
     </div>
   );

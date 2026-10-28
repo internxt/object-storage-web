@@ -1,13 +1,13 @@
-import React from 'react'
-import '../styles/Loader.css'
+import React from 'react';
+import '../styles/Loader.css';
 
 export interface LoaderProps {
-  classNameContainer?: string
-  classNameLoader?: string
-  classNameText?: string
-  type?: 'spinner' | 'pulse'
-  text?: string
-  size?: number
+  classNameContainer?: string;
+  classNameLoader?: string;
+  classNameText?: string;
+  type?: 'spinner' | 'pulse';
+  text?: string;
+  size?: number;
 }
 
 /**
@@ -47,7 +47,7 @@ const Loader: React.FC<LoaderProps> = ({
   text,
   size = 32,
 }) => {
-  const isSpinner = type === 'spinner'
+  const isSpinner = type === 'spinner';
 
   return (
     <div className={classNameContainer}>
@@ -62,14 +62,7 @@ const Loader: React.FC<LoaderProps> = ({
             viewBox="0 0 24 24"
             role="img"
           >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path
               className="opacity-75"
               fill="currentColor"
@@ -86,7 +79,7 @@ const Loader: React.FC<LoaderProps> = ({
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Loader
+export default Loader;

@@ -60,8 +60,7 @@ export default function Tooltip({
       triangle = 'polygon(0% 0%, 0% 100%, 100% 50%)';
       break;
     case 'top':
-      tooltipPosition =
-        'bottom-full left-1/2 -translate-x-1/2 mb-1.5 origin-bottom';
+      tooltipPosition = 'bottom-full left-1/2 -translate-x-1/2 mb-1.5 origin-bottom';
       trianglePosition = 'flex-col';
       triangle = 'polygon(0% 0%, 100% 0%, 50% 100%)';
       break;
@@ -84,15 +83,13 @@ export default function Tooltip({
           visible ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
         }`}
       >
-        <div className='max-w-xs w-max rounded-lg bg-gray-80 px-4 py-1.5 text-center'>
-          <p className='text-base text-white'>{title}</p>
-          {subtitle && <p className='-mt-1 text-sm text-gray-40'>{subtitle}</p>}
+        <div className="max-w-xs w-max rounded-lg bg-gray-80 px-4 py-1.5 text-center">
+          <p className="text-base text-white">{title}</p>
+          {subtitle && <p className="-mt-1 text-sm text-gray-40">{subtitle}</p>}
         </div>
         <div
           className={`bg-gray-90 dark:bg-gray-5 ${
-            popsFrom === 'bottom' || popsFrom === 'top'
-              ? 'h-1.5 w-4'
-              : 'h-4 w-1.5'
+            popsFrom === 'bottom' || popsFrom === 'top' ? 'h-1.5 w-4' : 'h-4 w-1.5'
           }`}
           style={{
             clipPath: triangle,

@@ -3,11 +3,11 @@ export const LoadingRowSkeleton = ({
   numberOfRows,
   itemWidth = '33%',
 }: {
-  numberOfColumns: number
-  numberOfRows: number
-  itemWidth?: string
+  numberOfColumns: number;
+  numberOfRows: number;
+  itemWidth?: string;
 }) => {
-  const totalRowsArray = new Array(numberOfRows).fill(null)
+  const totalRowsArray = new Array(numberOfRows).fill(null);
   return (
     <>
       {totalRowsArray.map((_, index) => (
@@ -22,5 +22,5 @@ export const LoadingRowSkeleton = ({
         </tr>
       ))}
     </>
-  )
-}
+  );
+};

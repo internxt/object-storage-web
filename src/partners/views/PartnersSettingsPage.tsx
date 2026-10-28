@@ -1,31 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import dayjs from 'dayjs'
-import {
-  PlusIcon,
-  DownloadSimpleIcon,
-  DotsThreeIcon,
-} from '@phosphor-icons/react'
-import { partnersService, PartnerMember } from '../services/partners.service'
-import { exportAsCSV } from '../../utils/exportUtils'
-import { ChangePasswordForm } from '../../components/ChangePasswordForm'
-import notificationsService from '../../services/notifications.service'
-import Modal from '../../components/Modal'
-import Input from '../../components/Input'
-import Button from '../../components/Button'
-import {
-  MemberEmailField,
-  MemberPasswordField,
-  memberEmailError,
-  memberPasswordError,
-} from '../../components/MemberCredentialFields'
-import { PASSWORD_MIN_LENGTH } from '../../components/auth/passwordPolicy'
-import Dialog from '../../components/Dialog'
-import { T, text, form, shadow } from '../../sub-account/tokens'
-import { usePartners } from '../context/partnersContext'
-import { TwoFactorSetupForm } from '../components/TwoFactorSetupForm'
-import { BrandingTab } from '../components/BrandingTab'
-import { apiErrorMessage } from '../../utils/apiError'
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import dayjs from 'dayjs';
+import { PlusIcon, DownloadSimpleIcon, DotsThreeIcon } from '@phosphor-icons/react';
+import { partnersService, PartnerMember } from '../services/partners.service';
+import { exportAsCSV } from '../../utils/exportUtils';
+import { ChangePasswordForm } from '../../components/ChangePasswordForm';
+import notificationsService from '../../services/notifications.service';
+import Modal from '../../components/Modal';
+import Input from '../../components/Input';
+import Button from '../../components/Button';
+import { MemberEmailField, MemberPasswordField } from '../../components/MemberCredentialFields';
+import { memberEmailError, memberPasswordError } from '../../components/memberValidation';
+import { PASSWORD_MIN_LENGTH } from '../../components/auth/passwordPolicy';
+import Dialog from '../../components/Dialog';
+import { T, text, form, shadow } from '../../sub-account/tokens';
+import { usePartners } from '../context/usePartners';
+import { TwoFactorSetupForm } from '../components/TwoFactorSetupForm';
+import { BrandingTab } from '../components/BrandingTab';
+import { apiErrorMessage } from '../../utils/apiError';
 
 const Pill = ({ label, tone }: { label: string; tone: 'green' | 'gray' }) => (
   <span
@@ -52,7 +44,7 @@ const Pill = ({ label, tone }: { label: string; tone: 'green' | 'gray' }) => (
     />
     {label}
   </span>
-)
+);
 
 // ─── Shared atoms (mirrors SubAccountSettingsPage design) ─────────────────────
 
@@ -75,7 +67,7 @@ const ReadField = ({ label, value }: { label: string; value: string }) => (
       {value || <span style={{ color: T.gray50 }}>—</span>}
     </div>
   </div>
-)
+);
 
 const AvatarSquare = ({ initials }: { initials: string }) => (
   <div
@@ -96,14 +88,14 @@ const AvatarSquare = ({ initials }: { initials: string }) => (
   >
     {initials}
   </div>
-)
+);
 
 function avatarInitials(email: string | null | undefined): string {
-  if (!email) return '—'
-  const local = email.split('@')[0] ?? ''
-  const parts = local.split(/[.\-_]/)
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
-  return local.slice(0, 2).toUpperCase()
+  if (!email) return '—';
+  const local = email.split('@')[0] ?? '';
+  const parts = local.split(/[.\-_]/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return local.slice(0, 2).toUpperCase();
 }
 
 const SectionCard = ({
@@ -112,10 +104,10 @@ const SectionCard = ({
   action,
   children,
 }: {
-  title: string
-  subtitle?: string
-  action?: React.ReactNode
-  children: React.ReactNode
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
 }) => (
   <div
     style={{
@@ -134,65 +126,58 @@ const SectionCard = ({
       }}
     >
       <div>
-        <h2
-          style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}
-        >
-          {title}
-        </h2>
-        {subtitle && (
-          <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>
-            {subtitle}
-          </p>
-        )}
+        <h2 style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>{title}</h2>
+        {subtitle && <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{subtitle}</p>}
       </div>
       {action}
     </div>
     <div style={{ marginTop: 16 }}>{children}</div>
   </div>
-)
+);
 
-const MAX_EXPORT_RANGE_DAYS = 40
+const MAX_EXPORT_RANGE_DAYS = 40;
 
 // ─── Two-Factor Authentication Card ────────────────────────────────────────────
 
 const TwoFactorCard = () => {
-  const [enabled, setEnabled] = useState<boolean | null>(null)
+  const [enabled, setEnabled] = useState<boolean | null>(null);
 
-  const [setupOpen, setSetupOpen] = useState(false)
+  const [setupOpen, setSetupOpen] = useState(false);
 
-  const [disableOpen, setDisableOpen] = useState(false)
-  const [disablePassword, setDisablePassword] = useState('')
-  const [disableCode, setDisableCode] = useState('')
-  const [disableLoading, setDisableLoading] = useState(false)
+  const [disableOpen, setDisableOpen] = useState(false);
+  const [disablePassword, setDisablePassword] = useState('');
+  const [disableCode, setDisableCode] = useState('');
+  const [disableLoading, setDisableLoading] = useState(false);
 
   const fetchStatus = async () => {
     try {
-      const { enabled } = await partnersService.getTwoFactorStatus()
-      setEnabled(enabled)
+      const { enabled } = await partnersService.getTwoFactorStatus();
+      setEnabled(enabled);
     } catch {
-      setEnabled(null)
+      setEnabled(null);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchStatus()
-  }, [])
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchStatus();
+  }, []);
 
   const handleDisable = async () => {
-    setDisableLoading(true)
+    setDisableLoading(true);
     try {
-      await partnersService.disableTwoFactor(disablePassword, disableCode)
-      notificationsService.success({ text: 'Two-factor authentication disabled' })
-      setDisableOpen(false)
-      setDisablePassword('')
-      setDisableCode('')
-      setEnabled(false)
+      await partnersService.disableTwoFactor(disablePassword, disableCode);
+      notificationsService.success({ text: 'Two-factor authentication disabled' });
+      setDisableOpen(false);
+      setDisablePassword('');
+      setDisableCode('');
+      setEnabled(false);
     } catch {
-      notificationsService.error({ text: 'Invalid password or code' })
+      notificationsService.error({ text: 'Invalid password or code' });
     } finally {
-      setDisableLoading(false)
+      setDisableLoading(false);
     }
-  }
+  };
 
   return (
     <SectionCard
@@ -217,8 +202,8 @@ const TwoFactorCard = () => {
           {setupOpen && (
             <TwoFactorSetupForm
               onComplete={() => {
-                setSetupOpen(false)
-                setEnabled(true)
+                setSetupOpen(false);
+                setEnabled(true);
               }}
               onCancel={() => setSetupOpen(false)}
             />
@@ -257,26 +242,25 @@ const TwoFactorCard = () => {
         </div>
       </Modal>
     </SectionCard>
-  )
-}
+  );
+};
 
 // ─── Profile Tab ──────────────────────────────────────────────────────────────
 
 const ProfileTab = () => {
-  const { isViewer } = usePartners()
+  const { isViewer } = usePartners();
   const [profile, setProfile] = useState<{
-    name: string | null
-    email: string | null
-    createdAt: string
-  } | null>(null)
-
+    name: string | null;
+    email: string | null;
+    createdAt: string;
+  } | null>(null);
 
   useEffect(() => {
     partnersService
       .getMe()
       .then(setProfile)
-      .catch(() => {})
-  }, [])
+      .catch(() => {});
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -314,44 +298,42 @@ const ProfileTab = () => {
         </SectionCard>
       )}
     </div>
-  )
-}
+  );
+};
 
 // ─── Usage Tab ────────────────────────────────────────────────────────────────
 
 const UsageTab = () => {
-  const [profile, setProfile] = useState<{ createdAt: string; hasWholesaler?: boolean } | null>(null)
-  const [isExporting, setIsExporting] = useState(false)
-  const [exportFrom, setExportFrom] = useState(() =>
-    dayjs().startOf('month').format('YYYY-MM-DD'),
-  )
-  const [exportTo, setExportTo] = useState(() => dayjs().format('YYYY-MM-DD'))
+  const [profile, setProfile] = useState<{ createdAt: string; hasWholesaler?: boolean } | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportFrom, setExportFrom] = useState(() => dayjs().startOf('month').format('YYYY-MM-DD'));
+  const [exportTo, setExportTo] = useState(() => dayjs().format('YYYY-MM-DD'));
 
   useEffect(() => {
     partnersService
       .getMe()
       .then(setProfile)
-      .catch(() => {})
-  }, [])
+      .catch(() => {});
+  }, []);
 
   const handleExportUsages = async () => {
-    setIsExporting(true)
+    setIsExporting(true);
     try {
       const data = await partnersService.exportDailyUsage({
         startDate: exportFrom,
         endDate: exportTo,
-      })
+      });
       exportAsCSV(
         data as unknown as Record<string, unknown>[],
         new Set(['usageGb']),
         `partner_usage_export_${exportFrom}_to_${exportTo}`,
-      )
+      );
     } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Export failed') })
+      notificationsService.error({ text: apiErrorMessage(err, 'Export failed') });
     } finally {
-      setIsExporting(false)
+      setIsExporting(false);
     }
-  }
+  };
 
   if (profile?.hasWholesaler) {
     return (
@@ -360,14 +342,11 @@ const UsageTab = () => {
           Your usage is billed and reported through your wholesaler, so it isn't available here.
         </p>
       </SectionCard>
-    )
+    );
   }
 
   return (
-    <SectionCard
-      title="Export Usage"
-      subtitle="Download your global daily usage as a CSV file (max. 40 days)"
-    >
+    <SectionCard title="Export Usage" subtitle="Download your global daily usage as a CSV file (max. 40 days)">
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <input
           type="date"
@@ -375,17 +354,10 @@ const UsageTab = () => {
           min={profile?.createdAt?.slice(0, 10)}
           max={dayjs(exportTo).subtract(1, 'day').format('YYYY-MM-DD')}
           onChange={(e) => {
-            const newFrom = e.target.value
-            setExportFrom(newFrom)
-            if (
-              dayjs(exportTo).diff(dayjs(newFrom), 'day') >
-              MAX_EXPORT_RANGE_DAYS
-            ) {
-              setExportTo(
-                dayjs(newFrom)
-                  .add(MAX_EXPORT_RANGE_DAYS, 'day')
-                  .format('YYYY-MM-DD'),
-              )
+            const newFrom = e.target.value;
+            setExportFrom(newFrom);
+            if (dayjs(exportTo).diff(dayjs(newFrom), 'day') > MAX_EXPORT_RANGE_DAYS) {
+              setExportTo(dayjs(newFrom).add(MAX_EXPORT_RANGE_DAYS, 'day').format('YYYY-MM-DD'));
             }
           }}
           style={{
@@ -442,8 +414,8 @@ const UsageTab = () => {
         </button>
       </div>
     </SectionCard>
-  )
-}
+  );
+};
 
 // ─── Member row actions menu ────────────────────────────────────────────────
 
@@ -454,34 +426,34 @@ const MemberActionsMenu = ({
   onDisableTwoFactor,
   onResetTwoFactor,
 }: {
-  member: PartnerMember
-  onEdit: () => void
-  onDelete: () => void
-  onDisableTwoFactor: () => void
-  onResetTwoFactor: () => void
+  member: PartnerMember;
+  onEdit: () => void;
+  onDelete: () => void;
+  onDisableTwoFactor: () => void;
+  onResetTwoFactor: () => void;
 }) => {
-  const [open, setOpen] = useState(false)
-  const [coords, setCoords] = useState({ top: 0, right: 0 })
-  const btnRef = useRef<HTMLButtonElement>(null)
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, right: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   const handleOpen = () => {
     if (btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect()
-      setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+      const rect = btnRef.current.getBoundingClientRect();
+      setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
     }
-    setOpen((o) => !o)
-  }
+    setOpen((o) => !o);
+  };
 
   useEffect(() => {
-    if (!open) return
-    const close = () => setOpen(false)
-    window.addEventListener('scroll', close, true)
-    window.addEventListener('resize', close)
+    if (!open) return;
+    const close = () => setOpen(false);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
     return () => {
-      window.removeEventListener('scroll', close, true)
-      window.removeEventListener('resize', close)
-    }
-  }, [open])
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [open]);
 
   const itemStyle: React.CSSProperties = {
     display: 'block',
@@ -493,7 +465,7 @@ const MemberActionsMenu = ({
     background: 'transparent',
     border: 'none',
     cursor: 'pointer',
-  }
+  };
 
   return (
     <div>
@@ -511,12 +483,12 @@ const MemberActionsMenu = ({
           display: 'flex',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.color = T.gray80
-          e.currentTarget.style.background = T.gray10
+          e.currentTarget.style.color = T.gray80;
+          e.currentTarget.style.background = T.gray10;
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.color = T.gray50
-          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = T.gray50;
+          e.currentTarget.style.background = 'transparent';
         }}
       >
         <DotsThreeIcon size={18} weight="bold" />
@@ -543,8 +515,8 @@ const MemberActionsMenu = ({
               <button
                 style={itemStyle}
                 onClick={() => {
-                  setOpen(false)
-                  onEdit()
+                  setOpen(false);
+                  onEdit();
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -558,8 +530,8 @@ const MemberActionsMenu = ({
                   <button
                     style={itemStyle}
                     onClick={() => {
-                      setOpen(false)
-                      onResetTwoFactor()
+                      setOpen(false);
+                      onResetTwoFactor();
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -569,8 +541,8 @@ const MemberActionsMenu = ({
                   <button
                     style={itemStyle}
                     onClick={() => {
-                      setOpen(false)
-                      onDisableTwoFactor()
+                      setOpen(false);
+                      onDisableTwoFactor();
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = T.gray5)}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -584,8 +556,8 @@ const MemberActionsMenu = ({
               <button
                 style={{ ...itemStyle, color: T.red }}
                 onClick={() => {
-                  setOpen(false)
-                  onDelete()
+                  setOpen(false);
+                  onDelete();
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = '#fef2f2')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -597,129 +569,129 @@ const MemberActionsMenu = ({
           document.body,
         )}
     </div>
-  )
-}
+  );
+};
 
 // ─── Members Tab ──────────────────────────────────────────────────────────────
 
-const PER_PAGE = 20
+const PER_PAGE = 20;
 
 const MembersTab = () => {
-  const [members, setMembers] = useState<PartnerMember[]>([])
-  const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState(0)
+  const [members, setMembers] = useState<PartnerMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
 
-  const [createOpen, setCreateOpen] = useState(false)
-  const [createEmail, setCreateEmail] = useState('')
-  const [createPassword, setCreatePassword] = useState('')
-  const [createLoading, setCreateLoading] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createEmail, setCreateEmail] = useState('');
+  const [createPassword, setCreatePassword] = useState('');
+  const [createLoading, setCreateLoading] = useState(false);
 
-  const [editTarget, setEditTarget] = useState<PartnerMember | null>(null)
-  const [editEmail, setEditEmail] = useState('')
-  const [editPassword, setEditPassword] = useState('')
-  const [editLoading, setEditLoading] = useState(false)
+  const [editTarget, setEditTarget] = useState<PartnerMember | null>(null);
+  const [editEmail, setEditEmail] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
 
-  const [deleteTarget, setDeleteTarget] = useState<PartnerMember | null>(null)
-  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<PartnerMember | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const [tfaTarget, setTfaTarget] = useState<{ member: PartnerMember; action: 'disable' | 'reset' } | null>(null)
-  const [tfaLoading, setTfaLoading] = useState(false)
+  const [tfaTarget, setTfaTarget] = useState<{ member: PartnerMember; action: 'disable' | 'reset' } | null>(null);
+  const [tfaLoading, setTfaLoading] = useState(false);
 
   const fetch = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      setMembers(await partnersService.listMembers())
+      setMembers(await partnersService.listMembers());
     } catch (e) {
-      notificationsService.error({ text: apiErrorMessage(e, 'Failed to load members') })
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to load members') });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetch()
-  }, [])
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetch();
+  }, []);
 
   const handleCreate = async () => {
-    setCreateLoading(true)
+    setCreateLoading(true);
     try {
-      await partnersService.createMember(createEmail, createPassword)
-      notificationsService.success({ text: 'Member account created' })
-      setCreateOpen(false)
-      setCreateEmail('')
-      setCreatePassword('')
-      fetch()
+      await partnersService.createMember(createEmail, createPassword);
+      notificationsService.success({ text: 'Member account created' });
+      setCreateOpen(false);
+      setCreateEmail('');
+      setCreatePassword('');
+      fetch();
     } catch (e) {
-      notificationsService.error({ text: apiErrorMessage(e, 'Failed to create member') })
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to create member') });
     } finally {
-      setCreateLoading(false)
+      setCreateLoading(false);
     }
-  }
+  };
 
   const handleUpdate = async () => {
-    if (!editTarget) return
-    setEditLoading(true)
+    if (!editTarget) return;
+    setEditLoading(true);
     try {
-      const dto: { email?: string; newPassword?: string } = {}
-      if (editEmail && editEmail !== editTarget.email) dto.email = editEmail
-      if (editPassword) dto.newPassword = editPassword
-      await partnersService.updateMember(editTarget.id, dto)
-      notificationsService.success({ text: 'Member updated' })
-      setEditTarget(null)
-      fetch()
+      const dto: { email?: string; newPassword?: string } = {};
+      if (editEmail && editEmail !== editTarget.email) dto.email = editEmail;
+      if (editPassword) dto.newPassword = editPassword;
+      await partnersService.updateMember(editTarget.id, dto);
+      notificationsService.success({ text: 'Member updated' });
+      setEditTarget(null);
+      fetch();
     } catch (e) {
-      notificationsService.error({ text: apiErrorMessage(e, 'Failed to update member') })
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to update member') });
     } finally {
-      setEditLoading(false)
+      setEditLoading(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!deleteTarget) return
-    setDeleteLoading(true)
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
     try {
-      await partnersService.deleteMember(deleteTarget.id)
-      notificationsService.success({ text: 'Member deleted' })
-      setDeleteTarget(null)
-      fetch()
+      await partnersService.deleteMember(deleteTarget.id);
+      notificationsService.success({ text: 'Member deleted' });
+      setDeleteTarget(null);
+      fetch();
     } catch (e) {
-      notificationsService.error({ text: apiErrorMessage(e, 'Failed to delete member') })
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to delete member') });
     } finally {
-      setDeleteLoading(false)
+      setDeleteLoading(false);
     }
-  }
+  };
 
   const handleTfaAction = async () => {
-    if (!tfaTarget) return
-    setTfaLoading(true)
+    if (!tfaTarget) return;
+    setTfaLoading(true);
     try {
-      await partnersService.updateMemberTwoFactor(tfaTarget.member.id, tfaTarget.action)
+      await partnersService.updateMemberTwoFactor(tfaTarget.member.id, tfaTarget.action);
       notificationsService.success({
         text:
           tfaTarget.action === 'disable'
             ? '2FA disabled for this member'
             : '2FA reset — the member must set it up again',
-      })
-      setTfaTarget(null)
-      fetch()
+      });
+      setTfaTarget(null);
+      fetch();
     } catch (e) {
-      notificationsService.error({ text: apiErrorMessage(e, 'Failed to update the member 2FA') })
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to update the member 2FA') });
     } finally {
-      setTfaLoading(false)
+      setTfaLoading(false);
     }
-  }
+  };
 
-  const paged = members.slice(page * PER_PAGE, (page + 1) * PER_PAGE)
-  const totalPages = Math.ceil(members.length / PER_PAGE)
-  const hasPrev = page > 0
-  const hasNext = page < totalPages - 1
+  const paged = members.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
+  const totalPages = Math.ceil(members.length / PER_PAGE);
+  const hasPrev = page > 0;
+  const hasNext = page < totalPages - 1;
 
-  const isCreateValid =
-    !memberEmailError(createEmail) && !memberPasswordError(createPassword)
+  const isCreateValid = !memberEmailError(createEmail) && !memberPasswordError(createPassword);
   const isEditValid =
     !memberEmailError(editEmail) &&
     !memberPasswordError(editPassword, true) &&
-    (editEmail !== editTarget?.email || !!editPassword)
+    (editEmail !== editTarget?.email || !!editPassword);
 
   return (
     <SectionCard
@@ -807,11 +779,7 @@ const MembersTab = () => {
           <tbody>
             {paged.map((m) => (
               <tr key={m.id} style={{ borderBottom: `1px solid ${T.gray15}` }}>
-                <td
-                  style={{ padding: '14px 0', fontSize: 14, color: T.gray100 }}
-                >
-                  {m.email}
-                </td>
+                <td style={{ padding: '14px 0', fontSize: 14, color: T.gray100 }}>{m.email}</td>
                 <td
                   style={{
                     padding: '14px 0',
@@ -840,9 +808,9 @@ const MembersTab = () => {
                     <MemberActionsMenu
                       member={m}
                       onEdit={() => {
-                        setEditTarget(m)
-                        setEditEmail(m.email)
-                        setEditPassword('')
+                        setEditTarget(m);
+                        setEditEmail(m.email);
+                        setEditPassword('');
                       }}
                       onDelete={() => setDeleteTarget(m)}
                       onResetTwoFactor={() => setTfaTarget({ member: m, action: 'reset' })}
@@ -867,9 +835,7 @@ const MembersTab = () => {
             borderTop: `1px solid ${T.gray15}`,
           }}
         >
-          <span style={{ fontSize: 13, color: T.gray50 }}>
-            {members.length} members
-          </span>
+          <span style={{ fontSize: 13, color: T.gray50 }}>{members.length} members</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               disabled={!hasPrev}
@@ -935,18 +901,12 @@ const MembersTab = () => {
               margin: 0,
             }}
           >
-            Member accounts have{' '}
-            <span style={{ fontWeight: 500, color: T.gray80 }}>read-only</span>{' '}
-            access — they can view usage and export CSV, but cannot create or
-            modify accounts.
+            Member accounts have <span style={{ fontWeight: 500, color: T.gray80 }}>read-only</span> access — they can
+            view usage and export CSV, but cannot create or modify accounts.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Email</label>
-            <MemberEmailField
-              value={createEmail}
-              onChange={setCreateEmail}
-              placeholder="member@example.com"
-            />
+            <MemberEmailField value={createEmail} onChange={setCreateEmail} placeholder="member@example.com" />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Password</label>
@@ -964,12 +924,7 @@ const MembersTab = () => {
               paddingTop: 4,
             }}
           >
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={() => setCreateOpen(false)}
-              disabled={createLoading}
-            >
+            <Button variant="secondary" type="button" onClick={() => setCreateOpen(false)} disabled={createLoading}>
               Cancel
             </Button>
             <Button
@@ -994,9 +949,7 @@ const MembersTab = () => {
             paddingTop: 4,
           }}
         >
-          <p style={{ ...text.heading, margin: 0 }}>
-            Edit member — {editTarget?.email}
-          </p>
+          <p style={{ ...text.heading, margin: 0 }}>Edit member — {editTarget?.email}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={form.label}>Email</label>
             <MemberEmailField value={editEmail} onChange={setEditEmail} />
@@ -1018,20 +971,10 @@ const MembersTab = () => {
               paddingTop: 4,
             }}
           >
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={() => setEditTarget(null)}
-              disabled={editLoading}
-            >
+            <Button variant="secondary" type="button" onClick={() => setEditTarget(null)} disabled={editLoading}>
               Cancel
             </Button>
-            <Button
-              type="button"
-              disabled={editLoading || !isEditValid}
-              loading={editLoading}
-              onClick={handleUpdate}
-            >
+            <Button type="button" disabled={editLoading || !isEditValid} loading={editLoading} onClick={handleUpdate}>
               Save
             </Button>
           </div>
@@ -1070,25 +1013,25 @@ const MembersTab = () => {
         }
       />
     </SectionCard>
-  )
-}
+  );
+};
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'profile' | 'usage' | 'members' | 'branding'
+type Tab = 'profile' | 'usage' | 'members' | 'branding';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'profile', label: 'Profile' },
   { key: 'usage', label: 'Usage' },
   { key: 'members', label: 'Members' },
   { key: 'branding', label: 'Branding' },
-]
+];
 
 export const PartnersSettingsPage = () => {
-  const { isViewer } = usePartners()
-  const [activeTab, setActiveTab] = useState<Tab>('profile')
+  const { isViewer } = usePartners();
+  const [activeTab, setActiveTab] = useState<Tab>('profile');
 
-  const tabs = isViewer ? TABS.filter((tab) => tab.key === 'profile') : TABS
+  const tabs = isViewer ? TABS.filter((tab) => tab.key === 'profile') : TABS;
 
   return (
     <div
@@ -1102,15 +1045,9 @@ export const PartnersSettingsPage = () => {
       }}
     >
       <div>
-        <h1
-          style={{ fontSize: 24, fontWeight: 600, color: T.gray100, margin: 0 }}
-        >
-          Settings
-        </h1>
+        <h1 style={{ fontSize: 24, fontWeight: 600, color: T.gray100, margin: 0 }}>Settings</h1>
         <p style={{ fontSize: 14, color: T.gray60, margin: '6px 0 0' }}>
-          {isViewer
-            ? 'Manage your profile.'
-            : 'Manage your profile, usage and team.'}
+          {isViewer ? 'Manage your profile.' : 'Manage your profile, usage and team.'}
         </p>
       </div>
 
@@ -1127,10 +1064,7 @@ export const PartnersSettingsPage = () => {
                   fontSize: 14,
                   fontWeight: 500,
                   border: 'none',
-                  borderBottom:
-                    activeTab === tab.key
-                      ? `2px solid ${T.primary}`
-                      : '2px solid transparent',
+                  borderBottom: activeTab === tab.key ? `2px solid ${T.primary}` : '2px solid transparent',
                   marginBottom: -1,
                   color: activeTab === tab.key ? T.gray100 : T.gray60,
                   background: 'transparent',
@@ -1149,5 +1083,5 @@ export const PartnersSettingsPage = () => {
       {!isViewer && activeTab === 'members' && <MembersTab />}
       {!isViewer && activeTab === 'branding' && <BrandingTab />}
     </div>
-  )
-}
+  );
+};

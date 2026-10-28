@@ -3,9 +3,7 @@ import { TrashIcon } from '@phosphor-icons/react';
 import { ConfirmActionModal } from './ConfirmActionModal';
 import { T, shadow } from '../../sub-account/tokens';
 
-export const Emphasis = ({ children }: { children: ReactNode }) => (
-  <span style={{ fontWeight: 600 }}>{children}</span>
-);
+export const Emphasis = ({ children }: { children: ReactNode }) => <span style={{ fontWeight: 600 }}>{children}</span>;
 
 export const DeleteEntityButton = ({
   title,
@@ -27,15 +25,29 @@ export const DeleteEntityButton = ({
   const buttonStyle: React.CSSProperties =
     variant === 'button'
       ? {
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-          height: 36, padding: '0 12px', borderRadius: 8,
-          fontSize: 13, fontWeight: 500,
-          color: T.red, background: T.white, border: `1px solid ${T.gray20}`, boxShadow: shadow.sm,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+          height: 36,
+          padding: '0 12px',
+          borderRadius: 8,
+          fontSize: 13,
+          fontWeight: 500,
+          color: T.red,
+          background: T.white,
+          border: `1px solid ${T.gray20}`,
+          boxShadow: shadow.sm,
         }
       : {
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          padding: 6, borderRadius: 8,
-          color: T.red, background: 'transparent', border: 'none',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 6,
+          borderRadius: 8,
+          color: T.red,
+          background: 'transparent',
+          border: 'none',
         };
 
   const restingBackground = variant === 'button' ? T.white : 'transparent';
@@ -43,7 +55,7 @@ export const DeleteEntityButton = ({
   return (
     <>
       <button
-        type='button'
+        type="button"
         disabled={isDeleting}
         aria-label={ariaLabel}
         onClick={() => setIsConfirmOpen(true)}
@@ -66,8 +78,8 @@ export const DeleteEntityButton = ({
         isOpen={isConfirmOpen}
         title={title}
         description={description}
-        confirmLabel='Delete'
-        variant='danger'
+        confirmLabel="Delete"
+        variant="danger"
         onConfirm={() => {
           setIsConfirmOpen(false);
           onConfirm();

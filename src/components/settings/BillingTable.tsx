@@ -24,11 +24,7 @@ const getDate = (invoiceDate: number) => {
   });
 };
 
-export const BillingTable = ({
-  headers,
-  invoices,
-  bodyState,
-}: BillingTableProps) => {
+export const BillingTable = ({ headers, invoices, bodyState }: BillingTableProps) => {
   const onDownloadInvoice = (invoice: Invoice) => {
     window.open(invoice.pdf, '_blank');
   };
@@ -37,64 +33,53 @@ export const BillingTable = ({
     switch (key) {
       case 'invoice':
         return (
-          <div className='flex flex-col'>
-            <p className='text-primary font-medium'>{invoice.id}</p>
-            <p className='text-sm text-gray-500'>{invoice.created}</p>
+          <div className="flex flex-col">
+            <p className="text-primary font-medium">{invoice.id}</p>
+            <p className="text-sm text-gray-500">{invoice.created}</p>
           </div>
         );
       case 'created':
         return getDate(invoice.created);
       case 'total':
-        return <p className='text-black'>€ {invoice.total.toFixed(2)}</p>;
+        return <p className="text-black">€ {invoice.total.toFixed(2)}</p>;
       default:
         return '-';
     }
   };
 
   return (
-    <table className='w-full'>
+    <table className="w-full">
       <thead>
-        <tr className='w-full h-12 bg-gray-10 text-black text-sm'>
+        <tr className="w-full h-12 bg-gray-10 text-black text-sm">
           {headers.map((header) => (
-            <th key={header.key} className='w-[33%] px-5 text-left'>
+            <th key={header.key} className="w-[33%] px-5 text-left">
               {header.title}
             </th>
           ))}
-          <th className='w-[1%]' />
+          <th className="w-[1%]" />
         </tr>
       </thead>
       <tbody>
         {bodyState === 'loading' && (
-          <LoadingRowSkeleton
-            numberOfColumns={headers.length + 1}
-            numberOfRows={5}
-            itemWidth='25%'
-          />
+          <LoadingRowSkeleton numberOfColumns={headers.length + 1} numberOfRows={5} itemWidth="25%" />
         )}
         {bodyState === 'empty' && (
           <tr>
-            <td
-              colSpan={headers.length + 1}
-              className='text-center py-4 text-sm text-gray-400'
-            >
+            <td colSpan={headers.length + 1} className="text-center py-4 text-sm text-gray-400">
               No invoices found
             </td>
           </tr>
         )}
         {bodyState === 'items' &&
           invoices.map((invoice) => (
-            <tr key={invoice.id} className='w-full h-12 text-sm text-gray-500'>
+            <tr key={invoice.id} className="w-full h-12 text-sm text-gray-500">
               {headers.map((header) => (
-                <td key={header.key} className='px-5 text-left'>
+                <td key={header.key} className="px-5 text-left">
                   {renderCellValue(invoice, header.key)}
                 </td>
               ))}
-              <td className='w-[1%] px-5'>
-                <DownloadSimple
-                  className='cursor-pointer'
-                  size={24}
-                  onClick={() => onDownloadInvoice(invoice)}
-                />
+              <td className="w-[1%] px-5">
+                <DownloadSimple className="cursor-pointer" size={24} onClick={() => onDownloadInvoice(invoice)} />
               </td>
             </tr>
           ))}

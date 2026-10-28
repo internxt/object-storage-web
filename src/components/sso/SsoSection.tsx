@@ -26,12 +26,14 @@ export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionPr
   const [isDisabling, setIsDisabling] = useState(false);
 
   const loadData = useCallback(() => {
-    subAccountSsoService.getSsoConfig(entityId)
+    subAccountSsoService
+      .getSsoConfig(entityId)
       .then(setConfig)
       .catch(() => {
         setConfig({ configured: false });
       });
-    subAccountSsoService.getOtherMemberCount(entityId, memberId)
+    subAccountSsoService
+      .getOtherMemberCount(entityId, memberId)
       .then(setOtherMemberCount)
       .catch(() => setOtherMemberCount(null));
   }, [entityId, memberId]);
@@ -83,50 +85,49 @@ export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionPr
   return (
     <SectionCard
       title={t('sso.sectionTitle')}
-      action={config.configured ? (
-        <span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green'>
-          <span className='w-1.5 h-1.5 rounded-full bg-green shrink-0' />
-          {t('sso.enabledBadge')}
-        </span>
-      ) : undefined}
+      action={
+        config.configured ? (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green/[0.12] text-green">
+            <span className="w-1.5 h-1.5 rounded-full bg-green shrink-0" />
+            {t('sso.enabledBadge')}
+          </span>
+        ) : undefined
+      }
     >
       {!config.configured ? (
-        <div className='flex flex-col gap-4'>
-          <p className='text-sm text-gray-60'>
-            {t('sso.description')}
-          </p>
-          <div className='flex items-center gap-4'>
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-gray-60">{t('sso.description')}</p>
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setIsConfigureOpen(true)}
-              className='h-10 px-5 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-medium transition-colors shrink-0'
+              className="h-10 px-5 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-medium transition-colors shrink-0"
             >
               {t('sso.startConfiguration')}
             </button>
-            <p className='text-xs text-gray-50'>{t('sso.configuredHint')}</p>
+            <p className="text-xs text-gray-50">{t('sso.configuredHint')}</p>
           </div>
         </div>
       ) : (
-        <div className='flex flex-col gap-4'>
+        <div className="flex flex-col gap-4">
           <ReadField label={t('sso.organizationNameLabel')} value={config.organizationName} />
           <ReadField label={t('sso.providerLabel')} value={t('sso.providerValue')} />
           <ReadField label={t('sso.tenantIdLabel')} value={config.tenantId} mono />
           <ReadField label={t('sso.clientIdLabel')} value={config.clientId} mono />
-          <ReadField label={t('sso.configuredAtLabel')} value={config.configuredAt ? new Date(config.configuredAt).toLocaleDateString() : ''} />
+          <ReadField
+            label={t('sso.configuredAtLabel')}
+            value={config.configuredAt ? new Date(config.configuredAt).toLocaleDateString() : ''}
+          />
 
-          <div className='flex flex-col gap-2 pt-2 border-t border-gray-10'>
-            <div className='flex items-center gap-4'>
+          <div className="flex flex-col gap-2 pt-2 border-t border-gray-10">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setIsDisableConfirmOpen(true)}
                 disabled={disableBlocked}
-                className='h-10 px-5 rounded-lg bg-red hover:bg-red-dark text-white text-sm font-medium transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red'
+                className="h-10 px-5 rounded-lg bg-red hover:bg-red-dark text-white text-sm font-medium transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red"
               >
                 {t('sso.disableSso')}
               </button>
-              {disableBlocked && (
-                <p className='text-xs text-gray-50'>
-                  {t('sso.disableBlockedHint')}
-                </p>
-              )}
+              {disableBlocked && <p className="text-xs text-gray-50">{t('sso.disableBlockedHint')}</p>}
             </div>
           </div>
         </div>
@@ -147,7 +148,7 @@ export const SsoSection = ({ entityId, memberId, onTokenReissued }: SsoSectionPr
         isLoading={isDisabling}
         primaryAction={t('sso.disableSso')}
         secondaryAction={t('actions.cancel')}
-        primaryActionColor='danger'
+        primaryActionColor="danger"
         title={t('sso.disableConfirmTitle')}
         subtitle={t('sso.disableConfirmSubtitle')}
       />

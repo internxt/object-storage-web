@@ -30,16 +30,14 @@ export interface Member {
 }
 
 const getUserData = async (): Promise<User> => {
-  const userDataResponse = await axiosInstance.get(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/account`
-  );
+  const userDataResponse = await axiosInstance.get(`${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/account`);
 
   return userDataResponse.data;
 };
 
 const getMembers = async (): Promise<Member[]> => {
   const membersResponse = await axiosInstance.get<PaginatedResponse<Member>>(
-    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/members`
+    `${import.meta.env.VITE_OBJECT_STORAGE_API_URL}/users/members`,
   );
 
   return membersResponse.data.items;
