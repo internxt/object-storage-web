@@ -13,7 +13,7 @@ import { StoragePoint, StorageOverTimeChart } from '../components/StorageOverTim
 import { UsageDateRange } from '../components/UsageDateRange';
 import { ActivityPoint, DailyActivityChart } from '../components/DailyActivityChart';
 import { DeleteEntityButton, Emphasis } from '../components/DeleteEntityButton';
-import { useManagement } from '../context/managementContext';
+import { useManagement } from '../context/useManagement';
 import { T, card, shadow, text } from '../../sub-account/tokens';
 
 const PER_PAGE = 20;

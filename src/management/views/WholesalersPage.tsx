@@ -6,7 +6,7 @@ import { CreateWholesalerModal } from '../components/CreateWholesalerModal';
 import notificationsService from '../../services/notifications.service';
 import { T, card } from '../../sub-account/tokens';
 import { apiErrorMessage } from '../../utils/apiError';
-import { useManagement } from '../context/managementContext';
+import { useManagement } from '../context/useManagement';
 
 const PER_PAGE = 20;
 
