@@ -7,7 +7,7 @@ import { useManagement } from '../context/useManagement';
 import { managementMembersService } from '../services/management-members.service';
 import { T } from '../../sub-account/tokens';
 
-const ROLE_LABELS = { owner: 'Owner', superadmin: 'Superadmin', staff: 'Staff' } as const;
+const ROLE_LABELS = { owner: 'Owner', staff: 'Staff' } as const;
 
 const ProfileTab = () => {
   const { me } = useManagement();
@@ -17,7 +17,7 @@ const ProfileTab = () => {
       {me && (
         <SectionCard title='Account'>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <ReadField label='Email' value={me.legacy ? 'Shared admin credentials' : me.email ?? ''} />
+            <ReadField label='Email' value={me.email} />
             <ReadField label='Role' value={ROLE_LABELS[me.role]} />
           </div>
         </SectionCard>
@@ -25,11 +25,9 @@ const ProfileTab = () => {
 
       <TwoFactorCard />
 
-      {me && !me.legacy && (
-        <SectionCard title='Change password'>
-          <ChangePasswordForm onSubmit={managementMembersService.changeOwnPassword} />
-        </SectionCard>
-      )}
+      <SectionCard title='Change password'>
+        <ChangePasswordForm onSubmit={managementMembersService.changeOwnPassword} />
+      </SectionCard>
     </div>
   );
 };

@@ -4,8 +4,6 @@ import { ManagementRole } from './management.service';
 
 const API = '/management';
 
-export type AssignableManagementRole = Exclude<ManagementRole, 'owner'>;
-
 export interface ManagementMember {
   id: string;
   email: string;
@@ -17,7 +15,6 @@ export interface ManagementMember {
 export interface CreateManagementMemberDto {
   email: string;
   password: string;
-  role: AssignableManagementRole;
 }
 
 async function getMembers(): Promise<ManagementMember[]> {
@@ -28,10 +25,6 @@ async function getMembers(): Promise<ManagementMember[]> {
 async function createMember(dto: CreateManagementMemberDto): Promise<{ id: string }> {
   const response = await managementAxios.post<{ id: string }>(`${API}/members`, dto);
   return response.data;
-}
-
-async function updateMemberRole(id: string, role: AssignableManagementRole): Promise<void> {
-  await managementAxios.patch(`${API}/members/${id}/role`, { role });
 }
 
 async function resetMemberTwoFactor(id: string): Promise<void> {
@@ -54,7 +47,6 @@ async function changeOwnPassword(oldPassword: string, newPassword: string, code?
 export const managementMembersService = {
   getMembers,
   createMember,
-  updateMemberRole,
   resetMemberTwoFactor,
   deleteMember,
   changeOwnPassword,
