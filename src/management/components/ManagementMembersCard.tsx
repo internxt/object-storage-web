@@ -13,21 +13,11 @@ import { T, text, shadow } from '../../sub-account/tokens';
 import { ConfirmActionModal } from './ConfirmActionModal';
 import { useManagement } from '../context/useManagement';
 import { ManagementRole } from '../services/management.service';
-import {
-  AssignableManagementRole,
-  ManagementMember,
-  managementMembersService,
-} from '../services/management-members.service';
+import { ManagementMember, managementMembersService } from '../services/management-members.service';
 
 const ROLE_LABELS: Record<ManagementRole, string> = {
   owner: 'Owner',
-  superadmin: 'Superadmin',
   staff: 'Staff',
-};
-
-const ROLE_DESCRIPTIONS: Record<AssignableManagementRole, string> = {
-  superadmin: 'Can delete wholesalers, partners and sub-accounts.',
-  staff: 'Can do everything except deleting accounts.',
 };
 
 const PER_PAGE = 20;
@@ -70,12 +60,10 @@ const Pill = ({ label, tone }: { label: string; tone: 'green' | 'blue' | 'gray' 
 
 const MemberActionsMenu = ({
   member,
-  onChangeRole,
   onResetTwoFactor,
   onDelete,
 }: {
   member: ManagementMember;
-  onChangeRole: (role: AssignableManagementRole) => void;
   onResetTwoFactor: () => void;
   onDelete: () => void;
 }) => {
@@ -176,18 +164,12 @@ const MemberActionsMenu = ({
                 padding: '4px 0',
               }}
             >
-              {member.role === 'staff'
-                ? item('Make superadmin', () => onChangeRole('superadmin'))
-                : item('Change to staff', () => onChangeRole('staff'))}
-
               {member.twoFactorEnabled && (
                 <>
-                  {divider}
                   {item('Reset 2FA', onResetTwoFactor)}
+                  {divider}
                 </>
               )}
-
-              {divider}
               {item('Delete', onDelete, true)}
             </div>
           </>,
@@ -198,7 +180,6 @@ const MemberActionsMenu = ({
 };
 
 type PendingAction =
-  | { kind: 'role'; member: ManagementMember; role: AssignableManagementRole }
   | { kind: 'tfa'; member: ManagementMember }
   | { kind: 'delete'; member: ManagementMember };
 
@@ -219,18 +200,6 @@ const confirmCopy = (action: PendingAction) => {
           'until they set up two-factor authentication again.',
         confirmLabel: 'Reset',
       };
-    case 'role':
-      return action.role === 'superadmin'
-        ? {
-            title: 'Make superadmin?',
-            description: `${email} will be able to delete wholesalers, partners and sub-accounts.`,
-            confirmLabel: 'Make superadmin',
-          }
-        : {
-            title: 'Change to staff?',
-            description: `${email} will no longer be able to delete accounts.`,
-            confirmLabel: 'Change to staff',
-          };
   }
 };
 
@@ -243,7 +212,6 @@ export const ManagementMembersCard = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createEmail, setCreateEmail] = useState('');
   const [createPassword, setCreatePassword] = useState('');
-  const [createRole, setCreateRole] = useState<AssignableManagementRole | ''>('');
   const [isCreating, setIsCreating] = useState(false);
 
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
@@ -264,14 +232,12 @@ export const ManagementMembersCard = () => {
     setIsCreateOpen(false);
     setCreateEmail('');
     setCreatePassword('');
-    setCreateRole('');
   };
 
   const handleCreate = async () => {
-    if (!createRole) return;
     setIsCreating(true);
     try {
-      await managementMembersService.createMember({ email: createEmail, password: createPassword, role: createRole });
+      await managementMembersService.createMember({ email: createEmail, password: createPassword });
       notificationsService.success({ text: 'Member created' });
       closeCreate();
       fetchMembers();
@@ -290,12 +256,9 @@ export const ManagementMembersCard = () => {
       if (action.kind === 'delete') {
         await managementMembersService.deleteMember(action.member.id);
         notificationsService.success({ text: 'Member deleted' });
-      } else if (action.kind === 'tfa') {
+      } else {
         await managementMembersService.resetMemberTwoFactor(action.member.id);
         notificationsService.success({ text: '2FA reset — the member must set it up again' });
-      } else {
-        await managementMembersService.updateMemberRole(action.member.id, action.role);
-        notificationsService.success({ text: 'Role updated' });
       }
       fetchMembers();
     } catch (err) {
@@ -303,7 +266,7 @@ export const ManagementMembersCard = () => {
     }
   };
 
-  const isCreateValid = !memberEmailError(createEmail) && !memberPasswordError(createPassword) && !!createRole;
+  const isCreateValid = !memberEmailError(createEmail) && !memberPasswordError(createPassword);
 
   const paged = members.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
   const totalPages = Math.ceil(members.length / PER_PAGE);
@@ -358,7 +321,8 @@ export const ManagementMembersCard = () => {
           </thead>
           <tbody>
             {paged.map((member) => {
-              const isSelf = member.id === me?.id;              const isManageable = member.role !== 'owner' && !isSelf;
+              const isSelf = member.id === me?.id;
+              const isManageable = member.role !== 'owner' && !isSelf;
               return (
                 <tr key={member.id} style={{ borderBottom: `1px solid ${T.gray15}` }}>
                   <td style={{ padding: '14px 0', fontSize: 14, color: T.gray100 }}>
@@ -383,7 +347,6 @@ export const ManagementMembersCard = () => {
                       {isManageable && (
                         <MemberActionsMenu
                           member={member}
-                          onChangeRole={(role) => setPendingAction({ kind: 'role', member, role })}
                           onResetTwoFactor={() => setPendingAction({ kind: 'tfa', member })}
                           onDelete={() => setPendingAction({ kind: 'delete', member })}
                         />
@@ -444,34 +407,6 @@ export const ManagementMembersCard = () => {
             />
           </div>
 
-          <div>
-            <p style={{ ...text.label, marginBottom: 6 }}>Role</p>
-            <select
-              aria-label='Role'
-              value={createRole}
-              onChange={(e) => setCreateRole(e.target.value as AssignableManagementRole)}
-              style={{
-                width: '100%',
-                height: 40,
-                padding: '0 12px',
-                background: T.white,
-                border: `1px solid ${T.gray20}`,
-                borderRadius: 8,
-                fontSize: 14,
-                color: createRole ? T.gray80 : T.gray50,
-              }}
-            >
-              <option value='' disabled>
-                Select a role
-              </option>
-              <option value='staff'>{ROLE_LABELS.staff}</option>
-              <option value='superadmin'>{ROLE_LABELS.superadmin}</option>
-            </select>
-            {createRole && (
-              <p style={{ fontSize: 12, color: T.gray50, margin: '6px 0 0' }}>{ROLE_DESCRIPTIONS[createRole]}</p>
-            )}
-          </div>
-
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
             <Button variant='secondary' type='button' onClick={closeCreate} disabled={isCreating}>
               Cancel
@@ -488,7 +423,7 @@ export const ManagementMembersCard = () => {
         title={pendingCopy?.title ?? ''}
         description={pendingCopy?.description}
         confirmLabel={pendingCopy?.confirmLabel ?? ''}
-        variant={pendingAction?.kind === 'role' ? 'primary' : 'danger'}
+        variant='danger'
         onConfirm={handleConfirm}
         onCancel={() => setPendingAction(null)}
       />
