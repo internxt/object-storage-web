@@ -19,12 +19,21 @@ async function logIn(email: string, password: string, code?: string): Promise<vo
   setToken(response.data.token);
 }
 
+async function reauthenticate(password: string, code?: string): Promise<void> {
+  const response = await managementAxios.post<{ token: string }>('/management/me/reauthenticate', {
+    password,
+    code: code || undefined,
+  });
+  setToken(response.data.token);
+}
+
 function logOut(): void {
   removeToken();
 }
 
 export const managementAuthService = {
   logIn,
+  reauthenticate,
   logOut,
   getToken,
   setToken,
