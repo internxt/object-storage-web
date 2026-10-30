@@ -17,7 +17,7 @@ export const WholesalersPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const { isSuperadmin } = useManagement();
+  const { isOwner } = useManagement();
 
   const fetchWholesalers = useCallback(async () => {
     setIsLoading(true);
@@ -93,7 +93,7 @@ export const WholesalersPage = () => {
         <WholesalersTable
           wholesalers={wholesalers}
           isLoading={isLoading}
-          onDelete={isSuperadmin ? handleDelete : undefined}
+          onDelete={isOwner ? handleDelete : undefined}
           deletingId={deletingId}
         />
 

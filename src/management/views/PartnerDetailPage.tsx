@@ -149,7 +149,7 @@ export const PartnerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isSuperadmin } = useManagement();
+  const { isOwner } = useManagement();
 
   const [partner, setPartner] = useState<Partner | undefined>(undefined);
   const [partnerLoading, setPartnerLoading] = useState(true);
@@ -280,7 +280,7 @@ export const PartnerDetailPage = () => {
           <DownloadSimple size={14} />
           Export usage
         </button>
-        {isSuperadmin && partner.status !== 'DELETED' && (
+        {isOwner && partner.status !== 'DELETED' && (
           <div className="flex-shrink-0">
             <DeleteEntityButton
               title="Delete partner permanently?"
