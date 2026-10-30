@@ -8,6 +8,7 @@ import { memberEmailError, memberPasswordError } from '../../components/memberVa
 import { PASSWORD_MIN_LENGTH } from '../../components/auth/passwordPolicy';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
+import { isReauthCancelled } from '../core/management-reauth';
 import { SectionCard } from '../../sub-account/components/SettingsAtoms';
 import { T, text, shadow } from '../../sub-account/tokens';
 import { ConfirmActionModal } from './ConfirmActionModal';
@@ -242,6 +243,7 @@ export const ManagementMembersCard = () => {
       closeCreate();
       fetchMembers();
     } catch (err) {
+      if (isReauthCancelled(err)) return;
       notificationsService.error({ text: apiErrorMessage(err, 'Failed to create member') });
     } finally {
       setIsCreating(false);
@@ -262,6 +264,7 @@ export const ManagementMembersCard = () => {
       }
       fetchMembers();
     } catch (err) {
+      if (isReauthCancelled(err)) return;
       notificationsService.error({ text: apiErrorMessage(err, 'Failed to update the member') });
     }
   };

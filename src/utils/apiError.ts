@@ -16,3 +16,6 @@ export const apiErrorCode = (err: unknown): string | undefined => {
 
 export const isTwoFactorRequiredError = (err: unknown): boolean =>
   axios.isAxiosError(err) && err.response?.status === 403 && err.response?.data?.message === '2FA_REQUIRED';
+
+export const isReauthRequiredError = (err: unknown): boolean =>
+  axios.isAxiosError(err) && err.response?.status === 403 && err.response?.data?.code === 'REAUTH_REQUIRED';
