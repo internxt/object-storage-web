@@ -3,7 +3,7 @@ import { managementService } from '../services/management.service';
 import { useManagement } from '../context/useManagement';
 
 export const ManagementSubAccountDetailPage = () => {
-  const { isSuperadmin } = useManagement();
+  const { isOwner } = useManagement();
 
-  return <SubAccountDetailPage deleteSubAccount={isSuperadmin ? managementService.deleteSubAccount : undefined} />;
+  return <SubAccountDetailPage deleteSubAccount={isOwner ? managementService.deleteSubAccount : undefined} />;
 };

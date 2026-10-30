@@ -23,7 +23,7 @@ describe('managementMembersService', () => {
     expect(seenUrl).toBe('/management/members');
   });
 
-  test('when createMember is called, then it posts email, password and role', async () => {
+  test('when createMember is called, then it posts email and password', async () => {
     let seenConfig: { url?: string; method?: string; data?: string } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
@@ -33,27 +33,12 @@ describe('managementMembersService', () => {
     const result = await managementMembersService.createMember({
       email: 'b@internxt.com',
       password: 'Secret123!',
-      role: 'staff',
     });
 
     expect(result).toEqual({ id: 'm2' });
     expect(seenConfig?.method).toBe('post');
     expect(seenConfig?.url).toBe('/management/members');
-    expect(parseBody(seenConfig?.data)).toEqual({ email: 'b@internxt.com', password: 'Secret123!', role: 'staff' });
-  });
-
-  test('when updateMemberRole is called, then it patches the member role', async () => {
-    let seenConfig: { url?: string; method?: string; data?: string } | undefined;
-    managementAxios.defaults.adapter = mockAdapter((config) => {
-      seenConfig = config;
-      return { status: 204 };
-    });
-
-    await managementMembersService.updateMemberRole('m1', 'superadmin');
-
-    expect(seenConfig?.method).toBe('patch');
-    expect(seenConfig?.url).toBe('/management/members/m1/role');
-    expect(parseBody(seenConfig?.data)).toEqual({ role: 'superadmin' });
+    expect(parseBody(seenConfig?.data)).toEqual({ email: 'b@internxt.com', password: 'Secret123!' });
   });
 
   test('when resetMemberTwoFactor is called, then it patches the member tfa route', async () => {
