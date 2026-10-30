@@ -18,6 +18,7 @@ import { exportAsCSV } from '../../utils/exportUtils';
 import { StatusBadge } from '../../components/StatusBadge';
 import Button from '../../components/Button';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
+import { DeleteEntityButton, Emphasis } from '../components/DeleteEntityButton';
 import { apiErrorMessage } from '../../utils/apiError';
 import {
   isSameStorageLimit,
@@ -43,6 +44,7 @@ interface SubAccountDetailPageProps {
   service?: SubAccountService;
   showClientName?: boolean;
   showStorageLimit?: boolean;
+  deleteSubAccount?: (id: string) => Promise<void>;
 }
 
 const PER_PAGE = 20;
@@ -301,6 +303,7 @@ export const SubAccountDetailPage = ({
   service = managementService,
   showClientName = false,
   showStorageLimit = false,
+  deleteSubAccount,
 }: SubAccountDetailPageProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -317,6 +320,7 @@ export const SubAccountDetailPage = ({
   const [loading, setLoading] = useState(true);
   const [usagesLoading, setUsagesLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     service
@@ -407,6 +411,19 @@ export const SubAccountDetailPage = ({
     }
   };
 
+  const handleDelete = async (remove: (id: string) => Promise<void>) => {
+    setIsDeleting(true);
+    try {
+      await remove(id!);
+      notificationsService.success({ text: 'Sub-account deleted' });
+      await navigate(backPath);
+    } catch (e) {
+      notificationsService.error({ text: apiErrorMessage(e, 'Failed to delete sub-account') });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleRename = async (update: (id: string, name: string) => Promise<void>, name: string) => {
     await update(id!, name);
     setAccount((current) => (current ? { ...current, name } : current));
@@ -460,6 +477,7 @@ export const SubAccountDetailPage = ({
             {updateName && account.status !== 'DELETED' && (
               <EditClientNameButton
                 currentName={account.name ?? null}
+
                 onSubmit={(name) => handleRename(updateName, name)}
               />
             )}
@@ -467,6 +485,22 @@ export const SubAccountDetailPage = ({
           </div>
           {account.contactEmail && <p className="text-sm text-gray-400 mt-0.5">{account.contactEmail}</p>}
         </div>
+        {deleteSubAccount && account.status !== 'DELETED' && account.status !== 'PENDING_DELETION' && (
+          <div className="ml-auto flex-shrink-0">
+            <DeleteEntityButton
+              title="Delete sub-account permanently?"
+              description={
+                <>
+                  This will permanently delete <Emphasis>{account.contactEmail ?? account.id}</Emphasis> and its{' '}
+                  <Emphasis>{fmt(account.activeStorage, 4)} TB</Emphasis> of active storage at the storage provider.
+                  This action cannot be undone.
+                </>
+              }
+              isDeleting={isDeleting}
+              onConfirm={() => handleDelete(deleteSubAccount)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Stat cards */}
