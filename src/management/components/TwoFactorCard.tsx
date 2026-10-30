@@ -5,21 +5,10 @@ import Input from '../../components/Input';
 import { TwoFactorSetupForm } from '../../components/two-factor/TwoFactorSetupForm';
 import { TwoFactorCodeInput, TWO_FACTOR_CODE_LENGTH } from '../../components/two-factor/TwoFactorCodeInput';
 import notificationsService from '../../services/notifications.service';
-import { apiErrorCode } from '../../utils/apiError';
+import { twoFactorErrorMessage } from './twoFactorErrorMessage';
 import { managementTwoFactorService, TwoFactorStatus } from '../services/management-two-factor.service';
 import { SectionCard } from '../../sub-account/components/SettingsAtoms';
 import { T, text, form } from '../../sub-account/tokens';
-
-const ERROR_MESSAGES: Record<string, string> = {
-  INVALID_PASSWORD: 'Incorrect password.',
-  TWO_FACTOR_INVALID_CODE: 'Invalid code. Check your authenticator app and try again.',
-  TWO_FACTOR_NO_PENDING_SETUP: 'The setup expired. Close this window and start again.',
-  TWO_FACTOR_ALREADY_ENABLED: 'Two-factor authentication is already enabled.',
-  TWO_FACTOR_NOT_ENABLED: 'Two-factor authentication is not enabled.',
-};
-
-const errorMessage = (err: unknown): string =>
-  ERROR_MESSAGES[apiErrorCode(err) ?? ''] ?? 'Something went wrong. Please try again.';
 
 type CardState =
   { kind: 'loading' } | { kind: 'failed' } | { kind: 'ready'; status: TwoFactorStatus };
@@ -64,7 +53,7 @@ export const TwoFactorCard = () => {
       setState({ kind: 'ready', status: { enabled: false } });
       notificationsService.success({ text: 'Two-factor authentication disabled' });
     } catch (err) {
-      setDisableError(errorMessage(err));
+      setDisableError(twoFactorErrorMessage(err));
     } finally {
       setIsDisabling(false);
     }
@@ -129,7 +118,7 @@ export const TwoFactorCard = () => {
               }}
               getSetup={managementTwoFactorService.getSetup}
               enable={managementTwoFactorService.enable}
-              errorMessage={errorMessage}
+              errorMessage={twoFactorErrorMessage}
               onComplete={handleEnabled}
               onCancel={() => setIsSetupOpen(false)}
             />
