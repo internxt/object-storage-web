@@ -120,6 +120,7 @@ export interface ManagementMe {
   id: string;
   email: string;
   role: ManagementRole;
+  twoFactorSetupRequired?: boolean;
 }
 
 async function getMe(): Promise<ManagementMe> {

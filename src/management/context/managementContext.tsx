@@ -9,30 +9,38 @@ export const ManagementProvider = ({ children }: { children: ReactNode }) => {
     () => !!managementAuthService.getToken()
   );
   const [me, setMe] = useState<ManagementMe | null>(null);
+  const [twoFactorSetupRequired, setTwoFactorSetupRequired] = useState(false);
   const isOwner = isAuthenticated && me?.role === 'owner';
 
   useEffect(() => {
     if (!isAuthenticated) return;
     managementService
       .getMe()
-      .then(setMe)
+      .then((info) => {
+        setMe(info);
+        setTwoFactorSetupRequired(!!info.twoFactorSetupRequired);
+      })
       .catch(() => setMe(null));
   }, [isAuthenticated]);
 
   const logIn = async (email: string, password: string, code?: string) => {
-    await managementAuthService.logIn(email, password, code);
+    const { twoFactorSetupRequired } = await managementAuthService.logIn(email, password, code);
     setIsAuthenticated(true);
+    setTwoFactorSetupRequired(twoFactorSetupRequired);
   };
 
   const logOut = () => {
     managementAuthService.logOut();
     setIsAuthenticated(false);
     setMe(null);
+    setTwoFactorSetupRequired(false);
   };
 
+  const clearTwoFactorSetupRequired = () => setTwoFactorSetupRequired(false);
+
   const value = useMemo(
-    () => ({ isAuthenticated, isOwner, me, logIn, logOut }),
-    [isAuthenticated, isOwner, me]
+    () => ({ isAuthenticated, isOwner, me, twoFactorSetupRequired, clearTwoFactorSetupRequired, logIn, logOut }),
+    [isAuthenticated, isOwner, me, twoFactorSetupRequired]
   );
 
   return (
