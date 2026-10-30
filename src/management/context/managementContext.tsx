@@ -2,6 +2,7 @@ import { useState, ReactNode, useMemo, useEffect } from 'react';
 import { managementAuthService } from '../services/management-auth.service';
 import { managementService, ManagementMe } from '../services/management.service';
 import { ManagementContext } from './useManagement';
+import { ReauthDialog } from '../components/ReauthDialog';
 
 export const ManagementProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -34,5 +35,10 @@ export const ManagementProvider = ({ children }: { children: ReactNode }) => {
     [isAuthenticated, isOwner, me]
   );
 
-  return <ManagementContext.Provider value={value}>{children}</ManagementContext.Provider>;
+  return (
+    <ManagementContext.Provider value={value}>
+      {children}
+      <ReauthDialog />
+    </ManagementContext.Provider>
+  );
 };
