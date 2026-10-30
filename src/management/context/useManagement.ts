@@ -5,6 +5,8 @@ export interface ManagementContextType {
   isAuthenticated: boolean;
   isOwner: boolean;
   me: ManagementMe | null;
+  twoFactorSetupRequired: boolean;
+  clearTwoFactorSetupRequired: () => void;
   logIn: (email: string, password: string, code?: string) => Promise<void>;
   logOut: () => void;
 }

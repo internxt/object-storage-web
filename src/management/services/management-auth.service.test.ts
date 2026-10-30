@@ -29,6 +29,25 @@ describe('managementAuthService', () => {
     expect(managementAuthService.getToken()).toBe('management-jwt');
   });
 
+  test('when logIn returns twoFactorSetupRequired, then it passes the flag on', async () => {
+    managementAxios.defaults.adapter = mockAdapter(() => ({
+      status: 200,
+      data: { token: 'management-jwt', twoFactorSetupRequired: true },
+    }));
+
+    await expect(managementAuthService.logIn('admin@internxt.com', 'secret')).resolves.toEqual({
+      twoFactorSetupRequired: true,
+    });
+  });
+
+  test('when the login response has no twoFactorSetupRequired, then the flag is false', async () => {
+    managementAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: { token: 'management-jwt' } }));
+
+    await expect(managementAuthService.logIn('admin@internxt.com', 'secret')).resolves.toEqual({
+      twoFactorSetupRequired: false,
+    });
+  });
+
   test('when the backend rejects the credentials, then logIn rejects and stores nothing', async () => {
     managementAxios.defaults.adapter = mockAdapter(() => ({ status: 401 }));
 
