@@ -5,7 +5,7 @@ import Input from '../../components/Input';
 import { TwoFactorSetupForm } from '../../components/two-factor/TwoFactorSetupForm';
 import { TwoFactorCodeInput, TWO_FACTOR_CODE_LENGTH } from '../../components/two-factor/TwoFactorCodeInput';
 import notificationsService from '../../services/notifications.service';
-import { twoFactorErrorMessage } from './twoFactorErrorMessage';
+import { TWO_FACTOR_SETUP_LABELS, twoFactorErrorMessage } from './twoFactorCopy';
 import { managementTwoFactorService, TwoFactorStatus } from '../services/management-two-factor.service';
 import { SectionCard } from '../../sub-account/components/SettingsAtoms';
 import { T, text, form } from '../../sub-account/tokens';
@@ -104,18 +104,7 @@ export const TwoFactorCard = () => {
           <p style={{ ...text.heading, margin: 0 }}>Set up two-factor authentication</p>
           {isSetupOpen && (
             <TwoFactorSetupForm
-              labels={{
-                scanInstructions:
-                  'Scan this QR code with your authenticator app, then enter the 6-digit code it shows.',
-                qrCodeAlt: 'Two-factor authentication QR code',
-                manualEntry: "Can't scan it? Enter this key manually:",
-                codeLabel: 'Verification code',
-                codePlaceholder: '000000',
-                loading: 'Loading…',
-                loadFailed: "Couldn't start the setup. Please try again.",
-                cancel: 'Cancel',
-                confirm: 'Confirm',
-              }}
+              labels={TWO_FACTOR_SETUP_LABELS}
               getSetup={managementTwoFactorService.getSetup}
               enable={managementTwoFactorService.enable}
               errorMessage={twoFactorErrorMessage}

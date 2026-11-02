@@ -38,7 +38,7 @@ managementAxios.interceptors.response.use(
       return managementAxios(config);
     }
 
-    return Promise.reject(error);
+    throw error;
   },
 );
 
