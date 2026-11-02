@@ -1,3 +1,4 @@
+import type { TwoFactorSetupFormLabels } from '../../components/two-factor/TwoFactorSetupForm';
 import { apiErrorCode } from '../../utils/apiError';
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -10,3 +11,15 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 export const twoFactorErrorMessage = (err: unknown): string =>
   ERROR_MESSAGES[apiErrorCode(err) ?? ''] ?? 'Something went wrong. Please try again.';
+
+export const TWO_FACTOR_SETUP_LABELS: TwoFactorSetupFormLabels = {
+  scanInstructions: 'Scan this QR code with your authenticator app, then enter the 6-digit code it shows.',
+  qrCodeAlt: 'Two-factor authentication QR code',
+  manualEntry: "Can't scan it? Enter this key manually:",
+  codeLabel: 'Verification code',
+  codePlaceholder: '000000',
+  loading: 'Loading…',
+  loadFailed: "Couldn't start the setup. Please try again.",
+  cancel: 'Cancel',
+  confirm: 'Confirm',
+};

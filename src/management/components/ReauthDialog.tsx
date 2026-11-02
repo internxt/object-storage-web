@@ -1,21 +1,14 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
-import axios from 'axios';
 import dayjs from 'dayjs';
 import Modal from '../../components/Modal';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { TwoFactorCodeInput, TWO_FACTOR_CODE_LENGTH } from '../../components/two-factor/TwoFactorCodeInput';
-import { apiErrorMessage, hasApiErrorStatus, isTwoFactorRequiredError } from '../../utils/apiError';
+import { apiErrorMessage, getLockedUntil, hasApiErrorStatus, isTwoFactorRequiredError } from '../../utils/apiError';
 import { setReauthHandler } from '../core/management-reauth';
 import { managementAuthService } from '../services/management-auth.service';
 import { managementTwoFactorService } from '../services/management-two-factor.service';
 import { text, form } from '../../sub-account/tokens';
-
-const getLockedUntil = (err: unknown): string | undefined => {
-  if (!axios.isAxiosError(err)) return undefined;
-  const data = err.response?.data as { code?: string; lockedUntil?: string } | undefined;
-  return data?.code === 'ACCOUNT_LOCKED' ? data.lockedUntil : undefined;
-};
 
 const errorMessage = (err: unknown): string => {
   if (isTwoFactorRequiredError(err)) return 'Enter the code from your authenticator app.';
@@ -66,7 +59,7 @@ export const ReauthDialog = () => {
     setIsSubmitting(true);
     setError(undefined);
     try {
-      await managementAuthService.reauthenticate(password, needsCode ? code : undefined);
+      await managementAuthService.reauthenticate(password, code);
       finish(true);
     } catch (err) {
       if (hasApiErrorStatus(err, 401)) {

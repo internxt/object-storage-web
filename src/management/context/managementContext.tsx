@@ -9,6 +9,7 @@ export const ManagementProvider = ({ children }: { children: ReactNode }) => {
     () => !!managementAuthService.getToken()
   );
   const [me, setMe] = useState<ManagementMe | null>(null);
+  const [isMeLoading, setIsMeLoading] = useState(isAuthenticated);
   const [twoFactorSetupRequired, setTwoFactorSetupRequired] = useState(false);
   const isOwner = isAuthenticated && me?.role === 'owner';
 
@@ -20,7 +21,8 @@ export const ManagementProvider = ({ children }: { children: ReactNode }) => {
         setMe(info);
         setTwoFactorSetupRequired(!!info.twoFactorSetupRequired);
       })
-      .catch(() => setMe(null));
+      .catch(() => setMe(null))
+      .finally(() => setIsMeLoading(false));
   }, [isAuthenticated]);
 
   const logIn = async (email: string, password: string, code?: string) => {
@@ -39,8 +41,17 @@ export const ManagementProvider = ({ children }: { children: ReactNode }) => {
   const clearTwoFactorSetupRequired = () => setTwoFactorSetupRequired(false);
 
   const value = useMemo(
-    () => ({ isAuthenticated, isOwner, me, twoFactorSetupRequired, clearTwoFactorSetupRequired, logIn, logOut }),
-    [isAuthenticated, isOwner, me, twoFactorSetupRequired]
+    () => ({
+      isAuthenticated,
+      isOwner,
+      me,
+      isMeLoading,
+      twoFactorSetupRequired,
+      clearTwoFactorSetupRequired,
+      logIn,
+      logOut,
+    }),
+    [isAuthenticated, isOwner, me, isMeLoading, twoFactorSetupRequired]
   );
 
   return (

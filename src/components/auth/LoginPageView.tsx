@@ -2,13 +2,12 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { BaseSyntheticEvent, type CSSProperties, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import dayjs from 'dayjs';
 import { WarningCircle } from '@phosphor-icons/react';
 import TextInput from './TextInput';
 import PasswordInput, { IFormValues } from '../PasswordInput';
 import { BrandLogo } from '../BrandLogo';
-import { isTwoFactorRequiredError } from '../../utils/apiError';
+import { getLockedUntil, isTwoFactorRequiredError } from '../../utils/apiError';
 
 // Only app-internal paths are allowed as a post-login destination, so a crafted
 // ?redirect= can never send the user to another origin.
@@ -17,12 +16,6 @@ const getSafeRedirect = (raw: string | null): string | null => {
   const isInternalPath = raw.startsWith('/');
   const isExternalUrl = raw.startsWith('//') || raw.startsWith('/\\');
   return isInternalPath && !isExternalUrl ? raw : null;
-};
-
-const getLockedUntil = (error: unknown): string | undefined => {
-  if (!axios.isAxiosError(error)) return undefined;
-  const data = error.response?.data as { code?: string; lockedUntil?: string } | undefined;
-  return data?.code === 'ACCOUNT_LOCKED' ? data.lockedUntil : undefined;
 };
 
 interface LoginBranding {
