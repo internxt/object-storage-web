@@ -489,8 +489,8 @@ export const SubAccountDetailPage = ({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-gray-300 border-t-indigo-500 rounded-full animate-spin" />
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
+        <div className="w-5 h-5 border-2 border-gray-20 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
@@ -623,7 +623,21 @@ export const SubAccountDetailPage = ({
 
             {!usagesLoading && chartData.length > 0 && <StorageOverTimeChart data={chartData} />}
 
-            <div style={{ overflowX: 'auto', border: `1px solid ${T.gray15}`, borderRadius: 12 }}>
+            <div style={{ overflowX: 'auto', border: `1px solid ${T.gray15}`, borderRadius: 12, position: 'relative' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 2,
+                  overflow: 'hidden',
+                  transition: 'opacity 300ms',
+                  opacity: usagesLoading ? 1 : 0,
+                }}
+              >
+                <div className="animate-loading-bar" style={{ height: '100%', background: T.primary }} />
+              </div>
               <table
                 style={{ width: '100%', fontSize: 14, textAlign: 'left', borderCollapse: 'separate', borderSpacing: 0 }}
               >
@@ -649,7 +663,7 @@ export const SubAccountDetailPage = ({
                           fontWeight: 500,
                         }}
                       >
-                        {usagesLoading ? 'Loading…' : 'No usage data for this period'}
+                        {!usagesLoading && 'No usage data for this period'}
                       </td>
                     </tr>
                   ) : (
