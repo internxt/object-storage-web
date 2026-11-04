@@ -179,6 +179,20 @@ describe('managementService', () => {
     expect(result).toEqual({ id: 'sa-1' });
   });
 
+  test('when migrateSubAccountToNewConsole is called, then it POSTs the migration with the given email', async () => {
+    let seenConfig: { url?: string; method?: string; data?: unknown } | undefined;
+    managementAxios.defaults.adapter = mockAdapter((config) => {
+      seenConfig = config;
+      return { status: 204 };
+    });
+
+    await managementService.migrateSubAccountToNewConsole('sa-1', 'admin@client.com');
+
+    expect(seenConfig?.method).toBe('post');
+    expect(seenConfig?.url).toBe('/management/sub-accounts/sa-1/migrate-to-new-console');
+    expect(parseBody(seenConfig?.data)).toEqual({ email: 'admin@client.com' });
+  });
+
   test('when getSubAccountUsages is called, then it fetches the usages page with a pagination fallback', async () => {
     let seenConfig: { url?: string; params?: unknown } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {

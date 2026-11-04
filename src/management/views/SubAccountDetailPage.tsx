@@ -13,6 +13,7 @@ import {
 import { managementService, SubAccountDetail, SubAccountUsage } from '../services/management.service';
 import { StorageOverTimeChart } from '../components/StorageOverTimeChart';
 import { UsageDateRange } from '../components/UsageDateRange';
+import { MigrateToNewConsoleModal } from '../components/MigrateToNewConsoleModal';
 import notificationsService from '../../services/notifications.service';
 import { exportAsCSV } from '../../utils/exportUtils';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -36,6 +37,7 @@ import {
 type SubAccountService = Pick<typeof managementService, 'getSubAccountById' | 'getSubAccountUsages'> & {
   updateSubAccountStorageLimit?: (id: string, limit: StorageLimit) => Promise<void>;
   updateSubAccountName?: (id: string, name: string) => Promise<void>;
+  migrateSubAccountToNewConsole?: (id: string, email: string) => Promise<void>;
 };
 
 interface SubAccountDetailPageProps {
@@ -304,7 +306,11 @@ export const SubAccountDetailPage = ({
 }: SubAccountDetailPageProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { updateSubAccountStorageLimit: updateLimit, updateSubAccountName: updateName } = service;
+  const {
+    updateSubAccountStorageLimit: updateLimit,
+    updateSubAccountName: updateName,
+    migrateSubAccountToNewConsole: migrateToNewConsole,
+  } = service;
 
   const [account, setAccount] = useState<SubAccountDetail | null>(null);
   const [usages, setUsages] = useState<SubAccountUsage[]>([]);
@@ -317,6 +323,7 @@ export const SubAccountDetailPage = ({
   const [loading, setLoading] = useState(true);
   const [usagesLoading, setUsagesLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [migrateOpen, setMigrateOpen] = useState(false);
 
   useEffect(() => {
     service
@@ -410,6 +417,11 @@ export const SubAccountDetailPage = ({
   const handleRename = async (update: (id: string, name: string) => Promise<void>, name: string) => {
     await update(id!, name);
     setAccount((current) => (current ? { ...current, name } : current));
+  };
+
+  const handleMigrate = async (migrate: (id: string, email: string) => Promise<void>, email: string) => {
+    await migrate(id!, email);
+    setAccount((current) => (current ? { ...current, newConsoleMigrationEligible: false } : current));
   };
 
   const totalPages = Math.ceil(totalUsages / PER_PAGE);
@@ -649,6 +661,26 @@ export const SubAccountDetailPage = ({
               )}
               <DetailField label="Email" value={account.contactEmail} />
             </div>
+
+            {migrateToNewConsole && account.newConsoleMigrationEligible && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-100">New console</h3>
+                  <p className="text-xs text-gray-60 mt-0.5">
+                    This sub-account has no users yet and can only use the old console.
+                  </p>
+                </div>
+                <Button size="medium" className="self-start sm:self-auto" onClick={() => setMigrateOpen(true)}>
+                  Migrate to new console
+                </Button>
+                <MigrateToNewConsoleModal
+                  isOpen={migrateOpen}
+                  currentEmail={account.contactEmail}
+                  onClose={() => setMigrateOpen(false)}
+                  onSubmit={(email) => handleMigrate(migrateToNewConsole, email)}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
