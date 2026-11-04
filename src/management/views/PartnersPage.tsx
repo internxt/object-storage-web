@@ -4,10 +4,50 @@ import { partnersService, Partner, PartnersSummary } from '../services/partners.
 import { PartnersTable, SortOrder } from '../components/PartnersTable';
 import { CreatePartnerModal } from '../components/CreatePartnerModal';
 import notificationsService from '../../services/notifications.service';
-import { T } from '../../sub-account/tokens';
+import { T, card } from '../../sub-account/tokens';
 import { apiErrorMessage } from '../../utils/apiError';
 
 const PER_PAGE = 20;
+const ACCENT = '#6366f1';
+
+const labelStyle: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.14em',
+  color: T.gray60,
+};
+
+const metricStyle: React.CSSProperties = {
+  fontSize: 48,
+  fontWeight: 600,
+  letterSpacing: '-0.02em',
+  lineHeight: 1,
+};
+
+const unitStyle: React.CSSProperties = { fontSize: 20, fontWeight: 500, color: T.gray50 };
+
+const statColumnStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  flex: 1,
+  padding: '28px 40px',
+};
+
+const pageButtonStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  height: 32,
+  padding: '0 12px',
+  fontSize: 13,
+  fontWeight: 500,
+  color: T.gray80,
+  border: `1px solid ${T.gray20}`,
+  borderRadius: 8,
+  background: T.white,
+};
 
 function tbDisplay(value?: number | null): string {
   if (value == null) return '—';
@@ -85,60 +125,38 @@ export const PartnersPage = () => {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Stats */}
-      <div
-        className="bg-white rounded-2xl overflow-hidden"
-        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)' }}
-      >
-        <div className="px-10 pt-9 pb-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Partners Overview</p>
+      <div style={{ ...card, borderRadius: 16, display: 'flex' }}>
+        <div style={statColumnStyle}>
+          <p style={labelStyle}>Total Partners</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ ...metricStyle, color: ACCENT }}>{summary?.totalPartners ?? '—'}</span>
+          </div>
         </div>
-        <div className="px-10 pb-9 flex items-center gap-0">
-          {/* Total Partners */}
-          <div className="flex flex-col gap-2 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Total Partners</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-semibold tracking-tight leading-none" style={{ color: '#6366f1' }}>
-                {summary?.totalPartners ?? '—'}
-              </span>
-            </div>
+
+        <div style={{ ...statColumnStyle, borderLeft: `1px solid ${T.gray20}` }}>
+          <p style={labelStyle}>Total Active Storage</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ ...metricStyle, color: ACCENT }}>{tbDisplay(summary?.activeStorageTb)}</span>
+            <span style={unitStyle}>TB</span>
           </div>
+        </div>
 
-          <div className="w-px bg-gray-100 self-stretch mx-10" />
-
-          {/* Total Active Storage */}
-          <div className="flex flex-col gap-2 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">Total Active Storage</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-semibold tracking-tight leading-none" style={{ color: '#6366f1' }}>
-                {tbDisplay(summary?.activeStorageTb)}
-              </span>
-              <span className="text-xl font-medium text-gray-400">TB</span>
-            </div>
-          </div>
-
-          <div className="w-px bg-gray-100 self-stretch mx-10" />
-
-          {/* Placeholder third stat */}
-          <div className="flex flex-col gap-2 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">MoM Growth</p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-semibold tracking-tight leading-none text-gray-300">-</span>
-              <span className="text-xl font-medium text-gray-300">%</span>
-            </div>
+        <div style={{ ...statColumnStyle, borderLeft: `1px solid ${T.gray20}` }}>
+          <p style={labelStyle}>MoM Growth</p>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={{ ...metricStyle, color: T.gray20 }}>—</span>
           </div>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="flex items-center justify-between mb-5">
+      <div style={{ ...card, borderRadius: 16, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
-            <h2 className="text-base font-semibold text-gray-900">Partners</h2>
-            {total > 0 && <p className="text-xs text-gray-400 mt-0.5">{total} partners total</p>}
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: T.gray100, margin: 0 }}>Partners</h2>
+            {total > 0 && <p style={{ fontSize: 13, color: T.gray50, margin: '2px 0 0' }}>{total} partners total</p>}
           </div>
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
               <input
                 type="checkbox"
                 checked={showDeleted}
@@ -146,9 +164,9 @@ export const PartnersPage = () => {
                   setPage(0);
                   setShowDeleted(e.target.checked);
                 }}
-                className="w-4 h-4 rounded border-gray-300 text-indigo accent-indigo cursor-pointer"
+                style={{ width: 16, height: 16, accentColor: T.primary, cursor: 'pointer' }}
               />
-              <span className="text-sm text-gray-500">Show deleted</span>
+              <span style={{ fontSize: 14, color: T.gray60 }}>Show deleted</span>
             </label>
             <button
               onClick={() => setIsCreateModalOpen(true)}
@@ -173,14 +191,34 @@ export const PartnersPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 mb-4 px-3 max-w-sm border border-gray-200 rounded-lg bg-white">
-          <MagnifyingGlassIcon size={15} className="text-gray-400 shrink-0" />
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            border: `1px solid ${T.gray20}`,
+            borderRadius: 8,
+            padding: '0 12px',
+            maxWidth: 384,
+            marginBottom: 16,
+            background: T.white,
+          }}
+        >
+          <MagnifyingGlassIcon size={15} color={T.gray50} style={{ flexShrink: 0 }} />
           <input
             type="text"
             placeholder="Search by name or email…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 py-2 text-sm text-gray-700 bg-transparent outline-none border-none"
+            style={{
+              fontSize: 14,
+              padding: '8px 0',
+              outline: 'none',
+              flex: 1,
+              background: 'transparent',
+              color: T.gray80,
+              border: 'none',
+            }}
           />
         </div>
 
@@ -194,27 +232,35 @@ export const PartnersPage = () => {
           }}
         />
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
-          <span className="text-xs text-gray-400">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 16,
+            paddingTop: 16,
+            borderTop: `1px solid ${T.gray15}`,
+          }}
+        >
+          <span style={{ fontSize: 13, color: T.gray50 }}>
             Showing {fromItem}–{toItem} of {total} partners
           </span>
-          <div className="flex items-center gap-1">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               disabled={!hasPrev}
               onClick={() => setPage((p) => p - 1)}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              style={{ ...pageButtonStyle, cursor: hasPrev ? 'pointer' : 'not-allowed', opacity: hasPrev ? 1 : 0.4 }}
             >
               <CaretLeft size={14} />
               Prev
             </button>
-            <span className="px-3 py-1.5 text-sm text-gray-500">
+            <span style={{ padding: '0 8px', fontSize: 13, color: T.gray50 }}>
               {page + 1} / {Math.max(1, totalPages)}
             </span>
             <button
               disabled={!hasNext}
               onClick={() => setPage((p) => p + 1)}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              style={{ ...pageButtonStyle, cursor: hasNext ? 'pointer' : 'not-allowed', opacity: hasNext ? 1 : 0.4 }}
             >
               Next
               <CaretRight size={14} />
