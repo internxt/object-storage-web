@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Partner } from '../services/partners.service';
 import { ArrowUp, ArrowDown, ArrowSquareOut } from '@phosphor-icons/react';
 import { StatusBadge } from '../../components/StatusBadge';
+import { T } from '../../sub-account/tokens';
 
 export type SortOrder = 'asc' | 'desc';
 
@@ -17,9 +18,19 @@ const formatDate = (date?: string | null) =>
 
 const formatStorage = (value?: number) => {
   if (value == null) return '—';
-  if (value === 0) return <span className="text-gray-300">0.0000</span>;
+  if (value === 0) return <span style={{ color: T.gray20 }}>0.0000</span>;
   return value.toFixed(4);
 };
+
+const linkStyle: React.CSSProperties = {
+  fontSize: 14,
+  color: T.primary,
+  textDecoration: 'underline',
+  textUnderlineOffset: 2,
+  cursor: 'pointer',
+};
+
+const emptyValue = <span style={{ color: T.gray20, fontSize: 14 }}>—</span>;
 
 const COL_HEADERS = [
   { label: 'ID', align: 'left' },
@@ -37,17 +48,25 @@ export const PartnersTable = ({ partners, isLoading, sortOrder, onSortActiveStor
   const navigate = useNavigate();
 
   return (
-    <div className="overflow-x-auto relative">
-      {/* Loading bar */}
+    <div style={{ overflowX: 'auto', position: 'relative' }}>
       <div
-        className={`absolute top-0 left-0 right-0 h-[2px] overflow-hidden transition-opacity duration-300 ${isLoading ? 'opacity-100' : 'opacity-0'}`}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 2,
+          overflow: 'hidden',
+          transition: 'opacity 300ms',
+          opacity: isLoading ? 1 : 0,
+        }}
       >
-        <div className="h-full bg-indigo-400/30 w-full">
-          <div className="h-full bg-indigo-400 animate-loading-bar" />
+        <div style={{ height: '100%', background: 'rgba(0,102,255,0.3)', width: '100%' }}>
+          <div className="animate-loading-bar" style={{ height: '100%', background: T.primary }} />
         </div>
       </div>
 
-      <table className="w-full text-sm text-left border-separate border-spacing-0">
+      <table style={{ width: '100%', fontSize: 14, textAlign: 'left', borderCollapse: 'separate', borderSpacing: 0 }}>
         <thead>
           <tr>
             {COL_HEADERS.map((h, i) => {
@@ -58,17 +77,38 @@ export const PartnersTable = ({ partners, isLoading, sortOrder, onSortActiveStor
                   onClick={
                     isActiveStorage ? () => onSortActiveStorage?.(sortOrder === 'asc' ? 'desc' : 'asc') : undefined
                   }
-                  className={`px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-gray-400 border-b border-gray-100 bg-white whitespace-nowrap ${h.align === 'right' ? 'text-right' : ''} ${isActiveStorage ? 'cursor-pointer hover:text-gray-600 select-none' : ''}`}
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: 10,
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    color: T.gray50,
+                    borderBottom: `1px solid ${T.gray15}`,
+                    background: T.gray5,
+                    whiteSpace: 'nowrap',
+                    textAlign: h.align === 'right' ? 'right' : 'left',
+                    cursor: isActiveStorage ? 'pointer' : undefined,
+                    userSelect: isActiveStorage ? 'none' : undefined,
+                  }}
                 >
                   {isActiveStorage ? (
-                    <span className="inline-flex items-center gap-1 justify-end w-full">
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        justifyContent: 'flex-end',
+                        width: '100%',
+                      }}
+                    >
                       {h.label}
                       {sortOrder === 'asc' ? (
-                        <ArrowUp size={11} weight="bold" className="text-indigo-400" />
+                        <ArrowUp size={11} weight="bold" color={T.primary} />
                       ) : sortOrder === 'desc' ? (
-                        <ArrowDown size={11} weight="bold" className="text-indigo-400" />
+                        <ArrowDown size={11} weight="bold" color={T.primary} />
                       ) : (
-                        <ArrowUp size={11} weight="bold" className="text-gray-200" />
+                        <ArrowUp size={11} weight="bold" color={T.gray20} />
                       )}
                     </span>
                   ) : (
@@ -79,76 +119,84 @@ export const PartnersTable = ({ partners, isLoading, sortOrder, onSortActiveStor
             })}
           </tr>
         </thead>
-        <tbody className={`transition-opacity duration-200 ${isLoading ? 'opacity-40' : 'opacity-100'}`}>
+        <tbody style={{ transition: 'opacity 200ms', opacity: isLoading ? 0.4 : 1 }}>
           {partners.length === 0 && !isLoading ? (
             <tr>
-              <td colSpan={COL_HEADERS.length} className="text-center py-16 text-gray-300 text-sm font-medium">
+              <td
+                colSpan={COL_HEADERS.length}
+                style={{ textAlign: 'center', padding: '64px 0', color: T.gray50, fontSize: 14, fontWeight: 500 }}
+              >
                 No partners found
               </td>
             </tr>
           ) : (
-            partners.map((p, idx) => (
-              <tr key={p.id} className="group hover:bg-gray-50/80 transition-colors cursor-default">
-                <td
-                  className={`px-4 py-3.5 ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
-                  onClick={() => navigate(`/management/partners/${p.id}`, { state: { partner: p } })}
+            partners.map((p, idx) => {
+              const cellStyle: React.CSSProperties = {
+                padding: '14px 16px',
+                borderBottom: idx < partners.length - 1 ? `1px solid ${T.gray15}` : 'none',
+              };
+              return (
+                <tr
+                  key={p.id}
+                  style={{ transition: 'background 120ms' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = T.gray5;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
                 >
-                  <span className="font-mono text-[11px] text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2 cursor-pointer tracking-tight">
-                    {p.storageProviderId.slice(0, 8)}…{p.storageProviderId.slice(-4)}
-                  </span>
-                </td>
-                <td
-                  className={`px-4 py-3.5 text-[13px] text-gray-700 ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
-                >
-                  {p.name ?? <span className="text-gray-300">—</span>}
-                </td>
-                <td
-                  className={`px-4 py-3.5 text-[13px] text-gray-500 ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
-                >
-                  {p.email ?? <span className="text-gray-300">—</span>}
-                </td>
-                <td
-                  className={`px-4 py-3.5 text-right font-mono text-[12px] text-gray-500 tabular-nums ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
-                >
-                  {p.subAccountsCount}
-                </td>
-                <td
-                  className={`px-4 py-3.5 text-right font-mono text-[12px] text-gray-700 tabular-nums ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
-                >
-                  {formatStorage(p.activeStorageTb)}
-                </td>
-                <td className={`px-4 py-3.5 ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                  <StatusBadge status={p.status} />
-                </td>
-                <td
-                  className={`px-4 py-3.5 text-[12px] text-gray-500 whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
-                >
-                  {formatDate(p.providerCreatedAt)}
-                </td>
-                <td
-                  className={`px-4 py-3.5 text-[12px] text-gray-500 whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
-                >
-                  {formatDate(p.createdAt)}
-                </td>
-                <td
-                  className={`px-4 py-3.5 text-[12px] whitespace-nowrap ${idx < partners.length - 1 ? 'border-b border-gray-50' : ''}`}
-                >
-                  {p.customerId ? (
-                    <a
-                      href={`https://dashboard.stripe.com/customers/${p.customerId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1 text-[#1e3a5f] hover:text-[#122840] underline underline-offset-2"
-                    >
-                      View <ArrowSquareOut size={12} />
-                    </a>
-                  ) : (
-                    <span className="text-gray-300">—</span>
-                  )}
-                </td>
-              </tr>
-            ))
+                  <td
+                    style={cellStyle}
+                    onClick={() => navigate(`/management/partners/${p.id}`, { state: { partner: p } })}
+                  >
+                    <span style={{ ...linkStyle, fontFamily: 'monospace', fontSize: 13, letterSpacing: '-0.01em' }}>
+                      {p.storageProviderId.slice(0, 8)}…{p.storageProviderId.slice(-4)}
+                    </span>
+                  </td>
+                  <td style={{ ...cellStyle, fontSize: 14, color: T.gray80 }}>{p.name ?? emptyValue}</td>
+                  <td style={{ ...cellStyle, fontSize: 14, color: T.gray60 }}>{p.email ?? emptyValue}</td>
+                  <td style={{ ...cellStyle, textAlign: 'right' }}>
+                    <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
+                      {p.subAccountsCount}
+                    </span>
+                  </td>
+                  <td style={{ ...cellStyle, textAlign: 'right' }}>
+                    <span style={{ fontSize: 14, color: T.gray80, fontVariantNumeric: 'tabular-nums' }}>
+                      {formatStorage(p.activeStorageTb)}
+                    </span>
+                  </td>
+                  <td style={cellStyle}>
+                    <StatusBadge status={p.status} />
+                  </td>
+                  <td style={cellStyle}>
+                    <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>
+                      {formatDate(p.providerCreatedAt)}
+                    </span>
+                  </td>
+                  <td style={cellStyle}>
+                    <span style={{ fontSize: 14, color: T.gray50, whiteSpace: 'nowrap' }}>
+                      {formatDate(p.createdAt)}
+                    </span>
+                  </td>
+                  <td style={cellStyle}>
+                    {p.customerId ? (
+                      <a
+                        href={`https://dashboard.stripe.com/customers/${p.customerId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ ...linkStyle, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                      >
+                        View <ArrowSquareOut size={14} />
+                      </a>
+                    ) : (
+                      emptyValue
+                    )}
+                  </td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </table>
