@@ -136,6 +136,7 @@ export interface SubAccountDetail {
   partnerName?: string | null;
   storageQuotaTb?: number | null;
   usageAlertTb?: number | null;
+  newConsoleMigrationEligible?: boolean;
 }
 
 export interface SubAccountUsage {
@@ -179,6 +180,10 @@ async function getSubAccountById(id: string): Promise<SubAccountDetail> {
   return response.data;
 }
 
+async function migrateSubAccountToNewConsole(id: string, email: string): Promise<void> {
+  await managementAxios.post(`${API}/sub-accounts/${id}/migrate-to-new-console`, { email });
+}
+
 async function getSubAccountUsages(
   id: string,
   params: { from: string; to: string; page?: number; perPage?: number },
@@ -212,6 +217,7 @@ export const managementService = {
   getSubAccounts,
   getSubAccountById,
   updateSubAccount,
+  migrateSubAccountToNewConsole,
   getSubAccountUsages,
   createSubAccount,
   suspendSubAccount,
