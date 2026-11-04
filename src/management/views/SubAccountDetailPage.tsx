@@ -20,6 +20,7 @@ import { StatusBadge } from '../../components/StatusBadge';
 import Button from '../../components/Button';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
 import { apiErrorMessage } from '../../utils/apiError';
+import { T, card } from '../../sub-account/tokens';
 import {
   isSameStorageLimit,
   isValidStorageLimit,
@@ -49,6 +50,11 @@ interface SubAccountDetailPageProps {
 
 const PER_PAGE = 20;
 
+const TABS = [
+  { key: 'usage', label: 'Usage' },
+  { key: 'account', label: 'Account Details' },
+] as const;
+
 const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) => (
   <div className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
     <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center flex-shrink-0">
@@ -61,10 +67,55 @@ const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string
   </div>
 );
 
-const DetailField = ({ label, value }: { label: string; value?: string | number | null }) => (
-  <div className="flex flex-col gap-0.5">
-    <span className="text-xs text-gray-400 uppercase tracking-wide">{label}</span>
-    <span className="text-sm text-gray-800">{value ?? '—'}</span>
+const labelStyle: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.14em',
+  color: T.gray60,
+};
+
+const pageButtonStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  height: 32,
+  padding: '0 12px',
+  fontSize: 13,
+  fontWeight: 500,
+  color: T.gray80,
+  border: `1px solid ${T.gray20}`,
+  borderRadius: 8,
+  background: T.white,
+};
+
+const headerCellStyle: React.CSSProperties = {
+  padding: '12px 16px',
+  fontSize: 10,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.1em',
+  color: T.gray50,
+  borderBottom: `1px solid ${T.gray15}`,
+  background: T.gray5,
+  whiteSpace: 'nowrap',
+};
+
+const USAGE_COLUMNS = [
+  { label: 'Start Time', align: 'left' },
+  { label: 'End Time', align: 'left' },
+  { label: 'Active Storage (TB)', align: 'right' },
+  { label: 'Deleted Storage (TB)', align: 'right' },
+  { label: 'Storage Wrote (TB)', align: 'right' },
+  { label: 'Storage Read (TB)', align: 'right' },
+] as const;
+
+const emptyValue = <span style={{ color: T.gray20 }}>—</span>;
+
+const DetailField = ({ label, children }: { label: string; children?: React.ReactNode }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+    <span style={labelStyle}>{label}</span>
+    <span style={{ fontSize: 14, color: T.gray100, overflowWrap: 'anywhere' }}>{children ?? emptyValue}</span>
   </div>
 );
 
@@ -448,11 +499,6 @@ export const SubAccountDetailPage = ({
 
   const storageLimit = toStorageLimit(account.storageQuotaTb, account.usageAlertTb);
 
-  const tabClass = (t: typeof tab) =>
-    `px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-      tab === t ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-800'
-    }`;
-
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
@@ -516,21 +562,40 @@ export const SubAccountDetailPage = ({
         </>
       )}
 
-      {/* Tabs + content */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="flex border-b border-gray-100 px-2">
-          <button className={tabClass('usage')} onClick={() => setTab('usage')}>
-            Usage
-          </button>
-          <button className={tabClass('account')} onClick={() => setTab('account')}>
-            Account Details
-          </button>
+      <div style={{ ...card, borderRadius: 16, overflow: 'hidden' }}>
+        <div
+          role="tablist"
+          style={{ display: 'flex', gap: 8, padding: '0 16px', borderBottom: `1px solid ${T.gray15}` }}
+        >
+          {TABS.map(({ key, label }) => {
+            const active = tab === key;
+            return (
+              <button
+                key={key}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(key)}
+                style={{
+                  padding: '14px 8px',
+                  marginBottom: -1,
+                  fontSize: 14,
+                  fontWeight: active ? 600 : 500,
+                  color: active ? T.primary : T.gray60,
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: `2px solid ${active ? T.primary : 'transparent'}`,
+                  cursor: 'pointer',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         {tab === 'usage' && (
-          <div className="p-5 flex flex-col gap-5">
-            {/* Date range */}
-            <div className="flex items-center gap-2 flex-wrap">
+          <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <UsageDateRange
                 from={from}
                 to={to}
@@ -544,88 +609,106 @@ export const SubAccountDetailPage = ({
               <button
                 disabled={exporting}
                 onClick={() => exportUsages()}
-                className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                style={{
+                  ...pageButtonStyle,
+                  marginLeft: 'auto',
+                  cursor: exporting ? 'not-allowed' : 'pointer',
+                  opacity: exporting ? 0.4 : 1,
+                }}
               >
                 <DownloadSimple size={14} />
                 {exporting ? 'Exporting…' : 'Export CSV'}
               </button>
             </div>
 
-            {/* Chart */}
             {!usagesLoading && chartData.length > 0 && <StorageOverTimeChart data={chartData} />}
 
-            {/* Usage table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
+            <div style={{ overflowX: 'auto', border: `1px solid ${T.gray15}`, borderRadius: 12 }}>
+              <table
+                style={{ width: '100%', fontSize: 14, textAlign: 'left', borderCollapse: 'separate', borderSpacing: 0 }}
+              >
                 <thead>
-                  <tr className="bg-gray-50 border-y border-gray-100">
-                    {[
-                      'Start Time',
-                      'End Time',
-                      'Active Storage (TB)',
-                      'Deleted Storage (TB)',
-                      'Storage Wrote (TB)',
-                      'Storage Read (TB)',
-                    ].map((h) => (
-                      <th key={h} className="px-4 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">
-                        {h}
+                  <tr>
+                    {USAGE_COLUMNS.map((c) => (
+                      <th key={c.label} style={{ ...headerCellStyle, textAlign: c.align }}>
+                        {c.label}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {usagesLoading ? (
+                <tbody style={{ transition: 'opacity 200ms', opacity: usagesLoading ? 0.4 : 1 }}>
+                  {usages.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center py-10">
-                        <div className="flex flex-col items-center gap-2 text-gray-400">
-                          <div className="w-5 h-5 border-2 border-gray-300 border-t-indigo-500 rounded-full animate-spin" />
-                          <span className="text-xs">Loading…</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : usages.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="text-center py-10 text-sm text-gray-400">
-                        No usage data for this period
+                      <td
+                        colSpan={USAGE_COLUMNS.length}
+                        style={{
+                          textAlign: 'center',
+                          padding: '64px 0',
+                          color: T.gray50,
+                          fontSize: 14,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {usagesLoading ? 'Loading…' : 'No usage data for this period'}
                       </td>
                     </tr>
                   ) : (
-                    usages.map((u) => (
-                      <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">{fmtDate(u.startTime)}</td>
-                        <td className="px-4 py-3 text-gray-600 whitespace-nowrap text-xs">{fmtDate(u.endTime)}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-700">{fmt(u.activeStorage)}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-700">{fmt(u.deletedStorage)}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-700">{fmt(u.storageWrote)}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-700">{fmt(u.storageRead)}</td>
-                      </tr>
-                    ))
+                    usages.map((u, idx) => {
+                      const cellStyle: React.CSSProperties = {
+                        padding: '14px 16px',
+                        borderBottom: idx < usages.length - 1 ? `1px solid ${T.gray15}` : 'none',
+                        whiteSpace: 'nowrap',
+                      };
+                      const numberStyle: React.CSSProperties = {
+                        ...cellStyle,
+                        textAlign: 'right',
+                        color: T.gray80,
+                        fontVariantNumeric: 'tabular-nums',
+                      };
+                      return (
+                        <tr key={u.id}>
+                          <td style={{ ...cellStyle, color: T.gray50 }}>{fmtDate(u.startTime)}</td>
+                          <td style={{ ...cellStyle, color: T.gray50 }}>{fmtDate(u.endTime)}</td>
+                          <td style={numberStyle}>{fmt(u.activeStorage)}</td>
+                          <td style={numberStyle}>{fmt(u.deletedStorage)}</td>
+                          <td style={numberStyle}>{fmt(u.storageWrote)}</td>
+                          <td style={numberStyle}>{fmt(u.storageRead)}</td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                <span className="text-xs text-gray-400">
-                  {page * PER_PAGE + 1}–{Math.min((page + 1) * PER_PAGE, totalUsages)} of {totalUsages}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 13, color: T.gray50 }}>
+                  Showing {page * PER_PAGE + 1}–{Math.min((page + 1) * PER_PAGE, totalUsages)} of {totalUsages}
                 </span>
-                <div className="flex items-center gap-1">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <button
                     disabled={page === 0}
                     onClick={() => setPage((p) => p - 1)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      ...pageButtonStyle,
+                      cursor: page === 0 ? 'not-allowed' : 'pointer',
+                      opacity: page === 0 ? 0.4 : 1,
+                    }}
                   >
                     <CaretLeft size={14} /> Prev
                   </button>
-                  <span className="px-3 py-1.5 text-sm text-gray-500">
+                  <span style={{ padding: '0 8px', fontSize: 13, color: T.gray50 }}>
                     {page + 1} / {totalPages}
                   </span>
                   <button
                     disabled={page >= totalPages - 1}
                     onClick={() => setPage((p) => p + 1)}
-                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      ...pageButtonStyle,
+                      cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer',
+                      opacity: page >= totalPages - 1 ? 0.4 : 1,
+                    }}
                   >
                     Next <CaretRight size={14} />
                   </button>
@@ -636,41 +719,67 @@ export const SubAccountDetailPage = ({
         )}
 
         {tab === 'account' && (
-          <div className="p-6 flex flex-col gap-6">
-            {/* Read-only info */}
-            <div className="grid grid-cols-2 gap-x-10 gap-y-4 lg:grid-cols-4 pb-5 border-b border-gray-100">
-              {showClientName && <DetailField label="Name" value={account.name} />}
-              <DetailField label="Account ID" value={id} />
-              <DetailField label="Status" value={account.status} />
-              <DetailField
-                label="Creation Date"
-                value={account.creationDate ? dayjs(account.creationDate).format('DD-MMM-YYYY') : null}
-              />
-              {account.partnerId ? (
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs text-gray-400 uppercase tracking-wide">Partner Account</span>
-                  <span
-                    className="text-sm text-blue-600 hover:underline cursor-pointer"
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: '24px 40px',
+                padding: '28px 32px',
+              }}
+            >
+              {showClientName && <DetailField label="Name">{account.name}</DetailField>}
+              <DetailField label="Account ID">
+                <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{id}</span>
+              </DetailField>
+              <DetailField label="Status">
+                <StatusBadge status={account.status} />
+              </DetailField>
+              <DetailField label="Creation Date">
+                {account.creationDate ? dayjs(account.creationDate).format('DD-MMM-YYYY') : null}
+              </DetailField>
+              <DetailField label="Partner Account">
+                {account.partnerId && (
+                  <button
                     onClick={() => navigate(`/management/partners/${account.partnerId}`)}
+                    style={{
+                      padding: 0,
+                      fontSize: 14,
+                      color: T.primary,
+                      textDecoration: 'underline',
+                      textUnderlineOffset: 2,
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
                   >
                     {account.partnerName || account.partnerId}
-                  </span>
-                </div>
-              ) : (
-                <DetailField label="Partner Account" value={null} />
-              )}
-              <DetailField label="Email" value={account.contactEmail} />
+                  </button>
+                )}
+              </DetailField>
+              <DetailField label="Email">{account.contactEmail}</DetailField>
             </div>
 
             {migrateToNewConsole && account.newConsoleMigrationEligible && (
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 16,
+                  padding: '20px 32px',
+                  borderTop: `1px solid ${T.gray15}`,
+                  background: T.gray5,
+                }}
+              >
                 <div>
-                  <h3 className="text-sm font-medium text-gray-100">New console</h3>
-                  <p className="text-xs text-gray-60 mt-0.5">
+                  <p style={{ fontSize: 14, fontWeight: 600, color: T.gray100, margin: 0 }}>New console</p>
+                  <p style={{ fontSize: 13, color: T.gray60, margin: '2px 0 0' }}>
                     This sub-account has no users yet and can only use the old console.
                   </p>
                 </div>
-                <Button size="medium" className="self-start sm:self-auto" onClick={() => setMigrateOpen(true)}>
+                <Button size="medium" onClick={() => setMigrateOpen(true)}>
                   Migrate to new console
                 </Button>
                 <MigrateToNewConsoleModal
