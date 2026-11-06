@@ -14,8 +14,20 @@ function removeToken(): void {
   localStorage.removeItem(MANAGEMENT_TOKEN_KEY);
 }
 
-async function logIn(email: string, password: string, code?: string): Promise<void> {
-  const response = await managementAxios.post<{ token: string }>('/management/login', { email, password, code });
+async function logIn(email: string, password: string, code?: string): Promise<{ twoFactorSetupRequired: boolean }> {
+  const response = await managementAxios.post<{ token: string; twoFactorSetupRequired?: boolean }>(
+    '/management/login',
+    { email, password, code },
+  );
+  setToken(response.data.token);
+  return { twoFactorSetupRequired: !!response.data.twoFactorSetupRequired };
+}
+
+async function reauthenticate(password: string, code?: string): Promise<void> {
+  const response = await managementAxios.post<{ token: string }>('/management/me/reauthenticate', {
+    password,
+    code: code || undefined,
+  });
   setToken(response.data.token);
 }
 
@@ -25,6 +37,7 @@ function logOut(): void {
 
 export const managementAuthService = {
   logIn,
+  reauthenticate,
   logOut,
   getToken,
   setToken,

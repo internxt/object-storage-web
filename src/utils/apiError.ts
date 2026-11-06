@@ -16,3 +16,9 @@ export const apiErrorCode = (err: unknown): string | undefined => {
 
 export const isTwoFactorRequiredError = (err: unknown): boolean =>
   axios.isAxiosError(err) && err.response?.status === 403 && err.response?.data?.message === '2FA_REQUIRED';
+
+export const isReauthRequiredError = (err: unknown): boolean =>
+  hasApiErrorStatus(err, 403) && apiErrorCode(err) === 'REAUTH_REQUIRED';
+
+export const getLockedUntil = (err: unknown): string | undefined =>
+  apiErrorCode(err) === 'ACCOUNT_LOCKED' && axios.isAxiosError(err) ? err.response?.data?.lockedUntil : undefined;
