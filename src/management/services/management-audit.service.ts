@@ -32,7 +32,7 @@ export interface ManagementAuditEvent {
 
 export interface ManagementAuditEventsResponse {
   items: ManagementAuditEvent[];
-  total: number;
+  hasNextPage: boolean;
 }
 
 async function getAuditEvents(params: { page: number; perPage: number }): Promise<ManagementAuditEventsResponse> {
