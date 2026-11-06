@@ -22,7 +22,7 @@ const errorMessage = (err: unknown): string =>
   ERROR_MESSAGES[apiErrorCode(err) ?? ''] ?? 'Something went wrong. Please try again.';
 
 type CardState =
-  { kind: 'loading' } | { kind: 'failed' } | { kind: 'legacy' } | { kind: 'ready'; status: TwoFactorStatus };
+  { kind: 'loading' } | { kind: 'failed' } | { kind: 'ready'; status: TwoFactorStatus };
 
 export const TwoFactorCard = () => {
   const [state, setState] = useState<CardState>({ kind: 'loading' });
@@ -39,7 +39,7 @@ export const TwoFactorCard = () => {
     managementTwoFactorService
       .getStatus()
       .then((status) => setState({ kind: 'ready', status }))
-      .catch((err) => setState({ kind: apiErrorCode(err) === 'LEGACY_ADMIN' ? 'legacy' : 'failed' }));
+      .catch(() => setState({ kind: 'failed' }));
   }, []);
 
   const closeDisable = () => {
@@ -76,13 +76,6 @@ export const TwoFactorCard = () => {
         return <p style={{ fontSize: 13, color: T.gray50, margin: 0 }}>Loading…</p>;
       case 'failed':
         return <p style={{ fontSize: 13, color: T.red, margin: 0 }}>Couldn't load your two-factor status.</p>;
-      case 'legacy':
-        return (
-          <p style={{ fontSize: 13, color: T.gray60, margin: 0 }}>
-            You're signed in with the shared admin credentials. Two-factor authentication needs a personal management
-            account.
-          </p>
-        );
       case 'ready':
         return (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>

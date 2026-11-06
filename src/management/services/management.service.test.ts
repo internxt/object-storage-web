@@ -139,13 +139,13 @@ describe('managementService', () => {
     let seenConfig: { url?: string } | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
-      return { status: 200, data: { id: 'm1', email: 'a@b.com', role: 'superadmin', legacy: false } };
+      return { status: 200, data: { id: 'm1', email: 'a@b.com', role: 'staff' } };
     });
 
     const me = await managementService.getMe();
 
     expect(seenConfig?.url).toBe('/management/me');
-    expect(me).toEqual({ id: 'm1', email: 'a@b.com', role: 'superadmin', legacy: false });
+    expect(me).toEqual({ id: 'm1', email: 'a@b.com', role: 'staff' });
   });
 
   describe('getUsagesSummary', () => {
