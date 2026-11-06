@@ -4,9 +4,9 @@ import managementAxios from '../core/management-axios';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
 
 describe('managementAuditService', () => {
-  test('when getAuditEvents is called, then it requests the page and returns items and total', async () => {
+  test('when getAuditEvents is called, then it requests the page and returns events and hasNextPage', async () => {
     const data = {
-      total: 1,
+      hasNextPage: false,
       items: [
         {
           id: 'e1',
