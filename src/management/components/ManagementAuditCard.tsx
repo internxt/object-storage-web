@@ -26,7 +26,7 @@ const ROLE_LABELS: Record<string, string> = {
   staff: 'Staff',
 };
 
-const roleLabel = (role?: string) => (role ? ROLE_LABELS[role] ?? role : '—');
+const roleLabel = (role?: string) => (role ? (ROLE_LABELS[role] ?? role) : '—');
 
 const describeAction = ({ action, entityType }: ManagementAuditEvent): string => {
   switch (action) {
@@ -56,7 +56,7 @@ const StatusPill = ({ event }: { event: ManagementAuditEvent }) => {
   const failed = event.status === 'failed';
   return (
     <span
-      title={failed ? event.error ?? undefined : 'Started but never finished'}
+      title={failed ? (event.error ?? undefined) : 'Started but never finished'}
       style={{
         flexShrink: 0,
         padding: '2px 8px',
@@ -93,16 +93,16 @@ const truncate: React.CSSProperties = { overflow: 'hidden', textOverflow: 'ellip
 
 export const ManagementAuditCard = () => {
   const [events, setEvents] = useState<ManagementAuditEvent[]>([]);
-  const [total, setTotal] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     managementAuditService
       .getAuditEvents({ page, perPage: PER_PAGE })
-      .then(({ items, total }) => {
+      .then(({ items, hasNextPage }) => {
         setEvents(items);
-        setTotal(total);
+        setHasNextPage(hasNextPage);
       })
       .catch((err) => notificationsService.error({ text: apiErrorMessage(err, 'Failed to load the audit log') }))
       .finally(() => setIsLoading(false));
@@ -113,7 +113,7 @@ export const ManagementAuditCard = () => {
   else if (events.length === 0) statusMessage = 'No activity recorded yet.';
 
   return (
-    <SectionCard title='Audit log'>
+    <SectionCard title="Audit log">
       <p style={{ fontSize: 13, color: T.gray50, margin: '0 0 16px' }}>
         Deletions and member changes made in the Management Console, newest first.
       </p>
@@ -172,7 +172,7 @@ export const ManagementAuditCard = () => {
           <Pagination
             pageNumber={page + 1}
             hasPrevPage={page > 0}
-            hasNextPage={(page + 1) * PER_PAGE < total}
+            hasNextPage={hasNextPage}
             onPrev={() => setPage((p) => p - 1)}
             onNext={() => setPage((p) => p + 1)}
             isLoading={isLoading}
@@ -182,4 +182,3 @@ export const ManagementAuditCard = () => {
     </SectionCard>
   );
 };
-
