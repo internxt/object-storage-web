@@ -114,7 +114,7 @@ async function deleteSubAccount(id: string): Promise<void> {
   await managementAxios.delete(`${API}/sub-accounts/${id}`);
 }
 
-export type ManagementRole = 'superadmin' | 'staff';
+export type ManagementRole = 'owner' | 'staff';
 
 export interface ManagementMe {
   id?: string;

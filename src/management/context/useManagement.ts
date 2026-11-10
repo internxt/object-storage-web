@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 
 export interface ManagementContextType {
   isAuthenticated: boolean;
-  isSuperadmin: boolean;
+  isOwner: boolean;
   logIn: (email: string, password: string, code?: string) => Promise<void>;
   logOut: () => void;
 }

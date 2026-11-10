@@ -6,7 +6,7 @@ import { ManagementContext } from './useManagement';
 export const ManagementProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!managementAuthService.getToken());
   const [role, setRole] = useState<ManagementRole | null>(null);
-  const isSuperadmin = isAuthenticated && role === 'superadmin';
+  const isOwner = isAuthenticated && role === 'owner';
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -27,7 +27,7 @@ export const ManagementProvider = ({ children }: { children: ReactNode }) => {
     setRole(null);
   };
 
-  const value = useMemo(() => ({ isAuthenticated, isSuperadmin, logIn, logOut }), [isAuthenticated, isSuperadmin]);
+  const value = useMemo(() => ({ isAuthenticated, isOwner, logIn, logOut }), [isAuthenticated, isOwner]);
 
   return <ManagementContext.Provider value={value}>{children}</ManagementContext.Provider>;
 };
