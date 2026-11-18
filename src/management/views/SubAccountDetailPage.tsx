@@ -20,6 +20,8 @@ import { StatusBadge } from '../../components/StatusBadge';
 import Button from '../../components/Button';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
 import { DeleteEntityButton, Emphasis } from '../components/DeleteEntityButton';
+import { subAccountConfirmationName } from '../../components/delete-confirmation/deleteConfirmation';
+import { DeleteConfirmation } from '../../utils/deleteConfirmation';
 import { apiErrorMessage } from '../../utils/apiError';
 import { T, card } from '../../sub-account/tokens';
 import {
@@ -47,7 +49,7 @@ interface SubAccountDetailPageProps {
   service?: SubAccountService;
   showClientName?: boolean;
   showStorageLimit?: boolean;
-  deleteSubAccount?: (id: string) => Promise<void>;
+  deleteSubAccount?: (id: string, confirmation: DeleteConfirmation) => Promise<void>;
 }
 
 const PER_PAGE = 20;
@@ -378,7 +380,6 @@ export const SubAccountDetailPage = ({
   const [usagesLoading, setUsagesLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [migrateOpen, setMigrateOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     service
@@ -469,19 +470,6 @@ export const SubAccountDetailPage = ({
     }
   };
 
-  const handleDelete = async (remove: (id: string) => Promise<void>) => {
-    setIsDeleting(true);
-    try {
-      await remove(id!);
-      notificationsService.success({ text: 'Sub-account deleted' });
-      await navigate(backPath);
-    } catch (e) {
-      notificationsService.error({ text: apiErrorMessage(e, 'Failed to delete sub-account') });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   const handleRename = async (update: (id: string, name: string) => Promise<void>, name: string) => {
     await update(id!, name);
     setAccount((current) => (current ? { ...current, name } : current));
@@ -545,7 +533,6 @@ export const SubAccountDetailPage = ({
         {deleteSubAccount && account.status !== 'DELETED' && account.status !== 'PENDING_DELETION' && (
           <div className="ml-auto flex-shrink-0">
             <DeleteEntityButton
-              title="Delete sub-account permanently?"
               description={
                 <>
                   This will permanently delete <Emphasis>{account.contactEmail ?? account.id}</Emphasis> and its{' '}
@@ -553,8 +540,10 @@ export const SubAccountDetailPage = ({
                   This action cannot be undone.
                 </>
               }
-              isDeleting={isDeleting}
-              onConfirm={() => handleDelete(deleteSubAccount)}
+              entity="sub-account"
+              entityName={subAccountConfirmationName(account.name, account.contactEmail)}
+              onDelete={(confirmation) => deleteSubAccount(account.id, confirmation)}
+              onDeleted={() => navigate(backPath)}
             />
           </div>
         )}

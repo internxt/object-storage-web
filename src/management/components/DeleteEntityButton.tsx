@@ -1,22 +1,27 @@
 import { ReactNode, useState } from 'react';
 import { TrashIcon } from '@phosphor-icons/react';
-import { ConfirmActionModal } from './ConfirmActionModal';
+import { DeleteConfirmationDialog } from '../../components/delete-confirmation/DeleteConfirmationDialog';
+import { DeletableEntity } from '../../components/delete-confirmation/deleteConfirmation';
+import { DeleteConfirmation } from '../../utils/deleteConfirmation';
+import { managementTwoFactorService } from '../services/management-two-factor.service';
 import { T, shadow } from '../../sub-account/tokens';
 
 export const Emphasis = ({ children }: { children: ReactNode }) => <span style={{ fontWeight: 600 }}>{children}</span>;
 
 export const DeleteEntityButton = ({
-  title,
+  entity,
+  entityName,
   description,
-  isDeleting,
-  onConfirm,
+  onDelete,
+  onDeleted,
   variant = 'button',
   ariaLabel,
 }: {
-  title: string;
+  entity: DeletableEntity;
+  entityName: string | null | undefined;
   description: ReactNode;
-  isDeleting: boolean;
-  onConfirm: () => void;
+  onDelete: (confirmation: DeleteConfirmation) => Promise<void>;
+  onDeleted: () => void;
   variant?: 'button' | 'icon';
   ariaLabel?: string;
 }) => {
@@ -56,16 +61,11 @@ export const DeleteEntityButton = ({
     <>
       <button
         type="button"
-        disabled={isDeleting}
         aria-label={ariaLabel}
         onClick={() => setIsConfirmOpen(true)}
-        style={{
-          ...buttonStyle,
-          cursor: isDeleting ? 'not-allowed' : 'pointer',
-          opacity: isDeleting ? 0.4 : 1,
-        }}
+        style={{ ...buttonStyle, cursor: 'pointer' }}
         onMouseEnter={(e) => {
-          if (!isDeleting) e.currentTarget.style.background = '#fef2f2';
+          e.currentTarget.style.background = '#fef2f2';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.background = restingBackground;
@@ -74,17 +74,16 @@ export const DeleteEntityButton = ({
         <TrashIcon size={17} />
         {variant === 'button' && 'Delete'}
       </button>
-      <ConfirmActionModal
+      <DeleteConfirmationDialog
         isOpen={isConfirmOpen}
-        title={title}
+        entity={entity}
+        entityName={entityName}
         description={description}
-        confirmLabel="Delete"
-        variant="danger"
-        onConfirm={() => {
-          setIsConfirmOpen(false);
-          onConfirm();
-        }}
-        onCancel={() => setIsConfirmOpen(false)}
+        getTwoFactorStatus={managementTwoFactorService.getStatus}
+        settingsPath="/management/settings"
+        onDelete={onDelete}
+        onDeleted={onDeleted}
+        onClose={() => setIsConfirmOpen(false)}
       />
     </>
   );

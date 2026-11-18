@@ -3,7 +3,6 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Database, HardDrives, Users } from '@phosphor-icons/react';
 import { wholesalersService, WholesalerPartner, WholesalerPartnerUsageSummary } from '../services/wholesalers.service';
 import notificationsService from '../../services/notifications.service';
-import { apiErrorMessage } from '../../utils/apiError';
 import { PartnerActions } from '../components/PartnerActions';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -32,7 +31,6 @@ export const WholesalersPartnerDetailPage = () => {
   const [usage, setUsage] = useState<WholesalerPartnerUsageSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -51,19 +49,6 @@ export const WholesalersPartnerDetailPage = () => {
       })
       .finally(() => setLoading(false));
   }, [id]);
-
-  const handleDelete = async (partnerId: string) => {
-    setIsDeleting(true);
-    try {
-      await wholesalersService.deletePartner(partnerId);
-      notificationsService.success({ text: 'Partner deleted' });
-      navigate('/wholesalers/partners');
-    } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete partner') });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   const handleRename = async (current: WholesalerPartner, name: string) => {
     await wholesalersService.updatePartnerName(current.id, name);
@@ -101,7 +86,12 @@ export const WholesalersPartnerDetailPage = () => {
             fresh history entry (a pasted URL, a new tab) there is nothing to delete. */}
         {partner && !isViewer && (
           <div style={{ marginLeft: 'auto' }}>
-            <PartnerActions partner={partner} isDeleting={isDeleting} onDelete={handleDelete} variant="button" />
+            <PartnerActions
+              partner={partner}
+              onDelete={wholesalersService.deletePartner}
+              onDeleted={() => navigate('/wholesalers/partners')}
+              variant="button"
+            />
           </div>
         )}
       </div>

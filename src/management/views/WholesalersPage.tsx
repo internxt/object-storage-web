@@ -16,7 +16,6 @@ export const WholesalersPage = () => {
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { isOwner } = useManagement();
 
   const fetchWholesalers = useCallback(async () => {
@@ -37,20 +36,11 @@ export const WholesalersPage = () => {
     fetchWholesalers();
   }, [fetchWholesalers]);
 
-  const handleDelete = async (wholesaler: Wholesaler) => {
-    setDeletingId(wholesaler.id);
-    try {
-      await wholesalersService.deleteWholesaler(wholesaler.id);
-      notificationsService.success({ text: 'Wholesaler deleted' });
-      if (wholesalers.length === 1 && page > 0) {
-        setPage((p) => p - 1);
-      } else {
-        fetchWholesalers();
-      }
-    } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete wholesaler') });
-    } finally {
-      setDeletingId(null);
+  const handleDeleted = () => {
+    if (wholesalers.length === 1 && page > 0) {
+      setPage((p) => p - 1);
+    } else {
+      fetchWholesalers();
     }
   };
 
@@ -93,8 +83,8 @@ export const WholesalersPage = () => {
         <WholesalersTable
           wholesalers={wholesalers}
           isLoading={isLoading}
-          onDelete={isOwner ? handleDelete : undefined}
-          deletingId={deletingId}
+          onDelete={isOwner ? wholesalersService.deleteWholesaler : undefined}
+          onDeleted={handleDeleted}
         />
 
         <div
