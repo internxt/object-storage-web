@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { partnersService } from './partners.service';
 import { partnersAuthService } from './partners-auth.service';
 import partnersAxios from '../core/partners-axios';
+import { AxiosHeaders, AxiosRequestConfig } from 'axios';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
 
 function parseBody(data: unknown): unknown {
@@ -100,12 +101,20 @@ describe('partners partnersService', () => {
     expect(req.get()?.url).toBe('/partners/sub-accounts/sa1/reactivate');
   });
 
-  test('when deleteSubAccount is called, then it DELETEs the sub-account', async () => {
-    const req = captureRequest();
+  test('when deleteSubAccount is called with a confirmation, then it sends a DELETE with the name as a query param and the code in the 2FA header, and no body', async () => {
+    let seenConfig: AxiosRequestConfig | undefined;
+    partnersAxios.defaults.adapter = mockAdapter((config) => {
+      seenConfig = config;
+      return { status: 204 };
+    });
 
-    await partnersService.deleteSubAccount('sa1');
+    await partnersService.deleteSubAccount('sa1', { name: 'Acme', code: '123456' });
 
-    expect(req.get()?.url).toBe('/partners/sub-accounts/sa1');
+    expect(seenConfig?.method).toBe('delete');
+    expect(seenConfig?.url).toBe('/partners/sub-accounts/sa1');
+    expect(seenConfig?.params).toEqual({ name: 'Acme' });
+    expect(AxiosHeaders.from(seenConfig?.headers as AxiosHeaders).get('X-Internxt-2FA-Code')).toBe('123456');
+    expect(seenConfig?.data).toBeUndefined();
   });
 
   test("when changeSubAccountPassword is called, then it PATCHes the sub-account's password", async () => {

@@ -1,4 +1,5 @@
 import managementAxios from '../core/management-axios';
+import { DeleteConfirmation, deleteConfirmationRequestConfig } from '../../utils/deleteConfirmation';
 
 const API = '/management';
 
@@ -62,8 +63,8 @@ function mapWholesaler(raw: RawWholesaler): Wholesaler {
   };
 }
 
-async function deleteWholesaler(id: string): Promise<void> {
-  await managementAxios.delete(`${API}/wholesalers/${id}`);
+async function deleteWholesaler(id: string, confirmation: DeleteConfirmation): Promise<void> {
+  await managementAxios.delete(`${API}/wholesalers/${id}`, deleteConfirmationRequestConfig(confirmation));
 }
 
 export const wholesalersService = {

@@ -1,4 +1,5 @@
 import partnersAxios from '../core/partners-axios';
+import { DeleteConfirmation, deleteConfirmationRequestConfig } from '../../utils/deleteConfirmation';
 import { partnersAuthService } from './partners-auth.service';
 import { SubAccount } from '../../management/services/management.service';
 import { toConsoleStatus } from '../../utils/statusLabel';
@@ -95,8 +96,8 @@ async function reactivateSubAccount(id: string): Promise<void> {
   await partnersAxios.put(`${API}/sub-accounts/${id}/reactivate`, {});
 }
 
-async function deleteSubAccount(id: string): Promise<void> {
-  await partnersAxios.delete(`${API}/sub-accounts/${id}`);
+async function deleteSubAccount(id: string, confirmation: DeleteConfirmation): Promise<void> {
+  await partnersAxios.delete(`${API}/sub-accounts/${id}`, deleteConfirmationRequestConfig(confirmation));
 }
 
 async function changeSubAccountPassword(id: string, newPassword: string): Promise<void> {
