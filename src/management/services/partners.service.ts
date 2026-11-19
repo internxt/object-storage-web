@@ -1,4 +1,5 @@
 import managementAxios from '../core/management-axios';
+import { DeleteConfirmation, deleteConfirmationRequestConfig } from '../../utils/deleteConfirmation';
 import { SubAccountsUsageReport } from '../../partners/services/partners.service';
 import { toConsoleStatus } from '../../utils/statusLabel';
 
@@ -98,8 +99,8 @@ async function getPartnerById(id: string): Promise<Partner> {
   return mapPartner(response.data);
 }
 
-async function deletePartner(id: string): Promise<void> {
-  await managementAxios.delete(`${API}/partners/${id}`);
+async function deletePartner(id: string, confirmation: DeleteConfirmation): Promise<void> {
+  await managementAxios.delete(`${API}/partners/${id}`, deleteConfirmationRequestConfig(confirmation));
 }
 
 async function getPartnersSummary(): Promise<PartnersSummary> {

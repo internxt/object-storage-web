@@ -7,7 +7,9 @@ import { SubAccountsTable, ColumnDef, SortOrder } from './SubAccountsTable';
 import { ConfirmActionModal } from './ConfirmActionModal';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { EditClientNameModal } from '../../components/EditClientNameModal';
-import { PartnerInfo } from '../../partners/services/partners.service';
+import { PartnerInfo, partnersService } from '../../partners/services/partners.service';
+import { DeleteConfirmationDialog } from '../../components/delete-confirmation/DeleteConfirmationDialog';
+import { DeleteConfirmation } from '../../utils/deleteConfirmation';
 import { T, shadow } from '../../sub-account/tokens';
 import { StatusBadge } from '../../components/StatusBadge';
 import { getStorageLimitStatus, StorageLimit, STORAGE_LIMIT_LABELS, toStorageLimit } from '../../utils/storageLimits';
@@ -17,7 +19,8 @@ interface Props {
   partnerInfo?: PartnerInfo | null;
   onSuspend: (id: string) => void;
   onReactivate: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, confirmation: DeleteConfirmation) => Promise<void>;
+  onDeleted: () => void;
   onChangePassword: (id: string, newPassword: string) => Promise<void>;
   onRename: (id: string, name: string) => Promise<void>;
   isLoading: boolean;
@@ -102,6 +105,7 @@ const ActionsMenu = ({
   onSuspend,
   onReactivate,
   onDelete,
+  onDeleted,
   onChangePassword,
   onRename,
 }: {
@@ -109,7 +113,8 @@ const ActionsMenu = ({
   canChangePassword: boolean;
   onSuspend: (id: string) => void;
   onReactivate: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, confirmation: DeleteConfirmation) => Promise<void>;
+  onDeleted: () => void;
   onChangePassword: (id: string, newPassword: string) => Promise<void>;
   onRename: (id: string, name: string) => Promise<void>;
 }) => {
@@ -142,7 +147,6 @@ const ActionsMenu = ({
   const handleConfirm = () => {
     if (confirmAction === 'suspend') onSuspend(account.id);
     else if (confirmAction === 'reactivate') onReactivate(account.id);
-    else if (confirmAction === 'delete') onDelete(account.id);
     setConfirmAction(null);
   };
 
@@ -363,14 +367,16 @@ const ActionsMenu = ({
         onConfirm={handleConfirm}
         onCancel={() => setConfirmAction(null)}
       />
-      <ConfirmActionModal
+      <DeleteConfirmationDialog
         isOpen={confirmAction === 'delete'}
-        title="Delete account permanently?"
+        entity="sub-account"
+        entityEmail={account.email}
         description="This will permanently delete the sub-account, its storage, and all its members. This action cannot be undone."
-        confirmLabel="Delete"
-        variant="danger"
-        onConfirm={handleConfirm}
-        onCancel={() => setConfirmAction(null)}
+        getTwoFactorStatus={partnersService.getTwoFactorStatus}
+        settingsPath="/partners/settings"
+        onDelete={(confirmation) => onDelete(account.id, confirmation)}
+        onDeleted={onDeleted}
+        onClose={() => setConfirmAction(null)}
       />
       <ChangePasswordModal
         isOpen={changePasswordOpen}
@@ -393,6 +399,7 @@ export const PartnersSubAccountsTable = ({
   onSuspend,
   onReactivate,
   onDelete,
+  onDeleted,
   onChangePassword,
   onRename,
   isLoading,
@@ -526,6 +533,7 @@ export const PartnersSubAccountsTable = ({
                   onSuspend={onSuspend}
                   onReactivate={onReactivate}
                   onDelete={onDelete}
+                  onDeleted={onDeleted}
                   onChangePassword={onChangePassword}
                   onRename={onRename}
                 />

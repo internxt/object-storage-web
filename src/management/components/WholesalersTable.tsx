@@ -2,12 +2,13 @@ import { ArrowSquareOut } from '@phosphor-icons/react';
 import { Wholesaler } from '../services/wholesalers.service';
 import { T } from '../../sub-account/tokens';
 import { DeleteEntityButton, Emphasis } from './DeleteEntityButton';
+import { DeleteConfirmation } from '../../utils/deleteConfirmation';
 
 interface Props {
   wholesalers: Wholesaler[];
   isLoading: boolean;
-  onDelete?: (wholesaler: Wholesaler) => void;
-  deletingId?: string | null;
+  onDelete?: (id: string, confirmation: DeleteConfirmation) => Promise<void>;
+  onDeleted?: () => void;
 }
 
 const formatDate = (date?: string | null) =>
@@ -44,7 +45,7 @@ const COLUMNS = [
   { header: 'Stripe', align: 'left' as const },
 ];
 
-export const WholesalersTable = ({ wholesalers, isLoading, onDelete, deletingId }: Props) => {
+export const WholesalersTable = ({ wholesalers, isLoading, onDelete, onDeleted }: Props) => {
   const columns = onDelete ? [...COLUMNS, { header: '', align: 'right' as const }] : COLUMNS;
 
   return (
@@ -188,10 +189,11 @@ export const WholesalersTable = ({ wholesalers, isLoading, onDelete, deletingId 
                     <DeleteEntityButton
                       variant="icon"
                       ariaLabel={`Delete wholesaler ${w.name}`}
-                      title="Delete wholesaler permanently?"
+                      entity="wholesaler"
+                      entityEmail={w.email}
                       description={deleteDescription(w)}
-                      isDeleting={deletingId === w.id}
-                      onConfirm={() => onDelete(w)}
+                      onDelete={(confirmation) => onDelete(w.id, confirmation)}
+                      onDeleted={() => onDeleted?.()}
                     />
                   </td>
                 )}

@@ -1,4 +1,5 @@
 import managementAxios from '../core/management-axios';
+import { DeleteConfirmation, deleteConfirmationRequestConfig } from '../../utils/deleteConfirmation';
 import { toConsoleStatus } from '../../utils/statusLabel';
 
 const API = '/management';
@@ -110,8 +111,8 @@ async function reactivateSubAccount(id: string): Promise<void> {
   await managementAxios.put(`${API}/sub-accounts/${id}/reactivate`, {});
 }
 
-async function deleteSubAccount(id: string): Promise<void> {
-  await managementAxios.delete(`${API}/sub-accounts/${id}`);
+async function deleteSubAccount(id: string, confirmation: DeleteConfirmation): Promise<void> {
+  await managementAxios.delete(`${API}/sub-accounts/${id}`, deleteConfirmationRequestConfig(confirmation));
 }
 
 export type ManagementRole = 'owner' | 'staff';

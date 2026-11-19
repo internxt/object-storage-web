@@ -37,7 +37,6 @@ export const WholesalersPartnersPage = () => {
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [deletingPartnerId, setDeletingPartnerId] = useState<string | null>(null);
 
   const fetchUsageSummary = async () => {
     try {
@@ -71,18 +70,9 @@ export const WholesalersPartnersPage = () => {
     fetchPartners();
   }, [fetchPartners]);
 
-  const handleDelete = async (id: string) => {
-    setDeletingPartnerId(id);
-    try {
-      await wholesalersService.deletePartner(id);
-      notificationsService.success({ text: 'Partner deleted' });
-      fetchPartners();
-      fetchUsageSummary();
-    } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete partner') });
-    } finally {
-      setDeletingPartnerId(null);
-    }
+  const handleDeleted = () => {
+    fetchPartners();
+    fetchUsageSummary();
   };
 
   const handleRename = async (id: string, name: string) => {
@@ -158,9 +148,9 @@ export const WholesalersPartnersPage = () => {
         <WholesalersPartnersTable
           partners={partners}
           isLoading={isLoading}
-          onDelete={handleDelete}
+          onDelete={wholesalersService.deletePartner}
           onRename={handleRename}
-          deletingPartnerId={deletingPartnerId}
+          onDeleted={handleDeleted}
         />
 
         <div
