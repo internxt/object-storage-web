@@ -10,12 +10,12 @@ import notificationsService from '../../services/notifications.service';
 import { text, form } from '../../sub-account/tokens';
 import { apiErrorCode, getLockedUntil } from '../../utils/apiError';
 import { DeleteConfirmation } from '../../utils/deleteConfirmation';
-import { DELETE_COPY, DeletableEntity, namesMatch } from './deleteConfirmation';
+import { DELETE_COPY, DeletableEntity, emailsMatch } from './deleteConfirmation';
 
 export interface DeleteConfirmationDialogProps {
   isOpen: boolean;
   entity: DeletableEntity;
-  entityName: string | null | undefined;
+  entityEmail: string | null | undefined;
   description?: ReactNode;
   getTwoFactorStatus: () => Promise<{ enabled: boolean }>;
   settingsPath: string;
@@ -24,14 +24,14 @@ export interface DeleteConfirmationDialogProps {
   onClose: () => void;
 }
 
-type Step = 'checking' | 'check-failed' | 'two-factor-off' | 'no-name' | 'name' | 'code';
+type Step = 'checking' | 'check-failed' | 'two-factor-off' | 'no-email' | 'email' | 'code';
 
 export const DeleteConfirmationDialog = (props: DeleteConfirmationDialogProps) =>
   props.isOpen ? <DeleteConfirmationSteps {...props} /> : null;
 
 const DeleteConfirmationSteps = ({
   entity,
-  entityName,
+  entityEmail,
   description,
   getTwoFactorStatus,
   settingsPath,
@@ -40,10 +40,10 @@ const DeleteConfirmationSteps = ({
   onClose,
 }: DeleteConfirmationDialogProps) => {
   const navigate = useNavigate();
-  const expectedName = entityName?.trim() ?? '';
+  const expectedEmail = entityEmail?.trim() ?? '';
   const [step, setStep] = useState<Step>('checking');
   const [checkAttempt, setCheckAttempt] = useState(0);
-  const [typedName, setTypedName] = useState('');
+  const [typedEmail, setTypedEmail] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState<string>();
   const [lock, setLock] = useState<{ until?: string } | null>(null);
@@ -55,7 +55,7 @@ const DeleteConfirmationSteps = ({
       .then(({ enabled }) => {
         if (cancelled) return;
         if (!enabled) setStep('two-factor-off');
-        else setStep(expectedName ? 'name' : 'no-name');
+        else setStep(expectedEmail ? 'email' : 'no-email');
       })
       .catch(() => {
         if (!cancelled) setStep('check-failed');
@@ -63,7 +63,7 @@ const DeleteConfirmationSteps = ({
     return () => {
       cancelled = true;
     };
-  }, [getTwoFactorStatus, expectedName, checkAttempt]);
+  }, [getTwoFactorStatus, expectedEmail, checkAttempt]);
 
   useEffect(() => {
     if (!lock?.until) return;
@@ -81,12 +81,12 @@ const DeleteConfirmationSteps = ({
     if (!isSubmitting) onClose();
   };
 
-  const nameMatches = namesMatch(typedName, expectedName);
+  const emailMatches = emailsMatch(typedEmail, expectedEmail);
   const canConfirm = code.length === TWO_FACTOR_CODE_LENGTH && !lock && !isSubmitting;
 
-  const submitName = (event: FormEvent) => {
+  const submitEmail = (event: FormEvent) => {
     event.preventDefault();
-    if (!nameMatches) return;
+    if (!emailMatches) return;
     setError(undefined);
     setStep('code');
   };
@@ -97,7 +97,7 @@ const DeleteConfirmationSteps = ({
     setIsSubmitting(true);
     setError(undefined);
     try {
-      await onDelete({ name: typedName.trim(), code });
+      await onDelete({ email: typedEmail.trim(), code });
     } catch (err) {
       setIsSubmitting(false);
       setCode('');
@@ -114,9 +114,9 @@ const DeleteConfirmationSteps = ({
           setError(DELETE_COPY.errors.locked(lockedUntil));
           return;
         }
-        case 'DELETE_NAME_MISMATCH':
-          setStep('name');
-          setError(DELETE_COPY.errors.nameMismatch);
+        case 'DELETE_EMAIL_MISMATCH':
+          setStep('email');
+          setError(DELETE_COPY.errors.emailMismatch);
           return;
         default:
           notificationsService.error({ text: DELETE_COPY.errors.generic(entity) });
@@ -190,27 +190,27 @@ const DeleteConfirmationSteps = ({
             )}
           </div>
         );
-      case 'no-name':
+      case 'no-email':
         return (
           <div style={layout}>
-            {header(DELETE_COPY.noName(entity))}
+            {header(DELETE_COPY.noEmail(entity))}
             {actions(undefined, DELETE_COPY.close)}
           </div>
         );
-      case 'name':
+      case 'email':
         return (
-          <form onSubmit={submitName} style={layout}>
+          <form onSubmit={submitEmail} style={layout}>
             {header(description)}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <label style={form.label}>
-                {DELETE_COPY.namePromptBefore}
-                <span style={{ fontWeight: 600, color: 'inherit', wordBreak: 'break-all' }}>{expectedName}</span>
-                {DELETE_COPY.namePromptAfter}
+                {DELETE_COPY.emailPromptBefore}
+                <span style={{ fontWeight: 600, color: 'inherit', wordBreak: 'break-all' }}>{expectedEmail}</span>
+                {DELETE_COPY.emailPromptAfter}
               </label>
               <Input
-                value={typedName}
+                value={typedEmail}
                 onChange={(value) => {
-                  setTypedName(value);
+                  setTypedEmail(value);
                   setError(undefined);
                 }}
                 autofocus
@@ -220,7 +220,7 @@ const DeleteConfirmationSteps = ({
               />
             </div>
             {actions(
-              <Button variant="destructive" type="submit" disabled={!nameMatches}>
+              <Button variant="destructive" type="submit" disabled={!emailMatches}>
                 {DELETE_COPY.delete}
               </Button>,
             )}

@@ -123,18 +123,18 @@ describe('managementService', () => {
     expect(seenConfig?.url).toBe('/management/sub-accounts/sa-1/reactivate');
   });
 
-  test('when deleteSubAccount is called with a confirmation, then it sends a DELETE with the name as a query param and the code in the 2FA header, and no body', async () => {
+  test('when deleteSubAccount is called with a confirmation, then it sends a DELETE with the email as a query param and the code in the 2FA header, and no body', async () => {
     let seenConfig: AxiosRequestConfig | undefined;
     managementAxios.defaults.adapter = mockAdapter((config) => {
       seenConfig = config;
       return { status: 204 };
     });
 
-    await managementService.deleteSubAccount('sa-1', { name: 'Acme', code: '123456' });
+    await managementService.deleteSubAccount('sa-1', { email: 'owner@acme.com', code: '123456' });
 
     expect(seenConfig?.method).toBe('delete');
     expect(seenConfig?.url).toBe('/management/sub-accounts/sa-1');
-    expect(seenConfig?.params).toEqual({ name: 'Acme' });
+    expect(seenConfig?.params).toEqual({ email: 'owner@acme.com' });
     expect(AxiosHeaders.from(seenConfig?.headers as AxiosHeaders).get('X-Internxt-2FA-Code')).toBe('123456');
     expect(seenConfig?.data).toBeUndefined();
   });

@@ -190,7 +190,7 @@ export const WholesalersTable = ({ wholesalers, isLoading, onDelete, onDeleted }
                       variant="icon"
                       ariaLabel={`Delete wholesaler ${w.name}`}
                       entity="wholesaler"
-                      entityName={w.name}
+                      entityEmail={w.email}
                       description={deleteDescription(w)}
                       onDelete={(confirmation) => onDelete(w.id, confirmation)}
                       onDeleted={() => onDeleted?.()}

@@ -282,7 +282,7 @@ export const PartnerDetailPage = () => {
                 </>
               }
               entity="partner"
-              entityName={partner.name}
+              entityEmail={partner.email}
               onDelete={(confirmation) => partnersService.deletePartner(partner.id, confirmation)}
               onDeleted={() => navigate('/management/partners')}
             />

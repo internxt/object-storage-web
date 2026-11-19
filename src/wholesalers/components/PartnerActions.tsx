@@ -65,7 +65,7 @@ export const PartnerActions = ({
     <DeleteConfirmationDialog
       isOpen={isConfirmOpen}
       entity="partner"
-      entityName={partner.name}
+      entityEmail={partner.email}
       description="This will permanently delete the partner, all its sub-accounts and their storage. This action cannot be undone."
       getTwoFactorStatus={wholesalersService.getTwoFactorStatus}
       settingsPath="/wholesalers/settings"
