@@ -1,37 +1,26 @@
 import { describe, expect, test } from 'vitest';
-import { DELETE_COPY, namesMatch, subAccountConfirmationName } from './deleteConfirmation';
+import { DELETE_COPY, emailsMatch } from './deleteConfirmation';
 
-describe('namesMatch', () => {
-  test('when the typed value equals the name, then it matches', () => {
-    expect(namesMatch('Acme Corp', 'Acme Corp')).toBe(true);
+describe('emailsMatch', () => {
+  test('when the typed value equals the email, then it matches', () => {
+    expect(emailsMatch('owner@acme.com', 'owner@acme.com')).toBe(true);
   });
 
   test('when either side has surrounding spaces, then they are ignored', () => {
-    expect(namesMatch('  Acme Corp ', ' Acme Corp')).toBe(true);
+    expect(emailsMatch('  owner@acme.com ', ' owner@acme.com')).toBe(true);
   });
 
-  test('when only the case differs, then it does not match', () => {
-    expect(namesMatch('acme corp', 'Acme Corp')).toBe(false);
+  test('when only the case differs, then it still matches', () => {
+    expect(emailsMatch('Owner@Acme.com', 'owner@acme.com')).toBe(true);
   });
 
-  test('when the entity has no name, then nothing matches, not even an empty input', () => {
-    expect(namesMatch('', '')).toBe(false);
-    expect(namesMatch('   ', '  ')).toBe(false);
-  });
-});
-
-describe('subAccountConfirmationName', () => {
-  test('when the sub-account has a name, then the name is what gets typed', () => {
-    expect(subAccountConfirmationName('Acme', 'acme@example.com')).toBe('Acme');
+  test('when the email differs, then it does not match', () => {
+    expect(emailsMatch('owner@acme.co', 'owner@acme.com')).toBe(false);
   });
 
-  test('when the sub-account has no name, then it falls back to the email', () => {
-    expect(subAccountConfirmationName(null, 'acme@example.com')).toBe('acme@example.com');
-    expect(subAccountConfirmationName('   ', 'acme@example.com')).toBe('acme@example.com');
-  });
-
-  test('when it has neither, then there is nothing to confirm with', () => {
-    expect(subAccountConfirmationName(null, '')).toBeNull();
+  test('when the entity has no email, then nothing matches, not even an empty input', () => {
+    expect(emailsMatch('', '')).toBe(false);
+    expect(emailsMatch('   ', '  ')).toBe(false);
   });
 });
 

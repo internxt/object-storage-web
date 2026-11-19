@@ -10,7 +10,7 @@ export const Emphasis = ({ children }: { children: ReactNode }) => <span style={
 
 export const DeleteEntityButton = ({
   entity,
-  entityName,
+  entityEmail,
   description,
   onDelete,
   onDeleted,
@@ -18,7 +18,7 @@ export const DeleteEntityButton = ({
   ariaLabel,
 }: {
   entity: DeletableEntity;
-  entityName: string | null | undefined;
+  entityEmail: string | null | undefined;
   description: ReactNode;
   onDelete: (confirmation: DeleteConfirmation) => Promise<void>;
   onDeleted: () => void;
@@ -77,7 +77,7 @@ export const DeleteEntityButton = ({
       <DeleteConfirmationDialog
         isOpen={isConfirmOpen}
         entity={entity}
-        entityName={entityName}
+        entityEmail={entityEmail}
         description={description}
         getTwoFactorStatus={managementTwoFactorService.getStatus}
         settingsPath="/management/settings"

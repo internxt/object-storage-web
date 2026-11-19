@@ -9,7 +9,6 @@ import { ChangePasswordModal } from './ChangePasswordModal';
 import { EditClientNameModal } from '../../components/EditClientNameModal';
 import { PartnerInfo, partnersService } from '../../partners/services/partners.service';
 import { DeleteConfirmationDialog } from '../../components/delete-confirmation/DeleteConfirmationDialog';
-import { subAccountConfirmationName } from '../../components/delete-confirmation/deleteConfirmation';
 import { DeleteConfirmation } from '../../utils/deleteConfirmation';
 import { T, shadow } from '../../sub-account/tokens';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -371,7 +370,7 @@ const ActionsMenu = ({
       <DeleteConfirmationDialog
         isOpen={confirmAction === 'delete'}
         entity="sub-account"
-        entityName={subAccountConfirmationName(account.name, account.email)}
+        entityEmail={account.email}
         description="This will permanently delete the sub-account, its storage, and all its members. This action cannot be undone."
         getTwoFactorStatus={partnersService.getTwoFactorStatus}
         settingsPath="/partners/settings"

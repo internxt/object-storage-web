@@ -20,7 +20,6 @@ import { StatusBadge } from '../../components/StatusBadge';
 import Button from '../../components/Button';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
 import { DeleteEntityButton, Emphasis } from '../components/DeleteEntityButton';
-import { subAccountConfirmationName } from '../../components/delete-confirmation/deleteConfirmation';
 import { DeleteConfirmation } from '../../utils/deleteConfirmation';
 import { apiErrorMessage } from '../../utils/apiError';
 import { T, card } from '../../sub-account/tokens';
@@ -541,7 +540,7 @@ export const SubAccountDetailPage = ({
                 </>
               }
               entity="sub-account"
-              entityName={subAccountConfirmationName(account.name, account.contactEmail)}
+              entityEmail={account.contactEmail}
               onDelete={(confirmation) => deleteSubAccount(account.id, confirmation)}
               onDeleted={() => navigate(backPath)}
             />
