@@ -40,6 +40,8 @@ import { WholesalersAuthRoute } from './wholesalers/components/WholesalersAuthRo
 import { WholesalersPartnersPage } from './wholesalers/views/WholesalersPartnersPage';
 import { WholesalersPartnerDetailPage } from './wholesalers/views/WholesalersPartnerDetailPage';
 import { WholesalersSettingsPage } from './wholesalers/views/WholesalersSettingsPage';
+import { WholesalersForgotPasswordPage } from './wholesalers/views/WholesalersForgotPasswordPage';
+import { WholesalersResetPasswordPage } from './wholesalers/views/WholesalersResetPasswordPage';
 
 const DEFAULT_LOGIN_PATH = '/subaccount/login';
 
@@ -103,6 +105,8 @@ export function App() {
                     {import.meta.env.VITE_ENABLE_WHOLESALER_PANEL === 'true' && (
                       <>
                         <Route path="/wholesalers/login" element={<WholesalersLoginPage />} />
+                        <Route path="/wholesalers/forgot-password" element={<WholesalersForgotPasswordPage />} />
+                        <Route path="/wholesalers/reset-password" element={<WholesalersResetPasswordPage />} />
                         <Route element={<WholesalersAuthRoute />}>
                           <Route path="/wholesalers" element={<Navigate to="/wholesalers/partners" />} />
                           <Route path="/wholesalers/partners" element={<WholesalersPartnersPage />} />
