@@ -1,4 +1,5 @@
 import wholesalersAxios from '../core/wholesalers-axios';
+import { CaptchaUnavailableError, captchaService } from '../../services/captcha.service';
 
 const WHOLESALERS_TOKEN_KEY = 'wholesalersToken';
 
@@ -21,6 +22,21 @@ async function logIn(email: string, password: string, code?: string): Promise<{ 
   );
   setToken(response.data.token);
   return { twoFactorSetupRequired: !!response.data.twoFactorSetupRequired };
+}
+
+async function requestPasswordReset(email: string): Promise<void> {
+  const captchaHeaders = await captchaService.tryGetHeaders('ForgotPassword');
+
+  try {
+    await wholesalersAxios.post('/wholesalers/forgot-password', { email }, { headers: captchaHeaders });
+  } catch (err) {
+    if (captchaService.isCaptchaRejection(err)) throw new CaptchaUnavailableError();
+    throw err;
+  }
+}
+
+async function resetPassword(token: string, newPassword: string): Promise<void> {
+  await wholesalersAxios.post('/wholesalers/reset-password', { token, newPassword });
 }
 
 function logOut(): void {
@@ -48,6 +64,8 @@ function getRole(): 'wholesaler' | 'member' | null {
 export const wholesalersAuthService = {
   getRole,
   logIn,
+  requestPasswordReset,
+  resetPassword,
   setToken,
   logOut,
   getToken,

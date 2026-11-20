@@ -65,6 +65,63 @@ describe('wholesalersAuthService', () => {
     });
   });
 
+  describe('requestPasswordReset', () => {
+    test('when requestPasswordReset is called, then it posts the email to the forgot-password endpoint', async () => {
+      let seenConfig: { url?: string; data?: string } | undefined;
+      wholesalersAxios.defaults.adapter = mockAdapter((config) => {
+        seenConfig = config;
+        return { status: 204 };
+      });
+
+      await wholesalersAuthService.requestPasswordReset('wholesaler@internxt.com');
+
+      expect(seenConfig?.url).toBe('/wholesalers/forgot-password');
+      expect(JSON.parse(seenConfig?.data ?? '{}')).toEqual({ email: 'wholesaler@internxt.com' });
+    });
+
+    test('when the backend rejects the captcha, then it maps that into a CaptchaUnavailableError', async () => {
+      wholesalersAxios.defaults.adapter = mockAdapter(() => ({
+        status: 403,
+        data: { code: 'CAPTCHA_FAILED' },
+      }));
+
+      const error = await wholesalersAuthService.requestPasswordReset('wholesaler@internxt.com').catch((e) => e);
+
+      expect(error.name).toBe('CaptchaUnavailableError');
+    });
+
+    test('when the backend rejects for any other reason, then requestPasswordReset rethrows the error untouched', async () => {
+      wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 429 }));
+
+      await expect(wholesalersAuthService.requestPasswordReset('wholesaler@internxt.com')).rejects.toMatchObject({
+        isAxiosError: true,
+      });
+    });
+  });
+
+  describe('resetPassword', () => {
+    test('when resetPassword is called, then it posts the reset token and the new password', async () => {
+      let seenConfig: { url?: string; data?: string } | undefined;
+      wholesalersAxios.defaults.adapter = mockAdapter((config) => {
+        seenConfig = config;
+        return { status: 204 };
+      });
+
+      await wholesalersAuthService.resetPassword('reset-token', 'new-secret');
+
+      expect(seenConfig?.url).toBe('/wholesalers/reset-password');
+      expect(JSON.parse(seenConfig?.data ?? '{}')).toEqual({ token: 'reset-token', newPassword: 'new-secret' });
+    });
+
+    test('when the reset token is invalid or expired, then resetPassword rethrows the 400', async () => {
+      wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 400 }));
+
+      await expect(wholesalersAuthService.resetPassword('stale-token', 'new-secret')).rejects.toMatchObject({
+        response: { status: 400 },
+      });
+    });
+  });
+
   describe('token management', () => {
     test('when no one is logged in, then getToken returns null', () => {
       expect(wholesalersAuthService.getToken()).toBeNull();
