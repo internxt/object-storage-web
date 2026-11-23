@@ -106,8 +106,20 @@ function isCaptchaRejection(err: unknown): boolean {
   );
 }
 
+async function withCaptcha<T>(action: string, request: (headers: Record<string, string>) => Promise<T>): Promise<T> {
+  const headers = await tryGetHeaders(action);
+
+  try {
+    return await request(headers);
+  } catch (err) {
+    if (isCaptchaRejection(err)) throw new CaptchaUnavailableError();
+    throw err;
+  }
+}
+
 export const captchaService = {
   getHeaders,
   tryGetHeaders,
   isCaptchaRejection,
+  withCaptcha,
 };
