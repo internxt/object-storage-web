@@ -16,13 +16,11 @@ function removeToken(): void {
 }
 
 async function logIn(email: string, password: string, code?: string): Promise<{ twoFactorSetupRequired: boolean }> {
-  const response = await captchaService.withCaptcha('Login', (headers) =>
-    partnersAxios.post<{ token: string; twoFactorSetupRequired: boolean }>(
-      '/partners/login',
-      { email, password, code },
-      { headers },
-    ),
-  );
+  const response = await partnersAxios.post<{ token: string; twoFactorSetupRequired: boolean }>('/partners/login', {
+    email,
+    password,
+    code,
+  });
   setToken(response.data.token);
   return { twoFactorSetupRequired: response.data.twoFactorSetupRequired };
 }

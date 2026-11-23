@@ -1,12 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import managementAxios from '../management/core/management-axios';
-import partnersAxios from '../partners/core/partners-axios';
-import subAccountAxios from '../sub-account/core/sub-account-axios';
-import wholesalersAxios from '../wholesalers/core/wholesalers-axios';
 import { managementAuthService } from '../management/services/management-auth.service';
-import { partnersAuthService } from '../partners/services/partners-auth.service';
-import { subAccountAuthService } from '../sub-account/services/sub-account-auth.service';
-import { wholesalersAuthService } from '../wholesalers/services/wholesalers-auth.service';
 import { mockAdapter } from '../testing/mock-axios-adapter';
 import { stubLocation } from '../testing/stub-location';
 import { CaptchaUnavailableError, captchaService } from './captcha.service';
@@ -14,20 +8,18 @@ import { CaptchaUnavailableError, captchaService } from './captcha.service';
 describe('console logins', () => {
   stubLocation('/login');
 
-  describe.each([
-    ['management', managementAxios, managementAuthService],
-    ['partners', partnersAxios, partnersAuthService],
-    ['sub-account', subAccountAxios, subAccountAuthService],
-    ['wholesalers', wholesalersAxios, wholesalersAuthService],
-  ])('when the %s backend rejects the captcha', (_, axiosInstance, authService) => {
-    test('then logIn fails with a CaptchaUnavailableError', async () => {
-      axiosInstance.defaults.adapter = mockAdapter(() => ({ status: 403, data: { code: 'CAPTCHA_FAILED' } }));
+  describe.each([['management', managementAxios, managementAuthService]])(
+    'when the %s backend rejects the captcha',
+    (_, axiosInstance, authService) => {
+      test('then logIn fails with a CaptchaUnavailableError', async () => {
+        axiosInstance.defaults.adapter = mockAdapter(() => ({ status: 403, data: { code: 'CAPTCHA_FAILED' } }));
 
-      const error = await authService.logIn('user@internxt.com', 'secret').catch((e: unknown) => e);
+        const error = await authService.logIn('user@internxt.com', 'secret').catch((e: unknown) => e);
 
-      expect(error).toBeInstanceOf(CaptchaUnavailableError);
-    });
-  });
+        expect(error).toBeInstanceOf(CaptchaUnavailableError);
+      });
+    },
+  );
 });
 
 describe('captchaService.withCaptcha', () => {

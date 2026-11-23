@@ -1,5 +1,4 @@
 import wholesalersAxios from '../core/wholesalers-axios';
-import { captchaService } from '../../services/captcha.service';
 
 const WHOLESALERS_TOKEN_KEY = 'wholesalersToken';
 
@@ -16,12 +15,9 @@ function removeToken(): void {
 }
 
 async function logIn(email: string, password: string, code?: string): Promise<{ twoFactorSetupRequired: boolean }> {
-  const response = await captchaService.withCaptcha('Login', (headers) =>
-    wholesalersAxios.post<{ token: string; twoFactorSetupRequired?: boolean }>(
-      '/wholesalers/login',
-      { email, password, code },
-      { headers },
-    ),
+  const response = await wholesalersAxios.post<{ token: string; twoFactorSetupRequired?: boolean }>(
+    '/wholesalers/login',
+    { email, password, code },
   );
   setToken(response.data.token);
   return { twoFactorSetupRequired: !!response.data.twoFactorSetupRequired };
