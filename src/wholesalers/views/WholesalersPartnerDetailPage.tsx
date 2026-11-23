@@ -5,6 +5,7 @@ import { wholesalersService, WholesalerPartner, WholesalerPartnerUsageSummary } 
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { PartnerActions } from '../components/PartnerActions';
+import { PartnerMonthlyUsageCard } from '../components/PartnerMonthlyUsageCard';
 import { EditClientNameButton } from '../../components/EditClientNameModal';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useWholesalers } from '../context/useWholesalers';
@@ -123,6 +124,8 @@ export const WholesalersPartnerDetailPage = () => {
           label="Sub-accounts"
         />
       </div>
+
+      {id && <PartnerMonthlyUsageCard key={id} partnerId={id} />}
     </div>
   );
 };

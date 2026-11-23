@@ -69,6 +69,35 @@ describe('wholesalersService', () => {
     expect(result).toEqual({ totalSubAccounts: 2, activeStorageTb: 1, deletedStorageTb: 0 });
   });
 
+  test('when getPartnerMonthlyUsage is called with a range, then it fetches that chunk of the partner history', async () => {
+    let seenConfig: { url?: string; params?: unknown } | undefined;
+    const chunk = {
+      items: [
+        { month: '2026-09', activeStorageTb: 1 },
+        { month: '2026-10', activeStorageTb: null },
+      ],
+      nextTo: '2026-08',
+    };
+    wholesalersAxios.defaults.adapter = mockAdapter((config) => {
+      seenConfig = config;
+      return { status: 200, data: chunk };
+    });
+
+    const result = await wholesalersService.getPartnerMonthlyUsage('p1', { to: '2026-10', months: 2 });
+
+    expect(seenConfig?.url).toBe('/wholesalers/partners/p1/usages/monthly');
+    expect(seenConfig?.params).toEqual({ to: '2026-10', months: 2 });
+    expect(result).toEqual(chunk);
+  });
+
+  test('when getPartnerMonthlyUsage gets a response without nextTo, then it reports no older chunk', async () => {
+    wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: { items: [] } }));
+
+    const result = await wholesalersService.getPartnerMonthlyUsage('p1');
+
+    expect(result).toEqual({ items: [], nextTo: null });
+  });
+
   test('when getUsageSummary is called, then it fetches the wholesaler usage summary', async () => {
     wholesalersAxios.defaults.adapter = mockAdapter(() => ({
       status: 200,
