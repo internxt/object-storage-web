@@ -1,4 +1,5 @@
 import managementAxios from '../core/management-axios';
+import { captchaService } from '../../services/captcha.service';
 
 const MANAGEMENT_TOKEN_KEY = 'managementToken';
 
@@ -15,9 +16,12 @@ function removeToken(): void {
 }
 
 async function logIn(email: string, password: string, code?: string): Promise<{ twoFactorSetupRequired: boolean }> {
-  const response = await managementAxios.post<{ token: string; twoFactorSetupRequired?: boolean }>(
-    '/management/login',
-    { email, password, code },
+  const response = await captchaService.withCaptcha('Login', (headers) =>
+    managementAxios.post<{ token: string; twoFactorSetupRequired?: boolean }>(
+      '/management/login',
+      { email, password, code },
+      { headers },
+    ),
   );
   setToken(response.data.token);
   return { twoFactorSetupRequired: !!response.data.twoFactorSetupRequired };

@@ -18,7 +18,9 @@ function removeToken(): void {
 }
 
 async function logIn(email: string, password: string, code?: string): Promise<void> {
-  const response = await subAccountAxios.post<{ token: string }>('/subaccount/login', { email, password, code });
+  const response = await captchaService.withCaptcha('Login', (headers) =>
+    subAccountAxios.post<{ token: string }>('/subaccount/login', { email, password, code }, { headers }),
+  );
   setToken(response.data.token);
   localStorage.setItem(EMAIL_KEY, email);
 }
