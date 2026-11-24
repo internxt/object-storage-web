@@ -8,7 +8,7 @@ import Input from '../Input';
 import { TwoFactorCodeInput, TWO_FACTOR_CODE_LENGTH } from '../two-factor/TwoFactorCodeInput';
 import notificationsService from '../../services/notifications.service';
 import { text, form } from '../../sub-account/tokens';
-import { apiErrorCode, getLockedUntil } from '../../utils/apiError';
+import { apiErrorCode, apiErrorMessage, getLockedUntil } from '../../utils/apiError';
 import { DeleteConfirmation } from '../../utils/deleteConfirmation';
 import { DELETE_COPY, DeletableEntity, emailsMatch } from './deleteConfirmation';
 
@@ -119,7 +119,7 @@ const DeleteConfirmationSteps = ({
           setError(DELETE_COPY.errors.emailMismatch);
           return;
         default:
-          notificationsService.error({ text: DELETE_COPY.errors.generic(entity) });
+          notificationsService.error({ text: apiErrorMessage(err, DELETE_COPY.errors.generic(entity)) });
           onClose();
           return;
       }

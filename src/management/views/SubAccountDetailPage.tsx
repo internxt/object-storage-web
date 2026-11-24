@@ -534,7 +534,7 @@ export const SubAccountDetailPage = ({
             <DeleteEntityButton
               description={
                 <>
-                  This will permanently delete <Emphasis>{account.contactEmail ?? account.id}</Emphasis> and its{' '}
+                  This will permanently delete <Emphasis>{account.contactEmail}</Emphasis> and its{' '}
                   <Emphasis>{fmt(account.activeStorage, 4)} TB</Emphasis> of active storage at the storage provider.
                   This action cannot be undone.
                 </>
