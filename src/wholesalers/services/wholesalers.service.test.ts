@@ -90,14 +90,6 @@ describe('wholesalersService', () => {
     expect(result).toEqual(chunk);
   });
 
-  test('when getPartnerMonthlyUsage gets a response without nextTo, then it reports no older chunk', async () => {
-    wholesalersAxios.defaults.adapter = mockAdapter(() => ({ status: 200, data: { items: [] } }));
-
-    const result = await wholesalersService.getPartnerMonthlyUsage('p1');
-
-    expect(result).toEqual({ items: [], nextTo: null });
-  });
-
   test('when getUsageSummary is called, then it fetches the wholesaler usage summary', async () => {
     wholesalersAxios.defaults.adapter = mockAdapter(() => ({
       status: 200,

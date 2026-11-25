@@ -1,12 +1,9 @@
-import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChartBarIcon, WarningCircleIcon } from '@phosphor-icons/react';
-import { wholesalersService, PartnerMonthlyUsageItem } from '../services/wholesalers.service';
+import { PartnerMonthlyUsageItem } from '../services/wholesalers.service';
+import { MAX_MONTHS, usePartnerMonthlyUsage } from '../hooks/usePartnerMonthlyUsage';
 import Button from '../../components/Button';
-
-const MAX_MONTHS = 12;
-const CHUNK_MONTHS = 3;
 
 const formatMonth = (month: string) => dayjs(`${month}-01`).format('MMM YYYY');
 const significant = (value: number) => value.toLocaleString('en-US', { maximumSignificantDigits: 3 });
@@ -42,32 +39,7 @@ const Placeholder = ({
 );
 
 export const PartnerMonthlyUsageCard = ({ partnerId }: { partnerId: string }) => {
-  const [items, setItems] = useState<PartnerMonthlyUsageItem[]>([]);
-  const [to, setTo] = useState<string | null | undefined>(undefined);
-  const [failed, setFailed] = useState(false);
-
-  const done = to === null || items.length >= MAX_MONTHS;
-  const loading = !done && !failed;
-
-  useEffect(() => {
-    if (!loading) return;
-    let cancelled = false;
-    wholesalersService
-      .getPartnerMonthlyUsage(partnerId, { to, months: Math.min(CHUNK_MONTHS, MAX_MONTHS - items.length) })
-      .then((chunk) => {
-        if (cancelled) return;
-        setItems((prev) => [...chunk.items, ...prev]);
-        setTo(chunk.items.length > 0 ? chunk.nextTo : null);
-      })
-      .catch(() => {
-        if (!cancelled) setFailed(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [partnerId, to, loading, items.length]);
-
-  const retry = () => setFailed(false);
+  const { items, loading, failed, hasOlderMonths, retry } = usePartnerMonthlyUsage(partnerId);
 
   const hasData = items.some((item) => item.activeStorageTb !== null);
   const hasPartial = items.some((item) => item.partial && item.activeStorageTb !== null);
@@ -90,7 +62,7 @@ export const PartnerMonthlyUsageCard = ({ partnerId }: { partnerId: string }) =>
         </Button>
       </Placeholder>
     );
-  } else if (!hasData && to) {
+  } else if (!hasData && hasOlderMonths) {
     body = (
       <Placeholder
         icon={<ChartBarIcon size={28} className="text-gray-30" />}

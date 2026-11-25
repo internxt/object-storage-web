@@ -64,7 +64,7 @@ async function getPartnerMonthlyUsage(
   const response = await wholesalersAxios.get<PartnerMonthlyUsageChunk>(`${API}/partners/${id}/usages/monthly`, {
     params,
   });
-  return { items: response.data.items ?? [], nextTo: response.data.nextTo ?? null };
+  return response.data;
 }
 
 export interface WholesalerUsageSummary {
