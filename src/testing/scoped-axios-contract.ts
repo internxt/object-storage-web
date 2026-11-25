@@ -99,3 +99,33 @@ export function describeScopedAxiosContract(
     expect(window.location.href).toBe('');
   });
 }
+
+export function describeRecoveryPagesContract(
+  getInstance: () => AxiosInstance,
+  authService: ScopedAuthService,
+  areaPrefix: string,
+) {
+  const realLocation = window.location;
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', { value: realLocation, writable: true, configurable: true });
+    vi.restoreAllMocks();
+  });
+
+  test.each([`${areaPrefix}/forgot-password`, `${areaPrefix}/reset-password`])(
+    'when a stale token gets a 401 on %s, then it does not log out, notify or redirect away',
+    async (pathname) => {
+      vi.spyOn(authService, 'getToken').mockReturnValue('stale-token');
+      const logOutSpy = vi.spyOn(authService, 'logOut').mockImplementation(() => {});
+      const notifySpy = vi.spyOn(notificationsService, 'error').mockImplementation(() => {});
+      stubLocation(pathname);
+      getInstance().defaults.adapter = mockAdapter(() => ({ status: 401 }));
+
+      await expect(getInstance().get('/anything')).rejects.toMatchObject({ isAxiosError: true });
+
+      expect(logOutSpy).not.toHaveBeenCalled();
+      expect(notifySpy).not.toHaveBeenCalled();
+      expect(window.location.href).toBe('');
+    },
+  );
+}
