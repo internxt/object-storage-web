@@ -33,6 +33,8 @@ import { SubAccountForgotPasswordPage } from './sub-account/views/SubAccountForg
 import { PartnersResetPasswordPage } from './partners/views/PartnersResetPasswordPage';
 import { SubAccountResetPasswordPage } from './sub-account/views/SubAccountResetPasswordPage';
 import { SharePage } from './views/SharePage';
+import { NotFoundPage } from './views/NotFoundPage';
+import { getConsoleLoginPath, resolveConsoleArea } from './utils/notFoundDestination';
 import { SubAccountBrandingProvider } from './sub-account/context/SubAccountBrandingContext/SubAccountBrandingContext';
 import { WholesalersProvider } from './wholesalers/context/wholesalersContext';
 import { WholesalersLoginPage } from './wholesalers/views/WholesalersLoginPage';
@@ -41,16 +43,8 @@ import { WholesalersPartnersPage } from './wholesalers/views/WholesalersPartners
 import { WholesalersPartnerDetailPage } from './wholesalers/views/WholesalersPartnerDetailPage';
 import { WholesalersSettingsPage } from './wholesalers/views/WholesalersSettingsPage';
 
-const DEFAULT_LOGIN_PATH = '/subaccount/login';
-
-const LOGIN_PATH_BY_HOSTNAME: Record<string, string> = {
-  'os.management.internxt.com': '/management/login',
-  'os.partners.internxt.com': '/partners/login',
-  'os.wholesalers.internxt.com': '/wholesalers/login',
-};
-
 function getLoginPathForHost(): string {
-  return LOGIN_PATH_BY_HOSTNAME[window.location.hostname] ?? DEFAULT_LOGIN_PATH;
+  return getConsoleLoginPath(resolveConsoleArea('/', window.location.hostname));
 }
 
 export function App() {
@@ -125,7 +119,7 @@ export function App() {
                     </Route>
                     <Route path="/subaccount" element={<Navigate to="/subaccount/buckets" />} />
 
-                    {/* <Route path="*" element={<NotFoundPage />} /> */}
+                    <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </Router>
               </SubAccountBrandingProvider>

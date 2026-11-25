@@ -51,5 +51,12 @@
     "page": "Página {{number}}",
     "previousPage": "Página anterior",
     "nextPage": "Página siguiente"
+  },
+  "notFound": {
+    "documentTitle": "Página no encontrada",
+    "title": "Página no encontrada",
+    "description": "La página que buscas no existe o puede que se haya movido.",
+    "goHome": "Volver al inicio",
+    "goToLogin": "Ir a iniciar sesión"
   }
 }
