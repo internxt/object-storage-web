@@ -51,5 +51,12 @@
     "page": "Page {{number}}",
     "previousPage": "Previous page",
     "nextPage": "Next page"
+  },
+  "notFound": {
+    "documentTitle": "Page not found",
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or may have been moved.",
+    "goHome": "Back to home",
+    "goToLogin": "Log in"
   }
 }
