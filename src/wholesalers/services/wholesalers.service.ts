@@ -45,6 +45,28 @@ async function getPartnerUsageSummary(id: string): Promise<WholesalerPartnerUsag
   return response.data;
 }
 
+export interface PartnerMonthlyUsageItem {
+  /** 'YYYY-MM' */
+  month: string;
+  activeStorageTb: number | null;
+  partial?: true;
+}
+
+export interface PartnerMonthlyUsageChunk {
+  items: PartnerMonthlyUsageItem[];
+  nextTo: string | null;
+}
+
+async function getPartnerMonthlyUsage(
+  id: string,
+  params?: { to?: string; months?: number },
+): Promise<PartnerMonthlyUsageChunk> {
+  const response = await wholesalersAxios.get<PartnerMonthlyUsageChunk>(`${API}/partners/${id}/usages/monthly`, {
+    params,
+  });
+  return response.data;
+}
+
 export interface WholesalerUsageSummary {
   totalPartners: number;
   activeStorageTb: number;
@@ -143,6 +165,7 @@ export const wholesalersService = {
   updatePartnerName,
   deletePartner,
   getPartnerUsageSummary,
+  getPartnerMonthlyUsage,
   getUsageSummary,
   createBillingPortalSession,
 };
