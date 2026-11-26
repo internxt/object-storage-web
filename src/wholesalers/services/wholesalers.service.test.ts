@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { wholesalersService } from './wholesalers.service';
 import { wholesalersAuthService } from './wholesalers-auth.service';
 import wholesalersAxios from '../core/wholesalers-axios';
+import { AxiosHeaders, AxiosRequestConfig } from 'axios';
 import { mockAdapter } from '../../testing/mock-axios-adapter';
 
 function parseBody(data: unknown): unknown {
@@ -50,12 +51,20 @@ describe('wholesalersService', () => {
     expect(parseBody(req.get()?.data)).toEqual({ name: 'New name' });
   });
 
-  test('when deletePartner is called, then it DELETEs the partner', async () => {
-    const req = captureRequest();
+  test('when deletePartner is called with a confirmation, then it sends a DELETE with the email as a query param and the code in the 2FA header, and no body', async () => {
+    let seenConfig: AxiosRequestConfig | undefined;
+    wholesalersAxios.defaults.adapter = mockAdapter((config) => {
+      seenConfig = config;
+      return { status: 204 };
+    });
 
-    await wholesalersService.deletePartner('p1');
+    await wholesalersService.deletePartner('p1', { email: 'owner@acme.com', code: '123456' });
 
-    expect(req.get()?.url).toBe('/wholesalers/partners/p1');
+    expect(seenConfig?.method).toBe('delete');
+    expect(seenConfig?.url).toBe('/wholesalers/partners/p1');
+    expect(seenConfig?.params).toEqual({ email: 'owner@acme.com' });
+    expect(AxiosHeaders.from(seenConfig?.headers as AxiosHeaders).get('X-Internxt-2FA-Code')).toBe('123456');
+    expect(seenConfig?.data).toBeUndefined();
   });
 
   test('when getPartnerUsageSummary is called, then it fetches a single partner usage summary', async () => {

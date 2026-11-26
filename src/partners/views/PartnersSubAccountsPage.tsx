@@ -137,18 +137,9 @@ export const PartnersSubAccountsPage = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    setPendingAccountId(id);
-    try {
-      await partnersService.deleteSubAccount(id);
-      notificationsService.success({ text: 'Account deleted' });
-      fetchSubAccounts();
-      fetchUsageSummary();
-    } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete account') });
-    } finally {
-      setPendingAccountId(null);
-    }
+  const handleDeleted = () => {
+    fetchSubAccounts();
+    fetchUsageSummary();
   };
 
   const handleChangePassword = async (id: string, newPassword: string) => {
@@ -398,7 +389,8 @@ export const PartnersSubAccountsPage = () => {
           partnerInfo={partnerInfo}
           onSuspend={handleSuspend}
           onReactivate={handleReactivate}
-          onDelete={handleDelete}
+          onDelete={partnersService.deleteSubAccount}
+          onDeleted={handleDeleted}
           onChangePassword={handleChangePassword}
           onRename={handleRename}
           isLoading={isLoading}

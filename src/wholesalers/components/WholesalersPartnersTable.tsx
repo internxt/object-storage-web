@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { WholesalerPartner } from '../services/wholesalers.service';
+import { DeleteConfirmation } from '../../utils/deleteConfirmation';
 import { PartnerActions } from './PartnerActions';
 import { useWholesalers } from '../context/useWholesalers';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -8,9 +9,9 @@ import { T } from '../../sub-account/tokens';
 interface Props {
   partners: WholesalerPartner[];
   isLoading: boolean;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, confirmation: DeleteConfirmation) => Promise<void>;
+  onDeleted: () => void;
   onRename: (id: string, name: string) => Promise<void>;
-  deletingPartnerId: string | null;
 }
 
 const formatDate = (date?: string | null) =>
@@ -32,7 +33,7 @@ const COLUMNS = [
   { header: '', align: 'right' as const },
 ];
 
-export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, onRename, deletingPartnerId }: Props) => {
+export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, onDeleted, onRename }: Props) => {
   const navigate = useNavigate();
   const { isViewer } = useWholesalers();
 
@@ -168,12 +169,7 @@ export const WholesalersPartnersTable = ({ partners, isLoading, onDelete, onRena
                   }}
                 >
                   {!isViewer && (
-                    <PartnerActions
-                      partner={p}
-                      isDeleting={deletingPartnerId === p.id}
-                      onDelete={onDelete}
-                      onRename={onRename}
-                    />
+                    <PartnerActions partner={p} onDelete={onDelete} onDeleted={onDeleted} onRename={onRename} />
                   )}
                 </td>
               </tr>

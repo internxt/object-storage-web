@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { DotsThree, Trash } from '@phosphor-icons/react';
-import { WholesalerPartner } from '../services/wholesalers.service';
-import { ConfirmActionModal } from '../../management/components/ConfirmActionModal';
+import { WholesalerPartner, wholesalersService } from '../services/wholesalers.service';
+import { DeleteConfirmationDialog } from '../../components/delete-confirmation/DeleteConfirmationDialog';
+import { DeleteConfirmation } from '../../utils/deleteConfirmation';
 import { EditClientNameModal } from '../../components/EditClientNameModal';
 import { T, shadow } from '../../sub-account/tokens';
 
@@ -19,14 +20,14 @@ const menuItemStyle: React.CSSProperties = {
 
 export const PartnerActions = ({
   partner,
-  isDeleting,
   onDelete,
+  onDeleted,
   onRename,
   variant = 'menu',
 }: {
   partner: WholesalerPartner;
-  isDeleting: boolean;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, confirmation: DeleteConfirmation) => Promise<void>;
+  onDeleted: () => void;
   onRename?: (id: string, name: string) => Promise<void>;
   variant?: 'menu' | 'button';
 }) => {
@@ -61,17 +62,16 @@ export const PartnerActions = ({
   };
 
   const confirmModal = (
-    <ConfirmActionModal
+    <DeleteConfirmationDialog
       isOpen={isConfirmOpen}
-      title="Delete partner permanently?"
+      entity="partner"
+      entityEmail={partner.email}
       description="This will permanently delete the partner, all its sub-accounts and their storage. This action cannot be undone."
-      confirmLabel="Delete"
-      variant="danger"
-      onConfirm={() => {
-        setIsConfirmOpen(false);
-        onDelete(partner.id);
-      }}
-      onCancel={() => setIsConfirmOpen(false)}
+      getTwoFactorStatus={wholesalersService.getTwoFactorStatus}
+      settingsPath="/wholesalers/settings"
+      onDelete={(confirmation) => onDelete(partner.id, confirmation)}
+      onDeleted={onDeleted}
+      onClose={() => setIsConfirmOpen(false)}
     />
   );
 
@@ -79,7 +79,6 @@ export const PartnerActions = ({
     return (
       <div onClick={stop}>
         <button
-          disabled={isDeleting}
           onClick={() => setIsConfirmOpen(true)}
           style={{
             display: 'inline-flex',
@@ -95,11 +94,10 @@ export const PartnerActions = ({
             background: T.white,
             border: `1px solid ${T.gray20}`,
             boxShadow: shadow.sm,
-            cursor: isDeleting ? 'not-allowed' : 'pointer',
-            opacity: isDeleting ? 0.4 : 1,
+            cursor: 'pointer',
           }}
           onMouseEnter={(e) => {
-            if (!isDeleting) e.currentTarget.style.background = '#fef2f2';
+            e.currentTarget.style.background = '#fef2f2';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = T.white;
@@ -117,7 +115,6 @@ export const PartnerActions = ({
     <div onClick={stop}>
       <button
         ref={triggerRef}
-        disabled={isDeleting}
         onClick={openMenu}
         aria-label={`Actions for partner ${partner.name ?? partner.email ?? partner.id}`}
         style={{
@@ -126,11 +123,9 @@ export const PartnerActions = ({
           color: T.gray50,
           background: 'transparent',
           border: 'none',
-          cursor: isDeleting ? 'not-allowed' : 'pointer',
-          opacity: isDeleting ? 0.4 : 1,
+          cursor: 'pointer',
         }}
         onMouseEnter={(e) => {
-          if (isDeleting) return;
           e.currentTarget.style.color = T.gray80;
           e.currentTarget.style.background = T.gray10;
         }}

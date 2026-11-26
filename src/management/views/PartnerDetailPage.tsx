@@ -168,7 +168,6 @@ export const PartnerDetailPage = () => {
   const [usageView, setUsageView] = useState<UsageView>('storage');
   const [usageLoading, setUsageLoading] = useState(true);
   const [usageFailed, setUsageFailed] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -222,19 +221,6 @@ export const PartnerDetailPage = () => {
     };
   }, [id, range]);
 
-  const handleDelete = async (partnerId: string) => {
-    setIsDeleting(true);
-    try {
-      await partnersService.deletePartner(partnerId);
-      notificationsService.success({ text: 'Partner deleted' });
-      navigate('/management/partners');
-    } catch (err) {
-      notificationsService.error({ text: apiErrorMessage(err, 'Failed to delete partner') });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   if (partnerNotFound) {
     navigate('/management/partners');
     return null;
@@ -283,7 +269,6 @@ export const PartnerDetailPage = () => {
         {isOwner && partner.status !== 'DELETED' && (
           <div className="flex-shrink-0">
             <DeleteEntityButton
-              title="Delete partner permanently?"
               description={
                 <>
                   This will permanently delete{' '}
@@ -296,8 +281,10 @@ export const PartnerDetailPage = () => {
                   be undone.
                 </>
               }
-              isDeleting={isDeleting}
-              onConfirm={() => handleDelete(partner.id)}
+              entity="partner"
+              entityEmail={partner.email}
+              onDelete={(confirmation) => partnersService.deletePartner(partner.id, confirmation)}
+              onDeleted={() => navigate('/management/partners')}
             />
           </div>
         )}

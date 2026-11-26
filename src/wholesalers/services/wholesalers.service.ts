@@ -1,4 +1,5 @@
 import wholesalersAxios from '../core/wholesalers-axios';
+import { DeleteConfirmation, deleteConfirmationRequestConfig } from '../../utils/deleteConfirmation';
 import { wholesalersAuthService } from './wholesalers-auth.service';
 
 const API = '/wholesalers';
@@ -30,8 +31,8 @@ async function updatePartnerName(id: string, name: string): Promise<void> {
   await wholesalersAxios.patch(`${API}/partners/${id}`, { name });
 }
 
-async function deletePartner(id: string): Promise<void> {
-  await wholesalersAxios.delete(`${API}/partners/${id}`);
+async function deletePartner(id: string, confirmation: DeleteConfirmation): Promise<void> {
+  await wholesalersAxios.delete(`${API}/partners/${id}`, deleteConfirmationRequestConfig(confirmation));
 }
 
 export interface WholesalerPartnerUsageSummary {
