@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { ArrowLeft, Database, HardDrives, Users } from '@phosphor-icons/react';
-import { wholesalersService, WholesalerPartner, WholesalerPartnerUsageSummary } from '../services/wholesalers.service';
+import { wholesalersService, WholesalerPartnerUsageSummary } from '../services/wholesalers.service';
+import { useWholesalerPartner } from '../hooks/useWholesalerPartner';
 import notificationsService from '../../services/notifications.service';
 import { apiErrorMessage } from '../../utils/apiError';
 import { PartnerActions } from '../components/PartnerActions';
@@ -23,34 +24,10 @@ const StatCard = ({ icon, value, label }: { icon: React.ReactNode; value: string
 
 export const WholesalersPartnerDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const location = useLocation();
   const navigate = useNavigate();
   const { isViewer } = useWholesalers();
-
-  const partner: WholesalerPartner | undefined = (location.state as { partner?: WholesalerPartner })?.partner;
-
-  const [usage, setUsage] = useState<WholesalerPartnerUsageSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const { partner, usage, loading, notFound, rename } = useWholesalerPartner(id);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    if (!id) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    setNotFound(false);
-    wholesalersService
-      .getPartnerUsageSummary(id)
-      .then(setUsage)
-      .catch((err) => {
-        if (err?.response?.status === 404) {
-          setNotFound(true);
-        } else {
-          notificationsService.error({ text: 'Failed to load partner usage' });
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [id]);
 
   const handleDelete = async (partnerId: string) => {
     setIsDeleting(true);
@@ -65,15 +42,13 @@ export const WholesalersPartnerDetailPage = () => {
     }
   };
 
-  const handleRename = async (current: WholesalerPartner, name: string) => {
-    await wholesalersService.updatePartnerName(current.id, name);
-    // The page reads the partner from router state, so the new name has to be written back there.
-    navigate(location.pathname, { replace: true, state: { partner: { ...current, name } } });
+  const statValue = (format: (u: WholesalerPartnerUsageSummary) => string) => {
+    if (loading) return '…';
+    return usage ? format(usage) : '—';
   };
 
   if (notFound) {
-    navigate('/wholesalers/partners');
-    return null;
+    return <Navigate to="/wholesalers/partners" replace />;
   }
 
   return (
@@ -90,15 +65,13 @@ export const WholesalersPartnerDetailPage = () => {
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-bold text-gray-900">{partner ? (partner.name ?? '—') : 'Partner'}</h1>
             {partner && !isViewer && partner.status !== 'DELETED' && (
-              <EditClientNameButton currentName={partner.name} onSubmit={(name) => handleRename(partner, name)} />
+              <EditClientNameButton currentName={partner.name} onSubmit={rename} />
             )}
             {partner && <StatusBadge status={partner.status} />}
           </div>
           {partner?.email && <p className="text-sm text-gray-400 mt-0.5">{partner.email}</p>}
         </div>
 
-        {/* The partner arrives in the router state and there is no endpoint to fetch it by id, so on a
-            fresh history entry (a pasted URL, a new tab) there is nothing to delete. */}
         {partner && !isViewer && (
           <div style={{ marginLeft: 'auto' }}>
             <PartnerActions partner={partner} isDeleting={isDeleting} onDelete={handleDelete} variant="button" />
@@ -109,17 +82,17 @@ export const WholesalersPartnerDetailPage = () => {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
           icon={<Database size={20} weight="duotone" className="text-indigo-600" />}
-          value={loading ? '…' : `${(usage?.activeStorageTb ?? 0).toFixed(4)} TB`}
+          value={statValue((u) => `${u.activeStorageTb.toFixed(4)} TB`)}
           label="Active Storage"
         />
         <StatCard
           icon={<HardDrives size={20} weight="duotone" className="text-indigo-600" />}
-          value={loading ? '…' : `${(usage?.deletedStorageTb ?? 0).toFixed(4)} TB`}
+          value={statValue((u) => `${u.deletedStorageTb.toFixed(4)} TB`)}
           label="Deleted Storage"
         />
         <StatCard
           icon={<Users size={20} weight="duotone" className="text-indigo-600" />}
-          value={loading ? '…' : String(usage?.totalSubAccounts ?? 0)}
+          value={statValue((u) => String(u.totalSubAccounts))}
           label="Sub-accounts"
         />
       </div>

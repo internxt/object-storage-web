@@ -22,6 +22,13 @@ async function getPartners(params: { page?: number; perPage?: number }): Promise
   return { partners: data.items ?? [], total: data.total ?? 0 };
 }
 
+export type WholesalerPartnerDetail = Pick<WholesalerPartner, 'id' | 'name' | 'email' | 'status' | 'createdAt'>;
+
+async function getPartner(id: string): Promise<WholesalerPartnerDetail> {
+  const response = await wholesalersAxios.get(`${API}/partners/${id}`);
+  return response.data;
+}
+
 async function createPartner(dto: { name: string; email: string; password: string }): Promise<void> {
   await wholesalersAxios.post(`${API}/partners`, dto);
 }
@@ -139,6 +146,7 @@ export const wholesalersService = {
   updateMemberTwoFactor,
   changePassword,
   getPartners,
+  getPartner,
   createPartner,
   updatePartnerName,
   deletePartner,
