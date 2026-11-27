@@ -58,6 +58,20 @@ describe('wholesalersService', () => {
     expect(req.get()?.url).toBe('/wholesalers/partners/p1');
   });
 
+  test('when getPartner is called, then it fetches that partner by id', async () => {
+    const partner = { id: 'p1', name: 'Acme', email: 'a@acme.com', status: 'ACTIVE', createdAt: '2026-01-01' };
+    let seenUrl: string | undefined;
+    wholesalersAxios.defaults.adapter = mockAdapter((config) => {
+      seenUrl = config.url;
+      return { status: 200, data: partner };
+    });
+
+    const result = await wholesalersService.getPartner('p1');
+
+    expect(seenUrl).toBe('/wholesalers/partners/p1');
+    expect(result).toEqual(partner);
+  });
+
   test('when getPartnerUsageSummary is called, then it fetches a single partner usage summary', async () => {
     wholesalersAxios.defaults.adapter = mockAdapter(() => ({
       status: 200,

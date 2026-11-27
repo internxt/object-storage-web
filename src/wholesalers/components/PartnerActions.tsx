@@ -24,7 +24,7 @@ export const PartnerActions = ({
   onRename,
   variant = 'menu',
 }: {
-  partner: WholesalerPartner;
+  partner: Pick<WholesalerPartner, 'id' | 'name' | 'email' | 'status'>;
   isDeleting: boolean;
   onDelete: (id: string) => void;
   onRename?: (id: string, name: string) => Promise<void>;
